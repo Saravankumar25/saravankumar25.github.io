@@ -24,7 +24,7 @@ export const projects: Project[] = [
     category: "Flagship",
     featured: true,
     status: "Active development at Varpitech",
-    stack: ["Next.js", "FastAPI", "PostgreSQL", "AWS"],
+    stack: ["Next.js", "FastAPI", "PostgreSQL"],
     problem:
       "Hiring spans many disconnected steps, and it is hard to explain why one candidate was chosen over another.",
     what:
@@ -203,11 +203,11 @@ export const projects: Project[] = [
     tagline: "Natural-language questions answered with guarded, read-only SQL.",
     category: "AI / ML",
     status: "Demo on a bundled dataset",
-    stack: ["FastAPI", "LangGraph", "sqlglot", "SQLite", "Chroma", "React", "Groq"],
+    stack: ["FastAPI", "LangGraph", "sqlglot", "SQLite", "MongoDB", "Chroma", "React", "Groq"],
     problem:
       "Generated SQL can parse and run yet answer the wrong question, join incorrectly, or touch data it should not.",
     what:
-      "Retrieves relevant schema and glossary context, generates SQL, validates it through a parser, executes read-only against a 15-table demo database, and returns a chart with the query and explanation.",
+      "A seven-stage LangGraph pipeline retrieves relevant schema and glossary context, generates SQL, validates it through a parser, executes read-only against a 15-table demo database, and returns a chart with the query and explanation.",
     flow: ["Question", "Schema + glossary retrieval", "SQL generation", "sqlglot AST validation", "Read-only execution", "Chart + explanation"],
     decisions: [
       "Queries are parsed into an AST and checked structurally rather than filtered by keywords.",
@@ -225,11 +225,11 @@ export const projects: Project[] = [
     tagline: "Forecasting 5G eMBB latency breaches five minutes ahead.",
     category: "Research",
     status: "Accepted conference paper",
-    stack: ["Python", "LSTM", "TCN", "Random Forest", "LightGBM", "Optuna", "SHAP"],
+    stack: ["Python", "PyTorch", "Scikit-learn", "LSTM", "TCN", "Random Forest", "Optuna", "SHAP", "Streamlit"],
     problem:
       "Threshold alarms fire after a delay has already degraded the user experience.",
     what:
-      "Compares sequence models (LSTM, dilated TCN) with an engineered-feature tabular baseline and a stacked ensemble. The target is whether average latency over the next ten 30-second intervals exceeds a threshold.",
+      "Compares sequence models (LSTM, dilated TCN) with an engineered-feature tabular baseline and a stacked ensemble. The target is whether average latency over the next ten 30-second intervals exceeds a threshold. A real-time predictor ingests live ping and iperf3 measurements from the lab network.",
     flow: ["Telemetry (30 s samples)", "Causal features: lags, rolling stats", "Chronological split", "LSTM · TCN · Random Forest", "Stacked ensemble + calibration"],
     decisions: [
       "Features are shifted before rolling aggregation and preprocessing is fit only on training data, to prevent leakage.",
@@ -237,7 +237,7 @@ export const projects: Project[] = [
       "Reported with PR-AUC and MCC because violations are the minority class.",
     ],
     limits: [
-      "The 201,600-record dataset is synthetic and calibrated to published benchmark distributions. There is no live carrier validation.",
+      "Tested on a controlled lab network, not on a live carrier deployment.",
       "Feature attribution is not causal proof.",
     ],
   },
@@ -268,7 +268,7 @@ export const projects: Project[] = [
     tagline: "Planner, searcher, critic and writer producing cited reports.",
     category: "AI / ML",
     status: "Prototype",
-    stack: ["LangGraph", "FastAPI", "React", "MongoDB", "Tavily", "Server-Sent Events"],
+    stack: ["FastAPI", "React", "MongoDB", "Tavily", "Groq", "Gemini", "NVIDIA NIM", "Server-Sent Events"],
     problem:
       "One search and one completion rarely answers a multi-part question, and fluent text hides which claims have a source.",
     what:
@@ -318,7 +318,7 @@ export const plain: Record<string, string> = {
   asksql:
     "Ask a question about a database in plain English and get a chart and an answer. A safety check makes sure the computer only reads data and never changes it.",
   "latency-prediction":
-    "Research on warning a mobile network a few minutes before it slows down, so operators can react earlier. It was tested on simulated data, not on a live network.",
+    "Research on warning a mobile network a few minutes before it slows down, so operators can react earlier. It was tested on a controlled lab network.",
   minillm:
     "A small learning project that rebuilds the basic parts of an AI chatbot from scratch (memory, tools, looking things up in documents) to show what really happens inside popular AI tools.",
   "research-engine":

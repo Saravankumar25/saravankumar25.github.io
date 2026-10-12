@@ -1,5 +1,5 @@
 import { config } from "../config";
-import { experience, skills } from "../data/site";
+import { certifications, education, experience, skills } from "../data/site";
 import { useTitle } from "../hooks";
 
 export default function Resume() {
@@ -32,6 +32,17 @@ export default function Resume() {
       <h2 className="section">Skills</h2>
       <ul className="plain">
         {skills.map((g) => <li key={g.group}><strong>{g.group}.</strong> {g.items.join(", ")}</li>)}
+      </ul>
+
+      <h2 className="section">Education</h2>
+      <div className="role">
+        <div className="role-head"><h3>{education.degree}</h3><span className="mono">{education.period}</span></div>
+        <p>{education.school}</p>
+      </div>
+
+      <h2 className="section">Certifications</h2>
+      <ul className="plain">
+        {certifications.map((c) => <li key={c.name}><strong>{c.name}.</strong> {c.year}</li>)}
       </ul>
     </section>
   );

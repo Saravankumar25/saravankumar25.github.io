@@ -1,21 +1,29 @@
 import {
-  siApple, siArangodb, siC, siSwift, siCelery, siCplusplus, siDjango, siDocker, siExpress, siFastapi, siFirebase, siFlask,
-  siGit, siGithubactions, siJavascript, siMongodb, siNestjs, siNeo4j, siNextdotjs, siNginx, siNodedotjs,
-  siPostgresql, siPython, siPytorch, siQdrant, siLanggraph, siReact, siReactquery, siRedis, siRedux, siRust,
-  siSqlite, siStreamlit, siTailwindcss, siTauri, siTerraform, siTypescript, siVite,
+  siAnthropic, siApple, siArangodb, siC, siCelery, siCplusplus, siCrewai, siDjango, siDocker, siExpress, siFastapi,
+  siFirebase, siFlask, siGit, siGithubactions, siGooglecloud, siGooglegemini, siJavascript, siLangchain, siLanggraph,
+  siMongodb, siNeo4j, siNextdotjs, siNginx, siNodedotjs, siPostgresql, siPython, siPytorch, siQdrant, siReact,
+  siRedis, siRust, siScikitlearn, siSqlite, siSwift, siTailwindcss, siTauri, siTerraform, siTypescript, siVercel,
+  siVite,
 } from "simple-icons";
+import awsUrl from "../assets/icons/aws.svg";
+import javaUrl from "../assets/icons/java.svg";
+import openaiUrl from "../assets/icons/openai.svg";
 import { skills } from "../data/site";
 
-// Official brand glyphs and colours (Simple Icons). Skills without one render as text.
+// Official brand glyphs and colours (Simple Icons). AWS, Java and OpenAI are not in that set, so their
+// logos are vendored as SVG files. Skills without a logo render as text.
 const icons: Record<string, { path: string; hex: string }> = {
-  Swift: siSwift, "Apple Foundation Models": siApple, Python: siPython, TypeScript: siTypescript, JavaScript: siJavascript, Rust: siRust, "C++": siCplusplus, C: siC,
-  React: siReact, "Next.js": siNextdotjs, Vite: siVite, "Tailwind CSS": siTailwindcss, "Redux Toolkit": siRedux,
-  "React Query": siReactquery, FastAPI: siFastapi, Django: siDjango, "Node.js": siNodedotjs, Express: siExpress,
-  NestJS: siNestjs, Flask: siFlask, Celery: siCelery, Tauri: siTauri, LangGraph: siLanggraph, PyTorch: siPytorch,
-  Streamlit: siStreamlit, PostgreSQL: siPostgresql, SQLite: siSqlite, MongoDB: siMongodb, Redis: siRedis,
-  Neo4j: siNeo4j, ArangoDB: siArangodb, Qdrant: siQdrant, Docker: siDocker, Terraform: siTerraform,
+  Python: siPython, JavaScript: siJavascript, TypeScript: siTypescript, Swift: siSwift, Rust: siRust, "C++": siCplusplus, C: siC,
+  React: siReact, "Next.js": siNextdotjs, Vite: siVite, "Tailwind CSS": siTailwindcss,
+  FastAPI: siFastapi, "Node.js": siNodedotjs, "Express.js": siExpress, Django: siDjango, Flask: siFlask, Celery: siCelery,
+  Tauri: siTauri, "Apple Foundation Models": siApple,
+  "Scikit-learn": siScikitlearn, PyTorch: siPytorch, LangChain: siLangchain, LangGraph: siLanggraph, CrewAI: siCrewai,
+  "Gemini API": siGooglegemini, "Anthropic API": siAnthropic,
+  PostgreSQL: siPostgresql, MongoDB: siMongodb, Redis: siRedis, SQLite: siSqlite, Neo4j: siNeo4j, ArangoDB: siArangodb, Qdrant: siQdrant,
+  "Google Cloud Platform": siGooglecloud, Vercel: siVercel, Docker: siDocker, Terraform: siTerraform,
   "GitHub Actions": siGithubactions, Firebase: siFirebase, Nginx: siNginx, Git: siGit,
 };
+const images: Record<string, string> = { AWS: awsUrl, Java: javaUrl, "OpenAI API": openaiUrl };
 
 // Brand colours that would vanish on the dark background fall back to off-white.
 const fillFor = (hex: string) => {
@@ -32,9 +40,11 @@ export default function Skills() {
           <ul className="chips">
             {g.items.map((name) => (
               <li key={name}>
-                {icons[name] && (
+                {icons[name] ? (
                   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style={{ fill: fillFor(icons[name].hex) }}><path d={icons[name].path} /></svg>
-                )}
+                ) : images[name] ? (
+                  <img src={images[name]} alt="" width="16" height="16" className={name === "AWS" ? "wide" : undefined} />
+                ) : null}
                 {name}
               </li>
             ))}

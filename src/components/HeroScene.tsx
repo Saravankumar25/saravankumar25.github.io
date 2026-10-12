@@ -154,7 +154,7 @@ export default function HeroScene() {
     neurons.frustumCulled = false;
     net.add(neurons);
 
-    let netScale = 1, netY = 0, halfW = 1, halfH = 1;
+    let netSX = 1, netSY = 1, netY = 0, halfW = 1, halfH = 1;
     const layout = () => {
       const w = el.clientWidth, h = el.clientHeight, aspect = w / h;
       renderer.setSize(w, h);
@@ -162,12 +162,16 @@ export default function HeroScene() {
       camera.updateProjectionMatrix();
       const tan = Math.tan((FOV * Math.PI) / 360);
       const fitW = (tan * CAM_Z * aspect * 2 * 0.9) / ((COUNTS.length - 1) * SPACING_X + 1);
-      const fitH = (0.4 * 2 * tan * CAM_Z) / (Math.max(...COUNTS) * SPACING_Y + 0.5);
-      const s = Math.min(1.1, fitW, fitH);
-      net.scale.setScalar(s);
-      net.position.y = (0.5 - NET_Y) * 2 * tan * CAM_Z;
-      netScale = s; netY = net.position.y; halfW = tan * CAM_Z * aspect; halfH = tan * CAM_Z;
-      nodeMat.uniforms.uUnit.value = (h / (2 * tan * CAM_Z)) * s; // px per world unit at the network
+      // On phones the scene is its own band above the text, so the network can use all of it and is
+      // stretched vertically (its width is the limit).
+      const narrow = w < 720;
+      const fitH = ((narrow ? 0.8 : 0.4) * 2 * tan * CAM_Z) / (Math.max(...COUNTS) * SPACING_Y + 0.5);
+      const sy = narrow ? Math.min(1.3, fitH) : Math.min(1.1, fitW, fitH);
+      const sx = narrow ? Math.min(1.1, fitW) : sy;
+      net.scale.set(sx, sy, 1);
+      net.position.y = (0.5 - (narrow ? 0.5 : NET_Y)) * 2 * tan * CAM_Z;
+      netSX = sx; netSY = sy; netY = net.position.y; halfW = tan * CAM_Z * aspect; halfH = tan * CAM_Z;
+      nodeMat.uniforms.uUnit.value = (h / (2 * tan * CAM_Z)) * Math.min(sx * 1.6, sy); // px per world unit at the network
       if (still) draw(0);
     };
 
@@ -177,7 +181,7 @@ export default function HeroScene() {
       const r = el.getBoundingClientRect();
       target.set(((ev.clientX - r.left) / r.width) * 2 - 1, -(((ev.clientY - r.top) / r.height) * 2 - 1));
       // Pointer position in the network's own coordinates (it is flat, so this is a plain mapping).
-      nodeMat.uniforms.uMouse.value.set((target.x * halfW) / netScale, (target.y * halfH - netY) / netScale);
+      nodeMat.uniforms.uMouse.value.set((target.x * halfW) / netSX, (target.y * halfH - netY) / netSY);
     };
     const leave = () => nodeMat.uniforms.uMouse.value.set(99, 99);
     if (!still) { area.addEventListener("pointermove", move); area.addEventListener("pointerleave", leave); }
