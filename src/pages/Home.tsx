@@ -1,15 +1,17 @@
 import { Link } from "react-router-dom";
-import Flow from "../components/Flow";
 import Reveal from "../components/Reveal";
 import { config } from "../config";
 import { plain, projects } from "../data/projects";
-import { capabilities, experience, papers } from "../data/site";
+import { experience, papers, skills } from "../data/site";
 import { useTitle } from "../hooks";
 import { getPosts } from "./Journal";
 
+// Order on the home page: the three headline products first, then a few more.
+const shown = ["vivekium", "openframe", "unfold", "aegis", "imagemismatch", "lpq-atlas"]
+  .map((s) => projects.find((p) => p.slug === s)!);
+
 export default function Home() {
   useTitle();
-  const featured = projects.filter((p) => p.featured);
   const posts = getPosts().slice(0, 3);
   return (
     <>
@@ -19,63 +21,68 @@ export default function Home() {
           <h1>{config.name}</h1>
           <p className="role-line">{config.title}</p>
           <p className="lead">
-            I build full-stack products, AI systems and developer tools, and I put the effort into the parts that make
-            them trustworthy: evidence-backed output, strict boundaries around what a model may do, and honest limits.
+            I build full-stack products, AI systems and developer tools. Right now I'm building the hiring platform
+            Vivekium at Varpitech, and OpenFrame, a desktop studio for filmmakers.
           </p>
           <div className="actions">
             <Link className="btn" to="/projects">View projects</Link>
             <a className="btn ghost" href={config.github} target="_blank" rel="noopener noreferrer">GitHub</a>
             <a className="btn ghost" href={config.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
           </div>
+          <Link to="/projects/openframe" className="spotlight">
+            <span className="mono">Currently building</span>
+            <strong>OpenFrame Studio</strong>
+            <span>{plain.openframe}</span>
+            <span className="more-inline">Read more →</span>
+          </Link>
         </div>
       </section>
 
       <section className="wrap block">
-        <h2 className="section">Featured work</h2>
-        {featured.map((p, i) => (
-          <Reveal key={p.slug} className="feature">
-            <div>
-              <span className="mono">0{i + 1} · {p.category}</span>
-              <h3>{p.name}</h3>
-              <p className="lead sm">{p.tagline}</p>
-              <p>{plain[p.slug]}</p>
-              <span className="tags">{p.stack.slice(0, 6).map((s) => <i key={s}>{s}</i>)}</span>
-              <Link className="more" to={`/projects/${p.slug}`}>Read the case study →</Link>
-            </div>
-            <Flow steps={p.flow} label={`${p.name} architecture flow`} />
-          </Reveal>
-        ))}
-        <Link className="more" to="/projects">All projects →</Link>
-      </section>
-
-      <section className="wrap block">
-        <h2 className="section">What I work on</h2>
-        <div className="grid3">
-          {capabilities.map((c) => (
-            <Reveal key={c.title} className="card">
-              <h3>{c.title}</h3>
-              <p>{c.text}</p>
+        <h2 className="section">Skills</h2>
+        <div className="skills">
+          {skills.map((g) => (
+            <Reveal key={g.group} className="skill-group">
+              <h3>{g.group}</h3>
+              <span className="tags">{g.items.map((i) => <i key={i}>{i}</i>)}</span>
             </Reveal>
           ))}
         </div>
       </section>
 
-      <section className="wrap block split">
-        <div>
-          <h2 className="section">Experience</h2>
-          {experience.map((e) => (
-            <div className="role" key={e.role + e.org}>
-              <div className="role-head"><h3>{e.role} · {e.org}</h3><span className="mono">{e.period}</span></div>
-              <p>{e.points[0]}</p>
-            </div>
+      <section className="wrap block">
+        <h2 className="section">Experience</h2>
+        {experience.map((e) => (
+          <div className="role" key={e.role + e.org}>
+            <div className="role-head"><h3>{e.role} · {e.org}</h3><span className="mono">{e.period}</span></div>
+            <ul>{e.points.map((p) => <li key={p}>{p}</li>)}</ul>
+          </div>
+        ))}
+      </section>
+
+      <section className="wrap block">
+        <h2 className="section">Projects</h2>
+        <ul className="cards">
+          {shown.map((p) => (
+            <li key={p.slug}>
+              <Reveal className="fill">
+                <Link to={`/projects/${p.slug}`} className="card link">
+                  <span className="mono">{p.category}</span>
+                  <h3>{p.name}</h3>
+                  <p>{plain[p.slug]}</p>
+                  <span className="tags">{p.stack.slice(0, 4).map((s) => <i key={s}>{s}</i>)}</span>
+                </Link>
+              </Reveal>
+            </li>
           ))}
-          <Link className="more" to="/about#experience">More about me →</Link>
-        </div>
-        <div>
-          <h2 className="section">Research</h2>
-          <p>{papers.length} accepted IEEE conference papers, with sessions scheduled for December 16 and 19, 2026.</p>
-          <Link className="more" to="/research">See the papers →</Link>
-        </div>
+        </ul>
+        <Link className="more" to="/projects">All projects →</Link>
+      </section>
+
+      <section className="wrap block">
+        <h2 className="section">Research</h2>
+        <p>{papers.length} papers accepted at IEEE conferences, on 5G network prediction and IoT systems.</p>
+        <Link className="more" to="/research">See the papers →</Link>
       </section>
 
       {posts.length > 0 && (

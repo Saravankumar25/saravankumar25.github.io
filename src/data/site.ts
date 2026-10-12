@@ -28,3 +28,12 @@ export const papers = [
   { title: "IoT Based Smart Onion Base Storage System with RFID and 5G Connectivity", note: "", slug: "" },
   { title: "IoT-Based Multi-Layer Urine Analysis for Early Kidney Disease Detection", note: "", slug: "" },
 ];
+
+export const skills: { group: string; items: string[] }[] = [
+  { group: "Languages", items: ["Python", "TypeScript", "JavaScript", "Rust", "C++", "C", "SQL"] },
+  { group: "Frontend", items: ["React", "Next.js", "Vite", "Tailwind CSS", "Redux Toolkit", "Zustand", "React Query"] },
+  { group: "Backend", items: ["FastAPI", "Django", "Node.js", "Express", "NestJS", "Flask", "Celery", "Tauri"] },
+  { group: "AI & ML", items: ["LangGraph", "RAG", "Hybrid retrieval", "LLM tool use", "CLIP", "LSTM / TCN", "Random Forest", "LightGBM", "XGBoost", "FAISS", "llama.cpp"] },
+  { group: "Data", items: ["PostgreSQL", "pgvector", "SQLite", "MongoDB", "Redis", "Neo4j", "ArangoDB", "Qdrant", "Chroma"] },
+  { group: "Cloud & tools", items: ["AWS (Lambda, Fargate, S3)", "Docker", "Terraform", "GitHub Actions", "Firebase", "Nginx", "Git"] },
+];

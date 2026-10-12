@@ -1,5 +1,5 @@
 import { config } from "../config";
-import { capabilities, experience } from "../data/site";
+import { experience, skills } from "../data/site";
 import { useTitle } from "../hooks";
 
 export default function Resume() {
@@ -31,7 +31,7 @@ export default function Resume() {
 
       <h2 className="section">Skills</h2>
       <ul className="plain">
-        {capabilities.map((c) => <li key={c.title}><strong>{c.title}.</strong> {c.text}</li>)}
+        {skills.map((g) => <li key={g.group}><strong>{g.group}.</strong> {g.items.join(", ")}</li>)}
       </ul>
     </section>
   );

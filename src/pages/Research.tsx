@@ -9,8 +9,7 @@ export default function Research() {
       <p className="eyebrow">Research</p>
       <h1>Accepted conference papers</h1>
       <p className="lead">
-        Three IEEE conference papers have been accepted. The conference sessions are scheduled for December 16 and
-        19, 2026, so none has been presented or published yet.
+        Three papers have been accepted at IEEE conferences. They have not been presented or published yet.
       </p>
       <ol className="papers">
         {papers.map((p) => (

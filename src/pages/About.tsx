@@ -1,4 +1,4 @@
-import { capabilities, experience } from "../data/site";
+import { capabilities, experience, skills } from "../data/site";
 import { useTitle } from "../hooks";
 
 export default function About() {
@@ -6,11 +6,10 @@ export default function About() {
   return (
     <section className="wrap page">
       <p className="eyebrow">About</p>
-      <h1>Product-focused engineering, from data model to interface.</h1>
+      <h1>I build products end to end.</h1>
       <p className="lead">
         I am a software engineer and the Founding Engineer at Varpitech. I design and build full-stack applications,
-        AI systems, agentic workflows, developer tools and applied machine-learning solutions, and I care most about
-        the parts that make them trustworthy: clear boundaries, verifiable output and honest limits.
+        AI systems, agentic workflows, developer tools and applied machine-learning solutions.
       </p>
 
       <h2 className="section">Capabilities</h2>
@@ -19,6 +18,16 @@ export default function About() {
           <div className="card" key={c.title}>
             <h3>{c.title}</h3>
             <p>{c.text}</p>
+          </div>
+        ))}
+      </div>
+
+      <h2 className="section">Skills</h2>
+      <div className="skills">
+        {skills.map((g) => (
+          <div className="skill-group" key={g.group}>
+            <h3>{g.group}</h3>
+            <span className="tags">{g.items.map((i) => <i key={i}>{i}</i>)}</span>
           </div>
         ))}
       </div>
