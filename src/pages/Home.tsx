@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import HeroGraphic from "../components/HeroGraphic";
 import Reveal from "../components/Reveal";
 import { config } from "../config";
 import { plain, projects } from "../data/projects";
@@ -18,16 +19,21 @@ export default function Home() {
     <>
       <section className="hero">
         <div className="wrap">
-          <h1>{config.name}</h1>
-          <p className="role-line">{config.title}</p>
-          <p className="lead">
-            I build full-stack products, AI systems and developer tools. Right now I'm building the hiring platform
-            Vivekium, and OpenFrame, a desktop studio for filmmakers.
-          </p>
-          <div className="actions">
-            <Link className="btn" to="/projects">View projects</Link>
-            <a className="btn ghost" href={config.github} target="_blank" rel="noopener noreferrer">GitHub</a>
-            <a className="btn ghost" href={config.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          <div className="hero-grid">
+            <div>
+              <h1>{config.name}</h1>
+              <p className="role-line">{config.title}</p>
+              <p className="lead">
+                I build full-stack products, AI systems and developer tools. Right now I'm building the hiring platform
+                Vivekium, and OpenFrame, a desktop studio for filmmakers.
+              </p>
+              <div className="actions">
+                <Link className="btn" to="/projects">View projects</Link>
+                <a className="btn ghost" href={config.github} target="_blank" rel="noopener noreferrer">GitHub</a>
+                <a className="btn ghost" href={config.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+              </div>
+            </div>
+            <HeroGraphic />
           </div>
           <Link to="/projects/openframe" className="spotlight">
             <span className="mono">Currently building</span>

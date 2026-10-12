@@ -7,7 +7,10 @@ export default function Contact() {
     <section className="wrap page">
       <p className="eyebrow">Contact</p>
       <h1>Get in touch</h1>
-      <p className="lead">The fastest way to reach me is LinkedIn. My code and projects are on GitHub.</p>
+      <p className="lead">
+        {config.email ? "Email is the quickest way to reach me. " : "The fastest way to reach me is LinkedIn. "}
+        My code and projects are on GitHub.
+      </p>
       <ul className="contact">
         <li><a href={config.linkedin} target="_blank" rel="noopener noreferrer"><span>LinkedIn</span>saravan-kumar-m-k</a></li>
         <li><a href={config.github} target="_blank" rel="noopener noreferrer"><span>GitHub</span>Saravankumar25</a></li>

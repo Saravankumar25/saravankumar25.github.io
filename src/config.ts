@@ -4,7 +4,7 @@ export const config = {
   github: "https://github.com/Saravankumar25",
   linkedin: "https://www.linkedin.com/in/saravan-kumar-m-k-35014a220/",
   /** Set a public contact address to show it on the Contact page; null hides it. */
-  email: null as string | null,
+  email: "saravankumar2503@gmail.com" as string | null,
   /** Set to "/resume.pdf" after adding public/resume.pdf; null falls back to LinkedIn. */
   resumeUrl: null as string | null,
 };
