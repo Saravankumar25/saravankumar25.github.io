@@ -1,5 +1,6 @@
+import { lazy, Suspense, type ReactNode } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { Link } from "react-router-dom";
-import HeroGraphic from "../components/HeroGraphic";
 import Reveal from "../components/Reveal";
 import { config } from "../config";
 import { plain, projects } from "../data/projects";
@@ -12,35 +13,78 @@ import { getPosts } from "./Journal";
 const shown = ["vivekium", "openframe", "unfold", "aegis", "imagemismatch", "lpq-atlas"]
   .map((s) => projects.find((p) => p.slug === s)!);
 
+// Three.js is a separate chunk so the page text paints before the WebGL scene loads.
+const HeroScene = lazy(() => import("../components/HeroScene"));
+
+const ease = [0.2, 0.7, 0.2, 1] as const;
+
+/** Name revealed letter by letter from behind a mask. */
+function SplitName({ text }: { text: string }) {
+  const still = useReducedMotion();
+  return (
+    <h1 aria-label={text}>
+      {[...text].map((c, i) => (
+        <span className="mask" aria-hidden="true" key={i}>
+          <motion.span
+            style={{ display: "inline-block" }}
+            initial={still ? false : { y: "115%" }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 + i * 0.04, ease }}
+          >
+            {c === " " ? " " : c}
+          </motion.span>
+        </span>
+      ))}
+    </h1>
+  );
+}
+
+function FadeUp({ children, delay }: { children: ReactNode; delay: number }) {
+  const still = useReducedMotion();
+  return (
+    <motion.div
+      initial={still ? false : { opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7, delay, ease }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
 export default function Home() {
   useTitle();
   const posts = getPosts().slice(0, 3);
   return (
     <>
       <section className="hero">
+        <Suspense fallback={null}><HeroScene /></Suspense>
         <div className="wrap">
-          <div className="hero-grid">
-            <div>
-              <h1>{config.name}</h1>
-              <p className="role-line">{config.title}</p>
+          <div className="hero-copy">
+            <SplitName text={config.name} />
+            <FadeUp delay={0.55}><p className="role-line">{config.title}</p></FadeUp>
+            <FadeUp delay={0.7}>
               <p className="lead">
                 I build full-stack products, AI systems and developer tools. Right now I'm building the hiring platform
                 Vivekium, and OpenFrame, a desktop studio for filmmakers.
               </p>
+            </FadeUp>
+            <FadeUp delay={0.85}>
               <div className="actions">
                 <Link className="btn" to="/projects">View projects</Link>
                 <a className="btn ghost" href={config.github} target="_blank" rel="noopener noreferrer">GitHub</a>
                 <a className="btn ghost" href={config.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
               </div>
-            </div>
-            <HeroGraphic />
+            </FadeUp>
+            <FadeUp delay={1.05}>
+              <Link to="/projects/openframe" className="spotlight">
+                <span className="mono">Currently building</span>
+                <strong>OpenFrame Studio</strong>
+                <span>{plain.openframe}</span>
+                <span className="more-inline">Read more →</span>
+              </Link>
+            </FadeUp>
           </div>
-          <Link to="/projects/openframe" className="spotlight">
-            <span className="mono">Currently building</span>
-            <strong>OpenFrame Studio</strong>
-            <span>{plain.openframe}</span>
-            <span className="more-inline">Read more →</span>
-          </Link>
         </div>
       </section>
 
