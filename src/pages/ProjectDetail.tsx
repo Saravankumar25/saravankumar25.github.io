@@ -1,6 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import Flow from "../components/Flow";
-import { bySlug } from "../data/projects";
+import { bySlug, plain } from "../data/projects";
 import { useTitle } from "../hooks";
 import NotFound from "./NotFound";
 
@@ -16,6 +16,7 @@ export default function ProjectDetail() {
       <p className="eyebrow">{p.category} · {p.status}</p>
       <h1>{p.name}</h1>
       <p className="lead">{p.tagline}</p>
+      <p className="plain-box"><strong>In plain words.</strong> {plain[p.slug]}</p>
 
       <div className="case-grid">
         <div>

@@ -4,7 +4,7 @@ import NotFound from "./NotFound";
 
 export interface Post { slug: string; title: string; date: string; summary: string; body: string }
 
-// Every .md in content/journal is bundled; drafts and _files are filtered out below.
+// Only content/journal is bundled (drafts live in content/drafts and never ship); draft: true is also filtered out.
 const files = import.meta.glob("../content/journal/*.md", { query: "?raw", import: "default", eager: true }) as Record<string, string>;
 
 export function getPosts(): Post[] {
@@ -60,14 +60,20 @@ export function JournalPost() {
 
   // Minimal renderer: "## " headings, ``` code fences, blank-line separated paragraphs.
   const out: JSX.Element[] = [];
-  let para: string[] = [], code: string[] | null = null;
-  const flush = () => { if (para.length) out.push(<p key={out.length}>{para.join(" ")}</p>); para = []; };
+  let para: string[] = [], code: string[] | null = null, list: string[] = [];
+  const flush = () => {
+    if (para.length) out.push(<p key={out.length}>{para.join(" ")}</p>);
+    if (list.length) out.push(<ul key={out.length}>{list.map((l) => <li key={l}>{l}</li>)}</ul>);
+    para = [];
+    list = [];
+  };
   for (const line of post.body.split("\n")) {
     if (line.startsWith("```")) {
       if (code) { out.push(<pre key={out.length}><code>{code.join("\n")}</code></pre>); code = null; }
       else { flush(); code = []; }
     } else if (code) code.push(line);
     else if (line.startsWith("## ")) { flush(); out.push(<h2 key={out.length}>{line.slice(3)}</h2>); }
+    else if (line.startsWith("- ")) list.push(line.slice(2));
     else if (!line.trim()) flush();
     else para.push(line);
   }

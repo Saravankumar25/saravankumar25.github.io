@@ -304,3 +304,31 @@ export const otherProjects: { name: string; line: string }[] = [
 export const categories: ("All" | Category)[] = ["All", "Flagship", "Developer tools", "AI / ML", "Systems", "Research"];
 
 export const bySlug = (slug?: string) => projects.find((p) => p.slug === slug);
+
+/** One short, jargon-free summary per project, shown first on each page. */
+export const plain: Record<string, string> = {
+  vivekium:
+    "A hiring tool for companies. A company describes the job, candidates take one consistent test, and the tool writes a report on each person. Every sentence in the report points to the evidence behind it, so a recruiter can check it instead of trusting a black box. People still make the hiring decisions.",
+  openframe:
+    "A film-planning app that lives entirely on your own computer. Your ideas, script and shooting schedule sit in one place, with no account and nothing sent online. An optional AI helper can suggest changes, but nothing changes until you press Apply.",
+  unfold:
+    "Paste a link to someone's code and get a readable guide to how it works, plus a chat where you can ask questions. Every answer points to the exact place in the code it came from, so you can check it yourself.",
+  aegis:
+    "When a website or app breaks, this tool helps engineers work out why. An AI gathers clues and suggests a fix, but it cannot act on its own: fixed safety rules and a human approval have to pass first.",
+  "lpq-atlas":
+    "An experiment in making route-finding (like a map app picking the shortest way) faster with machine learning, while making sure the answer is still always correct. It includes a visual tool that replays how each search worked.",
+  quakewatch:
+    "A website that tracks earthquakes from public data and keeps a record when the numbers are corrected later. It reports what happened; it does not predict earthquakes.",
+  imagemismatch:
+    "Upload a photo and a few captions and it tells you how well each caption matches the picture. It checks meaning only. It cannot tell you whether a caption is true.",
+  workify:
+    "A job-hunting helper. It finds jobs, writes a tailored resume and cover letter for each one, and can fill in application forms while you watch.",
+  asksql:
+    "Ask a question about a database in plain English and get a chart and an answer. A safety check makes sure the computer only reads data and never changes it.",
+  "latency-prediction":
+    "Research on warning a mobile network a few minutes before it slows down, so operators can react earlier. It was tested on simulated data, not on a live network.",
+  minillm:
+    "A small learning project that rebuilds the basic parts of an AI chatbot from scratch (memory, tools, looking things up in documents) to show what really happens inside popular AI tools.",
+  "research-engine":
+    "Ask a big question and a team of AI roles plans the research, searches the web, checks the sources and writes a report with references.",
+};

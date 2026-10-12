@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import Flow from "../components/Flow";
 import Reveal from "../components/Reveal";
 import { config } from "../config";
-import { projects } from "../data/projects";
+import { plain, projects } from "../data/projects";
 import { capabilities, experience, papers } from "../data/site";
 import { useTitle } from "../hooks";
 import { getPosts } from "./Journal";
@@ -38,7 +38,7 @@ export default function Home() {
               <span className="mono">0{i + 1} · {p.category}</span>
               <h3>{p.name}</h3>
               <p className="lead sm">{p.tagline}</p>
-              <p>{p.problem}</p>
+              <p>{plain[p.slug]}</p>
               <span className="tags">{p.stack.slice(0, 6).map((s) => <i key={s}>{s}</i>)}</span>
               <Link className="more" to={`/projects/${p.slug}`}>Read the case study →</Link>
             </div>
