@@ -26,11 +26,6 @@ export const education = {
   period: "2022 – 2026",
 };
 
-export const certifications = [
-  { name: "IBM AI Engineering Professional Certificate", year: "2024" },
-  { name: "Full-Stack Web Development Bootcamp (Udemy)", year: "2023" },
-];
-
 export const papers = [
   {
     title: "Proactive Latency Violation Prediction in 5G eMBB Networks: A Comparative Study of Sequential Deep Learning and Ensemble Methods",

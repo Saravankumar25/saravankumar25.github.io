@@ -1,5 +1,5 @@
 import Skills from "../components/Skills";
-import { capabilities, certifications, education, experience } from "../data/site";
+import { capabilities, education, experience } from "../data/site";
 import { useTitle } from "../hooks";
 
 export default function About() {
@@ -42,11 +42,6 @@ export default function About() {
         <div className="role-head"><h3>{education.degree}</h3><span className="mono">{education.period}</span></div>
         <p>{education.school}</p>
       </div>
-
-      <h2 className="section">Certifications</h2>
-      <ul className="plain">
-        {certifications.map((c) => <li key={c.name}><strong>{c.name}.</strong> {c.year}</li>)}
-      </ul>
     </section>
   );
 }
