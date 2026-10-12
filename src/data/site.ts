@@ -13,18 +13,9 @@ export const experience = [
     org: "Varpitech",
     period: "Current",
     points: [
-      "Building Vivekium (ReadyPick), an AI-assisted hiring platform.",
-      "Works across the stack: web workspaces, APIs and AI workflows.",
-    ],
-  },
-  {
-    role: "AI Engineer Intern",
-    org: "Hanulisa Technologies LLP",
-    period: "March 2026 – July 2026",
-    points: [
+      "Building Vivekium (ReadyPick), an AI-assisted hiring platform, across the stack: web workspaces, APIs and AI workflows.",
       "Built AI agent workflows for resume parsing, candidate matching and assessments on a multi-tenant recruitment platform.",
-      "Built the FastAPI backend behind them, including multi-provider LLM routing with failover.",
-      "Deployed the platform on Google Cloud.",
+      "Built the FastAPI backend behind them, including multi-provider LLM routing with failover, and deployed it on Google Cloud.",
     ],
   },
 ];
