@@ -20,51 +20,43 @@ export const projects: Project[] = [
   {
     slug: "vivekium",
     name: "ReadyPick / Vivekium",
-    tagline: "Multi-tenant AI hiring platform where every report traces back to evidence.",
+    tagline: "AI-assisted hiring platform for companies.",
     category: "Flagship",
     featured: true,
     status: "Active development at Varpitech",
-    stack: ["Next.js", "FastAPI", "PostgreSQL + pgvector", "Row-level security", "Redis", "S3", "AWS Lambda / Fargate", "Firebase Auth"],
+    stack: ["Next.js", "FastAPI", "PostgreSQL", "AWS"],
     problem:
-      "Hiring tools usually treat recruiting as disconnected steps. Candidates end up scored against subtly different readings of the same job, and a final recommendation has no defensible chain back to evidence.",
+      "Hiring spans many disconnected steps, and it is hard to explain why one candidate was chosen over another.",
     what:
-      "Vivekium organises hiring around the job. A company profile and job description feed a skills generator; staff edit and save the skills; candidates are matched, invited to a single proctored assessment, graded per skill, and summarised in a structured, cited report. It runs four separate workspaces: provider, company, candidate and business development.",
-    flow: ["Job + skills (human-edited)", "Frozen assessment contract", "Resume match → recruiter shortlist", "Proctored assessment", "Per-skill grading", "Cited PRISM report"],
+      "A platform that connects hiring from defining the role through to evaluating candidates, using AI to assist the team while keeping a clear trail behind each result.",
+    flow: [],
     decisions: [
-      "Skills and job grade are locked into a snapshot once assessments begin, so every candidate is scored against the same contract.",
-      "Reports have a fixed structure and strict citations. A claim with no supporting evidence is withheld for human review instead of being passed through.",
-      "Tenant isolation is enforced in PostgreSQL row-level security as well as in the API, so a missing filter in application code is not a data leak.",
-      "Slow model, parsing and transcription work runs outside the request cycle on Lambda or on-demand Fargate, with durable job records and idempotent dispatch.",
+      "AI assists; people make the hiring decisions.",
+      "Results are designed to be explainable and checkable.",
     ],
     limits: [
-      "AI matching assists recruiters; people choose who advances. No fairness or bias-free claim is made.",
-      "Customer-facing ratings are qualitative; numeric scores stay internal.",
-      "Customer data, reports and internal diagrams are not published here.",
+      "This is an ongoing commercial product, so its internals are intentionally not published here.",
     ],
   },
   {
     slug: "openframe",
     name: "OpenFrame Studio",
-    tagline: "Local-first desktop studio that takes a film from idea to shoot day.",
+    tagline: "A studio for filmmakers, from first idea to shoot day.",
     category: "Flagship",
     featured: true,
-    status: "Pre-release, under active development",
-    stack: ["Tauri v2", "Rust", "SQLite (FTS5, sqlite-vec)", "React", "TypeScript", "llama.cpp"],
+    status: "In active development",
+    stack: ["Tauri", "Rust", "React", "TypeScript", "SwiftUI", "Swift", "Apple Foundation Models"],
     problem:
-      "Filmmakers move between separate tools for ideas, story structure, screenplay, breakdown and scheduling, usually with cloud accounts that own the data.",
+      "Filmmakers move between separate tools for ideas, story, script and scheduling.",
     what:
-      "One desktop project for the whole pipeline: Idea Vault, Story Board, screenplay, breakdown and production catalog, shooting schedule and call sheets. Each project is an ordinary .openframe folder on disk holding a SQLite database, a JSON manifest and media. There is no account, no telemetry and no network listener.",
-    flow: ["React + TypeScript UI (no fs / network)", "of_invoke: one allow-listed IPC entry", "Rust core + SQLite project folder", "FTS5 + vector + graph retrieval", "Offline AI sidecars on 127.0.0.1"],
+      "One local-first studio for the whole journey, with an AI assistant that stays under the creator's control. It is being built natively for Windows (Tauri, Rust, React, TypeScript) and for Mac (SwiftUI, Swift and Apple Intelligence Foundation Models).",
+    flow: [],
     decisions: [
-      "The webview has no filesystem, shell or HTTP access. Every read and write passes through a single allow-listed Rust command, with paths resolved in Rust.",
-      "Every change is a committed SQLite transaction, giving continuous autosave, crash recovery, and undo/redo that refuses to overwrite later work.",
-      "Schema migrations take a verified backup first, run atomically, and refuse projects created by newer versions.",
-      "Offline AI (Gemma 3 1B plus a local embedding model) is optional and never edits a project directly. Output is a reviewable change set that applies only when the user clicks Apply.",
+      "Local-first: a project lives with its creator.",
+      "AI suggests; the creator decides.",
     ],
     limits: [
-      "Project lifecycle, autosave, recovery, undo, files, search engine and Offline AI are implemented. Story Board, screenplay, breakdown, scheduling and import/export are still in development.",
-      "No installer has been released and no licence has been selected.",
-      "AI retrieval quality has no evaluation set yet, and performance on minimum-spec hardware is unmeasured.",
+      "This is an ongoing commercial product, so its internals are intentionally not published here.",
     ],
   },
   {
@@ -308,9 +300,9 @@ export const bySlug = (slug?: string) => projects.find((p) => p.slug === slug);
 /** One short, jargon-free summary per project, shown first on each page. */
 export const plain: Record<string, string> = {
   vivekium:
-    "A hiring tool for companies. A company describes the job, candidates take one consistent test, and the tool writes a report on each person. Every sentence in the report points to the evidence behind it, so a recruiter can check it instead of trusting a black box. People still make the hiring decisions.",
+    "An AI-assisted hiring platform for companies. It helps teams run hiring end to end, while people stay in charge of the decisions.",
   openframe:
-    "A film-planning app that lives entirely on your own computer. Your ideas, script and shooting schedule sit in one place, with no account and nothing sent online. An optional AI helper can suggest changes, but nothing changes until you press Apply.",
+    "A studio for filmmakers that takes a project from first idea to shoot day, with AI assistance that stays under the creator's control. Built for Windows and Mac.",
   unfold:
     "Paste a link to someone's code and get a readable guide to how it works, plus a chat where you can ask questions. Every answer points to the exact place in the code it came from, so you can check it yourself.",
   aegis:

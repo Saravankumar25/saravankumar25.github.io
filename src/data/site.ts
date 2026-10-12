@@ -13,8 +13,8 @@ export const experience = [
     org: "Varpitech",
     period: "Current",
     points: [
-      "Building Vivekium (ReadyPick), a multi-tenant AI hiring platform with job-centred workflows, proctored assessments and evidence-cited reports.",
-      "Works across the stack: tenant-aware APIs, PostgreSQL row-level security, background AI workers and the web workspaces.",
+      "Building Vivekium (ReadyPick), an AI-assisted hiring platform.",
+      "Works across the stack: web workspaces, APIs and AI workflows.",
     ],
   },
 ];
@@ -30,10 +30,10 @@ export const papers = [
 ];
 
 export const skills: { group: string; items: string[] }[] = [
-  { group: "Languages", items: ["Python", "TypeScript", "JavaScript", "Rust", "C++", "C", "SQL"] },
-  { group: "Frontend", items: ["React", "Next.js", "Vite", "Tailwind CSS", "Redux Toolkit", "Zustand", "React Query"] },
+  { group: "Languages", items: ["Python", "TypeScript", "JavaScript", "Rust", "Swift", "C++", "C", "SQL"] },
+  { group: "Frontend", items: ["React", "Next.js", "SwiftUI", "Vite", "Tailwind CSS", "Redux Toolkit", "Zustand", "React Query"] },
   { group: "Backend", items: ["FastAPI", "Django", "Node.js", "Express", "NestJS", "Flask", "Celery", "Tauri"] },
-  { group: "AI & ML", items: ["LangGraph", "RAG", "Hybrid retrieval", "LLM tool use", "PyTorch", "CLIP", "LSTM / TCN", "Random Forest", "LightGBM", "XGBoost", "FAISS", "llama.cpp"] },
+  { group: "AI & ML", items: ["LangGraph", "RAG", "Hybrid retrieval", "LLM tool use", "Apple Foundation Models", "PyTorch", "CLIP", "LSTM / TCN", "Random Forest", "LightGBM", "XGBoost", "FAISS", "llama.cpp"] },
   { group: "Data", items: ["PostgreSQL", "pgvector", "SQLite", "MongoDB", "Redis", "Neo4j", "ArangoDB", "Qdrant", "Chroma"] },
   { group: "Cloud & tools", items: ["AWS (Lambda, Fargate, S3)", "Docker", "Terraform", "GitHub Actions", "Firebase", "Nginx", "Git"] },
 ];

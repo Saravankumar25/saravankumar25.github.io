@@ -1,5 +1,5 @@
 import {
-  siArangodb, siC, siCelery, siCplusplus, siDjango, siDocker, siExpress, siFastapi, siFirebase, siFlask,
+  siApple, siArangodb, siC, siSwift, siCelery, siCplusplus, siDjango, siDocker, siExpress, siFastapi, siFirebase, siFlask,
   siGit, siGithubactions, siJavascript, siMongodb, siNestjs, siNeo4j, siNextdotjs, siNginx, siNodedotjs,
   siPostgresql, siPython, siPytorch, siQdrant, siLanggraph, siReact, siReactquery, siRedis, siRedux, siRust,
   siSqlite, siStreamlit, siTailwindcss, siTauri, siTerraform, siTypescript, siVite,
@@ -8,7 +8,7 @@ import { skills } from "../data/site";
 
 // Official brand glyphs (Simple Icons), drawn in the site's monochrome. Skills without one render as text.
 const icons: Record<string, { path: string }> = {
-  Python: siPython, TypeScript: siTypescript, JavaScript: siJavascript, Rust: siRust, "C++": siCplusplus, C: siC,
+  Swift: siSwift, "Apple Foundation Models": siApple, Python: siPython, TypeScript: siTypescript, JavaScript: siJavascript, Rust: siRust, "C++": siCplusplus, C: siC,
   React: siReact, "Next.js": siNextdotjs, Vite: siVite, "Tailwind CSS": siTailwindcss, "Redux Toolkit": siRedux,
   "React Query": siReactquery, FastAPI: siFastapi, Django: siDjango, "Node.js": siNodedotjs, Express: siExpress,
   NestJS: siNestjs, Flask: siFlask, Celery: siCelery, Tauri: siTauri, LangGraph: siLanggraph, PyTorch: siPytorch,

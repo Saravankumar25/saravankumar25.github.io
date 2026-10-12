@@ -30,8 +30,12 @@ export default function ProjectDetail() {
           <ul>{p.limits.map((d) => <li key={d}>{d}</li>)}</ul>
         </div>
         <aside>
-          <h2>Architecture</h2>
-          <Flow steps={p.flow} label={`${p.name} architecture flow`} />
+          {p.flow.length > 0 && (
+            <>
+              <h2>Architecture</h2>
+              <Flow steps={p.flow} label={`${p.name} architecture flow`} />
+            </>
+          )}
           <h2>Stack</h2>
           <span className="tags">{p.stack.map((s) => <i key={s}>{s}</i>)}</span>
         </aside>
