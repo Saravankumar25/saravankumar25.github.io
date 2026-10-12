@@ -1,104 +1,125 @@
 import { useEffect, useRef } from "react";
 import {
-  AdditiveBlending, BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera,
-  PlaneGeometry, Points, Scene, ShaderMaterial, SphereGeometry, Vector2, WebGLRenderer,
+  AdditiveBlending, BufferAttribute, BufferGeometry, CanvasTexture, DoubleSide, Group, LineBasicMaterial,
+  LineSegments, Mesh, MeshBasicMaterial, PerspectiveCamera, PlaneGeometry, Points, Scene, ShaderMaterial,
+  Sprite, SpriteMaterial, SRGBColorSpace, Vector2, WebGLRenderer,
 } from "three";
 
-// A galaxy falling into a black hole. ~100k points stream inward along spiral arms; a second copy of
-// the inner disc is bent into a halo around the event horizon (the lensing look). All motion is in
-// the vertex shader. The loop pauses off-screen; reduced motion renders one still frame.
+// An AI pipeline in 3D. Data enters on the left, passes through Retrieval, Model, Agent and Checks,
+// and leaves as a Product. Glowing packets are the data; each layer lights up as a wave reaches it.
+// Real code floats behind it. Everything is deterministic and left-right symmetric.
 
-const RMIN = 0.2, RMAX = 4.6;
+const FOV = 38, CAM_Z = 11, NET_Y = 0.3; // NET_Y: network centre as a fraction of height from the top
+const LAYERS = ["Data", "Retrieval", "Model", "Agent", "Checks", "Product"];
+const COUNTS = [3, 5, 7, 7, 5, 3];
 
-const diskVertex = /* glsl */ `
-  attribute vec4 aSeed;            // x phase, y arm angle, z angular scatter, w height scatter
-  uniform float uTime, uPR, uLens;
-  varying float vA;
-  varying float vCore;
-  varying float vTint;
-  void main() {
-    float u = fract(aSeed.x + uTime * 0.03);
-    float r = ${RMIN.toFixed(2)} + (${(RMAX - RMIN).toFixed(2)}) * pow(1.0 - u, 1.9);
-    float core = exp(-r * 0.75);
-    float theta = aSeed.y - 2.7 * log(r * 0.9 + 0.2) + uTime * 0.05 + aSeed.z * (0.09 + 0.09 * r);
-    float h = aSeed.w * (0.025 + 0.16 * exp(-r * 0.9));
-    vec3 p;
-    if (uLens > 0.5) {
-      // Lensed image: the disc folded up into the viewing plane, wrapping the hole.
-      float rl = 0.3 + r * 0.22;
-      p = vec3(cos(theta) * rl, sin(theta) * rl * 0.92, h * 1.5);
-    } else {
-      p = vec3(cos(theta) * r, h, sin(theta) * r);
-    }
-    vec4 mv = modelViewMatrix * vec4(p, 1.0);
-    gl_Position = projectionMatrix * mv;
-    float rnd = fract(aSeed.x * 97.31);
-    float lensFade = uLens > 0.5 ? smoothstep(2.6, 0.4, r) : 1.0;
-    vA = (0.16 + 0.85 * core) * smoothstep(${RMIN.toFixed(2)}, ${(RMIN + 0.15).toFixed(2)}, r)
-       * smoothstep(0.0, 0.06, u) * lensFade * (uLens > 0.5 ? 0.9 : 1.0);
-    vCore = core;
-    vTint = aSeed.y / 6.2832 + 0.25 * sin(r * 1.3);
-    gl_PointSize = (0.7 + 1.9 * rnd) * uPR * (16.0 / -mv.z) * (0.7 + 0.9 * core);
-  }
-`;
-const diskFragment = /* glsl */ `
-  varying float vA;
-  varying float vCore;
-  varying float vTint;
-  void main() {
-    float d = length(gl_PointCoord - 0.5);
-    float a = exp(-d * d * 22.0) * vA;
-    if (a < 0.004) discard;
-    vec3 blue = vec3(0.16, 0.38, 1.0), violet = vec3(0.62, 0.26, 1.0), cyan = vec3(0.45, 0.92, 1.0);
-    vec3 arm = mix(blue, violet, smoothstep(0.1, 0.9, fract(vTint)));
-    vec3 c = mix(arm, cyan, smoothstep(0.15, 0.55, vCore));
-    c = mix(c, vec3(1.0), smoothstep(0.55, 0.95, vCore));
-    gl_FragColor = vec4(c, a);
-  }
-`;
+type Tok = [string, string];
+const K = "#b48cff", F = "#6fa8ff", S = "#5fe3ff", C = "#6b7390", P = "#d7dcff";
+const CODE: { file: string; lines: Tok[][] }[] = [
+  {
+    file: "agent.py",
+    lines: [
+      [["for ", K], ["step ", P], ["in ", K], ["range", F], ["(MAX_STEPS):", P]],
+      [["    action = ", P], ["model", F], [".plan(state)", P]],
+      [["    if not ", K], ["policy", F], [".allows(action):", P]],
+      [["        break  ", K], ["# deterministic gate", C]],
+      [["    state = ", P], ["tools", F], [".run(action)", P]],
+    ],
+  },
+  {
+    file: "ask.ts",
+    lines: [
+      [["const ", K], ["answer = ", P], ["await ", K], ["ask", F], ["(question, {", P]],
+      [["  retrieve: ", P], ['"hybrid"', S], [",", P]],
+      [["  cite: ", P], ["true", K], [",", P]],
+      [["});", P]],
+      [["// every claim has a source", C]],
+    ],
+  },
+];
 
-const starVertex = /* glsl */ `
-  attribute float aR;
+function codeTexture(file: string, lines: Tok[][]): CanvasTexture {
+  const w = 1024, h = 640, c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const g = c.getContext("2d")!;
+  g.fillStyle = "rgba(12,14,26,.9)";
+  g.strokeStyle = "rgba(130,150,255,.55)";
+  g.lineWidth = 3;
+  g.beginPath(); g.roundRect(6, 6, w - 12, h - 12, 28); g.fill(); g.stroke();
+  ["#5b6bff", "#9a6bff", "#4fd8ff"].forEach((col, i) => { g.fillStyle = col; g.beginPath(); g.arc(52 + i * 36, 54, 10, 0, 7); g.fill(); });
+  g.font = '500 28px "JetBrains Mono", ui-monospace, monospace';
+  g.fillStyle = C;
+  g.fillText(file, w - 52 - g.measureText(file).width, 62);
+  g.font = '500 38px "JetBrains Mono", ui-monospace, monospace';
+  lines.forEach((line, i) => {
+    let x = 52;
+    for (const [text, col] of line) { g.fillStyle = col; g.fillText(text, x, 150 + i * 80); x += g.measureText(text).width; }
+  });
+  const t = new CanvasTexture(c);
+  t.colorSpace = SRGBColorSpace;
+  return t;
+}
+
+function labelTexture(text: string): CanvasTexture {
+  const c = document.createElement("canvas");
+  c.width = 512; c.height = 128;
+  const g = c.getContext("2d")!;
+  g.font = '500 54px "JetBrains Mono", ui-monospace, monospace';
+  g.textAlign = "center"; g.textBaseline = "middle";
+  g.fillStyle = "#fff";
+  g.fillText(text.toUpperCase(), 256, 64);
+  const t = new CanvasTexture(c);
+  t.colorSpace = SRGBColorSpace;
+  return t;
+}
+
+const nodeVertex = /* glsl */ `
+  attribute float aL;
   uniform float uTime, uPR;
-  varying float vA;
-  varying float vH;
+  varying float vAct; varying float vL;
   void main() {
+    vAct = pow(0.5 + 0.5 * sin(uTime * 1.6 - aL * 0.95), 3.0);
+    vL = aL / 5.0;
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
     gl_Position = projectionMatrix * mv;
-    vH = fract(aR * 13.7);
-    vA = 0.25 + 0.55 * aR * (0.7 + 0.3 * sin(uTime * (0.6 + aR * 2.0) + aR * 40.0));
-    gl_PointSize = (0.6 + aR * 1.3) * uPR;
+    gl_PointSize = (26.0 + 20.0 * vAct) * uPR * (10.0 / -mv.z);
   }
 `;
-const starFragment = /* glsl */ `
-  varying float vA;
-  varying float vH;
+const nodeFragment = /* glsl */ `
+  varying float vAct; varying float vL;
   void main() {
     float d = length(gl_PointCoord - 0.5);
-    float a = smoothstep(0.5, 0.0, d) * vA;
-    gl_FragColor = vec4(mix(vec3(0.7, 0.82, 1.0), vec3(0.88, 0.7, 1.0), vH), a);
+    float halo = exp(-d * d * 16.0) * (0.35 + 0.65 * vAct);
+    float core = exp(-d * d * 150.0);
+    vec3 c = mix(vec3(0.25, 0.5, 1.0), vec3(0.7, 0.45, 1.0), smoothstep(0.0, 0.55, vL));
+    c = mix(c, vec3(0.4, 0.95, 1.0), smoothstep(0.55, 1.0, vL));
+    gl_FragColor = vec4(c * (halo + 0.4) + vec3(core), halo * 0.9 + core);
   }
 `;
-
-// Photon ring and glow, drawn on a camera-facing quad.
-const ringFragment = /* glsl */ `
-  varying vec2 vUv;
-  uniform float uTime;
+const packetVertex = /* glsl */ `
+  attribute vec3 aB;
+  attribute vec2 aP;
+  uniform float uTime, uPR;
+  varying float vA; varying vec3 vC;
   void main() {
-    vec2 p = vUv * 2.0 - 1.0;
-    float d = length(p);
-    float ang = atan(p.y, p.x);
-    float ring = exp(-pow((d - 0.2) / 0.011, 2.0));
-    float halo = exp(-pow((d - 0.2) / 0.06, 2.0)) * 0.32;
-    float glow = exp(-d * 3.2) * 0.2;
-    float beam = 0.85 + 0.15 * sin(uTime * 0.6);
-    float a = (ring * 0.95 * beam + halo * beam + glow) * smoothstep(1.0, 0.7, d);
-    vec3 col = mix(vec3(0.4, 0.45, 1.0), vec3(0.85, 0.95, 1.0), clamp(ring * 1.4 + halo * 2.0, 0.0, 1.0));
-    gl_FragColor = vec4(col, a);
+    float f = fract(aP.x + uTime * aP.y);
+    vec3 p = mix(position, aB, f);
+    vec4 mv = modelViewMatrix * vec4(p, 1.0);
+    gl_Position = projectionMatrix * mv;
+    vA = sin(f * 3.14159);
+    gl_PointSize = 6.0 * uPR * (10.0 / -mv.z) * (0.6 + 0.4 * vA);
+    vC = mix(vec3(0.25, 0.5, 1.0), vec3(0.75, 0.45, 1.0), smoothstep(-4.0, 4.0, p.x));
+    vC = mix(vC, vec3(0.6, 1.0, 1.0), pow(vA, 8.0));
   }
 `;
-
-const gaussian = () => (Math.random() + Math.random() + Math.random() - 1.5) / 0.75;
+const packetFragment = /* glsl */ `
+  varying float vA; varying vec3 vC;
+  void main() {
+    float d = length(gl_PointCoord - 0.5);
+    float a = exp(-d * d * 20.0) * vA;
+    gl_FragColor = vec4(vC, a);
+  }
+`;
 
 export default function HeroScene() {
   const host = useRef<HTMLDivElement>(null);
@@ -108,130 +129,166 @@ export default function HeroScene() {
     if (!el) return;
     let renderer: WebGLRenderer;
     try {
-      renderer = new WebGLRenderer({ alpha: true, antialias: false, powerPreference: "high-performance" });
+      renderer = new WebGLRenderer({ alpha: true, antialias: true, powerPreference: "high-performance" });
     } catch {
-      return; // no WebGL: the hero simply shows without the scene
+      return; // no WebGL: the hero keeps its text without the scene
     }
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const small = window.innerWidth < 768;
-    const count = small ? 40000 : 110000;
-    const pr = Math.min(window.devicePixelRatio || 1, small ? 1.5 : 2);
+    const pr = Math.min(window.devicePixelRatio || 1, 2);
     renderer.setPixelRatio(pr);
     el.appendChild(renderer.domElement);
 
     const scene = new Scene();
-    const camera = new PerspectiveCamera(42, 1, 0.1, 100);
+    const camera = new PerspectiveCamera(FOV, 1, 0.1, 100);
+    camera.position.z = CAM_Z;
 
-    // Disc particles
-    const arms = 3;
-    const seed = new Float32Array(count * 4);
-    const pos = new Float32Array(count * 3); // required by three; real position is computed in the shader
-    for (let i = 0; i < count; i++) {
-      seed[i * 4] = Math.random();
-      seed[i * 4 + 1] = Math.floor(Math.random() * arms) * ((Math.PI * 2) / arms);
-      seed[i * 4 + 2] = gaussian();
-      seed[i * 4 + 3] = gaussian();
-    }
-    const geo = new BufferGeometry();
-    geo.setAttribute("position", new BufferAttribute(pos, 3));
-    geo.setAttribute("aSeed", new BufferAttribute(seed, 4));
-    geo.boundingSphere = null;
-
-    const makeDisk = (lens: number) => new ShaderMaterial({
-      uniforms: { uTime: { value: 0 }, uPR: { value: pr }, uLens: { value: lens } },
-      vertexShader: diskVertex, fragmentShader: diskFragment, transparent: true, depthWrite: false,
-      blending: AdditiveBlending,
+    // Network geometry: unit spacing in x, scaled per viewport in layout().
+    const net = new Group();
+    scene.add(net);
+    const nodes: [number, number, number][] = [], nodeLayer: number[] = [], layerStart: number[] = [];
+    COUNTS.forEach((n, l) => {
+      layerStart.push(nodes.length);
+      for (let i = 0; i < n; i++) {
+        nodes.push([l - (COUNTS.length - 1) / 2, (i - (n - 1) / 2) * 0.46, Math.sin(i * 2.4 + l) * 0.45]);
+        nodeLayer.push(l);
+      }
     });
-    const diskMat = makeDisk(0), lensMat = makeDisk(1);
+    layerStart.push(nodes.length);
 
-    const hole = new Group();
-    const disk = new Points(geo, diskMat);
-    disk.frustumCulled = false;
-    const lens = new Points(geo, lensMat);
-    lens.frustumCulled = false;
-    const tilt = new Group();
-    tilt.add(disk);
-    hole.add(tilt, lens);
-    scene.add(hole);
+    const edgeA: number[] = [], edgeB: number[] = [], seg: number[] = [];
+    for (let l = 0; l < COUNTS.length - 1; l++)
+      for (let i = layerStart[l]; i < layerStart[l + 1]; i++)
+        for (let j = layerStart[l + 1]; j < layerStart[l + 2]; j++) {
+          edgeA.push(...nodes[i]); edgeB.push(...nodes[j]); seg.push(...nodes[i], ...nodes[j]);
+        }
+    const edges = edgeA.length / 3;
 
-    // Event horizon: an opaque black sphere that also hides particles passing behind it.
-    const horizon = new Mesh(new SphereGeometry(0.19, 48, 32), new MeshBasicMaterial({ color: 0x000000 }));
-    hole.add(horizon);
+    const lineGeo = new BufferGeometry();
+    lineGeo.setAttribute("position", new BufferAttribute(new Float32Array(seg), 3));
+    const lineMat = new LineBasicMaterial({ color: 0x6a7cff, transparent: true, opacity: small ? 0.07 : 0.09, blending: AdditiveBlending, depthWrite: false });
+    net.add(new LineSegments(lineGeo, lineMat));
 
-    const ringMat = new ShaderMaterial({
-      uniforms: { uTime: { value: 0 } },
-      vertexShader: "varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }",
-      fragmentShader: ringFragment, transparent: true, depthWrite: false, blending: AdditiveBlending,
-    });
-    const ring = new Mesh(new PlaneGeometry(4.4, 4.4), ringMat);
-    hole.add(ring);
-
-    // Distant stars
-    const sc = small ? 2500 : 6000;
-    const sp = new Float32Array(sc * 3), sr = new Float32Array(sc);
-    for (let i = 0; i < sc; i++) {
-      const r = 18 + Math.random() * 30, a = Math.random() * Math.PI * 2, c = Math.random() * 2 - 1, s = Math.sqrt(1 - c * c);
-      sp.set([Math.cos(a) * s * r, c * r, Math.sin(a) * s * r], i * 3);
-      sr[i] = Math.pow(Math.random(), 2.2);
-    }
-    const sg = new BufferGeometry();
-    sg.setAttribute("position", new BufferAttribute(sp, 3));
-    sg.setAttribute("aR", new BufferAttribute(sr, 1));
-    const starMat = new ShaderMaterial({
-      uniforms: { uTime: { value: 0 }, uPR: { value: pr } }, vertexShader: starVertex, fragmentShader: starFragment,
+    const nodeGeo = new BufferGeometry();
+    nodeGeo.setAttribute("position", new BufferAttribute(new Float32Array(nodes.flat()), 3));
+    nodeGeo.setAttribute("aL", new BufferAttribute(new Float32Array(nodeLayer), 1));
+    const nodeMat = new ShaderMaterial({
+      uniforms: { uTime: { value: 0 }, uPR: { value: pr } }, vertexShader: nodeVertex, fragmentShader: nodeFragment,
       transparent: true, depthWrite: false, blending: AdditiveBlending,
     });
-    const stars = new Points(sg, starMat);
-    stars.frustumCulled = false;
-    scene.add(stars);
+    net.add(new Points(nodeGeo, nodeMat));
 
-    const size = () => {
-      const w = el.clientWidth, h = el.clientHeight;
+    const per = small ? 3 : 6, pc = edges * per;
+    const pa = new Float32Array(pc * 3), pb = new Float32Array(pc * 3), pp = new Float32Array(pc * 2);
+    for (let e = 0; e < edges; e++)
+      for (let k = 0; k < per; k++) {
+        const i = e * per + k;
+        pa.set(edgeA.slice(e * 3, e * 3 + 3), i * 3);
+        pb.set(edgeB.slice(e * 3, e * 3 + 3), i * 3);
+        pp[i * 2] = (k + Math.sin(e * 12.9898) * 0.5 + 0.5) / per; // phase
+        pp[i * 2 + 1] = 0.16 + ((e * 7919) % 100) / 100 * 0.12;    // speed
+      }
+    const packetGeo = new BufferGeometry();
+    packetGeo.setAttribute("position", new BufferAttribute(pa, 3));
+    packetGeo.setAttribute("aB", new BufferAttribute(pb, 3));
+    packetGeo.setAttribute("aP", new BufferAttribute(pp, 2));
+    const packetMat = new ShaderMaterial({
+      uniforms: { uTime: { value: 0 }, uPR: { value: pr } }, vertexShader: packetVertex, fragmentShader: packetFragment,
+      transparent: true, depthWrite: false, blending: AdditiveBlending,
+    });
+    const packets = new Points(packetGeo, packetMat);
+    packets.frustumCulled = false;
+    net.add(packets);
+
+    // Layer labels
+    const labelMats: SpriteMaterial[] = [];
+    const labels = LAYERS.map((name, l) => {
+      const m = new SpriteMaterial({ map: labelTexture(name), transparent: true, depthWrite: false, opacity: 0.6 });
+      labelMats.push(m);
+      const s = new Sprite(m);
+      s.scale.set(1.1, 0.275, 1);
+      s.position.set(l - (COUNTS.length - 1) / 2, -1.75, 0);
+      net.add(s);
+      return s;
+    });
+
+    // Floating code
+    const panes = new Group();
+    scene.add(panes);
+    const paneMeshes = CODE.map((c, i) => {
+      const m = new Mesh(new PlaneGeometry(3.3, 2.06), new MeshBasicMaterial({ map: codeTexture(c.file, c.lines), transparent: true, opacity: 0.88, side: DoubleSide, toneMapped: false }));
+      m.userData.side = i === 0 ? -1 : 1;
+      panes.add(m);
+      return m;
+    });
+
+    let yNet = 0, halfW = 0;
+    const layout = () => {
+      const w = el.clientWidth, h = el.clientHeight, aspect = w / h;
       renderer.setSize(w, h);
-      camera.aspect = w / h;
+      camera.aspect = aspect;
       camera.updateProjectionMatrix();
-      const wide = w / h > 1.25;
-      hole.position.set(0, wide ? 1.7 : 2.1, 0);
+      const tan = Math.tan((FOV * Math.PI) / 360);
+      halfW = tan * CAM_Z * aspect;
+      yNet = (0.5 - NET_Y) * 2 * tan * CAM_Z;
+      const spread = Math.min(1.5, (halfW * 2 * 0.78) / (COUNTS.length - 1));
+      net.scale.set(spread, Math.min(1.1, spread * 0.9), spread);
+      net.position.y = yNet;
+      panes.visible = aspect > 1.25;
+      paneMeshes.forEach((m) => m.position.set(m.userData.side * halfW * 0.8, yNet + 0.1, -3));
       if (still) draw(0);
     };
 
-    const mouse = new Vector2(), mTarget = new Vector2();
+    const mouse = new Vector2(), target = new Vector2();
     const area = el.parentElement ?? el;
     const move = (e: PointerEvent) => {
       const r = el.getBoundingClientRect();
-      mTarget.set(((e.clientX - r.left) / r.width) * 2 - 1, -(((e.clientY - r.top) / r.height) * 2 - 1));
+      target.set(((e.clientX - r.left) / r.width) * 2 - 1, -(((e.clientY - r.top) / r.height) * 2 - 1));
     };
     if (!still) area.addEventListener("pointermove", move);
 
-    const ease = (x: number) => 1 - Math.pow(1 - x, 4);
-    let elapsed = still ? 20 : 0;
+    let t = still ? 7 : 0;
     const draw = (dt: number) => {
-      elapsed += dt;
-      const t = elapsed;
-      diskMat.uniforms.uTime.value = lensMat.uniforms.uTime.value = starMat.uniforms.uTime.value = ringMat.uniforms.uTime.value = t;
-      // Fly-in: far and edge-on first, settling closer and tilted toward us.
-      const k = ease(Math.min(t / 4.2, 1));
-      mouse.lerp(mTarget, 1 - Math.pow(0.02, dt || 0.016));
-      // Scrolling the hero dives the camera toward the hole and fades the scene out.
+      t += dt;
+      const time = t;
+      nodeMat.uniforms.uTime.value = packetMat.uniforms.uTime.value = time;
+      mouse.lerp(target, 1 - Math.pow(0.01, dt || 0.016));
       const p = still ? 0 : Math.min(window.scrollY / Math.max(el.clientHeight, 1), 1);
-      camera.position.set(mouse.x * 0.6, mouse.y * 0.35, 17 - k * 8.7 - p * 3);
-      camera.lookAt(0, 0, 0);
-      tilt.rotation.set(1.35 - k * 0.55 + p * 0.4, 0, 0);
+      const intro = 1 - Math.pow(1 - Math.min(t / 2.2, 1), 4);
+      net.rotation.y = Math.sin(time * 0.28) * 0.3 + mouse.x * 0.4;
+      net.rotation.x = -0.12 + mouse.y * 0.18;
+      panes.rotation.y = mouse.x * 0.12;
+      paneMeshes.forEach((m, i) => {
+        m.position.y = yNet + 0.1 + Math.sin(time * 0.6 + i * 2) * 0.1;
+        m.rotation.y = m.userData.side * -0.38;
+        m.material.opacity = 0.88 * intro;
+      });
+      labels.forEach((_, l) => {
+        labelMats[l].opacity = (0.35 + 0.65 * Math.pow(0.5 + 0.5 * Math.sin(time * 1.6 - l * 0.95), 3)) * intro;
+      });
+      camera.position.z = CAM_Z + (1 - intro) * 5 - p * 2.5;
       el.style.opacity = String(1 - p * 0.9);
-      // The halo and ring always face the camera.
-      ring.quaternion.copy(camera.quaternion);
-      lens.quaternion.copy(camera.quaternion);
-      stars.rotation.y = t * 0.004;
       renderer.render(scene, camera);
     };
-    size();
-    const ro = new ResizeObserver(size);
-    ro.observe(el);
+
+    let ro: ResizeObserver | undefined;
+    let alive = true;
+    Promise.all([document.fonts.load('500 40px "JetBrains Mono"'), document.fonts.ready]).finally(() => {
+      if (!alive) return;
+      // Re-draw the font-dependent textures now that the fonts are ready.
+      labelMats.forEach((m, l) => { m.map?.dispose(); m.map = labelTexture(LAYERS[l]); });
+      paneMeshes.forEach((m, i) => { (m.material as MeshBasicMaterial).map?.dispose(); (m.material as MeshBasicMaterial).map = codeTexture(CODE[i].file, CODE[i].lines); });
+      layout();
+      ro = new ResizeObserver(layout);
+      ro.observe(el);
+      ready = true;
+    });
+    let ready = false;
 
     let raf = 0, visible = true, last = performance.now();
     const tick = (now: number) => {
       raf = requestAnimationFrame(tick);
-      if (!visible) { last = now; return; }
+      if (!visible || !ready) { last = now; return; }
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
       draw(dt);
@@ -241,13 +298,15 @@ export default function HeroScene() {
     if (!still) raf = requestAnimationFrame(tick);
 
     return () => {
+      alive = false;
       cancelAnimationFrame(raf);
       io.disconnect();
-      ro.disconnect();
+      ro?.disconnect();
       area.removeEventListener("pointermove", move);
-      geo.dispose(); sg.dispose();
-      diskMat.dispose(); lensMat.dispose(); ringMat.dispose(); starMat.dispose();
-      horizon.geometry.dispose(); (horizon.material as MeshBasicMaterial).dispose(); ring.geometry.dispose();
+      [lineGeo, nodeGeo, packetGeo].forEach((g) => g.dispose());
+      [lineMat, nodeMat, packetMat].forEach((m) => m.dispose());
+      labelMats.forEach((m) => { m.map?.dispose(); m.dispose(); });
+      paneMeshes.forEach((m) => { m.geometry.dispose(); (m.material as MeshBasicMaterial).map?.dispose(); (m.material as MeshBasicMaterial).dispose(); });
       renderer.dispose();
       renderer.domElement.remove();
     };

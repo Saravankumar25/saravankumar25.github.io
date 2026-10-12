@@ -2,7 +2,7 @@ export const capabilities = [
   { title: "Full-stack products", text: "Next.js, React and TypeScript front ends over FastAPI, Django, Node and Rust back ends." },
   { title: "AI engineering", text: "Agentic workflows, RAG and hybrid retrieval, evaluation, and keeping model output behind deterministic checks." },
   { title: "Backend and architecture", text: "Multi-tenant data isolation, durable background work, idempotent pipelines, PostgreSQL, SQLite and graph stores." },
-  { title: "Cloud and infrastructure", text: "AWS Lambda and Fargate, Docker, Terraform and S3-backed storage." },
+  { title: "Cloud and infrastructure", text: "AWS, Docker and Terraform." },
   { title: "Developer tools", text: "Code-understanding, incident-response and local-first desktop tooling." },
   { title: "Applied ML", text: "Time-series forecasting, multimodal models and learning-augmented algorithms." },
 ];
@@ -35,5 +35,5 @@ export const skills: { group: string; items: string[] }[] = [
   { group: "Backend", items: ["FastAPI", "Django", "Node.js", "Express", "NestJS", "Flask", "Celery", "Tauri"] },
   { group: "AI & ML", items: ["LangGraph", "RAG", "Hybrid retrieval", "LLM tool use", "Apple Foundation Models", "PyTorch", "CLIP", "LSTM / TCN", "Random Forest", "LightGBM", "XGBoost", "FAISS", "llama.cpp"] },
   { group: "Data", items: ["PostgreSQL", "pgvector", "SQLite", "MongoDB", "Redis", "Neo4j", "ArangoDB", "Qdrant", "Chroma"] },
-  { group: "Cloud & tools", items: ["AWS (Lambda, Fargate, S3)", "Docker", "Terraform", "GitHub Actions", "Firebase", "Nginx", "Git"] },
+  { group: "Cloud & tools", items: ["AWS", "Docker", "Terraform", "GitHub Actions", "Firebase", "Nginx", "Git"] },
 ];

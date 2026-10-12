@@ -6,8 +6,8 @@ import {
 } from "simple-icons";
 import { skills } from "../data/site";
 
-// Official brand glyphs (Simple Icons), drawn in the site's monochrome. Skills without one render as text.
-const icons: Record<string, { path: string }> = {
+// Official brand glyphs and colours (Simple Icons). Skills without one render as text.
+const icons: Record<string, { path: string; hex: string }> = {
   Swift: siSwift, "Apple Foundation Models": siApple, Python: siPython, TypeScript: siTypescript, JavaScript: siJavascript, Rust: siRust, "C++": siCplusplus, C: siC,
   React: siReact, "Next.js": siNextdotjs, Vite: siVite, "Tailwind CSS": siTailwindcss, "Redux Toolkit": siRedux,
   "React Query": siReactquery, FastAPI: siFastapi, Django: siDjango, "Node.js": siNodedotjs, Express: siExpress,
@@ -15,6 +15,12 @@ const icons: Record<string, { path: string }> = {
   Streamlit: siStreamlit, PostgreSQL: siPostgresql, SQLite: siSqlite, MongoDB: siMongodb, Redis: siRedis,
   Neo4j: siNeo4j, ArangoDB: siArangodb, Qdrant: siQdrant, Docker: siDocker, Terraform: siTerraform,
   "GitHub Actions": siGithubactions, Firebase: siFirebase, Nginx: siNginx, Git: siGit,
+};
+
+// Brand colours that would vanish on the dark background fall back to off-white.
+const fillFor = (hex: string) => {
+  const n = parseInt(hex, 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 70 ? "#e8e8ea" : `#${hex}`;
 };
 
 export default function Skills() {
@@ -27,7 +33,7 @@ export default function Skills() {
             {g.items.map((name) => (
               <li key={name}>
                 {icons[name] && (
-                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d={icons[name].path} /></svg>
+                  <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style={{ fill: fillFor(icons[name].hex) }}><path d={icons[name].path} /></svg>
                 )}
                 {name}
               </li>
