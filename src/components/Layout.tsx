@@ -28,7 +28,7 @@ export default function Layout() {
       <a className="skip" href="#main">Skip to content</a>
       <header className="header">
         <div className="wrap bar">
-          <Link to="/" className="brand">SK<span>.</span></Link>
+          <Link to="/" className="brand">SK</Link>
           <button className="menu" aria-expanded={open} aria-controls="nav" onClick={() => setOpen(!open)}>
             {open ? "Close" : "Menu"}
           </button>

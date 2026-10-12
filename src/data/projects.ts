@@ -86,7 +86,7 @@ export const projects: Project[] = [
   },
   {
     slug: "aegis",
-    name: "Aegis 2.0",
+    name: "Aegis",
     tagline: "AI incident response where model confidence is never authorisation.",
     category: "Developer tools",
     status: "Prototype",
