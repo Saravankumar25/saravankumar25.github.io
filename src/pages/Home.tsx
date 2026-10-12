@@ -2,7 +2,8 @@ import { Link } from "react-router-dom";
 import Reveal from "../components/Reveal";
 import { config } from "../config";
 import { plain, projects } from "../data/projects";
-import { experience, papers, skills } from "../data/site";
+import Skills from "../components/Skills";
+import { experience, papers } from "../data/site";
 import { useTitle } from "../hooks";
 import { getPosts } from "./Journal";
 
@@ -40,14 +41,7 @@ export default function Home() {
 
       <section className="wrap block">
         <h2 className="section">Skills</h2>
-        <div className="skills">
-          {skills.map((g) => (
-            <Reveal key={g.group} className="skill-group">
-              <h3>{g.group}</h3>
-              <span className="tags">{g.items.map((i) => <i key={i}>{i}</i>)}</span>
-            </Reveal>
-          ))}
-        </div>
+        <Skills />
       </section>
 
       <section className="wrap block">

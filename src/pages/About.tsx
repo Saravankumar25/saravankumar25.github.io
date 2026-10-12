@@ -1,4 +1,5 @@
-import { capabilities, experience, skills } from "../data/site";
+import Skills from "../components/Skills";
+import { capabilities, experience } from "../data/site";
 import { useTitle } from "../hooks";
 
 export default function About() {
@@ -23,14 +24,7 @@ export default function About() {
       </div>
 
       <h2 className="section">Skills</h2>
-      <div className="skills">
-        {skills.map((g) => (
-          <div className="skill-group" key={g.group}>
-            <h3>{g.group}</h3>
-            <span className="tags">{g.items.map((i) => <i key={i}>{i}</i>)}</span>
-          </div>
-        ))}
-      </div>
+      <Skills />
 
       <h2 className="section" id="experience">Experience</h2>
       {experience.map((e) => (
