@@ -18,12 +18,11 @@ export default function Home() {
     <>
       <section className="hero">
         <div className="wrap">
-          <p className="eyebrow">Founding Engineer at Varpitech</p>
           <h1>{config.name}</h1>
           <p className="role-line">{config.title}</p>
           <p className="lead">
             I build full-stack products, AI systems and developer tools. Right now I'm building the hiring platform
-            Vivekium at Varpitech, and OpenFrame, a desktop studio for filmmakers.
+            Vivekium, and OpenFrame, a desktop studio for filmmakers.
           </p>
           <div className="actions">
             <Link className="btn" to="/projects">View projects</Link>

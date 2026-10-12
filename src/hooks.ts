@@ -5,7 +5,7 @@ const SUFFIX = "Saravan Kumar M K";
 
 export function useTitle(title?: string) {
   useEffect(() => {
-    document.title = title ? `${title} · ${SUFFIX}` : `${SUFFIX} · Software Engineer | Founding Engineer`;
+    document.title = title ? `${title} · ${SUFFIX}` : `${SUFFIX} · Software & AI Founding Engineer`;
   }, [title]);
 }
 

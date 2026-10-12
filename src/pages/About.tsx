@@ -9,7 +9,7 @@ export default function About() {
       <p className="eyebrow">About</p>
       <h1>I build products end to end.</h1>
       <p className="lead">
-        I am a software engineer and the Founding Engineer at Varpitech. I design and build full-stack applications,
+        I am a software and AI founding engineer. I design and build full-stack applications,
         AI systems, agentic workflows, developer tools and applied machine-learning solutions.
       </p>
 
