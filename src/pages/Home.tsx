@@ -76,16 +76,19 @@ export default function Home() {
                 <a className="btn ghost" href={config.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
               </div>
             </FadeUp>
-            <FadeUp delay={1.05}>
-              <Link to="/projects/openframe" className="spotlight">
-                <span className="mono">Currently building</span>
-                <strong>OpenFrame Studio</strong>
-                <span>{plain.openframe}</span>
-                <span className="more-inline">Read more →</span>
-              </Link>
-            </FadeUp>
           </div>
         </div>
+      </section>
+
+      <section className="wrap block">
+        <Reveal>
+          <Link to="/projects/openframe" className="spotlight">
+            <span className="mono">Currently building</span>
+            <strong>OpenFrame Studio</strong>
+            <span>{plain.openframe}</span>
+            <span className="more-inline">Read more →</span>
+          </Link>
+        </Reveal>
       </section>
 
       <section className="wrap block">

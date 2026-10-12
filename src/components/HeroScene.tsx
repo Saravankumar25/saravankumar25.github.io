@@ -91,7 +91,7 @@ const ringFragment = /* glsl */ `
     float ring = exp(-pow((d - 0.2) / 0.011, 2.0));
     float halo = exp(-pow((d - 0.2) / 0.06, 2.0)) * 0.32;
     float glow = exp(-d * 3.2) * 0.2;
-    float beam = (0.65 + 0.35 * cos(ang - 0.6 + uTime * 0.15));
+    float beam = 0.85 + 0.15 * sin(uTime * 0.6);
     float a = (ring * 0.95 * beam + halo * beam + glow) * smoothstep(1.0, 0.7, d);
     vec3 col = mix(vec3(0.4, 0.45, 1.0), vec3(0.85, 0.95, 1.0), clamp(ring * 1.4 + halo * 2.0, 0.0, 1.0));
     gl_FragColor = vec4(col, a);
@@ -191,7 +191,7 @@ export default function HeroScene() {
       camera.aspect = w / h;
       camera.updateProjectionMatrix();
       const wide = w / h > 1.25;
-      hole.position.set(wide ? 2.5 : 0, wide ? 0.1 : 1.5, 0);
+      hole.position.set(0, wide ? 1.7 : 2.1, 0);
       if (still) draw(0);
     };
 
@@ -212,10 +212,12 @@ export default function HeroScene() {
       // Fly-in: far and edge-on first, settling closer and tilted toward us.
       const k = ease(Math.min(t / 4.2, 1));
       mouse.lerp(mTarget, 1 - Math.pow(0.02, dt || 0.016));
-      camera.position.set(mouse.x * 0.9, mouse.y * 0.5 + 0.2, 17 - k * 8.7);
-      camera.lookAt(hole.position.x * 0.25, hole.position.y * 0.25, 0);
-      tilt.rotation.set(1.35 - k * 0.55, 0, -0.32 + Math.sin(t * 0.07) * 0.04);
-      tilt.rotation.y = t * 0.0;
+      // Scrolling the hero dives the camera toward the hole and fades the scene out.
+      const p = still ? 0 : Math.min(window.scrollY / Math.max(el.clientHeight, 1), 1);
+      camera.position.set(mouse.x * 0.6, mouse.y * 0.35, 17 - k * 8.7 - p * 3);
+      camera.lookAt(0, 0, 0);
+      tilt.rotation.set(1.35 - k * 0.55 + p * 0.4, 0, 0);
+      el.style.opacity = String(1 - p * 0.9);
       // The halo and ring always face the camera.
       ring.quaternion.copy(camera.quaternion);
       lens.quaternion.copy(camera.quaternion);
