@@ -23,7 +23,7 @@ export const experience = [
 export const education = {
   school: "SASTRA Deemed University, Thanjavur",
   degree: "B.Tech in Electronics and Communication Engineering",
-  period: "October 2022 – Present",
+  period: "2022 – 2026",
 };
 
 export const certifications = [
