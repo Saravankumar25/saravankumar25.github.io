@@ -4,10 +4,10 @@ import {
   ShaderMaterial, Vector2, WebGLRenderer,
 } from "three";
 
-// A fully connected neural network in 3D. Neurons are drawn as rings in vertical layers; every neuron is
+// A flat, fully connected neural network. Neurons are drawn as rings in straight vertical layers; every neuron is
 // wired to every neuron in the next layer. Wire colour shows the sign of the weight (cyan positive,
 // magenta negative) and brightness its size. A forward pass sweeps the layers: neurons fire and a pulse
-// runs down every wire. The camera sways slowly so the layers separate in depth.
+// runs down every wire. Neurons near the cursor light up.
 
 const FOV = 40, CAM_Z = 11, NET_Y = 0.3; // NET_Y: network centre as a fraction of height from the top
 const COUNTS = [6, 9, 10, 10, 9, 6];
@@ -22,11 +22,14 @@ const nodeVertex = /* glsl */ `
   attribute float aL;
   attribute float aId;
   uniform float uS, uCycle, uUnit, uPR;
+  uniform vec2 uMouse;
   varying float vAct;
   ${HASH}
   void main() {
     float amp = 0.35 + 0.65 * hash(aId + uCycle * 17.0);
     vAct = exp(-pow((uS - aL - 0.12) / 0.3, 2.0)) * amp;
+    vec2 dm = position.xy - uMouse;
+    vAct = max(vAct, 0.95 * exp(-dot(dm, dm) / 0.7));
     vec4 mv = modelViewMatrix * vec4(position, 1.0);
     gl_Position = projectionMatrix * mv;
     gl_PointSize = uUnit * uPR * ${(RADIUS * 2 * 2.1).toFixed(3)} * (${CAM_Z.toFixed(1)} / -mv.z);
@@ -100,13 +103,13 @@ export default function HeroScene() {
     const net = new Group();
     scene.add(net);
 
-    // Neurons in vertical layers, centred, with a little depth stagger so rotation separates them.
+    // Neurons in straight vertical layers, each layer centred on the same axis.
     const mid = (COUNTS.length - 1) / 2;
     const nodes: [number, number, number][] = [], nodeLayer: number[] = [], layerStart: number[] = [];
     COUNTS.forEach((n, l) => {
       layerStart.push(nodes.length);
       for (let i = 0; i < n; i++)
-        nodes.push([(l - mid) * SPACING_X, (i - (n - 1) / 2) * SPACING_Y, ((i % 3) - 1) * 0.3]);
+        nodes.push([(l - mid) * SPACING_X, (i - (n - 1) / 2) * SPACING_Y, 0]);
       for (let i = 0; i < n; i++) nodeLayer.push(l);
     });
     layerStart.push(nodes.length);
@@ -144,13 +147,14 @@ export default function HeroScene() {
     nodeGeo.setAttribute("aL", new BufferAttribute(new Float32Array(nodeLayer), 1));
     nodeGeo.setAttribute("aId", new BufferAttribute(new Float32Array(nodes.map((_, i) => i)), 1));
     const nodeMat = new ShaderMaterial({
-      uniforms: { ...shared, uUnit: { value: 100 }, uPR: { value: pr } }, vertexShader: nodeVertex, fragmentShader: nodeFragment,
+      uniforms: { ...shared, uUnit: { value: 100 }, uPR: { value: pr }, uMouse: { value: new Vector2(99, 99) } }, vertexShader: nodeVertex, fragmentShader: nodeFragment,
       transparent: true, depthWrite: false, blending: AdditiveBlending,
     });
     const neurons = new Points(nodeGeo, nodeMat);
     neurons.frustumCulled = false;
     net.add(neurons);
 
+    let netScale = 1, netY = 0, halfW = 1, halfH = 1;
     const layout = () => {
       const w = el.clientWidth, h = el.clientHeight, aspect = w / h;
       renderer.setSize(w, h);
@@ -162,17 +166,21 @@ export default function HeroScene() {
       const s = Math.min(1.1, fitW, fitH);
       net.scale.setScalar(s);
       net.position.y = (0.5 - NET_Y) * 2 * tan * CAM_Z;
+      netScale = s; netY = net.position.y; halfW = tan * CAM_Z * aspect; halfH = tan * CAM_Z;
       nodeMat.uniforms.uUnit.value = (h / (2 * tan * CAM_Z)) * s; // px per world unit at the network
       if (still) draw(0);
     };
 
-    const mouse = new Vector2(), target = new Vector2();
+    const target = new Vector2();
     const area = el.parentElement ?? el;
     const move = (ev: PointerEvent) => {
       const r = el.getBoundingClientRect();
       target.set(((ev.clientX - r.left) / r.width) * 2 - 1, -(((ev.clientY - r.top) / r.height) * 2 - 1));
+      // Pointer position in the network's own coordinates (it is flat, so this is a plain mapping).
+      nodeMat.uniforms.uMouse.value.set((target.x * halfW) / netScale, (target.y * halfH - netY) / netScale);
     };
-    if (!still) area.addEventListener("pointermove", move);
+    const leave = () => nodeMat.uniforms.uMouse.value.set(99, 99);
+    if (!still) { area.addEventListener("pointermove", move); area.addEventListener("pointerleave", leave); }
 
     let t = still ? 3.2 : 0;
     const draw = (dt: number) => {
@@ -185,11 +193,8 @@ export default function HeroScene() {
       nodeMat.uniforms.uCycle.value = shared.uCycle.value;
       wireMat.uniforms.uS.value = shared.uS.value;
       wireMat.uniforms.uCycle.value = shared.uCycle.value;
-      mouse.lerp(target, 1 - Math.pow(0.01, dt || 0.016));
       const p = still ? 0 : Math.min(window.scrollY / Math.max(el.clientHeight, 1), 1);
       const intro = 1 - Math.pow(1 - Math.min(t / 2.2, 1), 4);
-      net.rotation.y = Math.sin(t * 0.22) * 0.24 + mouse.x * 0.2;
-      net.rotation.x = -0.05 + mouse.y * 0.12;
       camera.position.z = CAM_Z + (1 - intro) * 5 - p * 3;
       el.style.opacity = String(Math.min(1, intro * 1.5) * (1 - p * 0.9));
       renderer.render(scene, camera);
@@ -216,6 +221,7 @@ export default function HeroScene() {
       io.disconnect();
       ro.disconnect();
       area.removeEventListener("pointermove", move);
+      area.removeEventListener("pointerleave", leave);
       wireGeo.dispose(); nodeGeo.dispose(); wireMat.dispose(); nodeMat.dispose();
       renderer.dispose();
       renderer.domElement.remove();
