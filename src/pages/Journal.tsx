@@ -33,21 +33,24 @@ export default function Journal() {
       <p className="eyebrow">Journal</p>
       <h1>Engineering journal</h1>
       <p className="lead">Notes on how real systems are built and where they break.</p>
-      {posts.length === 0 ? (
-        <p className="empty">No articles are published yet.</p>
-      ) : (
-        <ul className="posts">
-          {posts.map((p) => (
-            <li key={p.slug}>
-              <Link to={`/journal/${p.slug}`}>
-                <span className="mono">{p.date}</span>
-                <h3>{p.title}</h3>
-                <p>{p.summary}</p>
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+      <ul className="posts">
+        <li>
+          <a href="/journals/how-computers-work/">
+            <span className="mono">2026-10-13 · Illustrated learning journal</span>
+            <h3>How Computers Work</h3>
+            <p>An interactive, first-principles journey from bits to a programmable CPU.</p>
+          </a>
+        </li>
+        {posts.map((p) => (
+          <li key={p.slug}>
+            <Link to={`/journal/${p.slug}`}>
+              <span className="mono">{p.date}</span>
+              <h3>{p.title}</h3>
+              <p>{p.summary}</p>
+            </Link>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

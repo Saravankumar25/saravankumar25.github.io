@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="description" content="Detailed solved exercises for Reading binary.">
+<title>Reading binary · Set 8 · How Computers Work</title>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
+<script src="../assets/search-index.js" defer></script>
+<script src="../assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to learning content</a>
+<header class="top"><a class="brand" href="../index.html"><span class="brand-mark">01</span><span>How Computers Work</span></a><nav class="top-links" aria-label="Top navigation"><a href="../index.html">Overview</a><a href="../labs/index.html">Labs</a><a href="../practice/index.html">Practice</a><a href="../reference/search.html">Search</a><button id="theme-toggle" type="button">☼ Light</button><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">☰ Menu</button></nav></header>
+<div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+<div class="frame">
+<aside class="sidebar" id="sidebar" aria-label="Study navigation"><div class="sidebar-header"><span class="eyebrow">Learning atlas</span><p style="margin:9px 0;font-size:.82rem">One idea at a time. Follow the signal.</p></div><a class="side-item"  href="../index.html"><span class="side-number">HOME</span> Start here</a><a class="side-item"  href="../parts/01.html"><span class="side-number">01</span> From electricity to information</a><a class="side-item"  href="../parts/02.html"><span class="side-number">02</span> Numbers made from bits</a><a class="side-item"  href="../parts/03.html"><span class="side-number">03</span> Arithmetic, signs, and overflow</a><a class="side-item"  href="../parts/04.html"><span class="side-number">04</span> Logic gates and decisions</a><a class="side-item"  href="../parts/05.html"><span class="side-number">05</span> From gates to an ALU</a><a class="side-item"  href="../parts/06.html"><span class="side-number">06</span> Memory of a single bit</a><a class="side-item"  href="../parts/07.html"><span class="side-number">07</span> RAM, ROM, and moving data</a><a class="side-item"  href="../parts/08.html"><span class="side-number">08</span> Assembling a CPU datapath</a><a class="side-item"  href="../parts/09.html"><span class="side-number">09</span> Instructions and control</a><a class="side-item"  href="../parts/10.html"><span class="side-number">10</span> Programs on a tiny CPU</a><a class="side-item"  href="../parts/11.html"><span class="side-number">11</span> From toy CPU to real ARM</a><a class="side-item"  href="../parts/12.html"><span class="side-number">12</span> The wider computer system</a><p class="side-unit">Explorable laboratories</p><a class="side-item" href="../labs/binary-workbench.html">Binary workbench</a><a class="side-item" href="../labs/number-converter.html">Number converter</a><a class="side-item" href="../labs/gate-explorer.html">Logic gate explorer</a><a class="side-item" href="../labs/full-adder-lab.html">Full adder lab</a><a class="side-item" href="../labs/alu-playground.html">Eight-bit ALU</a><a class="side-item" href="../labs/clock-register.html">Clock and register</a><a class="side-item" href="../labs/ram-lab.html">Tiny RAM simulator</a><a class="side-item" href="../labs/instruction-tracer.html">CPU instruction tracer</a><a class="side-item" href="../labs/seven-segment.html">Seven-segment display</a><a class="side-item" href="../labs/fibonacci-machine.html">Fibonacci machine</a><p class="side-unit">Practice & reference</p><a class="side-item" href="../practice/index.html">Worked exercise library</a><a class="side-item" href="../reference/glossary.html">Visual glossary</a><a class="side-item" href="../reference/search.html">Find a concept</a></aside>
+<main class="main" id="main"><div class="reading ">
+<article class="article"><div class="breadcrumb"><a href="index.html">Practice library</a><span> / </span>Reading binary</div><p class="eyebrow">Fully solved problem book</p><h1>Reading binary</h1><p class="deck">Set 8 of 10 · 32 worked questions. Predict your result before expanding the solution.</p><p>These worked traces are meant to build fluency through controlled variation. If several answers feel identical, try the next difficult value and look for the point where a carry, sign, branch, or selected memory address changes the outcome.</p><section class="exercise"><p class="label">Foundations · Problem 0225</p><h3>Read 11100000₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11100000.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32.</li>
+<li>Add just the selected weights: 224.</li>
+<li>Answer: 11100000₂ = 224₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 224₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0226</p><h3>Read 11100001₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11100001.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 1.</li>
+<li>Add just the selected weights: 225.</li>
+<li>Answer: 11100001₂ = 225₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 225₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0227</p><h3>Read 11100010₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11100010.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 2.</li>
+<li>Add just the selected weights: 226.</li>
+<li>Answer: 11100010₂ = 226₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 226₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0228</p><h3>Read 11100011₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11100011.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 2 + 1.</li>
+<li>Add just the selected weights: 227.</li>
+<li>Answer: 11100011₂ = 227₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 227₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0229</p><h3>Read 11100100₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11100100.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 4.</li>
+<li>Add just the selected weights: 228.</li>
+<li>Answer: 11100100₂ = 228₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 228₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0230</p><h3>Read 11100101₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11100101.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 4 + 1.</li>
+<li>Add just the selected weights: 229.</li>
+<li>Answer: 11100101₂ = 229₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 229₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0231</p><h3>Read 11100110₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11100110.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 4 + 2.</li>
+<li>Add just the selected weights: 230.</li>
+<li>Answer: 11100110₂ = 230₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 230₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0232</p><h3>Read 11100111₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11100111.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 4 + 2 + 1.</li>
+<li>Add just the selected weights: 231.</li>
+<li>Answer: 11100111₂ = 231₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 231₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0233</p><h3>Read 11101000₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11101000.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 8.</li>
+<li>Add just the selected weights: 232.</li>
+<li>Answer: 11101000₂ = 232₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 232₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0234</p><h3>Read 11101001₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11101001.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 8 + 1.</li>
+<li>Add just the selected weights: 233.</li>
+<li>Answer: 11101001₂ = 233₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 233₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0235</p><h3>Read 11101010₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11101010.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 8 + 2.</li>
+<li>Add just the selected weights: 234.</li>
+<li>Answer: 11101010₂ = 234₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 234₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0236</p><h3>Read 11101011₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11101011.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 8 + 2 + 1.</li>
+<li>Add just the selected weights: 235.</li>
+<li>Answer: 11101011₂ = 235₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 235₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0237</p><h3>Read 11101100₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11101100.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 8 + 4.</li>
+<li>Add just the selected weights: 236.</li>
+<li>Answer: 11101100₂ = 236₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 236₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0238</p><h3>Read 11101101₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11101101.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 8 + 4 + 1.</li>
+<li>Add just the selected weights: 237.</li>
+<li>Answer: 11101101₂ = 237₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 237₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0239</p><h3>Read 11101110₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11101110.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 8 + 4 + 2.</li>
+<li>Add just the selected weights: 238.</li>
+<li>Answer: 11101110₂ = 238₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 238₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0240</p><h3>Read 11101111₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11101111.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 0 at weight 16 contributes 0.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 8 + 4 + 2 + 1.</li>
+<li>Add just the selected weights: 239.</li>
+<li>Answer: 11101111₂ = 239₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 239₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0241</p><h3>Read 11110000₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11110000.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16.</li>
+<li>Add just the selected weights: 240.</li>
+<li>Answer: 11110000₂ = 240₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 240₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0242</p><h3>Read 11110001₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11110001.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16 + 1.</li>
+<li>Add just the selected weights: 241.</li>
+<li>Answer: 11110001₂ = 241₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 241₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0243</p><h3>Read 11110010₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11110010.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16 + 2.</li>
+<li>Add just the selected weights: 242.</li>
+<li>Answer: 11110010₂ = 242₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 242₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0244</p><h3>Read 11110011₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11110011.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16 + 2 + 1.</li>
+<li>Add just the selected weights: 243.</li>
+<li>Answer: 11110011₂ = 243₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 243₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0245</p><h3>Read 11110100₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11110100.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16 + 4.</li>
+<li>Add just the selected weights: 244.</li>
+<li>Answer: 11110100₂ = 244₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 244₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0246</p><h3>Read 11110101₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11110101.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16 + 4 + 1.</li>
+<li>Add just the selected weights: 245.</li>
+<li>Answer: 11110101₂ = 245₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 245₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0247</p><h3>Read 11110110₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11110110.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16 + 4 + 2.</li>
+<li>Add just the selected weights: 246.</li>
+<li>Answer: 11110110₂ = 246₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 246₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0248</p><h3>Read 11110111₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11110111.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 0 at weight 8 contributes 0.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16 + 4 + 2 + 1.</li>
+<li>Add just the selected weights: 247.</li>
+<li>Answer: 11110111₂ = 247₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 247₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0249</p><h3>Read 11111000₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11111000.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16 + 8.</li>
+<li>Add just the selected weights: 248.</li>
+<li>Answer: 11111000₂ = 248₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 248₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0250</p><h3>Read 11111001₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11111001.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16 + 8 + 1.</li>
+<li>Add just the selected weights: 249.</li>
+<li>Answer: 11111001₂ = 249₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 249₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0251</p><h3>Read 11111010₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11111010.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16 + 8 + 2.</li>
+<li>Add just the selected weights: 250.</li>
+<li>Answer: 11111010₂ = 250₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 250₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0252</p><h3>Read 11111011₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11111011.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 0 at weight 4 contributes 0.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16 + 8 + 2 + 1.</li>
+<li>Add just the selected weights: 251.</li>
+<li>Answer: 11111011₂ = 251₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 251₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0253</p><h3>Read 11111100₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11111100.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16 + 8 + 4.</li>
+<li>Add just the selected weights: 252.</li>
+<li>Answer: 11111100₂ = 252₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 252₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0254</p><h3>Read 11111101₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11111101.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 0 at weight 2 contributes 0.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16 + 8 + 4 + 1.</li>
+<li>Add just the selected weights: 253.</li>
+<li>Answer: 11111101₂ = 253₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 253₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0255</p><h3>Read 11111110₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11111110.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 0 at weight 1 contributes 0.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16 + 8 + 4 + 2.</li>
+<li>Add just the selected weights: 254.</li>
+<li>Answer: 11111110₂ = 254₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 254₁₀</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0256</p><h3>Read 11111111₂ as an unsigned decimal integer.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>First record that this is an unsigned 8-bit pattern: 11111111.</li>
+<li>The rightmost bit has weight 2⁰ = 1; every move left doubles the weight.</li>
+<li>The leftmost bit in this 8-bit pattern has weight 2^7 = 128.</li>
+<li>Column 7: bit 1 at weight 128 contributes 128.</li>
+<li>Column 6: bit 1 at weight 64 contributes 64.</li>
+<li>Column 5: bit 1 at weight 32 contributes 32.</li>
+<li>Column 4: bit 1 at weight 16 contributes 16.</li>
+<li>Column 3: bit 1 at weight 8 contributes 8.</li>
+<li>Column 2: bit 1 at weight 4 contributes 4.</li>
+<li>Column 1: bit 1 at weight 2 contributes 2.</li>
+<li>Column 0: bit 1 at weight 1 contributes 1.</li>
+<li>The one-bit weights are 128 + 64 + 32 + 16 + 8 + 4 + 2 + 1.</li>
+<li>Add just the selected weights: 255.</li>
+<li>Answer: 11111111₂ = 255₁₀.</li>
+<li>Sanity check: the answer must lie between zero and the maximum unsigned value for this width.</li></ol><p class="formula">Final answer: 255₁₀</p></details></section><nav class="practice-nav"><a href="reading-binary-07.html">← Previous set</a><a href="index.html">All problem categories</a><a href="reading-binary-09.html">Next set →</a></nav></article>
+<footer class="footer"><div class="wide"><a href="../index.html">How Computers Work</a><span style="float:right">A learning journal by Saravan Kumar M K · Designed to work offline and on GitHub Pages</span></div></footer>
+</div></main>
+</div>
+</body>
+</html>

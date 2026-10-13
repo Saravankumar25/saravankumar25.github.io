@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="description" content="Detailed solved exercises for Fibonacci state traces.">
+<title>Fibonacci state traces · Set 1 · How Computers Work</title>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
+<script src="../assets/search-index.js" defer></script>
+<script src="../assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to learning content</a>
+<header class="top"><a class="brand" href="../index.html"><span class="brand-mark">01</span><span>How Computers Work</span></a><nav class="top-links" aria-label="Top navigation"><a href="../index.html">Overview</a><a href="../labs/index.html">Labs</a><a href="../practice/index.html">Practice</a><a href="../reference/search.html">Search</a><button id="theme-toggle" type="button">☼ Light</button><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">☰ Menu</button></nav></header>
+<div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+<div class="frame">
+<aside class="sidebar" id="sidebar" aria-label="Study navigation"><div class="sidebar-header"><span class="eyebrow">Learning atlas</span><p style="margin:9px 0;font-size:.82rem">One idea at a time. Follow the signal.</p></div><a class="side-item"  href="../index.html"><span class="side-number">HOME</span> Start here</a><a class="side-item"  href="../parts/01.html"><span class="side-number">01</span> From electricity to information</a><a class="side-item"  href="../parts/02.html"><span class="side-number">02</span> Numbers made from bits</a><a class="side-item"  href="../parts/03.html"><span class="side-number">03</span> Arithmetic, signs, and overflow</a><a class="side-item"  href="../parts/04.html"><span class="side-number">04</span> Logic gates and decisions</a><a class="side-item"  href="../parts/05.html"><span class="side-number">05</span> From gates to an ALU</a><a class="side-item"  href="../parts/06.html"><span class="side-number">06</span> Memory of a single bit</a><a class="side-item"  href="../parts/07.html"><span class="side-number">07</span> RAM, ROM, and moving data</a><a class="side-item"  href="../parts/08.html"><span class="side-number">08</span> Assembling a CPU datapath</a><a class="side-item"  href="../parts/09.html"><span class="side-number">09</span> Instructions and control</a><a class="side-item"  href="../parts/10.html"><span class="side-number">10</span> Programs on a tiny CPU</a><a class="side-item"  href="../parts/11.html"><span class="side-number">11</span> From toy CPU to real ARM</a><a class="side-item"  href="../parts/12.html"><span class="side-number">12</span> The wider computer system</a><p class="side-unit">Explorable laboratories</p><a class="side-item" href="../labs/binary-workbench.html">Binary workbench</a><a class="side-item" href="../labs/number-converter.html">Number converter</a><a class="side-item" href="../labs/gate-explorer.html">Logic gate explorer</a><a class="side-item" href="../labs/full-adder-lab.html">Full adder lab</a><a class="side-item" href="../labs/alu-playground.html">Eight-bit ALU</a><a class="side-item" href="../labs/clock-register.html">Clock and register</a><a class="side-item" href="../labs/ram-lab.html">Tiny RAM simulator</a><a class="side-item" href="../labs/instruction-tracer.html">CPU instruction tracer</a><a class="side-item" href="../labs/seven-segment.html">Seven-segment display</a><a class="side-item" href="../labs/fibonacci-machine.html">Fibonacci machine</a><p class="side-unit">Practice & reference</p><a class="side-item" href="../practice/index.html">Worked exercise library</a><a class="side-item" href="../reference/glossary.html">Visual glossary</a><a class="side-item" href="../reference/search.html">Find a concept</a></aside>
+<main class="main" id="main"><div class="reading ">
+<article class="article"><div class="breadcrumb"><a href="index.html">Practice library</a><span> / </span>Fibonacci state traces</div><p class="eyebrow">Fully solved problem book</p><h1>Fibonacci state traces</h1><p class="deck">Set 1 of 3 · 32 worked questions. Predict your result before expanding the solution.</p><p>These worked traces are meant to build fluency through controlled variation. If several answers feel identical, try the next difficult value and look for the point where a carry, sign, branch, or selected memory address changes the outcome.</p><section class="exercise"><p class="label">Sequential programs · Problem 0001</p><h3>At Fibonacci iteration 0, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 0 begins with the pair of registers a=0, b=1.</li>
+<li>The current output is register a, so the emitted term is 0.</li>
+<li>Calculate a temporary sum t = a+b = 0+1 = 1.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 1.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 1.</li>
+<li>After the update, the pair is (1, 1).</li>
+<li>On the next iteration, the machine will emit 1.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 0; pair (1, 1)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0002</p><h3>At Fibonacci iteration 1, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 1 begins with the pair of registers a=1, b=1.</li>
+<li>The current output is register a, so the emitted term is 1.</li>
+<li>Calculate a temporary sum t = a+b = 1+1 = 2.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 1.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 2.</li>
+<li>After the update, the pair is (1, 2).</li>
+<li>On the next iteration, the machine will emit 1.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 1; pair (1, 2)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0003</p><h3>At Fibonacci iteration 2, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 2 begins with the pair of registers a=1, b=2.</li>
+<li>The current output is register a, so the emitted term is 1.</li>
+<li>Calculate a temporary sum t = a+b = 1+2 = 3.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 2.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 3.</li>
+<li>After the update, the pair is (2, 3).</li>
+<li>On the next iteration, the machine will emit 2.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 1; pair (2, 3)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0004</p><h3>At Fibonacci iteration 3, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 3 begins with the pair of registers a=2, b=3.</li>
+<li>The current output is register a, so the emitted term is 2.</li>
+<li>Calculate a temporary sum t = a+b = 2+3 = 5.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 3.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 5.</li>
+<li>After the update, the pair is (3, 5).</li>
+<li>On the next iteration, the machine will emit 3.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 2; pair (3, 5)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0005</p><h3>At Fibonacci iteration 4, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 4 begins with the pair of registers a=3, b=5.</li>
+<li>The current output is register a, so the emitted term is 3.</li>
+<li>Calculate a temporary sum t = a+b = 3+5 = 8.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 5.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 8.</li>
+<li>After the update, the pair is (5, 8).</li>
+<li>On the next iteration, the machine will emit 5.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 3; pair (5, 8)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0006</p><h3>At Fibonacci iteration 5, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 5 begins with the pair of registers a=5, b=8.</li>
+<li>The current output is register a, so the emitted term is 5.</li>
+<li>Calculate a temporary sum t = a+b = 5+8 = 13.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 8.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 13.</li>
+<li>After the update, the pair is (8, 13).</li>
+<li>On the next iteration, the machine will emit 8.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 5; pair (8, 13)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0007</p><h3>At Fibonacci iteration 6, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 6 begins with the pair of registers a=8, b=13.</li>
+<li>The current output is register a, so the emitted term is 8.</li>
+<li>Calculate a temporary sum t = a+b = 8+13 = 21.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 13.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 21.</li>
+<li>After the update, the pair is (13, 21).</li>
+<li>On the next iteration, the machine will emit 13.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 8; pair (13, 21)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0008</p><h3>At Fibonacci iteration 7, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 7 begins with the pair of registers a=13, b=21.</li>
+<li>The current output is register a, so the emitted term is 13.</li>
+<li>Calculate a temporary sum t = a+b = 13+21 = 34.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 21.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 34.</li>
+<li>After the update, the pair is (21, 34).</li>
+<li>On the next iteration, the machine will emit 21.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 13; pair (21, 34)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0009</p><h3>At Fibonacci iteration 8, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 8 begins with the pair of registers a=21, b=34.</li>
+<li>The current output is register a, so the emitted term is 21.</li>
+<li>Calculate a temporary sum t = a+b = 21+34 = 55.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 34.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 55.</li>
+<li>After the update, the pair is (34, 55).</li>
+<li>On the next iteration, the machine will emit 34.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 21; pair (34, 55)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0010</p><h3>At Fibonacci iteration 9, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 9 begins with the pair of registers a=34, b=55.</li>
+<li>The current output is register a, so the emitted term is 34.</li>
+<li>Calculate a temporary sum t = a+b = 34+55 = 89.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 55.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 89.</li>
+<li>After the update, the pair is (55, 89).</li>
+<li>On the next iteration, the machine will emit 55.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 34; pair (55, 89)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0011</p><h3>At Fibonacci iteration 10, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 10 begins with the pair of registers a=55, b=89.</li>
+<li>The current output is register a, so the emitted term is 55.</li>
+<li>Calculate a temporary sum t = a+b = 55+89 = 144.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 89.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 144.</li>
+<li>After the update, the pair is (89, 144).</li>
+<li>On the next iteration, the machine will emit 89.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 55; pair (89, 144)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0012</p><h3>At Fibonacci iteration 11, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 11 begins with the pair of registers a=89, b=144.</li>
+<li>The current output is register a, so the emitted term is 89.</li>
+<li>Calculate a temporary sum t = a+b = 89+144 = 233.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 144.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 233.</li>
+<li>After the update, the pair is (144, 233).</li>
+<li>On the next iteration, the machine will emit 144.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 89; pair (144, 233)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0013</p><h3>At Fibonacci iteration 12, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 12 begins with the pair of registers a=144, b=233.</li>
+<li>The current output is register a, so the emitted term is 144.</li>
+<li>Calculate a temporary sum t = a+b = 144+233 = 377.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 233.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 377.</li>
+<li>After the update, the pair is (233, 377).</li>
+<li>On the next iteration, the machine will emit 233.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 144; pair (233, 377)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0014</p><h3>At Fibonacci iteration 13, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 13 begins with the pair of registers a=233, b=377.</li>
+<li>The current output is register a, so the emitted term is 233.</li>
+<li>Calculate a temporary sum t = a+b = 233+377 = 610.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 377.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 610.</li>
+<li>After the update, the pair is (377, 610).</li>
+<li>On the next iteration, the machine will emit 377.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 233; pair (377, 610)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0015</p><h3>At Fibonacci iteration 14, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 14 begins with the pair of registers a=377, b=610.</li>
+<li>The current output is register a, so the emitted term is 377.</li>
+<li>Calculate a temporary sum t = a+b = 377+610 = 987.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 610.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 987.</li>
+<li>After the update, the pair is (610, 987).</li>
+<li>On the next iteration, the machine will emit 610.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 377; pair (610, 987)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0016</p><h3>At Fibonacci iteration 15, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 15 begins with the pair of registers a=610, b=987.</li>
+<li>The current output is register a, so the emitted term is 610.</li>
+<li>Calculate a temporary sum t = a+b = 610+987 = 1597.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 987.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 1597.</li>
+<li>After the update, the pair is (987, 1597).</li>
+<li>On the next iteration, the machine will emit 987.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 610; pair (987, 1597)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0017</p><h3>At Fibonacci iteration 16, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 16 begins with the pair of registers a=987, b=1597.</li>
+<li>The current output is register a, so the emitted term is 987.</li>
+<li>Calculate a temporary sum t = a+b = 987+1597 = 2584.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 1597.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 2584.</li>
+<li>After the update, the pair is (1597, 2584).</li>
+<li>On the next iteration, the machine will emit 1597.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 987; pair (1597, 2584)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0018</p><h3>At Fibonacci iteration 17, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 17 begins with the pair of registers a=1597, b=2584.</li>
+<li>The current output is register a, so the emitted term is 1597.</li>
+<li>Calculate a temporary sum t = a+b = 1597+2584 = 4181.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 2584.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 4181.</li>
+<li>After the update, the pair is (2584, 4181).</li>
+<li>On the next iteration, the machine will emit 2584.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 1597; pair (2584, 4181)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0019</p><h3>At Fibonacci iteration 18, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 18 begins with the pair of registers a=2584, b=4181.</li>
+<li>The current output is register a, so the emitted term is 2584.</li>
+<li>Calculate a temporary sum t = a+b = 2584+4181 = 6765.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 4181.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 6765.</li>
+<li>After the update, the pair is (4181, 6765).</li>
+<li>On the next iteration, the machine will emit 4181.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 2584; pair (4181, 6765)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0020</p><h3>At Fibonacci iteration 19, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 19 begins with the pair of registers a=4181, b=6765.</li>
+<li>The current output is register a, so the emitted term is 4181.</li>
+<li>Calculate a temporary sum t = a+b = 4181+6765 = 10946.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 6765.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 10946.</li>
+<li>After the update, the pair is (6765, 10946).</li>
+<li>On the next iteration, the machine will emit 6765.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 4181; pair (6765, 10946)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0021</p><h3>At Fibonacci iteration 20, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 20 begins with the pair of registers a=6765, b=10946.</li>
+<li>The current output is register a, so the emitted term is 6765.</li>
+<li>Calculate a temporary sum t = a+b = 6765+10946 = 17711.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 10946.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 17711.</li>
+<li>After the update, the pair is (10946, 17711).</li>
+<li>On the next iteration, the machine will emit 10946.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 6765; pair (10946, 17711)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0022</p><h3>At Fibonacci iteration 21, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 21 begins with the pair of registers a=10946, b=17711.</li>
+<li>The current output is register a, so the emitted term is 10946.</li>
+<li>Calculate a temporary sum t = a+b = 10946+17711 = 28657.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 17711.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 28657.</li>
+<li>After the update, the pair is (17711, 28657).</li>
+<li>On the next iteration, the machine will emit 17711.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 10946; pair (17711, 28657)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0023</p><h3>At Fibonacci iteration 22, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 22 begins with the pair of registers a=17711, b=28657.</li>
+<li>The current output is register a, so the emitted term is 17711.</li>
+<li>Calculate a temporary sum t = a+b = 17711+28657 = 46368.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 28657.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 46368.</li>
+<li>After the update, the pair is (28657, 46368).</li>
+<li>On the next iteration, the machine will emit 28657.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 17711; pair (28657, 46368)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0024</p><h3>At Fibonacci iteration 23, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 23 begins with the pair of registers a=28657, b=46368.</li>
+<li>The current output is register a, so the emitted term is 28657.</li>
+<li>Calculate a temporary sum t = a+b = 28657+46368 = 75025.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 46368.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 75025.</li>
+<li>After the update, the pair is (46368, 75025).</li>
+<li>On the next iteration, the machine will emit 46368.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 28657; pair (46368, 75025)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0025</p><h3>At Fibonacci iteration 24, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 24 begins with the pair of registers a=46368, b=75025.</li>
+<li>The current output is register a, so the emitted term is 46368.</li>
+<li>Calculate a temporary sum t = a+b = 46368+75025 = 121393.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 75025.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 121393.</li>
+<li>After the update, the pair is (75025, 121393).</li>
+<li>On the next iteration, the machine will emit 75025.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 46368; pair (75025, 121393)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0026</p><h3>At Fibonacci iteration 25, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 25 begins with the pair of registers a=75025, b=121393.</li>
+<li>The current output is register a, so the emitted term is 75025.</li>
+<li>Calculate a temporary sum t = a+b = 75025+121393 = 196418.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 121393.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 196418.</li>
+<li>After the update, the pair is (121393, 196418).</li>
+<li>On the next iteration, the machine will emit 121393.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 75025; pair (121393, 196418)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0027</p><h3>At Fibonacci iteration 26, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 26 begins with the pair of registers a=121393, b=196418.</li>
+<li>The current output is register a, so the emitted term is 121393.</li>
+<li>Calculate a temporary sum t = a+b = 121393+196418 = 317811.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 196418.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 317811.</li>
+<li>After the update, the pair is (196418, 317811).</li>
+<li>On the next iteration, the machine will emit 196418.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 121393; pair (196418, 317811)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0028</p><h3>At Fibonacci iteration 27, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 27 begins with the pair of registers a=196418, b=317811.</li>
+<li>The current output is register a, so the emitted term is 196418.</li>
+<li>Calculate a temporary sum t = a+b = 196418+317811 = 514229.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 317811.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 514229.</li>
+<li>After the update, the pair is (317811, 514229).</li>
+<li>On the next iteration, the machine will emit 317811.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 196418; pair (317811, 514229)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0029</p><h3>At Fibonacci iteration 28, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 28 begins with the pair of registers a=317811, b=514229.</li>
+<li>The current output is register a, so the emitted term is 317811.</li>
+<li>Calculate a temporary sum t = a+b = 317811+514229 = 832040.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 514229.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 832040.</li>
+<li>After the update, the pair is (514229, 832040).</li>
+<li>On the next iteration, the machine will emit 514229.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 317811; pair (514229, 832040)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0030</p><h3>At Fibonacci iteration 29, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 29 begins with the pair of registers a=514229, b=832040.</li>
+<li>The current output is register a, so the emitted term is 514229.</li>
+<li>Calculate a temporary sum t = a+b = 514229+832040 = 1346269.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 832040.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 1346269.</li>
+<li>After the update, the pair is (832040, 1346269).</li>
+<li>On the next iteration, the machine will emit 832040.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 514229; pair (832040, 1346269)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0031</p><h3>At Fibonacci iteration 30, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 30 begins with the pair of registers a=832040, b=1346269.</li>
+<li>The current output is register a, so the emitted term is 832040.</li>
+<li>Calculate a temporary sum t = a+b = 832040+1346269 = 2178309.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 1346269.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 2178309.</li>
+<li>After the update, the pair is (1346269, 2178309).</li>
+<li>On the next iteration, the machine will emit 1346269.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 832040; pair (1346269, 2178309)</p></details></section><section class="exercise"><p class="label">Sequential programs · Problem 0032</p><h3>At Fibonacci iteration 31, what is the output and next pair of register values?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Iteration number 31 begins with the pair of registers a=1346269, b=2178309.</li>
+<li>The current output is register a, so the emitted term is 1346269.</li>
+<li>Calculate a temporary sum t = a+b = 1346269+2178309 = 3524578.</li>
+<li>Copy the previous value of b into the new a register.</li>
+<li>The new a is 2178309.</li>
+<li>Copy the computed temporary t into the new b register.</li>
+<li>The new b is 3524578.</li>
+<li>After the update, the pair is (2178309, 3524578).</li>
+<li>On the next iteration, the machine will emit 2178309.</li>
+<li>The ordering matters: updating a too early without a temporary could destroy a needed operand.</li>
+<li>This trace uses unlimited mathematical integers; an eight-bit real register would wrap far earlier.</li></ol><p class="formula">Final answer: output 1346269; pair (2178309, 3524578)</p></details></section><nav class="practice-nav"><a href="index.html">All problem categories</a><a href="fibonacci-state-traces-02.html">Next set →</a></nav></article>
+<footer class="footer"><div class="wide"><a href="../index.html">How Computers Work</a><span style="float:right">A learning journal by Saravan Kumar M K · Designed to work offline and on GitHub Pages</span></div></footer>
+</div></main>
+</div>
+</body>
+</html>
