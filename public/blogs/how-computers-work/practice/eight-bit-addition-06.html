@@ -1,0 +1,506 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="description" content="Detailed solved exercises for Eight-bit addition.">
+<title>Eight-bit addition · Set 6 · How Computers Work</title>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
+<script src="../assets/search-index.js" defer></script>
+<script src="../assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to learning content</a>
+<header class="top"><a class="brand" href="../index.html"><span class="brand-mark">01</span><span>How Computers Work</span></a><nav class="top-links" aria-label="Top navigation"><a href="../index.html">Overview</a><a href="../labs/index.html">Labs</a><a href="../practice/index.html">Practice</a><a href="../reference/search.html">Search</a><button id="theme-toggle" type="button">☼ Light</button><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">☰ Menu</button></nav></header>
+<div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+<div class="frame">
+<aside class="sidebar" id="sidebar" aria-label="Study navigation"><div class="sidebar-header"><span class="eyebrow">Learning atlas</span><p style="margin:9px 0;font-size:.82rem">One idea at a time. Follow the signal.</p></div><a class="side-item"  href="../index.html"><span class="side-number">HOME</span> Start here</a><a class="side-item"  href="../parts/01.html"><span class="side-number">01</span> From electricity to information</a><a class="side-item"  href="../parts/02.html"><span class="side-number">02</span> Numbers made from bits</a><a class="side-item"  href="../parts/03.html"><span class="side-number">03</span> Arithmetic, signs, and overflow</a><a class="side-item"  href="../parts/04.html"><span class="side-number">04</span> Logic gates and decisions</a><a class="side-item"  href="../parts/05.html"><span class="side-number">05</span> From gates to an ALU</a><a class="side-item"  href="../parts/06.html"><span class="side-number">06</span> Memory of a single bit</a><a class="side-item"  href="../parts/07.html"><span class="side-number">07</span> RAM, ROM, and moving data</a><a class="side-item"  href="../parts/08.html"><span class="side-number">08</span> Assembling a CPU datapath</a><a class="side-item"  href="../parts/09.html"><span class="side-number">09</span> Instructions and control</a><a class="side-item"  href="../parts/10.html"><span class="side-number">10</span> Programs on a tiny CPU</a><a class="side-item"  href="../parts/11.html"><span class="side-number">11</span> From toy CPU to real ARM</a><a class="side-item"  href="../parts/12.html"><span class="side-number">12</span> The wider computer system</a><p class="side-unit">Explorable laboratories</p><a class="side-item" href="../labs/binary-workbench.html">Binary workbench</a><a class="side-item" href="../labs/number-converter.html">Number converter</a><a class="side-item" href="../labs/gate-explorer.html">Logic gate explorer</a><a class="side-item" href="../labs/full-adder-lab.html">Full adder lab</a><a class="side-item" href="../labs/alu-playground.html">Eight-bit ALU</a><a class="side-item" href="../labs/clock-register.html">Clock and register</a><a class="side-item" href="../labs/ram-lab.html">Tiny RAM simulator</a><a class="side-item" href="../labs/instruction-tracer.html">CPU instruction tracer</a><a class="side-item" href="../labs/seven-segment.html">Seven-segment display</a><a class="side-item" href="../labs/fibonacci-machine.html">Fibonacci machine</a><p class="side-unit">Practice & reference</p><a class="side-item" href="../practice/index.html">Worked exercise library</a><a class="side-item" href="../reference/glossary.html">Visual glossary</a><a class="side-item" href="../reference/search.html">Find a concept</a></aside>
+<main class="main" id="main"><div class="reading ">
+<article class="article"><div class="breadcrumb"><a href="index.html">Practice library</a><span> / </span>Eight-bit addition</div><p class="eyebrow">Fully solved problem book</p><h1>Eight-bit addition</h1><p class="deck">Set 6 of 14 · 32 worked questions. Predict your result before expanding the solution.</p><p>These worked traces are meant to build fluency through controlled variation. If several answers feel identical, try the next difficult value and look for the point where a carry, sign, branch, or selected memory address changes the outcome.</p><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0161</p><h3>Add 01100010₂ and 10001000₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01100010, B=10001000.</li>
+<li>Ordinary decimal arithmetic gives 98+136=234.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 1 (weight 2): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 2 (weight 4): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 3 (weight 8): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 6 (weight 64): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 11101010, which is 234 unsigned.</li>
+<li>Check modular arithmetic: 234 modulo 256 = 234.</li>
+<li>Signed readings of the inputs are 98 and -120; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 11101010</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0162</p><h3>Add 01100010₂ and 11011011₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01100010, B=11011011.</li>
+<li>Ordinary decimal arithmetic gives 98+219=317.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 1 (weight 2): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 2 (weight 4): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 00111101, which is 61 unsigned.</li>
+<li>Check modular arithmetic: 317 modulo 256 = 61.</li>
+<li>Signed readings of the inputs are 98 and -37; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 00111101</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0163</p><h3>Add 01100011₂ and 01011011₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01100011, B=01011011.</li>
+<li>Ordinary decimal arithmetic gives 99+91=190.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 1 (weight 2): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 2 (weight 4): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 10111110, which is 190 unsigned.</li>
+<li>Check modular arithmetic: 190 modulo 256 = 190.</li>
+<li>Signed readings of the inputs are 99 and 91; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 10111110</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0164</p><h3>Add 01100011₂ and 11001000₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01100011, B=11001000.</li>
+<li>Ordinary decimal arithmetic gives 99+200=299.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 1 (weight 2): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 2 (weight 4): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 3 (weight 8): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 00101011, which is 43 unsigned.</li>
+<li>Check modular arithmetic: 299 modulo 256 = 43.</li>
+<li>Signed readings of the inputs are 99 and -56; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 00101011</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0165</p><h3>Add 01100100₂ and 11110000₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01100100, B=11110000.</li>
+<li>Ordinary decimal arithmetic gives 100+240=340.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 1 (weight 2): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 2 (weight 4): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 4 (weight 16): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 01010100, which is 84 unsigned.</li>
+<li>Check modular arithmetic: 340 modulo 256 = 84.</li>
+<li>Signed readings of the inputs are 100 and -16; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 01010100</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0166</p><h3>Add 01100101₂ and 00010101₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01100101, B=00010101.</li>
+<li>Ordinary decimal arithmetic gives 101+21=122.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 1 (weight 2): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 2 (weight 4): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 3 (weight 8): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 6 (weight 64): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 7 (weight 128): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 01111010, which is 122 unsigned.</li>
+<li>Check modular arithmetic: 122 modulo 256 = 122.</li>
+<li>Signed readings of the inputs are 101 and 21; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 01111010</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0167</p><h3>Add 01100101₂ and 10110001₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01100101, B=10110001.</li>
+<li>Ordinary decimal arithmetic gives 101+177=278.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 1 (weight 2): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 2 (weight 4): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 4 (weight 16): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 00010110, which is 22 unsigned.</li>
+<li>Check modular arithmetic: 278 modulo 256 = 22.</li>
+<li>Signed readings of the inputs are 101 and -79; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 00010110</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0168</p><h3>Add 01100110₂ and 10111001₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01100110, B=10111001.</li>
+<li>Ordinary decimal arithmetic gives 102+185=287.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 1 (weight 2): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 2 (weight 4): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 00011111, which is 31 unsigned.</li>
+<li>Check modular arithmetic: 287 modulo 256 = 31.</li>
+<li>Signed readings of the inputs are 102 and -71; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 00011111</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0169</p><h3>Add 01100111₂ and 11010100₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01100111, B=11010100.</li>
+<li>Ordinary decimal arithmetic gives 103+212=315.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 1 (weight 2): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 2 (weight 4): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 3 (weight 8): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 00111011, which is 59 unsigned.</li>
+<li>Check modular arithmetic: 315 modulo 256 = 59.</li>
+<li>Signed readings of the inputs are 103 and -44; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 00111011</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0170</p><h3>Add 01100111₂ and 11011001₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01100111, B=11011001.</li>
+<li>Ordinary decimal arithmetic gives 103+217=320.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 1 (weight 2): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 2 (weight 4): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 3 (weight 8): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 4 (weight 16): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 01000000, which is 64 unsigned.</li>
+<li>Check modular arithmetic: 320 modulo 256 = 64.</li>
+<li>Signed readings of the inputs are 103 and -39; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 01000000</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0171</p><h3>Add 01101001₂ and 11000001₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01101001, B=11000001.</li>
+<li>Ordinary decimal arithmetic gives 105+193=298.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 1 (weight 2): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 2 (weight 4): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 3 (weight 8): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 00101010, which is 42 unsigned.</li>
+<li>Check modular arithmetic: 298 modulo 256 = 42.</li>
+<li>Signed readings of the inputs are 105 and -63; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 00101010</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0172</p><h3>Add 01101001₂ and 11001011₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01101001, B=11001011.</li>
+<li>Ordinary decimal arithmetic gives 105+203=308.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 1 (weight 2): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 2 (weight 4): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 4 (weight 16): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 00110100, which is 52 unsigned.</li>
+<li>Check modular arithmetic: 308 modulo 256 = 52.</li>
+<li>Signed readings of the inputs are 105 and -53; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 00110100</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0173</p><h3>Add 01101001₂ and 11101101₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01101001, B=11101101.</li>
+<li>Ordinary decimal arithmetic gives 105+237=342.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 1 (weight 2): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 2 (weight 4): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 4 (weight 16): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 01010110, which is 86 unsigned.</li>
+<li>Check modular arithmetic: 342 modulo 256 = 86.</li>
+<li>Signed readings of the inputs are 105 and -19; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 01010110</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0174</p><h3>Add 01101010₂ and 01100110₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01101010, B=01100110.</li>
+<li>Ordinary decimal arithmetic gives 106+102=208.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 1 (weight 2): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 2 (weight 4): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 3 (weight 8): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 4 (weight 16): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 11010000, which is 208 unsigned.</li>
+<li>Check modular arithmetic: 208 modulo 256 = 208.</li>
+<li>Signed readings of the inputs are 106 and 102; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 11010000</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0175</p><h3>Add 01101011₂ and 01010010₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01101011, B=01010010.</li>
+<li>Ordinary decimal arithmetic gives 107+82=189.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 1 (weight 2): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 2 (weight 4): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 10111101, which is 189 unsigned.</li>
+<li>Check modular arithmetic: 189 modulo 256 = 189.</li>
+<li>Signed readings of the inputs are 107 and 82; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 10111101</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0176</p><h3>Add 01101011₂ and 10100001₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01101011, B=10100001.</li>
+<li>Ordinary decimal arithmetic gives 107+161=268.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 1 (weight 2): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 2 (weight 4): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 00001100, which is 12 unsigned.</li>
+<li>Check modular arithmetic: 268 modulo 256 = 12.</li>
+<li>Signed readings of the inputs are 107 and -95; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 00001100</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0177</p><h3>Add 01101011₂ and 10110100₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01101011, B=10110100.</li>
+<li>Ordinary decimal arithmetic gives 107+180=287.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 1 (weight 2): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 2 (weight 4): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 00011111, which is 31 unsigned.</li>
+<li>Check modular arithmetic: 287 modulo 256 = 31.</li>
+<li>Signed readings of the inputs are 107 and -76; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 00011111</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0178</p><h3>Add 01101100₂ and 00100100₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01101100, B=00100100.</li>
+<li>Ordinary decimal arithmetic gives 108+36=144.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 1 (weight 2): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 2 (weight 4): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 3 (weight 8): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 4 (weight 16): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 10010000, which is 144 unsigned.</li>
+<li>Check modular arithmetic: 144 modulo 256 = 144.</li>
+<li>Signed readings of the inputs are 108 and 36; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 10010000</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0179</p><h3>Add 01101101₂ and 01011000₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01101101, B=01011000.</li>
+<li>Ordinary decimal arithmetic gives 109+88=197.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 1 (weight 2): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 2 (weight 4): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 4 (weight 16): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 11000101, which is 197 unsigned.</li>
+<li>Check modular arithmetic: 197 modulo 256 = 197.</li>
+<li>Signed readings of the inputs are 109 and 88; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 11000101</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0180</p><h3>Add 01101101₂ and 01101001₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01101101, B=01101001.</li>
+<li>Ordinary decimal arithmetic gives 109+105=214.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 1 (weight 2): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 2 (weight 4): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 4 (weight 16): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 11010110, which is 214 unsigned.</li>
+<li>Check modular arithmetic: 214 modulo 256 = 214.</li>
+<li>Signed readings of the inputs are 109 and 105; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 11010110</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0181</p><h3>Add 01101110₂ and 00101110₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01101110, B=00101110.</li>
+<li>Ordinary decimal arithmetic gives 110+46=156.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 1 (weight 2): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 2 (weight 4): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 3 (weight 8): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 4 (weight 16): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 10011100, which is 156 unsigned.</li>
+<li>Check modular arithmetic: 156 modulo 256 = 156.</li>
+<li>Signed readings of the inputs are 110 and 46; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 10011100</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0182</p><h3>Add 01101111₂ and 01111010₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01101111, B=01111010.</li>
+<li>Ordinary decimal arithmetic gives 111+122=233.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 1 (weight 2): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 2 (weight 4): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 3 (weight 8): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 4 (weight 16): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 5 (weight 32): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 11101001, which is 233 unsigned.</li>
+<li>Check modular arithmetic: 233 modulo 256 = 233.</li>
+<li>Signed readings of the inputs are 111 and 122; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 11101001</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0183</p><h3>Add 01110000₂ and 00101111₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01110000, B=00101111.</li>
+<li>Ordinary decimal arithmetic gives 112+47=159.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 1 (weight 2): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 2 (weight 4): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 10011111, which is 159 unsigned.</li>
+<li>Check modular arithmetic: 159 modulo 256 = 159.</li>
+<li>Signed readings of the inputs are 112 and 47; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 10011111</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0184</p><h3>Add 01110000₂ and 01001110₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01110000, B=01001110.</li>
+<li>Ordinary decimal arithmetic gives 112+78=190.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 1 (weight 2): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 2 (weight 4): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 10111110, which is 190 unsigned.</li>
+<li>Check modular arithmetic: 190 modulo 256 = 190.</li>
+<li>Signed readings of the inputs are 112 and 78; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 10111110</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0185</p><h3>Add 01110001₂ and 00011101₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01110001, B=00011101.</li>
+<li>Ordinary decimal arithmetic gives 113+29=142.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 1 (weight 2): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 2 (weight 4): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 10001110, which is 142 unsigned.</li>
+<li>Check modular arithmetic: 142 modulo 256 = 142.</li>
+<li>Signed readings of the inputs are 113 and 29; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 10001110</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0186</p><h3>Add 01110001₂ and 11011010₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01110001, B=11011010.</li>
+<li>Ordinary decimal arithmetic gives 113+218=331.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 1 (weight 2): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 2 (weight 4): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 3 (weight 8): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 01001011, which is 75 unsigned.</li>
+<li>Check modular arithmetic: 331 modulo 256 = 75.</li>
+<li>Signed readings of the inputs are 113 and -38; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 01001011</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0187</p><h3>Add 01110001₂ and 11011111₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01110001, B=11011111.</li>
+<li>Ordinary decimal arithmetic gives 113+223=336.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 1 (weight 2): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 2 (weight 4): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 3 (weight 8): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 4 (weight 16): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 01010000, which is 80 unsigned.</li>
+<li>Check modular arithmetic: 336 modulo 256 = 80.</li>
+<li>Signed readings of the inputs are 113 and -33; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 01010000</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0188</p><h3>Add 01110001₂ and 11101000₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01110001, B=11101000.</li>
+<li>Ordinary decimal arithmetic gives 113+232=345.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 1 (weight 2): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 2 (weight 4): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 3 (weight 8): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 01011001, which is 89 unsigned.</li>
+<li>Check modular arithmetic: 345 modulo 256 = 89.</li>
+<li>Signed readings of the inputs are 113 and -24; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 01011001</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0189</p><h3>Add 01110010₂ and 00100100₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01110010, B=00100100.</li>
+<li>Ordinary decimal arithmetic gives 114+36=150.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 1 (weight 2): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 2 (weight 4): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 4 (weight 16): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 10010110, which is 150 unsigned.</li>
+<li>Check modular arithmetic: 150 modulo 256 = 150.</li>
+<li>Signed readings of the inputs are 114 and 36; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 10010110</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0190</p><h3>Add 01110010₂ and 10001010₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01110010, B=10001010.</li>
+<li>Ordinary decimal arithmetic gives 114+138=252.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>Bit 1 (weight 2): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 2 (weight 4): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 3 (weight 8): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 6 (weight 64): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 11111100, which is 252 unsigned.</li>
+<li>Check modular arithmetic: 252 modulo 256 = 252.</li>
+<li>Signed readings of the inputs are 114 and -118; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 11111100</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0191</p><h3>Add 01110010₂ and 11010111₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01110010, B=11010111.</li>
+<li>Ordinary decimal arithmetic gives 114+215=329.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 0+1+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 1 (weight 2): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 2 (weight 4): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 3 (weight 8): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 6 (weight 64): 1+1+incoming carry 1=3; write 1, pass carry 1.</li>
+<li>Bit 7 (weight 128): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>The final carry-out is 1; it is outside the eight-bit result.</li>
+<li>The stored sum is 01001001, which is 73 unsigned.</li>
+<li>Check modular arithmetic: 329 modulo 256 = 73.</li>
+<li>Signed readings of the inputs are 114 and -41; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 01001001</p></details></section><section class="exercise"><p class="label">Bitwise arithmetic · Problem 0192</p><h3>Add 01110011₂ and 00000110₂; keep the low eight result bits.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Use exactly eight bits: A=01110011, B=00000110.</li>
+<li>Ordinary decimal arithmetic gives 115+6=121.</li>
+<li>We process bits from the rightmost column (bit zero) to the leftmost (bit seven).</li>
+<li>Bit 0 (weight 1): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 1 (weight 2): 1+1+incoming carry 0=2; write 0, pass carry 1.</li>
+<li>Bit 2 (weight 4): 0+1+incoming carry 1=2; write 0, pass carry 1.</li>
+<li>Bit 3 (weight 8): 0+0+incoming carry 1=1; write 1, pass carry 0.</li>
+<li>Bit 4 (weight 16): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 5 (weight 32): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 6 (weight 64): 1+0+incoming carry 0=1; write 1, pass carry 0.</li>
+<li>Bit 7 (weight 128): 0+0+incoming carry 0=0; write 0, pass carry 0.</li>
+<li>The final carry-out is 0; it is outside the eight-bit result.</li>
+<li>The stored sum is 01111001, which is 121 unsigned.</li>
+<li>Check modular arithmetic: 121 modulo 256 = 121.</li>
+<li>Signed readings of the inputs are 115 and 6; signed overflow should be evaluated separately.</li>
+<li>An ALU may expose carry-out and signed overflow as different flags.</li></ol><p class="formula">Final answer: 01111001</p></details></section><nav class="practice-nav"><a href="eight-bit-addition-05.html">← Previous set</a><a href="index.html">All problem categories</a><a href="eight-bit-addition-07.html">Next set →</a></nav></article>
+<footer class="footer"><div class="wide"><a href="../index.html">How Computers Work</a><span style="float:right">A learning journal by Saravan Kumar M K · Designed to work offline and on GitHub Pages</span></div></footer>
+</div></main>
+</div>
+</body>
+</html>

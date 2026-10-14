@@ -1,0 +1,538 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="description" content="Detailed solved exercises for Writing binary.">
+<title>Writing binary · Set 3 · How Computers Work</title>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
+<script src="../assets/search-index.js" defer></script>
+<script src="../assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to learning content</a>
+<header class="top"><a class="brand" href="../index.html"><span class="brand-mark">01</span><span>How Computers Work</span></a><nav class="top-links" aria-label="Top navigation"><a href="../index.html">Overview</a><a href="../labs/index.html">Labs</a><a href="../practice/index.html">Practice</a><a href="../reference/search.html">Search</a><button id="theme-toggle" type="button">☼ Light</button><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">☰ Menu</button></nav></header>
+<div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+<div class="frame">
+<aside class="sidebar" id="sidebar" aria-label="Study navigation"><div class="sidebar-header"><span class="eyebrow">Learning atlas</span><p style="margin:9px 0;font-size:.82rem">One idea at a time. Follow the signal.</p></div><a class="side-item"  href="../index.html"><span class="side-number">HOME</span> Start here</a><a class="side-item"  href="../parts/01.html"><span class="side-number">01</span> From electricity to information</a><a class="side-item"  href="../parts/02.html"><span class="side-number">02</span> Numbers made from bits</a><a class="side-item"  href="../parts/03.html"><span class="side-number">03</span> Arithmetic, signs, and overflow</a><a class="side-item"  href="../parts/04.html"><span class="side-number">04</span> Logic gates and decisions</a><a class="side-item"  href="../parts/05.html"><span class="side-number">05</span> From gates to an ALU</a><a class="side-item"  href="../parts/06.html"><span class="side-number">06</span> Memory of a single bit</a><a class="side-item"  href="../parts/07.html"><span class="side-number">07</span> RAM, ROM, and moving data</a><a class="side-item"  href="../parts/08.html"><span class="side-number">08</span> Assembling a CPU datapath</a><a class="side-item"  href="../parts/09.html"><span class="side-number">09</span> Instructions and control</a><a class="side-item"  href="../parts/10.html"><span class="side-number">10</span> Programs on a tiny CPU</a><a class="side-item"  href="../parts/11.html"><span class="side-number">11</span> From toy CPU to real ARM</a><a class="side-item"  href="../parts/12.html"><span class="side-number">12</span> The wider computer system</a><p class="side-unit">Explorable laboratories</p><a class="side-item" href="../labs/binary-workbench.html">Binary workbench</a><a class="side-item" href="../labs/number-converter.html">Number converter</a><a class="side-item" href="../labs/gate-explorer.html">Logic gate explorer</a><a class="side-item" href="../labs/full-adder-lab.html">Full adder lab</a><a class="side-item" href="../labs/alu-playground.html">Eight-bit ALU</a><a class="side-item" href="../labs/clock-register.html">Clock and register</a><a class="side-item" href="../labs/ram-lab.html">Tiny RAM simulator</a><a class="side-item" href="../labs/instruction-tracer.html">CPU instruction tracer</a><a class="side-item" href="../labs/seven-segment.html">Seven-segment display</a><a class="side-item" href="../labs/fibonacci-machine.html">Fibonacci machine</a><p class="side-unit">Practice & reference</p><a class="side-item" href="../practice/index.html">Worked exercise library</a><a class="side-item" href="../reference/glossary.html">Visual glossary</a><a class="side-item" href="../reference/search.html">Find a concept</a></aside>
+<main class="main" id="main"><div class="reading ">
+<article class="article"><div class="breadcrumb"><a href="index.html">Practice library</a><span> / </span>Writing binary</div><p class="eyebrow">Fully solved problem book</p><h1>Writing binary</h1><p class="deck">Set 3 of 10 · 32 worked questions. Predict your result before expanding the solution.</p><p>These worked traces are meant to build fluency through controlled variation. If several answers feel identical, try the next difficult value and look for the point where a carry, sign, branch, or selected memory address changes the outcome.</p><section class="exercise"><p class="label">Foundations · Problem 0065</p><h3>Express decimal 384 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 384.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 384 is below 512; write bit 0; new remainder 384.</li>
+<li>Weight 256: take it because remaining 384 is at least 256; write bit 1; new remainder 128.</li>
+<li>Weight 128: take it because remaining 128 is at least 128; write bit 1; new remainder 0.</li>
+<li>Weight  64: skip it because remaining 0 is below 64; write bit 0; new remainder 0.</li>
+<li>Weight  32: skip it because remaining 0 is below 32; write bit 0; new remainder 0.</li>
+<li>Weight  16: skip it because remaining 0 is below 16; write bit 0; new remainder 0.</li>
+<li>Weight   8: skip it because remaining 0 is below 8; write bit 0; new remainder 0.</li>
+<li>Weight   4: skip it because remaining 0 is below 4; write bit 0; new remainder 0.</li>
+<li>Weight   2: skip it because remaining 0 is below 2; write bit 0; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110000000.</li>
+<li>Confirm the bit weights sum back to 384.</li>
+<li>Answer: 384₁₀ = 0110000000₂.</li></ol><p class="formula">Final answer: 0110000000</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0066</p><h3>Express decimal 385 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 385.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 385 is below 512; write bit 0; new remainder 385.</li>
+<li>Weight 256: take it because remaining 385 is at least 256; write bit 1; new remainder 129.</li>
+<li>Weight 128: take it because remaining 129 is at least 128; write bit 1; new remainder 1.</li>
+<li>Weight  64: skip it because remaining 1 is below 64; write bit 0; new remainder 1.</li>
+<li>Weight  32: skip it because remaining 1 is below 32; write bit 0; new remainder 1.</li>
+<li>Weight  16: skip it because remaining 1 is below 16; write bit 0; new remainder 1.</li>
+<li>Weight   8: skip it because remaining 1 is below 8; write bit 0; new remainder 1.</li>
+<li>Weight   4: skip it because remaining 1 is below 4; write bit 0; new remainder 1.</li>
+<li>Weight   2: skip it because remaining 1 is below 2; write bit 0; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110000001.</li>
+<li>Confirm the bit weights sum back to 385.</li>
+<li>Answer: 385₁₀ = 0110000001₂.</li></ol><p class="formula">Final answer: 0110000001</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0067</p><h3>Express decimal 386 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 386.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 386 is below 512; write bit 0; new remainder 386.</li>
+<li>Weight 256: take it because remaining 386 is at least 256; write bit 1; new remainder 130.</li>
+<li>Weight 128: take it because remaining 130 is at least 128; write bit 1; new remainder 2.</li>
+<li>Weight  64: skip it because remaining 2 is below 64; write bit 0; new remainder 2.</li>
+<li>Weight  32: skip it because remaining 2 is below 32; write bit 0; new remainder 2.</li>
+<li>Weight  16: skip it because remaining 2 is below 16; write bit 0; new remainder 2.</li>
+<li>Weight   8: skip it because remaining 2 is below 8; write bit 0; new remainder 2.</li>
+<li>Weight   4: skip it because remaining 2 is below 4; write bit 0; new remainder 2.</li>
+<li>Weight   2: take it because remaining 2 is at least 2; write bit 1; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110000010.</li>
+<li>Confirm the bit weights sum back to 386.</li>
+<li>Answer: 386₁₀ = 0110000010₂.</li></ol><p class="formula">Final answer: 0110000010</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0068</p><h3>Express decimal 387 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 387.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 387 is below 512; write bit 0; new remainder 387.</li>
+<li>Weight 256: take it because remaining 387 is at least 256; write bit 1; new remainder 131.</li>
+<li>Weight 128: take it because remaining 131 is at least 128; write bit 1; new remainder 3.</li>
+<li>Weight  64: skip it because remaining 3 is below 64; write bit 0; new remainder 3.</li>
+<li>Weight  32: skip it because remaining 3 is below 32; write bit 0; new remainder 3.</li>
+<li>Weight  16: skip it because remaining 3 is below 16; write bit 0; new remainder 3.</li>
+<li>Weight   8: skip it because remaining 3 is below 8; write bit 0; new remainder 3.</li>
+<li>Weight   4: skip it because remaining 3 is below 4; write bit 0; new remainder 3.</li>
+<li>Weight   2: take it because remaining 3 is at least 2; write bit 1; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110000011.</li>
+<li>Confirm the bit weights sum back to 387.</li>
+<li>Answer: 387₁₀ = 0110000011₂.</li></ol><p class="formula">Final answer: 0110000011</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0069</p><h3>Express decimal 388 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 388.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 388 is below 512; write bit 0; new remainder 388.</li>
+<li>Weight 256: take it because remaining 388 is at least 256; write bit 1; new remainder 132.</li>
+<li>Weight 128: take it because remaining 132 is at least 128; write bit 1; new remainder 4.</li>
+<li>Weight  64: skip it because remaining 4 is below 64; write bit 0; new remainder 4.</li>
+<li>Weight  32: skip it because remaining 4 is below 32; write bit 0; new remainder 4.</li>
+<li>Weight  16: skip it because remaining 4 is below 16; write bit 0; new remainder 4.</li>
+<li>Weight   8: skip it because remaining 4 is below 8; write bit 0; new remainder 4.</li>
+<li>Weight   4: take it because remaining 4 is at least 4; write bit 1; new remainder 0.</li>
+<li>Weight   2: skip it because remaining 0 is below 2; write bit 0; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110000100.</li>
+<li>Confirm the bit weights sum back to 388.</li>
+<li>Answer: 388₁₀ = 0110000100₂.</li></ol><p class="formula">Final answer: 0110000100</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0070</p><h3>Express decimal 389 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 389.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 389 is below 512; write bit 0; new remainder 389.</li>
+<li>Weight 256: take it because remaining 389 is at least 256; write bit 1; new remainder 133.</li>
+<li>Weight 128: take it because remaining 133 is at least 128; write bit 1; new remainder 5.</li>
+<li>Weight  64: skip it because remaining 5 is below 64; write bit 0; new remainder 5.</li>
+<li>Weight  32: skip it because remaining 5 is below 32; write bit 0; new remainder 5.</li>
+<li>Weight  16: skip it because remaining 5 is below 16; write bit 0; new remainder 5.</li>
+<li>Weight   8: skip it because remaining 5 is below 8; write bit 0; new remainder 5.</li>
+<li>Weight   4: take it because remaining 5 is at least 4; write bit 1; new remainder 1.</li>
+<li>Weight   2: skip it because remaining 1 is below 2; write bit 0; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110000101.</li>
+<li>Confirm the bit weights sum back to 389.</li>
+<li>Answer: 389₁₀ = 0110000101₂.</li></ol><p class="formula">Final answer: 0110000101</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0071</p><h3>Express decimal 390 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 390.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 390 is below 512; write bit 0; new remainder 390.</li>
+<li>Weight 256: take it because remaining 390 is at least 256; write bit 1; new remainder 134.</li>
+<li>Weight 128: take it because remaining 134 is at least 128; write bit 1; new remainder 6.</li>
+<li>Weight  64: skip it because remaining 6 is below 64; write bit 0; new remainder 6.</li>
+<li>Weight  32: skip it because remaining 6 is below 32; write bit 0; new remainder 6.</li>
+<li>Weight  16: skip it because remaining 6 is below 16; write bit 0; new remainder 6.</li>
+<li>Weight   8: skip it because remaining 6 is below 8; write bit 0; new remainder 6.</li>
+<li>Weight   4: take it because remaining 6 is at least 4; write bit 1; new remainder 2.</li>
+<li>Weight   2: take it because remaining 2 is at least 2; write bit 1; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110000110.</li>
+<li>Confirm the bit weights sum back to 390.</li>
+<li>Answer: 390₁₀ = 0110000110₂.</li></ol><p class="formula">Final answer: 0110000110</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0072</p><h3>Express decimal 391 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 391.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 391 is below 512; write bit 0; new remainder 391.</li>
+<li>Weight 256: take it because remaining 391 is at least 256; write bit 1; new remainder 135.</li>
+<li>Weight 128: take it because remaining 135 is at least 128; write bit 1; new remainder 7.</li>
+<li>Weight  64: skip it because remaining 7 is below 64; write bit 0; new remainder 7.</li>
+<li>Weight  32: skip it because remaining 7 is below 32; write bit 0; new remainder 7.</li>
+<li>Weight  16: skip it because remaining 7 is below 16; write bit 0; new remainder 7.</li>
+<li>Weight   8: skip it because remaining 7 is below 8; write bit 0; new remainder 7.</li>
+<li>Weight   4: take it because remaining 7 is at least 4; write bit 1; new remainder 3.</li>
+<li>Weight   2: take it because remaining 3 is at least 2; write bit 1; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110000111.</li>
+<li>Confirm the bit weights sum back to 391.</li>
+<li>Answer: 391₁₀ = 0110000111₂.</li></ol><p class="formula">Final answer: 0110000111</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0073</p><h3>Express decimal 392 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 392.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 392 is below 512; write bit 0; new remainder 392.</li>
+<li>Weight 256: take it because remaining 392 is at least 256; write bit 1; new remainder 136.</li>
+<li>Weight 128: take it because remaining 136 is at least 128; write bit 1; new remainder 8.</li>
+<li>Weight  64: skip it because remaining 8 is below 64; write bit 0; new remainder 8.</li>
+<li>Weight  32: skip it because remaining 8 is below 32; write bit 0; new remainder 8.</li>
+<li>Weight  16: skip it because remaining 8 is below 16; write bit 0; new remainder 8.</li>
+<li>Weight   8: take it because remaining 8 is at least 8; write bit 1; new remainder 0.</li>
+<li>Weight   4: skip it because remaining 0 is below 4; write bit 0; new remainder 0.</li>
+<li>Weight   2: skip it because remaining 0 is below 2; write bit 0; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110001000.</li>
+<li>Confirm the bit weights sum back to 392.</li>
+<li>Answer: 392₁₀ = 0110001000₂.</li></ol><p class="formula">Final answer: 0110001000</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0074</p><h3>Express decimal 393 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 393.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 393 is below 512; write bit 0; new remainder 393.</li>
+<li>Weight 256: take it because remaining 393 is at least 256; write bit 1; new remainder 137.</li>
+<li>Weight 128: take it because remaining 137 is at least 128; write bit 1; new remainder 9.</li>
+<li>Weight  64: skip it because remaining 9 is below 64; write bit 0; new remainder 9.</li>
+<li>Weight  32: skip it because remaining 9 is below 32; write bit 0; new remainder 9.</li>
+<li>Weight  16: skip it because remaining 9 is below 16; write bit 0; new remainder 9.</li>
+<li>Weight   8: take it because remaining 9 is at least 8; write bit 1; new remainder 1.</li>
+<li>Weight   4: skip it because remaining 1 is below 4; write bit 0; new remainder 1.</li>
+<li>Weight   2: skip it because remaining 1 is below 2; write bit 0; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110001001.</li>
+<li>Confirm the bit weights sum back to 393.</li>
+<li>Answer: 393₁₀ = 0110001001₂.</li></ol><p class="formula">Final answer: 0110001001</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0075</p><h3>Express decimal 394 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 394.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 394 is below 512; write bit 0; new remainder 394.</li>
+<li>Weight 256: take it because remaining 394 is at least 256; write bit 1; new remainder 138.</li>
+<li>Weight 128: take it because remaining 138 is at least 128; write bit 1; new remainder 10.</li>
+<li>Weight  64: skip it because remaining 10 is below 64; write bit 0; new remainder 10.</li>
+<li>Weight  32: skip it because remaining 10 is below 32; write bit 0; new remainder 10.</li>
+<li>Weight  16: skip it because remaining 10 is below 16; write bit 0; new remainder 10.</li>
+<li>Weight   8: take it because remaining 10 is at least 8; write bit 1; new remainder 2.</li>
+<li>Weight   4: skip it because remaining 2 is below 4; write bit 0; new remainder 2.</li>
+<li>Weight   2: take it because remaining 2 is at least 2; write bit 1; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110001010.</li>
+<li>Confirm the bit weights sum back to 394.</li>
+<li>Answer: 394₁₀ = 0110001010₂.</li></ol><p class="formula">Final answer: 0110001010</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0076</p><h3>Express decimal 395 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 395.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 395 is below 512; write bit 0; new remainder 395.</li>
+<li>Weight 256: take it because remaining 395 is at least 256; write bit 1; new remainder 139.</li>
+<li>Weight 128: take it because remaining 139 is at least 128; write bit 1; new remainder 11.</li>
+<li>Weight  64: skip it because remaining 11 is below 64; write bit 0; new remainder 11.</li>
+<li>Weight  32: skip it because remaining 11 is below 32; write bit 0; new remainder 11.</li>
+<li>Weight  16: skip it because remaining 11 is below 16; write bit 0; new remainder 11.</li>
+<li>Weight   8: take it because remaining 11 is at least 8; write bit 1; new remainder 3.</li>
+<li>Weight   4: skip it because remaining 3 is below 4; write bit 0; new remainder 3.</li>
+<li>Weight   2: take it because remaining 3 is at least 2; write bit 1; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110001011.</li>
+<li>Confirm the bit weights sum back to 395.</li>
+<li>Answer: 395₁₀ = 0110001011₂.</li></ol><p class="formula">Final answer: 0110001011</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0077</p><h3>Express decimal 396 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 396.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 396 is below 512; write bit 0; new remainder 396.</li>
+<li>Weight 256: take it because remaining 396 is at least 256; write bit 1; new remainder 140.</li>
+<li>Weight 128: take it because remaining 140 is at least 128; write bit 1; new remainder 12.</li>
+<li>Weight  64: skip it because remaining 12 is below 64; write bit 0; new remainder 12.</li>
+<li>Weight  32: skip it because remaining 12 is below 32; write bit 0; new remainder 12.</li>
+<li>Weight  16: skip it because remaining 12 is below 16; write bit 0; new remainder 12.</li>
+<li>Weight   8: take it because remaining 12 is at least 8; write bit 1; new remainder 4.</li>
+<li>Weight   4: take it because remaining 4 is at least 4; write bit 1; new remainder 0.</li>
+<li>Weight   2: skip it because remaining 0 is below 2; write bit 0; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110001100.</li>
+<li>Confirm the bit weights sum back to 396.</li>
+<li>Answer: 396₁₀ = 0110001100₂.</li></ol><p class="formula">Final answer: 0110001100</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0078</p><h3>Express decimal 397 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 397.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 397 is below 512; write bit 0; new remainder 397.</li>
+<li>Weight 256: take it because remaining 397 is at least 256; write bit 1; new remainder 141.</li>
+<li>Weight 128: take it because remaining 141 is at least 128; write bit 1; new remainder 13.</li>
+<li>Weight  64: skip it because remaining 13 is below 64; write bit 0; new remainder 13.</li>
+<li>Weight  32: skip it because remaining 13 is below 32; write bit 0; new remainder 13.</li>
+<li>Weight  16: skip it because remaining 13 is below 16; write bit 0; new remainder 13.</li>
+<li>Weight   8: take it because remaining 13 is at least 8; write bit 1; new remainder 5.</li>
+<li>Weight   4: take it because remaining 5 is at least 4; write bit 1; new remainder 1.</li>
+<li>Weight   2: skip it because remaining 1 is below 2; write bit 0; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110001101.</li>
+<li>Confirm the bit weights sum back to 397.</li>
+<li>Answer: 397₁₀ = 0110001101₂.</li></ol><p class="formula">Final answer: 0110001101</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0079</p><h3>Express decimal 398 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 398.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 398 is below 512; write bit 0; new remainder 398.</li>
+<li>Weight 256: take it because remaining 398 is at least 256; write bit 1; new remainder 142.</li>
+<li>Weight 128: take it because remaining 142 is at least 128; write bit 1; new remainder 14.</li>
+<li>Weight  64: skip it because remaining 14 is below 64; write bit 0; new remainder 14.</li>
+<li>Weight  32: skip it because remaining 14 is below 32; write bit 0; new remainder 14.</li>
+<li>Weight  16: skip it because remaining 14 is below 16; write bit 0; new remainder 14.</li>
+<li>Weight   8: take it because remaining 14 is at least 8; write bit 1; new remainder 6.</li>
+<li>Weight   4: take it because remaining 6 is at least 4; write bit 1; new remainder 2.</li>
+<li>Weight   2: take it because remaining 2 is at least 2; write bit 1; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110001110.</li>
+<li>Confirm the bit weights sum back to 398.</li>
+<li>Answer: 398₁₀ = 0110001110₂.</li></ol><p class="formula">Final answer: 0110001110</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0080</p><h3>Express decimal 399 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 399.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 399 is below 512; write bit 0; new remainder 399.</li>
+<li>Weight 256: take it because remaining 399 is at least 256; write bit 1; new remainder 143.</li>
+<li>Weight 128: take it because remaining 143 is at least 128; write bit 1; new remainder 15.</li>
+<li>Weight  64: skip it because remaining 15 is below 64; write bit 0; new remainder 15.</li>
+<li>Weight  32: skip it because remaining 15 is below 32; write bit 0; new remainder 15.</li>
+<li>Weight  16: skip it because remaining 15 is below 16; write bit 0; new remainder 15.</li>
+<li>Weight   8: take it because remaining 15 is at least 8; write bit 1; new remainder 7.</li>
+<li>Weight   4: take it because remaining 7 is at least 4; write bit 1; new remainder 3.</li>
+<li>Weight   2: take it because remaining 3 is at least 2; write bit 1; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110001111.</li>
+<li>Confirm the bit weights sum back to 399.</li>
+<li>Answer: 399₁₀ = 0110001111₂.</li></ol><p class="formula">Final answer: 0110001111</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0081</p><h3>Express decimal 400 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 400.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 400 is below 512; write bit 0; new remainder 400.</li>
+<li>Weight 256: take it because remaining 400 is at least 256; write bit 1; new remainder 144.</li>
+<li>Weight 128: take it because remaining 144 is at least 128; write bit 1; new remainder 16.</li>
+<li>Weight  64: skip it because remaining 16 is below 64; write bit 0; new remainder 16.</li>
+<li>Weight  32: skip it because remaining 16 is below 32; write bit 0; new remainder 16.</li>
+<li>Weight  16: take it because remaining 16 is at least 16; write bit 1; new remainder 0.</li>
+<li>Weight   8: skip it because remaining 0 is below 8; write bit 0; new remainder 0.</li>
+<li>Weight   4: skip it because remaining 0 is below 4; write bit 0; new remainder 0.</li>
+<li>Weight   2: skip it because remaining 0 is below 2; write bit 0; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110010000.</li>
+<li>Confirm the bit weights sum back to 400.</li>
+<li>Answer: 400₁₀ = 0110010000₂.</li></ol><p class="formula">Final answer: 0110010000</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0082</p><h3>Express decimal 401 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 401.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 401 is below 512; write bit 0; new remainder 401.</li>
+<li>Weight 256: take it because remaining 401 is at least 256; write bit 1; new remainder 145.</li>
+<li>Weight 128: take it because remaining 145 is at least 128; write bit 1; new remainder 17.</li>
+<li>Weight  64: skip it because remaining 17 is below 64; write bit 0; new remainder 17.</li>
+<li>Weight  32: skip it because remaining 17 is below 32; write bit 0; new remainder 17.</li>
+<li>Weight  16: take it because remaining 17 is at least 16; write bit 1; new remainder 1.</li>
+<li>Weight   8: skip it because remaining 1 is below 8; write bit 0; new remainder 1.</li>
+<li>Weight   4: skip it because remaining 1 is below 4; write bit 0; new remainder 1.</li>
+<li>Weight   2: skip it because remaining 1 is below 2; write bit 0; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110010001.</li>
+<li>Confirm the bit weights sum back to 401.</li>
+<li>Answer: 401₁₀ = 0110010001₂.</li></ol><p class="formula">Final answer: 0110010001</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0083</p><h3>Express decimal 402 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 402.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 402 is below 512; write bit 0; new remainder 402.</li>
+<li>Weight 256: take it because remaining 402 is at least 256; write bit 1; new remainder 146.</li>
+<li>Weight 128: take it because remaining 146 is at least 128; write bit 1; new remainder 18.</li>
+<li>Weight  64: skip it because remaining 18 is below 64; write bit 0; new remainder 18.</li>
+<li>Weight  32: skip it because remaining 18 is below 32; write bit 0; new remainder 18.</li>
+<li>Weight  16: take it because remaining 18 is at least 16; write bit 1; new remainder 2.</li>
+<li>Weight   8: skip it because remaining 2 is below 8; write bit 0; new remainder 2.</li>
+<li>Weight   4: skip it because remaining 2 is below 4; write bit 0; new remainder 2.</li>
+<li>Weight   2: take it because remaining 2 is at least 2; write bit 1; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110010010.</li>
+<li>Confirm the bit weights sum back to 402.</li>
+<li>Answer: 402₁₀ = 0110010010₂.</li></ol><p class="formula">Final answer: 0110010010</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0084</p><h3>Express decimal 403 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 403.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 403 is below 512; write bit 0; new remainder 403.</li>
+<li>Weight 256: take it because remaining 403 is at least 256; write bit 1; new remainder 147.</li>
+<li>Weight 128: take it because remaining 147 is at least 128; write bit 1; new remainder 19.</li>
+<li>Weight  64: skip it because remaining 19 is below 64; write bit 0; new remainder 19.</li>
+<li>Weight  32: skip it because remaining 19 is below 32; write bit 0; new remainder 19.</li>
+<li>Weight  16: take it because remaining 19 is at least 16; write bit 1; new remainder 3.</li>
+<li>Weight   8: skip it because remaining 3 is below 8; write bit 0; new remainder 3.</li>
+<li>Weight   4: skip it because remaining 3 is below 4; write bit 0; new remainder 3.</li>
+<li>Weight   2: take it because remaining 3 is at least 2; write bit 1; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110010011.</li>
+<li>Confirm the bit weights sum back to 403.</li>
+<li>Answer: 403₁₀ = 0110010011₂.</li></ol><p class="formula">Final answer: 0110010011</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0085</p><h3>Express decimal 404 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 404.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 404 is below 512; write bit 0; new remainder 404.</li>
+<li>Weight 256: take it because remaining 404 is at least 256; write bit 1; new remainder 148.</li>
+<li>Weight 128: take it because remaining 148 is at least 128; write bit 1; new remainder 20.</li>
+<li>Weight  64: skip it because remaining 20 is below 64; write bit 0; new remainder 20.</li>
+<li>Weight  32: skip it because remaining 20 is below 32; write bit 0; new remainder 20.</li>
+<li>Weight  16: take it because remaining 20 is at least 16; write bit 1; new remainder 4.</li>
+<li>Weight   8: skip it because remaining 4 is below 8; write bit 0; new remainder 4.</li>
+<li>Weight   4: take it because remaining 4 is at least 4; write bit 1; new remainder 0.</li>
+<li>Weight   2: skip it because remaining 0 is below 2; write bit 0; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110010100.</li>
+<li>Confirm the bit weights sum back to 404.</li>
+<li>Answer: 404₁₀ = 0110010100₂.</li></ol><p class="formula">Final answer: 0110010100</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0086</p><h3>Express decimal 405 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 405.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 405 is below 512; write bit 0; new remainder 405.</li>
+<li>Weight 256: take it because remaining 405 is at least 256; write bit 1; new remainder 149.</li>
+<li>Weight 128: take it because remaining 149 is at least 128; write bit 1; new remainder 21.</li>
+<li>Weight  64: skip it because remaining 21 is below 64; write bit 0; new remainder 21.</li>
+<li>Weight  32: skip it because remaining 21 is below 32; write bit 0; new remainder 21.</li>
+<li>Weight  16: take it because remaining 21 is at least 16; write bit 1; new remainder 5.</li>
+<li>Weight   8: skip it because remaining 5 is below 8; write bit 0; new remainder 5.</li>
+<li>Weight   4: take it because remaining 5 is at least 4; write bit 1; new remainder 1.</li>
+<li>Weight   2: skip it because remaining 1 is below 2; write bit 0; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110010101.</li>
+<li>Confirm the bit weights sum back to 405.</li>
+<li>Answer: 405₁₀ = 0110010101₂.</li></ol><p class="formula">Final answer: 0110010101</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0087</p><h3>Express decimal 406 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 406.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 406 is below 512; write bit 0; new remainder 406.</li>
+<li>Weight 256: take it because remaining 406 is at least 256; write bit 1; new remainder 150.</li>
+<li>Weight 128: take it because remaining 150 is at least 128; write bit 1; new remainder 22.</li>
+<li>Weight  64: skip it because remaining 22 is below 64; write bit 0; new remainder 22.</li>
+<li>Weight  32: skip it because remaining 22 is below 32; write bit 0; new remainder 22.</li>
+<li>Weight  16: take it because remaining 22 is at least 16; write bit 1; new remainder 6.</li>
+<li>Weight   8: skip it because remaining 6 is below 8; write bit 0; new remainder 6.</li>
+<li>Weight   4: take it because remaining 6 is at least 4; write bit 1; new remainder 2.</li>
+<li>Weight   2: take it because remaining 2 is at least 2; write bit 1; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110010110.</li>
+<li>Confirm the bit weights sum back to 406.</li>
+<li>Answer: 406₁₀ = 0110010110₂.</li></ol><p class="formula">Final answer: 0110010110</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0088</p><h3>Express decimal 407 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 407.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 407 is below 512; write bit 0; new remainder 407.</li>
+<li>Weight 256: take it because remaining 407 is at least 256; write bit 1; new remainder 151.</li>
+<li>Weight 128: take it because remaining 151 is at least 128; write bit 1; new remainder 23.</li>
+<li>Weight  64: skip it because remaining 23 is below 64; write bit 0; new remainder 23.</li>
+<li>Weight  32: skip it because remaining 23 is below 32; write bit 0; new remainder 23.</li>
+<li>Weight  16: take it because remaining 23 is at least 16; write bit 1; new remainder 7.</li>
+<li>Weight   8: skip it because remaining 7 is below 8; write bit 0; new remainder 7.</li>
+<li>Weight   4: take it because remaining 7 is at least 4; write bit 1; new remainder 3.</li>
+<li>Weight   2: take it because remaining 3 is at least 2; write bit 1; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110010111.</li>
+<li>Confirm the bit weights sum back to 407.</li>
+<li>Answer: 407₁₀ = 0110010111₂.</li></ol><p class="formula">Final answer: 0110010111</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0089</p><h3>Express decimal 408 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 408.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 408 is below 512; write bit 0; new remainder 408.</li>
+<li>Weight 256: take it because remaining 408 is at least 256; write bit 1; new remainder 152.</li>
+<li>Weight 128: take it because remaining 152 is at least 128; write bit 1; new remainder 24.</li>
+<li>Weight  64: skip it because remaining 24 is below 64; write bit 0; new remainder 24.</li>
+<li>Weight  32: skip it because remaining 24 is below 32; write bit 0; new remainder 24.</li>
+<li>Weight  16: take it because remaining 24 is at least 16; write bit 1; new remainder 8.</li>
+<li>Weight   8: take it because remaining 8 is at least 8; write bit 1; new remainder 0.</li>
+<li>Weight   4: skip it because remaining 0 is below 4; write bit 0; new remainder 0.</li>
+<li>Weight   2: skip it because remaining 0 is below 2; write bit 0; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110011000.</li>
+<li>Confirm the bit weights sum back to 408.</li>
+<li>Answer: 408₁₀ = 0110011000₂.</li></ol><p class="formula">Final answer: 0110011000</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0090</p><h3>Express decimal 409 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 409.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 409 is below 512; write bit 0; new remainder 409.</li>
+<li>Weight 256: take it because remaining 409 is at least 256; write bit 1; new remainder 153.</li>
+<li>Weight 128: take it because remaining 153 is at least 128; write bit 1; new remainder 25.</li>
+<li>Weight  64: skip it because remaining 25 is below 64; write bit 0; new remainder 25.</li>
+<li>Weight  32: skip it because remaining 25 is below 32; write bit 0; new remainder 25.</li>
+<li>Weight  16: take it because remaining 25 is at least 16; write bit 1; new remainder 9.</li>
+<li>Weight   8: take it because remaining 9 is at least 8; write bit 1; new remainder 1.</li>
+<li>Weight   4: skip it because remaining 1 is below 4; write bit 0; new remainder 1.</li>
+<li>Weight   2: skip it because remaining 1 is below 2; write bit 0; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110011001.</li>
+<li>Confirm the bit weights sum back to 409.</li>
+<li>Answer: 409₁₀ = 0110011001₂.</li></ol><p class="formula">Final answer: 0110011001</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0091</p><h3>Express decimal 410 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 410.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 410 is below 512; write bit 0; new remainder 410.</li>
+<li>Weight 256: take it because remaining 410 is at least 256; write bit 1; new remainder 154.</li>
+<li>Weight 128: take it because remaining 154 is at least 128; write bit 1; new remainder 26.</li>
+<li>Weight  64: skip it because remaining 26 is below 64; write bit 0; new remainder 26.</li>
+<li>Weight  32: skip it because remaining 26 is below 32; write bit 0; new remainder 26.</li>
+<li>Weight  16: take it because remaining 26 is at least 16; write bit 1; new remainder 10.</li>
+<li>Weight   8: take it because remaining 10 is at least 8; write bit 1; new remainder 2.</li>
+<li>Weight   4: skip it because remaining 2 is below 4; write bit 0; new remainder 2.</li>
+<li>Weight   2: take it because remaining 2 is at least 2; write bit 1; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110011010.</li>
+<li>Confirm the bit weights sum back to 410.</li>
+<li>Answer: 410₁₀ = 0110011010₂.</li></ol><p class="formula">Final answer: 0110011010</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0092</p><h3>Express decimal 411 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 411.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 411 is below 512; write bit 0; new remainder 411.</li>
+<li>Weight 256: take it because remaining 411 is at least 256; write bit 1; new remainder 155.</li>
+<li>Weight 128: take it because remaining 155 is at least 128; write bit 1; new remainder 27.</li>
+<li>Weight  64: skip it because remaining 27 is below 64; write bit 0; new remainder 27.</li>
+<li>Weight  32: skip it because remaining 27 is below 32; write bit 0; new remainder 27.</li>
+<li>Weight  16: take it because remaining 27 is at least 16; write bit 1; new remainder 11.</li>
+<li>Weight   8: take it because remaining 11 is at least 8; write bit 1; new remainder 3.</li>
+<li>Weight   4: skip it because remaining 3 is below 4; write bit 0; new remainder 3.</li>
+<li>Weight   2: take it because remaining 3 is at least 2; write bit 1; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110011011.</li>
+<li>Confirm the bit weights sum back to 411.</li>
+<li>Answer: 411₁₀ = 0110011011₂.</li></ol><p class="formula">Final answer: 0110011011</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0093</p><h3>Express decimal 412 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 412.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 412 is below 512; write bit 0; new remainder 412.</li>
+<li>Weight 256: take it because remaining 412 is at least 256; write bit 1; new remainder 156.</li>
+<li>Weight 128: take it because remaining 156 is at least 128; write bit 1; new remainder 28.</li>
+<li>Weight  64: skip it because remaining 28 is below 64; write bit 0; new remainder 28.</li>
+<li>Weight  32: skip it because remaining 28 is below 32; write bit 0; new remainder 28.</li>
+<li>Weight  16: take it because remaining 28 is at least 16; write bit 1; new remainder 12.</li>
+<li>Weight   8: take it because remaining 12 is at least 8; write bit 1; new remainder 4.</li>
+<li>Weight   4: take it because remaining 4 is at least 4; write bit 1; new remainder 0.</li>
+<li>Weight   2: skip it because remaining 0 is below 2; write bit 0; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110011100.</li>
+<li>Confirm the bit weights sum back to 412.</li>
+<li>Answer: 412₁₀ = 0110011100₂.</li></ol><p class="formula">Final answer: 0110011100</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0094</p><h3>Express decimal 413 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 413.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 413 is below 512; write bit 0; new remainder 413.</li>
+<li>Weight 256: take it because remaining 413 is at least 256; write bit 1; new remainder 157.</li>
+<li>Weight 128: take it because remaining 157 is at least 128; write bit 1; new remainder 29.</li>
+<li>Weight  64: skip it because remaining 29 is below 64; write bit 0; new remainder 29.</li>
+<li>Weight  32: skip it because remaining 29 is below 32; write bit 0; new remainder 29.</li>
+<li>Weight  16: take it because remaining 29 is at least 16; write bit 1; new remainder 13.</li>
+<li>Weight   8: take it because remaining 13 is at least 8; write bit 1; new remainder 5.</li>
+<li>Weight   4: take it because remaining 5 is at least 4; write bit 1; new remainder 1.</li>
+<li>Weight   2: skip it because remaining 1 is below 2; write bit 0; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110011101.</li>
+<li>Confirm the bit weights sum back to 413.</li>
+<li>Answer: 413₁₀ = 0110011101₂.</li></ol><p class="formula">Final answer: 0110011101</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0095</p><h3>Express decimal 414 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 414.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 414 is below 512; write bit 0; new remainder 414.</li>
+<li>Weight 256: take it because remaining 414 is at least 256; write bit 1; new remainder 158.</li>
+<li>Weight 128: take it because remaining 158 is at least 128; write bit 1; new remainder 30.</li>
+<li>Weight  64: skip it because remaining 30 is below 64; write bit 0; new remainder 30.</li>
+<li>Weight  32: skip it because remaining 30 is below 32; write bit 0; new remainder 30.</li>
+<li>Weight  16: take it because remaining 30 is at least 16; write bit 1; new remainder 14.</li>
+<li>Weight   8: take it because remaining 14 is at least 8; write bit 1; new remainder 6.</li>
+<li>Weight   4: take it because remaining 6 is at least 4; write bit 1; new remainder 2.</li>
+<li>Weight   2: take it because remaining 2 is at least 2; write bit 1; new remainder 0.</li>
+<li>Weight   1: skip it because remaining 0 is below 1; write bit 0; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110011110.</li>
+<li>Confirm the bit weights sum back to 414.</li>
+<li>Answer: 414₁₀ = 0110011110₂.</li></ol><p class="formula">Final answer: 0110011110</p></details></section><section class="exercise"><p class="label">Foundations · Problem 0096</p><h3>Express decimal 415 in 10-bit unsigned binary.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The target is the ordinary decimal value 415.</li>
+<li>Choose the smallest practical fixed width: 10 bits can hold the target.</li>
+<li>The highest available weight at that width is 512.</li>
+<li>Weight 512: skip it because remaining 415 is below 512; write bit 0; new remainder 415.</li>
+<li>Weight 256: take it because remaining 415 is at least 256; write bit 1; new remainder 159.</li>
+<li>Weight 128: take it because remaining 159 is at least 128; write bit 1; new remainder 31.</li>
+<li>Weight  64: skip it because remaining 31 is below 64; write bit 0; new remainder 31.</li>
+<li>Weight  32: skip it because remaining 31 is below 32; write bit 0; new remainder 31.</li>
+<li>Weight  16: take it because remaining 31 is at least 16; write bit 1; new remainder 15.</li>
+<li>Weight   8: take it because remaining 15 is at least 8; write bit 1; new remainder 7.</li>
+<li>Weight   4: take it because remaining 7 is at least 4; write bit 1; new remainder 3.</li>
+<li>Weight   2: take it because remaining 3 is at least 2; write bit 1; new remainder 1.</li>
+<li>Weight   1: take it because remaining 1 is at least 1; write bit 1; new remainder 0.</li>
+<li>Continue until the ones column; the final remainder must be zero.</li>
+<li>Reading the recorded bits left to right gives 0110011111.</li>
+<li>Confirm the bit weights sum back to 415.</li>
+<li>Answer: 415₁₀ = 0110011111₂.</li></ol><p class="formula">Final answer: 0110011111</p></details></section><nav class="practice-nav"><a href="writing-binary-02.html">← Previous set</a><a href="index.html">All problem categories</a><a href="writing-binary-04.html">Next set →</a></nav></article>
+<footer class="footer"><div class="wide"><a href="../index.html">How Computers Work</a><span style="float:right">A learning journal by Saravan Kumar M K · Designed to work offline and on GitHub Pages</span></div></footer>
+</div></main>
+</div>
+</body>
+</html>

@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="description" content="Detailed solved exercises for ALU and condition flags.">
+<title>ALU and condition flags · Set 7 · How Computers Work</title>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
+<script src="../assets/search-index.js" defer></script>
+<script src="../assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to learning content</a>
+<header class="top"><a class="brand" href="../index.html"><span class="brand-mark">01</span><span>How Computers Work</span></a><nav class="top-links" aria-label="Top navigation"><a href="../index.html">Overview</a><a href="../labs/index.html">Labs</a><a href="../practice/index.html">Practice</a><a href="../reference/search.html">Search</a><button id="theme-toggle" type="button">☼ Light</button><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">☰ Menu</button></nav></header>
+<div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+<div class="frame">
+<aside class="sidebar" id="sidebar" aria-label="Study navigation"><div class="sidebar-header"><span class="eyebrow">Learning atlas</span><p style="margin:9px 0;font-size:.82rem">One idea at a time. Follow the signal.</p></div><a class="side-item"  href="../index.html"><span class="side-number">HOME</span> Start here</a><a class="side-item"  href="../parts/01.html"><span class="side-number">01</span> From electricity to information</a><a class="side-item"  href="../parts/02.html"><span class="side-number">02</span> Numbers made from bits</a><a class="side-item"  href="../parts/03.html"><span class="side-number">03</span> Arithmetic, signs, and overflow</a><a class="side-item"  href="../parts/04.html"><span class="side-number">04</span> Logic gates and decisions</a><a class="side-item"  href="../parts/05.html"><span class="side-number">05</span> From gates to an ALU</a><a class="side-item"  href="../parts/06.html"><span class="side-number">06</span> Memory of a single bit</a><a class="side-item"  href="../parts/07.html"><span class="side-number">07</span> RAM, ROM, and moving data</a><a class="side-item"  href="../parts/08.html"><span class="side-number">08</span> Assembling a CPU datapath</a><a class="side-item"  href="../parts/09.html"><span class="side-number">09</span> Instructions and control</a><a class="side-item"  href="../parts/10.html"><span class="side-number">10</span> Programs on a tiny CPU</a><a class="side-item"  href="../parts/11.html"><span class="side-number">11</span> From toy CPU to real ARM</a><a class="side-item"  href="../parts/12.html"><span class="side-number">12</span> The wider computer system</a><p class="side-unit">Explorable laboratories</p><a class="side-item" href="../labs/binary-workbench.html">Binary workbench</a><a class="side-item" href="../labs/number-converter.html">Number converter</a><a class="side-item" href="../labs/gate-explorer.html">Logic gate explorer</a><a class="side-item" href="../labs/full-adder-lab.html">Full adder lab</a><a class="side-item" href="../labs/alu-playground.html">Eight-bit ALU</a><a class="side-item" href="../labs/clock-register.html">Clock and register</a><a class="side-item" href="../labs/ram-lab.html">Tiny RAM simulator</a><a class="side-item" href="../labs/instruction-tracer.html">CPU instruction tracer</a><a class="side-item" href="../labs/seven-segment.html">Seven-segment display</a><a class="side-item" href="../labs/fibonacci-machine.html">Fibonacci machine</a><p class="side-unit">Practice & reference</p><a class="side-item" href="../practice/index.html">Worked exercise library</a><a class="side-item" href="../reference/glossary.html">Visual glossary</a><a class="side-item" href="../reference/search.html">Find a concept</a></aside>
+<main class="main" id="main"><div class="reading ">
+<article class="article"><div class="breadcrumb"><a href="index.html">Practice library</a><span> / </span>ALU and condition flags</div><p class="eyebrow">Fully solved problem book</p><h1>ALU and condition flags</h1><p class="deck">Set 7 of 10 · 32 worked questions. Predict your result before expanding the solution.</p><p>These worked traces are meant to build fluency through controlled variation. If several answers feel identical, try the next difficult value and look for the point where a carry, sign, branch, or selected memory address changes the outcome.</p><section class="exercise"><p class="label">ALU diagnostics · Problem 0193</p><h3>For A=10101101 and B=01001010, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10101101 and B=01001010 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 173 + 74 = 247.</li>
+<li>Reduce the result modulo 256: 247.</li>
+<li>The eight output bits are 11110111.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=1, because the most significant output bit is 1.</li>
+<li>Carry flag C=0 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -83 and 74; their true signed result is -9.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result -9 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 11110111; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 11110111; Z0 N1 C0 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0194</p><h3>For A=10101111 and B=01000110, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10101111 and B=01000110 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 175 + 70 = 245.</li>
+<li>Reduce the result modulo 256: 245.</li>
+<li>The eight output bits are 11110101.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=1, because the most significant output bit is 1.</li>
+<li>Carry flag C=0 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -81 and 70; their true signed result is -11.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result -11 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 11110101; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 11110101; Z0 N1 C0 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0195</p><h3>For A=10110000 and B=10000101, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110000 and B=10000101 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 176 + 133 = 309.</li>
+<li>Reduce the result modulo 256: 53.</li>
+<li>The eight output bits are 00110101.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -80 and -123; their true signed result is -203.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=1; signed result -203 is outside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 00110101; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 00110101; Z0 N0 C1 V1</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0196</p><h3>For A=10110000 and B=10001100, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110000 and B=10001100 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 176 + 140 = 316.</li>
+<li>Reduce the result modulo 256: 60.</li>
+<li>The eight output bits are 00111100.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -80 and -116; their true signed result is -196.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=1; signed result -196 is outside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 00111100; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 00111100; Z0 N0 C1 V1</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0197</p><h3>For A=10110001 and B=01101101, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110001 and B=01101101 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 177 + 109 = 286.</li>
+<li>Reduce the result modulo 256: 30.</li>
+<li>The eight output bits are 00011110.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -79 and 109; their true signed result is 30.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result 30 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 00011110; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 00011110; Z0 N0 C1 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0198</p><h3>For A=10110001 and B=10000101, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110001 and B=10000101 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 177 + 133 = 310.</li>
+<li>Reduce the result modulo 256: 54.</li>
+<li>The eight output bits are 00110110.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -79 and -123; their true signed result is -202.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=1; signed result -202 is outside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 00110110; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 00110110; Z0 N0 C1 V1</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0199</p><h3>For A=10110011 and B=00100000, run SUB; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110011 and B=00100000 as the input bit patterns.</li>
+<li>Execute SUB; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 179 − 32 = 147.</li>
+<li>Reduce the result modulo 256: 147.</li>
+<li>The eight output bits are 10010011.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=1, because the most significant output bit is 1.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -77 and 32; their true signed result is -109.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result -109 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 10010011; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 10010011; Z0 N1 C1 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0200</p><h3>For A=10110011 and B=11011011, run SUB; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110011 and B=11011011 as the input bit patterns.</li>
+<li>Execute SUB; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 179 − 219 = -40.</li>
+<li>Reduce the result modulo 256: 216.</li>
+<li>The eight output bits are 11011000.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=1, because the most significant output bit is 1.</li>
+<li>Carry flag C=0 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -77 and -37; their true signed result is -40.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result -40 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 11011000; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 11011000; Z0 N1 C0 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0201</p><h3>For A=10110100 and B=00101001, run SUB; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110100 and B=00101001 as the input bit patterns.</li>
+<li>Execute SUB; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 180 − 41 = 139.</li>
+<li>Reduce the result modulo 256: 139.</li>
+<li>The eight output bits are 10001011.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=1, because the most significant output bit is 1.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -76 and 41; their true signed result is -117.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result -117 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 10001011; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 10001011; Z0 N1 C1 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0202</p><h3>For A=10110100 and B=11101011, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110100 and B=11101011 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 180 + 235 = 415.</li>
+<li>Reduce the result modulo 256: 159.</li>
+<li>The eight output bits are 10011111.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=1, because the most significant output bit is 1.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -76 and -21; their true signed result is -97.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result -97 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 10011111; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 10011111; Z0 N1 C1 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0203</p><h3>For A=10110101 and B=00110011, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110101 and B=00110011 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 181 + 51 = 232.</li>
+<li>Reduce the result modulo 256: 232.</li>
+<li>The eight output bits are 11101000.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=1, because the most significant output bit is 1.</li>
+<li>Carry flag C=0 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -75 and 51; their true signed result is -24.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result -24 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 11101000; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 11101000; Z0 N1 C0 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0204</p><h3>For A=10110101 and B=01100011, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110101 and B=01100011 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 181 + 99 = 280.</li>
+<li>Reduce the result modulo 256: 24.</li>
+<li>The eight output bits are 00011000.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -75 and 99; their true signed result is 24.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result 24 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 00011000; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 00011000; Z0 N0 C1 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0205</p><h3>For A=10110101 and B=10001111, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110101 and B=10001111 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 181 + 143 = 324.</li>
+<li>Reduce the result modulo 256: 68.</li>
+<li>The eight output bits are 01000100.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -75 and -113; their true signed result is -188.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=1; signed result -188 is outside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 01000100; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 01000100; Z0 N0 C1 V1</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0206</p><h3>For A=10110101 and B=10101110, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110101 and B=10101110 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 181 + 174 = 355.</li>
+<li>Reduce the result modulo 256: 99.</li>
+<li>The eight output bits are 01100011.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -75 and -82; their true signed result is -157.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=1; signed result -157 is outside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 01100011; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 01100011; Z0 N0 C1 V1</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0207</p><h3>For A=10110110 and B=10000110, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110110 and B=10000110 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 182 + 134 = 316.</li>
+<li>Reduce the result modulo 256: 60.</li>
+<li>The eight output bits are 00111100.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -74 and -122; their true signed result is -196.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=1; signed result -196 is outside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 00111100; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 00111100; Z0 N0 C1 V1</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0208</p><h3>For A=10110110 and B=10101110, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110110 and B=10101110 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 182 + 174 = 356.</li>
+<li>Reduce the result modulo 256: 100.</li>
+<li>The eight output bits are 01100100.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -74 and -82; their true signed result is -156.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=1; signed result -156 is outside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 01100100; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 01100100; Z0 N0 C1 V1</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0209</p><h3>For A=10110110 and B=11001000, run SUB; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110110 and B=11001000 as the input bit patterns.</li>
+<li>Execute SUB; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 182 − 200 = -18.</li>
+<li>Reduce the result modulo 256: 238.</li>
+<li>The eight output bits are 11101110.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=1, because the most significant output bit is 1.</li>
+<li>Carry flag C=0 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -74 and -56; their true signed result is -18.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result -18 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 11101110; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 11101110; Z0 N1 C0 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0210</p><h3>For A=10110111 and B=01001010, run SUB; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110111 and B=01001010 as the input bit patterns.</li>
+<li>Execute SUB; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 183 − 74 = 109.</li>
+<li>Reduce the result modulo 256: 109.</li>
+<li>The eight output bits are 01101101.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -73 and 74; their true signed result is -147.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=1; signed result -147 is outside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 01101101; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 01101101; Z0 N0 C1 V1</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0211</p><h3>For A=10110111 and B=01111111, run SUB; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10110111 and B=01111111 as the input bit patterns.</li>
+<li>Execute SUB; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 183 − 127 = 56.</li>
+<li>Reduce the result modulo 256: 56.</li>
+<li>The eight output bits are 00111000.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -73 and 127; their true signed result is -200.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=1; signed result -200 is outside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 00111000; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 00111000; Z0 N0 C1 V1</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0212</p><h3>For A=10111100 and B=11000010, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10111100 and B=11000010 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 188 + 194 = 382.</li>
+<li>Reduce the result modulo 256: 126.</li>
+<li>The eight output bits are 01111110.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -68 and -62; their true signed result is -130.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=1; signed result -130 is outside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 01111110; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 01111110; Z0 N0 C1 V1</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0213</p><h3>For A=10111101 and B=01101000, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10111101 and B=01101000 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 189 + 104 = 293.</li>
+<li>Reduce the result modulo 256: 37.</li>
+<li>The eight output bits are 00100101.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -67 and 104; their true signed result is 37.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result 37 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 00100101; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 00100101; Z0 N0 C1 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0214</p><h3>For A=10111110 and B=01101000, run SUB; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10111110 and B=01101000 as the input bit patterns.</li>
+<li>Execute SUB; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 190 − 104 = 86.</li>
+<li>Reduce the result modulo 256: 86.</li>
+<li>The eight output bits are 01010110.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -66 and 104; their true signed result is -170.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=1; signed result -170 is outside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 01010110; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 01010110; Z0 N0 C1 V1</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0215</p><h3>For A=10111110 and B=11010001, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10111110 and B=11010001 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 190 + 209 = 399.</li>
+<li>Reduce the result modulo 256: 143.</li>
+<li>The eight output bits are 10001111.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=1, because the most significant output bit is 1.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -66 and -47; their true signed result is -113.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result -113 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 10001111; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 10001111; Z0 N1 C1 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0216</p><h3>For A=10111111 and B=00000001, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10111111 and B=00000001 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 191 + 1 = 192.</li>
+<li>Reduce the result modulo 256: 192.</li>
+<li>The eight output bits are 11000000.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=1, because the most significant output bit is 1.</li>
+<li>Carry flag C=0 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -65 and 1; their true signed result is -64.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result -64 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 11000000; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 11000000; Z0 N1 C0 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0217</p><h3>For A=10111111 and B=11001001, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=10111111 and B=11001001 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 191 + 201 = 392.</li>
+<li>Reduce the result modulo 256: 136.</li>
+<li>The eight output bits are 10001000.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=1, because the most significant output bit is 1.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -65 and -55; their true signed result is -120.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result -120 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 10001000; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 10001000; Z0 N1 C1 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0218</p><h3>For A=11000000 and B=00011101, run SUB; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=11000000 and B=00011101 as the input bit patterns.</li>
+<li>Execute SUB; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 192 − 29 = 163.</li>
+<li>Reduce the result modulo 256: 163.</li>
+<li>The eight output bits are 10100011.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=1, because the most significant output bit is 1.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -64 and 29; their true signed result is -93.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result -93 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 10100011; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 10100011; Z0 N1 C1 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0219</p><h3>For A=11000000 and B=01001110, run SUB; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=11000000 and B=01001110 as the input bit patterns.</li>
+<li>Execute SUB; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 192 − 78 = 114.</li>
+<li>Reduce the result modulo 256: 114.</li>
+<li>The eight output bits are 01110010.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -64 and 78; their true signed result is -142.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=1; signed result -142 is outside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 01110010; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 01110010; Z0 N0 C1 V1</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0220</p><h3>For A=11000000 and B=01011101, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=11000000 and B=01011101 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 192 + 93 = 285.</li>
+<li>Reduce the result modulo 256: 29.</li>
+<li>The eight output bits are 00011101.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -64 and 93; their true signed result is 29.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result 29 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 00011101; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 00011101; Z0 N0 C1 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0221</p><h3>For A=11000010 and B=01001101, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=11000010 and B=01001101 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 194 + 77 = 271.</li>
+<li>Reduce the result modulo 256: 15.</li>
+<li>The eight output bits are 00001111.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -62 and 77; their true signed result is 15.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result 15 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 00001111; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 00001111; Z0 N0 C1 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0222</p><h3>For A=11000011 and B=01011011, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=11000011 and B=01011011 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 195 + 91 = 286.</li>
+<li>Reduce the result modulo 256: 30.</li>
+<li>The eight output bits are 00011110.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -61 and 91; their true signed result is 30.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result 30 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 00011110; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 00011110; Z0 N0 C1 V0</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0223</p><h3>For A=11000011 and B=10010010, run ADD; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=11000011 and B=10010010 as the input bit patterns.</li>
+<li>Execute ADD; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 195 + 146 = 341.</li>
+<li>Reduce the result modulo 256: 85.</li>
+<li>The eight output bits are 01010101.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=0, because the most significant output bit is 0.</li>
+<li>Carry flag C=1 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -61 and -110; their true signed result is -171.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=1; signed result -171 is outside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 01010101; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 01010101; Z0 N0 C1 V1</p></details></section><section class="exercise"><p class="label">ALU diagnostics · Problem 0224</p><h3>For A=11000101 and B=11000111, run SUB; find the low byte and Z, N, C, V.</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>Treat A=11000101 and B=11000111 as the input bit patterns.</li>
+<li>Execute SUB; compute the mathematical integer expression using the input patterns.</li>
+<li>The ordinary unsigned calculation yields 197 − 199 = -2.</li>
+<li>Reduce the result modulo 256: 254.</li>
+<li>The eight output bits are 11111110.</li>
+<li>Zero flag Z=0, because the stored output is nonzero.</li>
+<li>Negative flag N=1, because the most significant output bit is 1.</li>
+<li>Carry flag C=0 under the selected convention (ADD uses carry-out; SUB uses no-borrow).</li>
+<li>Signed readings are -59 and -57; their true signed result is -2.</li>
+<li>The signed result range is −128 through 127.</li>
+<li>Overflow flag V=0; signed result -2 is inside the 8-bit signed range.</li>
+<li>The flags do not change the stored byte 11111110; they help later control logic interpret the outcome.</li></ol><p class="formula">Final answer: 11111110; Z0 N1 C0 V0</p></details></section><nav class="practice-nav"><a href="alu-and-condition-flags-06.html">← Previous set</a><a href="index.html">All problem categories</a><a href="alu-and-condition-flags-08.html">Next set →</a></nav></article>
+<footer class="footer"><div class="wide"><a href="../index.html">How Computers Work</a><span style="float:right">A learning journal by Saravan Kumar M K · Designed to work offline and on GitHub Pages</span></div></footer>
+</div></main>
+</div>
+</body>
+</html>

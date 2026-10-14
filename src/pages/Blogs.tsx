@@ -25,25 +25,32 @@ export function getPosts(): Post[] {
     .sort((a, b) => b.date.localeCompare(a.date));
 }
 
-export default function Journal() {
-  useTitle("Engineering journal");
+export default function Blogs() {
+  useTitle("Blogs");
   const posts = getPosts();
   return (
     <section className="wrap page">
-      <p className="eyebrow">Journal</p>
-      <h1>Engineering journal</h1>
-      <p className="lead">Notes on how real systems are built and where they break.</p>
+      <p className="eyebrow">Blogs</p>
+      <h1>Blogs</h1>
+      <p className="lead">Illustrated, first-principles guides to how computers and machine learning work.</p>
       <ul className="posts">
         <li>
-          <a href="/journals/how-computers-work/">
-            <span className="mono">2026-10-13 · Illustrated learning journal</span>
+          <a href="/blogs/how-computers-work/">
+            <span className="mono">2026-10-13 · Illustrated learning blog</span>
             <h3>How Computers Work</h3>
             <p>An interactive, first-principles journey from bits to a programmable CPU.</p>
           </a>
         </li>
+        <li>
+          <a href="/blogs/from-machine-learning-to-transformers/">
+            <span className="mono">2026-10-14 · Illustrated learning blog</span>
+            <h3>From Machine Learning to Transformers</h3>
+            <p>Ten chapters tracing machine learning from its foundations through neural networks, NLP, and modern Transformers.</p>
+          </a>
+        </li>
         {posts.map((p) => (
           <li key={p.slug}>
-            <Link to={`/journal/${p.slug}`}>
+            <Link to={`/blogs/${p.slug}`}>
               <span className="mono">{p.date}</span>
               <h3>{p.title}</h3>
               <p>{p.summary}</p>
@@ -55,7 +62,7 @@ export default function Journal() {
   );
 }
 
-export function JournalPost() {
+export function BlogPost() {
   const { slug } = useParams();
   const post = getPosts().find((p) => p.slug === slug);
   useTitle(post?.title ?? "Article not found");
@@ -84,7 +91,7 @@ export function JournalPost() {
 
   return (
     <article className="wrap page prose">
-      <Link className="back" to="/journal">← Journal</Link>
+      <Link className="back" to="/blogs">← Blogs</Link>
       <p className="mono">{post.date}</p>
       <h1>{post.title}</h1>
       {out}

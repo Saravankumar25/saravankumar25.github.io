@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="description" content="Detailed solved exercises for Branch and loop tracing.">
+<title>Branch and loop tracing · Set 3 · How Computers Work</title>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
+<script src="../assets/search-index.js" defer></script>
+<script src="../assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to learning content</a>
+<header class="top"><a class="brand" href="../index.html"><span class="brand-mark">01</span><span>How Computers Work</span></a><nav class="top-links" aria-label="Top navigation"><a href="../index.html">Overview</a><a href="../labs/index.html">Labs</a><a href="../practice/index.html">Practice</a><a href="../reference/search.html">Search</a><button id="theme-toggle" type="button">☼ Light</button><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">☰ Menu</button></nav></header>
+<div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+<div class="frame">
+<aside class="sidebar" id="sidebar" aria-label="Study navigation"><div class="sidebar-header"><span class="eyebrow">Learning atlas</span><p style="margin:9px 0;font-size:.82rem">One idea at a time. Follow the signal.</p></div><a class="side-item"  href="../index.html"><span class="side-number">HOME</span> Start here</a><a class="side-item"  href="../parts/01.html"><span class="side-number">01</span> From electricity to information</a><a class="side-item"  href="../parts/02.html"><span class="side-number">02</span> Numbers made from bits</a><a class="side-item"  href="../parts/03.html"><span class="side-number">03</span> Arithmetic, signs, and overflow</a><a class="side-item"  href="../parts/04.html"><span class="side-number">04</span> Logic gates and decisions</a><a class="side-item"  href="../parts/05.html"><span class="side-number">05</span> From gates to an ALU</a><a class="side-item"  href="../parts/06.html"><span class="side-number">06</span> Memory of a single bit</a><a class="side-item"  href="../parts/07.html"><span class="side-number">07</span> RAM, ROM, and moving data</a><a class="side-item"  href="../parts/08.html"><span class="side-number">08</span> Assembling a CPU datapath</a><a class="side-item"  href="../parts/09.html"><span class="side-number">09</span> Instructions and control</a><a class="side-item"  href="../parts/10.html"><span class="side-number">10</span> Programs on a tiny CPU</a><a class="side-item"  href="../parts/11.html"><span class="side-number">11</span> From toy CPU to real ARM</a><a class="side-item"  href="../parts/12.html"><span class="side-number">12</span> The wider computer system</a><p class="side-unit">Explorable laboratories</p><a class="side-item" href="../labs/binary-workbench.html">Binary workbench</a><a class="side-item" href="../labs/number-converter.html">Number converter</a><a class="side-item" href="../labs/gate-explorer.html">Logic gate explorer</a><a class="side-item" href="../labs/full-adder-lab.html">Full adder lab</a><a class="side-item" href="../labs/alu-playground.html">Eight-bit ALU</a><a class="side-item" href="../labs/clock-register.html">Clock and register</a><a class="side-item" href="../labs/ram-lab.html">Tiny RAM simulator</a><a class="side-item" href="../labs/instruction-tracer.html">CPU instruction tracer</a><a class="side-item" href="../labs/seven-segment.html">Seven-segment display</a><a class="side-item" href="../labs/fibonacci-machine.html">Fibonacci machine</a><p class="side-unit">Practice & reference</p><a class="side-item" href="../practice/index.html">Worked exercise library</a><a class="side-item" href="../reference/glossary.html">Visual glossary</a><a class="side-item" href="../reference/search.html">Find a concept</a></aside>
+<main class="main" id="main"><div class="reading ">
+<article class="article"><div class="breadcrumb"><a href="index.html">Practice library</a><span> / </span>Branch and loop tracing</div><p class="eyebrow">Fully solved problem book</p><h1>Branch and loop tracing</h1><p class="deck">Set 3 of 4 · 32 worked questions. Predict your result before expanding the solution.</p><p>These worked traces are meant to build fluency through controlled variation. If several answers feel identical, try the next difficult value and look for the point where a carry, sign, branch, or selected memory address changes the outcome.</p><section class="exercise"><p class="label">Program execution · Problem 0065</p><h3>Start a counter at 196; subtract 3 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 196.</li>
+<li>One loop iteration subtracts 3 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 193.</li>
+<li>After two iterations the counter is 190.</li>
+<li>In general, after k iterations the counter is 196 − 3×k.</li>
+<li>The loop first stops when k≥196/3.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 66.</li>
+<li>The final counter equals 196−66×3=-2.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 66 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0066</p><h3>Start a counter at 199; subtract 1 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 199.</li>
+<li>One loop iteration subtracts 1 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 198.</li>
+<li>After two iterations the counter is 197.</li>
+<li>In general, after k iterations the counter is 199 − 1×k.</li>
+<li>The loop first stops when k≥199/1.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 199.</li>
+<li>The final counter equals 199−199×1=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 199 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0067</p><h3>Start a counter at 2; subtract 2 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 2.</li>
+<li>One loop iteration subtracts 2 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 0.</li>
+<li>After two iterations the counter is -2.</li>
+<li>In general, after k iterations the counter is 2 − 2×k.</li>
+<li>The loop first stops when k≥2/2.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 1.</li>
+<li>The final counter equals 2−1×2=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 1 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0068</p><h3>Start a counter at 5; subtract 3 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 5.</li>
+<li>One loop iteration subtracts 3 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 2.</li>
+<li>After two iterations the counter is -1.</li>
+<li>In general, after k iterations the counter is 5 − 3×k.</li>
+<li>The loop first stops when k≥5/3.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 2.</li>
+<li>The final counter equals 5−2×3=-1.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 2 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0069</p><h3>Start a counter at 8; subtract 1 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 8.</li>
+<li>One loop iteration subtracts 1 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 7.</li>
+<li>After two iterations the counter is 6.</li>
+<li>In general, after k iterations the counter is 8 − 1×k.</li>
+<li>The loop first stops when k≥8/1.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 8.</li>
+<li>The final counter equals 8−8×1=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 8 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0070</p><h3>Start a counter at 11; subtract 2 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 11.</li>
+<li>One loop iteration subtracts 2 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 9.</li>
+<li>After two iterations the counter is 7.</li>
+<li>In general, after k iterations the counter is 11 − 2×k.</li>
+<li>The loop first stops when k≥11/2.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 6.</li>
+<li>The final counter equals 11−6×2=-1.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 6 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0071</p><h3>Start a counter at 14; subtract 3 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 14.</li>
+<li>One loop iteration subtracts 3 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 11.</li>
+<li>After two iterations the counter is 8.</li>
+<li>In general, after k iterations the counter is 14 − 3×k.</li>
+<li>The loop first stops when k≥14/3.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 5.</li>
+<li>The final counter equals 14−5×3=-1.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 5 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0072</p><h3>Start a counter at 17; subtract 1 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 17.</li>
+<li>One loop iteration subtracts 1 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 16.</li>
+<li>After two iterations the counter is 15.</li>
+<li>In general, after k iterations the counter is 17 − 1×k.</li>
+<li>The loop first stops when k≥17/1.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 17.</li>
+<li>The final counter equals 17−17×1=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 17 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0073</p><h3>Start a counter at 20; subtract 2 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 20.</li>
+<li>One loop iteration subtracts 2 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 18.</li>
+<li>After two iterations the counter is 16.</li>
+<li>In general, after k iterations the counter is 20 − 2×k.</li>
+<li>The loop first stops when k≥20/2.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 10.</li>
+<li>The final counter equals 20−10×2=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 10 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0074</p><h3>Start a counter at 23; subtract 3 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 23.</li>
+<li>One loop iteration subtracts 3 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 20.</li>
+<li>After two iterations the counter is 17.</li>
+<li>In general, after k iterations the counter is 23 − 3×k.</li>
+<li>The loop first stops when k≥23/3.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 8.</li>
+<li>The final counter equals 23−8×3=-1.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 8 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0075</p><h3>Start a counter at 26; subtract 1 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 26.</li>
+<li>One loop iteration subtracts 1 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 25.</li>
+<li>After two iterations the counter is 24.</li>
+<li>In general, after k iterations the counter is 26 − 1×k.</li>
+<li>The loop first stops when k≥26/1.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 26.</li>
+<li>The final counter equals 26−26×1=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 26 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0076</p><h3>Start a counter at 29; subtract 2 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 29.</li>
+<li>One loop iteration subtracts 2 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 27.</li>
+<li>After two iterations the counter is 25.</li>
+<li>In general, after k iterations the counter is 29 − 2×k.</li>
+<li>The loop first stops when k≥29/2.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 15.</li>
+<li>The final counter equals 29−15×2=-1.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 15 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0077</p><h3>Start a counter at 32; subtract 3 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 32.</li>
+<li>One loop iteration subtracts 3 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 29.</li>
+<li>After two iterations the counter is 26.</li>
+<li>In general, after k iterations the counter is 32 − 3×k.</li>
+<li>The loop first stops when k≥32/3.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 11.</li>
+<li>The final counter equals 32−11×3=-1.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 11 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0078</p><h3>Start a counter at 35; subtract 1 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 35.</li>
+<li>One loop iteration subtracts 1 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 34.</li>
+<li>After two iterations the counter is 33.</li>
+<li>In general, after k iterations the counter is 35 − 1×k.</li>
+<li>The loop first stops when k≥35/1.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 35.</li>
+<li>The final counter equals 35−35×1=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 35 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0079</p><h3>Start a counter at 38; subtract 2 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 38.</li>
+<li>One loop iteration subtracts 2 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 36.</li>
+<li>After two iterations the counter is 34.</li>
+<li>In general, after k iterations the counter is 38 − 2×k.</li>
+<li>The loop first stops when k≥38/2.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 19.</li>
+<li>The final counter equals 38−19×2=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 19 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0080</p><h3>Start a counter at 41; subtract 3 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 41.</li>
+<li>One loop iteration subtracts 3 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 38.</li>
+<li>After two iterations the counter is 35.</li>
+<li>In general, after k iterations the counter is 41 − 3×k.</li>
+<li>The loop first stops when k≥41/3.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 14.</li>
+<li>The final counter equals 41−14×3=-1.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 14 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0081</p><h3>Start a counter at 44; subtract 1 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 44.</li>
+<li>One loop iteration subtracts 1 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 43.</li>
+<li>After two iterations the counter is 42.</li>
+<li>In general, after k iterations the counter is 44 − 1×k.</li>
+<li>The loop first stops when k≥44/1.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 44.</li>
+<li>The final counter equals 44−44×1=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 44 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0082</p><h3>Start a counter at 47; subtract 2 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 47.</li>
+<li>One loop iteration subtracts 2 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 45.</li>
+<li>After two iterations the counter is 43.</li>
+<li>In general, after k iterations the counter is 47 − 2×k.</li>
+<li>The loop first stops when k≥47/2.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 24.</li>
+<li>The final counter equals 47−24×2=-1.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 24 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0083</p><h3>Start a counter at 50; subtract 3 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 50.</li>
+<li>One loop iteration subtracts 3 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 47.</li>
+<li>After two iterations the counter is 44.</li>
+<li>In general, after k iterations the counter is 50 − 3×k.</li>
+<li>The loop first stops when k≥50/3.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 17.</li>
+<li>The final counter equals 50−17×3=-1.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 17 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0084</p><h3>Start a counter at 53; subtract 1 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 53.</li>
+<li>One loop iteration subtracts 1 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 52.</li>
+<li>After two iterations the counter is 51.</li>
+<li>In general, after k iterations the counter is 53 − 1×k.</li>
+<li>The loop first stops when k≥53/1.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 53.</li>
+<li>The final counter equals 53−53×1=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 53 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0085</p><h3>Start a counter at 56; subtract 2 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 56.</li>
+<li>One loop iteration subtracts 2 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 54.</li>
+<li>After two iterations the counter is 52.</li>
+<li>In general, after k iterations the counter is 56 − 2×k.</li>
+<li>The loop first stops when k≥56/2.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 28.</li>
+<li>The final counter equals 56−28×2=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 28 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0086</p><h3>Start a counter at 59; subtract 3 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 59.</li>
+<li>One loop iteration subtracts 3 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 56.</li>
+<li>After two iterations the counter is 53.</li>
+<li>In general, after k iterations the counter is 59 − 3×k.</li>
+<li>The loop first stops when k≥59/3.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 20.</li>
+<li>The final counter equals 59−20×3=-1.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 20 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0087</p><h3>Start a counter at 62; subtract 1 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 62.</li>
+<li>One loop iteration subtracts 1 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 61.</li>
+<li>After two iterations the counter is 60.</li>
+<li>In general, after k iterations the counter is 62 − 1×k.</li>
+<li>The loop first stops when k≥62/1.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 62.</li>
+<li>The final counter equals 62−62×1=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 62 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0088</p><h3>Start a counter at 65; subtract 2 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 65.</li>
+<li>One loop iteration subtracts 2 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 63.</li>
+<li>After two iterations the counter is 61.</li>
+<li>In general, after k iterations the counter is 65 − 2×k.</li>
+<li>The loop first stops when k≥65/2.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 33.</li>
+<li>The final counter equals 65−33×2=-1.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 33 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0089</p><h3>Start a counter at 68; subtract 3 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 68.</li>
+<li>One loop iteration subtracts 3 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 65.</li>
+<li>After two iterations the counter is 62.</li>
+<li>In general, after k iterations the counter is 68 − 3×k.</li>
+<li>The loop first stops when k≥68/3.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 23.</li>
+<li>The final counter equals 68−23×3=-1.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 23 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0090</p><h3>Start a counter at 71; subtract 1 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 71.</li>
+<li>One loop iteration subtracts 1 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 70.</li>
+<li>After two iterations the counter is 69.</li>
+<li>In general, after k iterations the counter is 71 − 1×k.</li>
+<li>The loop first stops when k≥71/1.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 71.</li>
+<li>The final counter equals 71−71×1=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 71 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0091</p><h3>Start a counter at 74; subtract 2 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 74.</li>
+<li>One loop iteration subtracts 2 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 72.</li>
+<li>After two iterations the counter is 70.</li>
+<li>In general, after k iterations the counter is 74 − 2×k.</li>
+<li>The loop first stops when k≥74/2.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 37.</li>
+<li>The final counter equals 74−37×2=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 37 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0092</p><h3>Start a counter at 77; subtract 3 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 77.</li>
+<li>One loop iteration subtracts 3 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 74.</li>
+<li>After two iterations the counter is 71.</li>
+<li>In general, after k iterations the counter is 77 − 3×k.</li>
+<li>The loop first stops when k≥77/3.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 26.</li>
+<li>The final counter equals 77−26×3=-1.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 26 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0093</p><h3>Start a counter at 80; subtract 1 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 80.</li>
+<li>One loop iteration subtracts 1 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 79.</li>
+<li>After two iterations the counter is 78.</li>
+<li>In general, after k iterations the counter is 80 − 1×k.</li>
+<li>The loop first stops when k≥80/1.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 80.</li>
+<li>The final counter equals 80−80×1=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 80 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0094</p><h3>Start a counter at 83; subtract 2 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 83.</li>
+<li>One loop iteration subtracts 2 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 81.</li>
+<li>After two iterations the counter is 79.</li>
+<li>In general, after k iterations the counter is 83 − 2×k.</li>
+<li>The loop first stops when k≥83/2.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 42.</li>
+<li>The final counter equals 83−42×2=-1.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 42 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0095</p><h3>Start a counter at 86; subtract 3 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 86.</li>
+<li>One loop iteration subtracts 3 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 83.</li>
+<li>After two iterations the counter is 80.</li>
+<li>In general, after k iterations the counter is 86 − 3×k.</li>
+<li>The loop first stops when k≥86/3.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 29.</li>
+<li>The final counter equals 86−29×3=-1.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 29 iterations</p></details></section><section class="exercise"><p class="label">Program execution · Problem 0096</p><h3>Start a counter at 89; subtract 1 each iteration while it remains &gt;0. How many iterations?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The program starts with an accumulator/counter containing 89.</li>
+<li>One loop iteration subtracts 1 from the counter.</li>
+<li>A conditional branch repeats the body only while the counter is greater than zero.</li>
+<li>After one iteration the counter is 88.</li>
+<li>After two iterations the counter is 87.</li>
+<li>In general, after k iterations the counter is 89 − 1×k.</li>
+<li>The loop first stops when k≥89/1.</li>
+<li>The smallest whole-number iteration count meeting that requirement is 89.</li>
+<li>The final counter equals 89−89×1=0.</li>
+<li>The next PC must take the fall-through route instead of the repeat branch.</li>
+<li>This example uses a greater-than-zero condition; branch-on-not-equal would have different termination behavior for some step sizes.</li></ol><p class="formula">Final answer: 89 iterations</p></details></section><nav class="practice-nav"><a href="branch-and-loop-tracing-02.html">← Previous set</a><a href="index.html">All problem categories</a><a href="branch-and-loop-tracing-04.html">Next set →</a></nav></article>
+<footer class="footer"><div class="wide"><a href="../index.html">How Computers Work</a><span style="float:right">A learning journal by Saravan Kumar M K · Designed to work offline and on GitHub Pages</span></div></footer>
+</div></main>
+</div>
+</body>
+</html>

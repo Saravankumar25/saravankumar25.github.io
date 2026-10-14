@@ -7,7 +7,7 @@ import { plain, projects } from "../data/projects";
 import Skills from "../components/Skills";
 import { experience, papers } from "../data/site";
 import { useTitle } from "../hooks";
-import { getPosts } from "./Journal";
+import { getPosts } from "./Blogs";
 
 // Order on the home page: the three headline products first, then a few more.
 const shown = ["vivekium", "openframe", "unfold", "aegis", "imagemismatch", "lpq-atlas"]
@@ -136,7 +136,7 @@ export default function Home() {
           <h2 className="section">Recent writing</h2>
           <ul className="posts">
             {posts.map((p) => (
-              <li key={p.slug}><Link to={`/journal/${p.slug}`}><span className="mono">{p.date}</span><h3>{p.title}</h3><p>{p.summary}</p></Link></li>
+              <li key={p.slug}><Link to={`/blogs/${p.slug}`}><span className="mono">{p.date}</span><h3>{p.title}</h3><p>{p.summary}</p></Link></li>
             ))}
           </ul>
         </section>

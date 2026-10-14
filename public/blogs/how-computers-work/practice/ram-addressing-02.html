@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0a0b">
+<meta name="description" content="Detailed solved exercises for RAM addressing.">
+<title>RAM addressing · Set 2 · How Computers Work</title>
+<link rel="stylesheet" href="../assets/site.css">
+<link rel="icon" type="image/svg+xml" href="../assets/icon.svg">
+<script src="../assets/search-index.js" defer></script>
+<script src="../assets/site.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to learning content</a>
+<header class="top"><a class="brand" href="../index.html"><span class="brand-mark">01</span><span>How Computers Work</span></a><nav class="top-links" aria-label="Top navigation"><a href="../index.html">Overview</a><a href="../labs/index.html">Labs</a><a href="../practice/index.html">Practice</a><a href="../reference/search.html">Search</a><button id="theme-toggle" type="button">☼ Light</button><button class="menu-toggle" id="menu-toggle" type="button" aria-expanded="false" aria-controls="sidebar">☰ Menu</button></nav></header>
+<div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+<div class="frame">
+<aside class="sidebar" id="sidebar" aria-label="Study navigation"><div class="sidebar-header"><span class="eyebrow">Learning atlas</span><p style="margin:9px 0;font-size:.82rem">One idea at a time. Follow the signal.</p></div><a class="side-item"  href="../index.html"><span class="side-number">HOME</span> Start here</a><a class="side-item"  href="../parts/01.html"><span class="side-number">01</span> From electricity to information</a><a class="side-item"  href="../parts/02.html"><span class="side-number">02</span> Numbers made from bits</a><a class="side-item"  href="../parts/03.html"><span class="side-number">03</span> Arithmetic, signs, and overflow</a><a class="side-item"  href="../parts/04.html"><span class="side-number">04</span> Logic gates and decisions</a><a class="side-item"  href="../parts/05.html"><span class="side-number">05</span> From gates to an ALU</a><a class="side-item"  href="../parts/06.html"><span class="side-number">06</span> Memory of a single bit</a><a class="side-item"  href="../parts/07.html"><span class="side-number">07</span> RAM, ROM, and moving data</a><a class="side-item"  href="../parts/08.html"><span class="side-number">08</span> Assembling a CPU datapath</a><a class="side-item"  href="../parts/09.html"><span class="side-number">09</span> Instructions and control</a><a class="side-item"  href="../parts/10.html"><span class="side-number">10</span> Programs on a tiny CPU</a><a class="side-item"  href="../parts/11.html"><span class="side-number">11</span> From toy CPU to real ARM</a><a class="side-item"  href="../parts/12.html"><span class="side-number">12</span> The wider computer system</a><p class="side-unit">Explorable laboratories</p><a class="side-item" href="../labs/binary-workbench.html">Binary workbench</a><a class="side-item" href="../labs/number-converter.html">Number converter</a><a class="side-item" href="../labs/gate-explorer.html">Logic gate explorer</a><a class="side-item" href="../labs/full-adder-lab.html">Full adder lab</a><a class="side-item" href="../labs/alu-playground.html">Eight-bit ALU</a><a class="side-item" href="../labs/clock-register.html">Clock and register</a><a class="side-item" href="../labs/ram-lab.html">Tiny RAM simulator</a><a class="side-item" href="../labs/instruction-tracer.html">CPU instruction tracer</a><a class="side-item" href="../labs/seven-segment.html">Seven-segment display</a><a class="side-item" href="../labs/fibonacci-machine.html">Fibonacci machine</a><p class="side-unit">Practice & reference</p><a class="side-item" href="../practice/index.html">Worked exercise library</a><a class="side-item" href="../reference/glossary.html">Visual glossary</a><a class="side-item" href="../reference/search.html">Find a concept</a></aside>
+<main class="main" id="main"><div class="reading ">
+<article class="article"><div class="breadcrumb"><a href="index.html">Practice library</a><span> / </span>RAM addressing</div><p class="eyebrow">Fully solved problem book</p><h1>RAM addressing</h1><p class="deck">Set 2 of 6 · 32 worked questions. Predict your result before expanding the solution.</p><p>These worked traces are meant to build fluency through controlled variation. If several answers feel identical, try the next difficult value and look for the point where a carry, sign, branch, or selected memory address changes the outcome.</p><section class="exercise"><p class="label">State and memory · Problem 0033</p><h3>RAM[3] initially stores 160. Write 179 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[3] contains 10100000 (160 unsigned).</li>
+<li>The CPU puts the four-bit address 0011 on the address lines.</li>
+<li>The decoder selects row 3, not row 8.</li>
+<li>Write-enable becomes active and the incoming data lines carry 10110011.</li>
+<li>The selected stored byte is replaced with 10110011.</li>
+<li>The write does not inherently change RAM[8].</li>
+<li>A later read of row 3 selects the new contents.</li>
+<li>The output data is 10110011, which equals 179 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 179</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0034</p><h3>RAM[10] initially stores 173. Write 216 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[10] contains 10101101 (173 unsigned).</li>
+<li>The CPU puts the four-bit address 1010 on the address lines.</li>
+<li>The decoder selects row 10, not row 15.</li>
+<li>Write-enable becomes active and the incoming data lines carry 11011000.</li>
+<li>The selected stored byte is replaced with 11011000.</li>
+<li>The write does not inherently change RAM[15].</li>
+<li>A later read of row 10 selects the new contents.</li>
+<li>The output data is 11011000, which equals 216 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 216</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0035</p><h3>RAM[1] initially stores 186. Write 253 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[1] contains 10111010 (186 unsigned).</li>
+<li>The CPU puts the four-bit address 0001 on the address lines.</li>
+<li>The decoder selects row 1, not row 6.</li>
+<li>Write-enable becomes active and the incoming data lines carry 11111101.</li>
+<li>The selected stored byte is replaced with 11111101.</li>
+<li>The write does not inherently change RAM[6].</li>
+<li>A later read of row 1 selects the new contents.</li>
+<li>The output data is 11111101, which equals 253 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 253</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0036</p><h3>RAM[8] initially stores 199. Write 34 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[8] contains 11000111 (199 unsigned).</li>
+<li>The CPU puts the four-bit address 1000 on the address lines.</li>
+<li>The decoder selects row 8, not row 13.</li>
+<li>Write-enable becomes active and the incoming data lines carry 00100010.</li>
+<li>The selected stored byte is replaced with 00100010.</li>
+<li>The write does not inherently change RAM[13].</li>
+<li>A later read of row 8 selects the new contents.</li>
+<li>The output data is 00100010, which equals 34 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 34</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0037</p><h3>RAM[15] initially stores 212. Write 71 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[15] contains 11010100 (212 unsigned).</li>
+<li>The CPU puts the four-bit address 1111 on the address lines.</li>
+<li>The decoder selects row 15, not row 4.</li>
+<li>Write-enable becomes active and the incoming data lines carry 01000111.</li>
+<li>The selected stored byte is replaced with 01000111.</li>
+<li>The write does not inherently change RAM[4].</li>
+<li>A later read of row 15 selects the new contents.</li>
+<li>The output data is 01000111, which equals 71 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 71</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0038</p><h3>RAM[6] initially stores 225. Write 108 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[6] contains 11100001 (225 unsigned).</li>
+<li>The CPU puts the four-bit address 0110 on the address lines.</li>
+<li>The decoder selects row 6, not row 11.</li>
+<li>Write-enable becomes active and the incoming data lines carry 01101100.</li>
+<li>The selected stored byte is replaced with 01101100.</li>
+<li>The write does not inherently change RAM[11].</li>
+<li>A later read of row 6 selects the new contents.</li>
+<li>The output data is 01101100, which equals 108 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 108</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0039</p><h3>RAM[13] initially stores 238. Write 145 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[13] contains 11101110 (238 unsigned).</li>
+<li>The CPU puts the four-bit address 1101 on the address lines.</li>
+<li>The decoder selects row 13, not row 2.</li>
+<li>Write-enable becomes active and the incoming data lines carry 10010001.</li>
+<li>The selected stored byte is replaced with 10010001.</li>
+<li>The write does not inherently change RAM[2].</li>
+<li>A later read of row 13 selects the new contents.</li>
+<li>The output data is 10010001, which equals 145 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 145</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0040</p><h3>RAM[4] initially stores 251. Write 182 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[4] contains 11111011 (251 unsigned).</li>
+<li>The CPU puts the four-bit address 0100 on the address lines.</li>
+<li>The decoder selects row 4, not row 9.</li>
+<li>Write-enable becomes active and the incoming data lines carry 10110110.</li>
+<li>The selected stored byte is replaced with 10110110.</li>
+<li>The write does not inherently change RAM[9].</li>
+<li>A later read of row 4 selects the new contents.</li>
+<li>The output data is 10110110, which equals 182 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 182</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0041</p><h3>RAM[11] initially stores 8. Write 219 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[11] contains 00001000 (8 unsigned).</li>
+<li>The CPU puts the four-bit address 1011 on the address lines.</li>
+<li>The decoder selects row 11, not row 0.</li>
+<li>Write-enable becomes active and the incoming data lines carry 11011011.</li>
+<li>The selected stored byte is replaced with 11011011.</li>
+<li>The write does not inherently change RAM[0].</li>
+<li>A later read of row 11 selects the new contents.</li>
+<li>The output data is 11011011, which equals 219 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 219</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0042</p><h3>RAM[2] initially stores 21. Write 0 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[2] contains 00010101 (21 unsigned).</li>
+<li>The CPU puts the four-bit address 0010 on the address lines.</li>
+<li>The decoder selects row 2, not row 7.</li>
+<li>Write-enable becomes active and the incoming data lines carry 00000000.</li>
+<li>The selected stored byte is replaced with 00000000.</li>
+<li>The write does not inherently change RAM[7].</li>
+<li>A later read of row 2 selects the new contents.</li>
+<li>The output data is 00000000, which equals 0 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 0</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0043</p><h3>RAM[9] initially stores 34. Write 37 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[9] contains 00100010 (34 unsigned).</li>
+<li>The CPU puts the four-bit address 1001 on the address lines.</li>
+<li>The decoder selects row 9, not row 14.</li>
+<li>Write-enable becomes active and the incoming data lines carry 00100101.</li>
+<li>The selected stored byte is replaced with 00100101.</li>
+<li>The write does not inherently change RAM[14].</li>
+<li>A later read of row 9 selects the new contents.</li>
+<li>The output data is 00100101, which equals 37 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 37</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0044</p><h3>RAM[0] initially stores 47. Write 74 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[0] contains 00101111 (47 unsigned).</li>
+<li>The CPU puts the four-bit address 0000 on the address lines.</li>
+<li>The decoder selects row 0, not row 5.</li>
+<li>Write-enable becomes active and the incoming data lines carry 01001010.</li>
+<li>The selected stored byte is replaced with 01001010.</li>
+<li>The write does not inherently change RAM[5].</li>
+<li>A later read of row 0 selects the new contents.</li>
+<li>The output data is 01001010, which equals 74 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 74</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0045</p><h3>RAM[7] initially stores 60. Write 111 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[7] contains 00111100 (60 unsigned).</li>
+<li>The CPU puts the four-bit address 0111 on the address lines.</li>
+<li>The decoder selects row 7, not row 12.</li>
+<li>Write-enable becomes active and the incoming data lines carry 01101111.</li>
+<li>The selected stored byte is replaced with 01101111.</li>
+<li>The write does not inherently change RAM[12].</li>
+<li>A later read of row 7 selects the new contents.</li>
+<li>The output data is 01101111, which equals 111 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 111</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0046</p><h3>RAM[14] initially stores 73. Write 148 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[14] contains 01001001 (73 unsigned).</li>
+<li>The CPU puts the four-bit address 1110 on the address lines.</li>
+<li>The decoder selects row 14, not row 3.</li>
+<li>Write-enable becomes active and the incoming data lines carry 10010100.</li>
+<li>The selected stored byte is replaced with 10010100.</li>
+<li>The write does not inherently change RAM[3].</li>
+<li>A later read of row 14 selects the new contents.</li>
+<li>The output data is 10010100, which equals 148 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 148</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0047</p><h3>RAM[5] initially stores 86. Write 185 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[5] contains 01010110 (86 unsigned).</li>
+<li>The CPU puts the four-bit address 0101 on the address lines.</li>
+<li>The decoder selects row 5, not row 10.</li>
+<li>Write-enable becomes active and the incoming data lines carry 10111001.</li>
+<li>The selected stored byte is replaced with 10111001.</li>
+<li>The write does not inherently change RAM[10].</li>
+<li>A later read of row 5 selects the new contents.</li>
+<li>The output data is 10111001, which equals 185 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 185</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0048</p><h3>RAM[12] initially stores 99. Write 222 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[12] contains 01100011 (99 unsigned).</li>
+<li>The CPU puts the four-bit address 1100 on the address lines.</li>
+<li>The decoder selects row 12, not row 1.</li>
+<li>Write-enable becomes active and the incoming data lines carry 11011110.</li>
+<li>The selected stored byte is replaced with 11011110.</li>
+<li>The write does not inherently change RAM[1].</li>
+<li>A later read of row 12 selects the new contents.</li>
+<li>The output data is 11011110, which equals 222 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 222</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0049</p><h3>RAM[3] initially stores 112. Write 3 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[3] contains 01110000 (112 unsigned).</li>
+<li>The CPU puts the four-bit address 0011 on the address lines.</li>
+<li>The decoder selects row 3, not row 8.</li>
+<li>Write-enable becomes active and the incoming data lines carry 00000011.</li>
+<li>The selected stored byte is replaced with 00000011.</li>
+<li>The write does not inherently change RAM[8].</li>
+<li>A later read of row 3 selects the new contents.</li>
+<li>The output data is 00000011, which equals 3 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 3</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0050</p><h3>RAM[10] initially stores 125. Write 40 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[10] contains 01111101 (125 unsigned).</li>
+<li>The CPU puts the four-bit address 1010 on the address lines.</li>
+<li>The decoder selects row 10, not row 15.</li>
+<li>Write-enable becomes active and the incoming data lines carry 00101000.</li>
+<li>The selected stored byte is replaced with 00101000.</li>
+<li>The write does not inherently change RAM[15].</li>
+<li>A later read of row 10 selects the new contents.</li>
+<li>The output data is 00101000, which equals 40 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 40</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0051</p><h3>RAM[1] initially stores 138. Write 77 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[1] contains 10001010 (138 unsigned).</li>
+<li>The CPU puts the four-bit address 0001 on the address lines.</li>
+<li>The decoder selects row 1, not row 6.</li>
+<li>Write-enable becomes active and the incoming data lines carry 01001101.</li>
+<li>The selected stored byte is replaced with 01001101.</li>
+<li>The write does not inherently change RAM[6].</li>
+<li>A later read of row 1 selects the new contents.</li>
+<li>The output data is 01001101, which equals 77 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 77</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0052</p><h3>RAM[8] initially stores 151. Write 114 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[8] contains 10010111 (151 unsigned).</li>
+<li>The CPU puts the four-bit address 1000 on the address lines.</li>
+<li>The decoder selects row 8, not row 13.</li>
+<li>Write-enable becomes active and the incoming data lines carry 01110010.</li>
+<li>The selected stored byte is replaced with 01110010.</li>
+<li>The write does not inherently change RAM[13].</li>
+<li>A later read of row 8 selects the new contents.</li>
+<li>The output data is 01110010, which equals 114 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 114</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0053</p><h3>RAM[15] initially stores 164. Write 151 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[15] contains 10100100 (164 unsigned).</li>
+<li>The CPU puts the four-bit address 1111 on the address lines.</li>
+<li>The decoder selects row 15, not row 4.</li>
+<li>Write-enable becomes active and the incoming data lines carry 10010111.</li>
+<li>The selected stored byte is replaced with 10010111.</li>
+<li>The write does not inherently change RAM[4].</li>
+<li>A later read of row 15 selects the new contents.</li>
+<li>The output data is 10010111, which equals 151 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 151</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0054</p><h3>RAM[6] initially stores 177. Write 188 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[6] contains 10110001 (177 unsigned).</li>
+<li>The CPU puts the four-bit address 0110 on the address lines.</li>
+<li>The decoder selects row 6, not row 11.</li>
+<li>Write-enable becomes active and the incoming data lines carry 10111100.</li>
+<li>The selected stored byte is replaced with 10111100.</li>
+<li>The write does not inherently change RAM[11].</li>
+<li>A later read of row 6 selects the new contents.</li>
+<li>The output data is 10111100, which equals 188 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 188</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0055</p><h3>RAM[13] initially stores 190. Write 225 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[13] contains 10111110 (190 unsigned).</li>
+<li>The CPU puts the four-bit address 1101 on the address lines.</li>
+<li>The decoder selects row 13, not row 2.</li>
+<li>Write-enable becomes active and the incoming data lines carry 11100001.</li>
+<li>The selected stored byte is replaced with 11100001.</li>
+<li>The write does not inherently change RAM[2].</li>
+<li>A later read of row 13 selects the new contents.</li>
+<li>The output data is 11100001, which equals 225 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 225</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0056</p><h3>RAM[4] initially stores 203. Write 6 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[4] contains 11001011 (203 unsigned).</li>
+<li>The CPU puts the four-bit address 0100 on the address lines.</li>
+<li>The decoder selects row 4, not row 9.</li>
+<li>Write-enable becomes active and the incoming data lines carry 00000110.</li>
+<li>The selected stored byte is replaced with 00000110.</li>
+<li>The write does not inherently change RAM[9].</li>
+<li>A later read of row 4 selects the new contents.</li>
+<li>The output data is 00000110, which equals 6 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 6</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0057</p><h3>RAM[11] initially stores 216. Write 43 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[11] contains 11011000 (216 unsigned).</li>
+<li>The CPU puts the four-bit address 1011 on the address lines.</li>
+<li>The decoder selects row 11, not row 0.</li>
+<li>Write-enable becomes active and the incoming data lines carry 00101011.</li>
+<li>The selected stored byte is replaced with 00101011.</li>
+<li>The write does not inherently change RAM[0].</li>
+<li>A later read of row 11 selects the new contents.</li>
+<li>The output data is 00101011, which equals 43 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 43</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0058</p><h3>RAM[2] initially stores 229. Write 80 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[2] contains 11100101 (229 unsigned).</li>
+<li>The CPU puts the four-bit address 0010 on the address lines.</li>
+<li>The decoder selects row 2, not row 7.</li>
+<li>Write-enable becomes active and the incoming data lines carry 01010000.</li>
+<li>The selected stored byte is replaced with 01010000.</li>
+<li>The write does not inherently change RAM[7].</li>
+<li>A later read of row 2 selects the new contents.</li>
+<li>The output data is 01010000, which equals 80 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 80</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0059</p><h3>RAM[9] initially stores 242. Write 117 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[9] contains 11110010 (242 unsigned).</li>
+<li>The CPU puts the four-bit address 1001 on the address lines.</li>
+<li>The decoder selects row 9, not row 14.</li>
+<li>Write-enable becomes active and the incoming data lines carry 01110101.</li>
+<li>The selected stored byte is replaced with 01110101.</li>
+<li>The write does not inherently change RAM[14].</li>
+<li>A later read of row 9 selects the new contents.</li>
+<li>The output data is 01110101, which equals 117 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 117</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0060</p><h3>RAM[0] initially stores 255. Write 154 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[0] contains 11111111 (255 unsigned).</li>
+<li>The CPU puts the four-bit address 0000 on the address lines.</li>
+<li>The decoder selects row 0, not row 5.</li>
+<li>Write-enable becomes active and the incoming data lines carry 10011010.</li>
+<li>The selected stored byte is replaced with 10011010.</li>
+<li>The write does not inherently change RAM[5].</li>
+<li>A later read of row 0 selects the new contents.</li>
+<li>The output data is 10011010, which equals 154 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 154</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0061</p><h3>RAM[7] initially stores 12. Write 191 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[7] contains 00001100 (12 unsigned).</li>
+<li>The CPU puts the four-bit address 0111 on the address lines.</li>
+<li>The decoder selects row 7, not row 12.</li>
+<li>Write-enable becomes active and the incoming data lines carry 10111111.</li>
+<li>The selected stored byte is replaced with 10111111.</li>
+<li>The write does not inherently change RAM[12].</li>
+<li>A later read of row 7 selects the new contents.</li>
+<li>The output data is 10111111, which equals 191 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 191</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0062</p><h3>RAM[14] initially stores 25. Write 228 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[14] contains 00011001 (25 unsigned).</li>
+<li>The CPU puts the four-bit address 1110 on the address lines.</li>
+<li>The decoder selects row 14, not row 3.</li>
+<li>Write-enable becomes active and the incoming data lines carry 11100100.</li>
+<li>The selected stored byte is replaced with 11100100.</li>
+<li>The write does not inherently change RAM[3].</li>
+<li>A later read of row 14 selects the new contents.</li>
+<li>The output data is 11100100, which equals 228 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 228</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0063</p><h3>RAM[5] initially stores 38. Write 9 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[5] contains 00100110 (38 unsigned).</li>
+<li>The CPU puts the four-bit address 0101 on the address lines.</li>
+<li>The decoder selects row 5, not row 10.</li>
+<li>Write-enable becomes active and the incoming data lines carry 00001001.</li>
+<li>The selected stored byte is replaced with 00001001.</li>
+<li>The write does not inherently change RAM[10].</li>
+<li>A later read of row 5 selects the new contents.</li>
+<li>The output data is 00001001, which equals 9 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 9</p></details></section><section class="exercise"><p class="label">State and memory · Problem 0064</p><h3>RAM[12] initially stores 51. Write 46 there, then read the same location. What returns?</h3><p class="problem">Try it on paper first. The worked answer is hidden below.</p><details><summary>Reveal detailed solution →</summary><ol class="solution-lines"><li>The machine models 16 byte-wide addresses: 0–15.</li>
+<li>Each location stores an eight-bit data word.</li>
+<li>At the start, RAM[12] contains 00110011 (51 unsigned).</li>
+<li>The CPU puts the four-bit address 1100 on the address lines.</li>
+<li>The decoder selects row 12, not row 1.</li>
+<li>Write-enable becomes active and the incoming data lines carry 00101110.</li>
+<li>The selected stored byte is replaced with 00101110.</li>
+<li>The write does not inherently change RAM[1].</li>
+<li>A later read of row 12 selects the new contents.</li>
+<li>The output data is 00101110, which equals 46 decimal.</li>
+<li>The address determines WHERE the information is stored; the data determines WHAT is stored.</li></ol><p class="formula">Final answer: 46</p></details></section><nav class="practice-nav"><a href="ram-addressing-01.html">← Previous set</a><a href="index.html">All problem categories</a><a href="ram-addressing-03.html">Next set →</a></nav></article>
+<footer class="footer"><div class="wide"><a href="../index.html">How Computers Work</a><span style="float:right">A learning journal by Saravan Kumar M K · Designed to work offline and on GitHub Pages</span></div></footer>
+</div></main>
+</div>
+</body>
+</html>
