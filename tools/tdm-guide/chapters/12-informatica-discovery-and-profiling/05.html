@@ -1,49 +1,39 @@
 <h2 id="c12-column-profile">12.8 Column profile (for data generation)</h2>
-<p>A column profile analyses data quality in the columns you choose. It reports the characteristics of columns such as range of values, list of values and data patterns, and you can use those results to <strong>generate test data</strong> that looks like the real data without copying it (User Guide 10.5.10, pp.87, 97). It runs on Oracle and Microsoft SQL Server databases. The <a href="15-informatica-data-generation.html">Informatica data generation chapter</a> uses it; here is how the profile itself works.</p>
-<p>After a run, TDM infers <strong>rules</strong> (p.97):</p>
-<div class="tablewrap"><table>
-<thead><tr><th>Inferred rule</th><th>What it contains</th><th>Applies to</th></tr></thead>
-<tbody>
-<tr><td>Range</td><td>Max and min length of values, first and last values, and percentage of nulls.</td><td>Numeric and date</td></tr>
-<tr><td>Patterns</td><td>Data patterns in the column with their percentage distribution, which must sum to 100%.</td><td>String and numeric</td></tr>
-<tr><td>List of Values</td><td>Unique and non-unique values with percentage distribution; the distribution must sum to 100% when used to generate data.</td><td>String, numeric and date</td></tr></tbody></table></div>
-<p>The inferred rules appear as <strong>auto rules</strong> that you can assign to target columns in Define &gt; Data Generation when the inferred rule status is Yes; you can edit their properties there (p.97).</p>
-<div class="tablewrap"><table>
-<thead><tr><th>Sampling option</th><th>Meaning</th><th>Default</th></tr></thead>
-<tbody>
-<tr><td>Minimum conformance percentage for patterns</td><td>Patterns below this percentage are not shown. Required.</td><td>5</td></tr>
-<tr><td>Maximum number of rows to be profiled</td><td>All rows or a number. Required.</td><td>All</td></tr>
-<tr><td>Minimum data coverage to show List of Values</td><td>Percent of data the list must cover. Required.</td><td>80</td></tr>
-<tr><td>Maximum number of values in List of Values</td><td>Required.</td><td>20</td></tr></tbody></table></div>
-<p>The guide's example for the last two: if the list is capped at 20 values, those 20 must account for at least 80% of the data (p.98).</p>
-<h3 id="c12-column-create">Creating and running a column profile</h3>
+<p>A column profile reports the range of values, list of values and data patterns of the columns you choose, so you can <strong>generate</strong> test data that looks like the real data without copying it (User Guide 10.5.10, pp.87, 97). It runs on Oracle and Microsoft SQL Server. TDM infers three kinds of rule: <strong>Range</strong> (min and max, first and last values, percent null; numeric and date), <strong>Patterns</strong> (patterns with percentage distribution, summing to 100%; string and numeric) and <strong>List of Values</strong> (unique and non-unique values with distribution; string, numeric and date). Inferred rules become <strong>auto rules</strong> you can assign in Define &gt; Data Generation (the <a href="15-informatica-data-generation.html">Informatica data generation chapter</a> uses them).</p>
+
+<p>Sampling options (p.98): minimum conformance for patterns (default 5), maximum rows (default All), minimum data coverage to show List of Values (default 80) and maximum values in the list (default 20). With a cap of 20 values, those 20 must cover at least 80% of the data.</p>
+
+<h3 id="c12-column-create">Creating, running and reading a column profile</h3>
+
 <ol class="steps">
-<li><strong>Open the project, Discover, Profile, then Actions &gt; New Profile.</strong><p>Enter name and description.</p></li>
-<li><strong>Select <em>Column</em>, click Next, then click Add to choose tables.</strong><p>Select tables, OK, Next.</p></li>
-<li><strong>Configure the sampling options, click Finish.</strong><p>The profile opens in a tab.</p></li>
-<li><strong>Click Actions &gt; Execute and choose a connection to run on.</strong><p>Warnings from the guide: the run <strong>fails</strong> with a native Oracle ODBC connection (create an Oracle ODBC connection with the DataDirect driver), and fails if you do not give a schema name in a Microsoft SQL Server connection.</p></li>
-<li><strong>Click Execute, close the profile, then follow it in the project's Monitor view.</strong><p>Pages 100-101.</p></li>
+<li><strong>Discover &gt; Profile &gt; Actions &gt; New Profile, select Column, click Add to choose tables, set the sampling options, Finish.</strong></li>
+<li><strong>Actions &gt; Execute and choose a connection.</strong>
+<p>The run fails with a native Oracle ODBC connection (use an Oracle ODBC connection with the DataDirect driver) and fails if a Microsoft SQL Server connection has no schema name (p.101).</p></li>
+<li><strong>Follow it in Monitor, then open Profile &gt; Column Discovery.</strong>
+<p>Each column shows % null, an Inferred Rule (select Yes to apply) and a Selected Inferred Type (pattern, list of values or range, depending on data type). Accept, reject or edit the patterns, then save (pp.106-107).</p></li>
 </ol>
-<p>Results (p.106-107): the <strong>Profile &gt; Column Discovery</strong> view lists table, column, data type, % null, Inferred Rule (default a hyphen; select Yes to apply) and Select Inferred Type (pattern, list of values or range, depending on type: string allows list or pattern, date allows list or range, numeric allows list, pattern or range). Accept, reject or edit the profiled patterns, then save.</p>
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What to look for: a grid of columns with an Inferred Rule drop-down and a Selected Inferred Type, and a lower Properties pane showing the range, patterns and list of values (with value and distribution percentages) for the selected column.</div>
+
+<div class="visualref">
+<span class="vtitle">Visual reference</span>
+Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What to look for: an Inferred Rule drop-down per column and a Properties pane showing range, patterns and list of values with percentages.
+</div>
+
 <h2 id="c12-profile-mgmt">12.9 Managing profiles</h2>
+
 <ul>
-<li><strong>Run many times.</strong> You can edit a profile between runs. Each run <strong>overwrites</strong> the earlier results (p.101).</li>
-<li><strong>Edit:</strong> Discover &gt; Profile, click the profile name, click Edit. The dialog has General, Tables and a Relationship Sampling or Sampling tab depending on type. You can change name and description (not the type), add or remove tables, override default inference options for keys, and change domains, policies or what to search (data, column name, or both). Then Actions &gt; Execute (p.101).</li>
-<li><strong>Delete:</strong> select the profile row without opening it, Actions &gt; Delete, Yes (pp.101-102).</li>
-<li><strong>Import a profile from the Model repository</strong> (p.102): useful when someone ran a profile in Informatica Developer, for example on a flat file. One profile can contain several types (data domain, primary key, foreign key, column). Before importing, import the source metadata and objects, including data domains, into the TDM repository, and import metadata from a connection of the <em>same name</em> as the one used for the profile. Table names may contain only alphanumeric characters and the underscore.</li>
+<li><strong>Run many times.</strong> Edit a profile between runs; each run <strong>overwrites</strong> the earlier results (p.101).</li>
+<li><strong>Edit:</strong> open the profile and click Edit. You can rename it (not change its type), add or remove tables, override key inference options, or change domains, policies and what to search. <strong>Delete:</strong> select the row without opening it, Actions &gt; Delete, Yes (pp.101-102).</li>
+<li><strong>Import a profile from the Model repository</strong> (p.102), for example one run in Informatica Developer on a flat file. Import the source metadata and data domains first, from a connection of the same name as the profiling connection. Use Discover &gt; Profile &gt; Actions &gt; Import Profile, optionally import the <em>curation information</em> (saved approvals, which TDM then applies), choose the profile types and Finish. Table names may contain only alphanumerics and underscore. If you delete the project metadata afterwards, the profile shows no results.</li>
 </ul>
-<ol class="steps">
-<li><strong>In Discover &gt; Profile click Actions &gt; Import Profile and choose the profile, then Next.</strong><p>It keeps the name and description unless you edit them.</p></li>
-<li><strong>Optionally choose to import curation information.</strong><p>TDM then imports saved review decisions and acts on them, for example assigning a data domain to a column if the inferred domain was approved.</p></li>
-<li><strong>Select the profile types, enter column profile properties if you chose Column, and click Finish.</strong><p class="expect">The imported profile appears in the Discover view.</p></li>
-</ol>
-<p>Two gotchas the guide gives: if you delete the project metadata after importing a profile, the profile shows no results; and if you re-import the metadata and import the profile again under a different name, the results appear in the first profile as well (pp.102-103).</p>
+
 <h2 id="c12-constraints">12.10 Constraints and relationships</h2>
 <p>Discovery suggests; constraints are what TDM actually uses. Foreign key constraints define parent-child relationships between source tables, and TDM uses them to decide which tables go into a subset and to limit the values in subset columns (User Guide 10.5.10, p.107). When you create an entity you pick one table as the <strong>driving table</strong>, and TDM adds other tables based on the constraints of that table (p.107). The <a href="13-informatica-data-subset.html">Informatica data subset chapter</a> builds on this.</p>
+
 <h3 id="c12-table-class">Table classification</h3>
 <p>In Discover &gt; Tables you can classify tables as <em>Temporary, Master, Configuration, Transactional, Log</em> or <em>Seed</em>. It does not affect profiles, but you can filter tables by it when creating entities or plans. The guide's reason: knowing which tables are master helps you decide driving tables, and transaction and log tables are candidates for extra filter criteria (p.107). ShopSphere reading: <code>CUSTOMERS</code> and <code>PRODUCTS</code> look like master tables; <code>ORDERS</code> and <code>ORDER_ITEMS</code> look transactional (our classification).</p>
+
 <h3 id="c12-constraint-types">Constraint types</h3>
+
 <div class="tablewrap"><table>
 <thead><tr><th>Type</th><th>Meaning (pp.108-109)</th><th>Notes</th></tr></thead>
 <tbody>
@@ -52,8 +42,10 @@
 <tr><td>Logical Manual</td><td>Parent-child relationship based on columns that are not keys. Either accepted from discovery profiles or defined in TDM.</td><td>You can delete both kinds.</td></tr>
 <tr><td>Unique Key</td><td>Column(s) that define a unique key; may contain nulls; you can add more than one.</td><td>Also helps bulk generation rule assignment.</td></tr>
 <tr><td>Conditional</td><td>An expression that restricts generated data in a column based on another column.</td><td>For data generation; becomes part of the target table metadata.</td></tr></tbody></table></div>
+
 <h3 id="c12-severity">Major and minor constraint severity</h3>
 <p>When you define a foreign key constraint you choose a <strong>severity</strong>, which decides how much data a subset pulls in (pp.108-109). The severity does not change the structure of the entity; you can change it after creating an entity and at run time in a subset plan (the run-time change does not change the entity).</p>
+
 <div class="compare">
 <div><h4>Major</h4>
 <p>Moves in both directions, child to parent and parent to child. If a filtered child row selects a parent, <strong>all other children of that parent come along too</strong>. This honours referential and transactional integrity. You can apply a major constraint only from within an entity.</p></div>
@@ -62,34 +54,38 @@
 </div>
 <p><strong>The guide's example:</strong> Customer is the parent of Leads. You filter Leads to high-quality leads. With a major constraint the subset includes the customer for each high-quality lead and all that customer's leads. With a minor constraint it includes the high-quality leads and their customers only (pp.108-109).</p>
 <p><strong>ShopSphere version (illustrative):</strong> you filter <code>ORDERS</code> to <code>total_amount &gt; 500</code>. Major: you get those orders, their customers, and <em>all other orders</em> of those customers. Minor: you get those orders and their customers only.</p>
+
 <ul>
 <li>Selecting more records in the child can pull in more parents, which pull in more children, and so on until no related records remain (p.108).</li>
 <li>For a smaller subset, choose the <strong>Referential Integrity Only</strong> option in a plan at run time. The data stays referentially intact, but it may not include every child of a parent, so transactional integrity might not be kept.</li>
 <li>If constraints form <strong>cycles</strong>, or an object has more than one major parent constraint, TDM does recursive evaluation and needs a <strong>staging connection</strong>. Using the source connection as the staging connection is recommended (p.109).</li>
 </ul>
+
 <h3 id="c12-manual-keys">Adding keys by hand</h3>
 <p>You can add keys yourself and skip discovery (p.109). In every case the source database is not updated. Steps are the same up to the type.</p>
+
 <div class="exercise">
 <h4>Task: add a logical primary key and a logical foreign key in ShopSphere</h4>
 <p>Goal: tell TDM that <code>ORDERS.customer_id</code> refers to <code>CUSTOMERS.customer_id</code>. Steps from the guide (pp.109-110); table and column choices are ours.</p>
+
 <ol class="steps">
 <li><strong>Primary key on CUSTOMERS.</strong><p>In the project click Discover &gt; Tables, click <code>CUSTOMERS</code>, click Constraints, then Create New Constraint. Select Primary Key, Next, click Add, choose <code>customer_id</code>, Finish.</p><p class="expect">The constraint appears in the table's Constraints list.</p></li>
 <li><strong>Foreign key on ORDERS.</strong><p>Click <code>ORDERS</code>, Constraints, Create New Constraint. Enter a Name, set Constraint Type to Foreign Key, choose Severity Level (Major or Minor), choose Parent Table <code>CUSTOMERS</code>, and keep Enable Constraint ticked. Click Next.</p></li>
 <li><strong>Map the columns.</strong><p>In the left pane click the child column <code>customer_id</code>, in the right pane click the parent column <code>customer_id</code>, click the Link icon, then Finish.</p><p class="expect">The relationship shows in the table's Relationship Overview.</p></li>
 </ol>
+
 <details class="sol"><summary>Show a worked answer</summary>
 <p>Illustrative result: <code>CUSTOMERS</code> has primary key constraint on <code>customer_id</code>; <code>ORDERS</code> has a foreign key constraint to <code>CUSTOMERS</code> with severity Major if you want a customer's other orders to come with a filtered order. Repeat for <code>ORDER_ITEMS.order_id</code> to <code>ORDERS.order_id</code>. For the <code>ORDER_ITEMS.product_code</code> to <code>PRODUCTS</code> link, Minor is a reasonable choice because you do not want every item that uses a product. That severity choice is a design judgement of ours.</p></details>
 </div>
 <p>For a <strong>unique key</strong>, choose Unique Key instead of Primary Key and add columns (pp.110-111). For a <strong>conditional constraint</strong>, enter a name, choose Conditional, click Next, build an expression in the Expression Builder (see <a href="11-informatica-tdm-tour.html#c11-expression-builder">the Expression Builder section</a>), and click Finish (p.111).</p>
-<h2 id="c12-performance">12.11 Performance and accuracy tips collected from the guide</h2>
-<p>The guide has no dedicated performance section for discovery. These tips are scattered through the chapter; I collected them and cite where each came from.</p>
+
+<h2 id="c12-performance">12.11 Performance and accuracy tips from the guide</h2>
+<p>The guide has no dedicated discovery performance section; these tips are scattered through it.</p>
+
 <ul>
-<li><strong>Cap the sample.</strong> Primary key profiles default to 1,000 rows and data domain profiles to 1,000 rows (pp.93, 95). Column profiles default to <em>All</em> rows (p.98), the heaviest setting. A small sample is fast but may call a column "unique" or "an SSN" wrongly (my reasoning).</li>
-<li><strong>Limit key columns.</strong> The Primary Key Rows option (default 3) caps how many columns are combined (p.93). Fewer is cheaper.</li>
-<li><strong>Be careful with case-sensitive entity comparisons.</strong> The guide warns they can affect profile performance (p.99).</li>
-<li><strong>Search names first, then data.</strong> You can run a data domain profile on column metadata and then again on the data (p.100). Name checks are cheaper than reading values.</li>
-<li><strong>Pick only domains you need.</strong> A disabled domain is excluded from profiles (p.75), and choosing a policy includes all its domains at once (p.100).</li>
-<li><strong>Combine profile types.</strong> Data domain and primary key profiles can run together (p.87).</li>
-<li><strong>Import metadata directly</strong> from the database when the source has many tables, instead of through PowerCenter or the Model repository (p.60).</li>
-<li><strong>Use the same connection</strong> for import and profile to avoid unexpected results (p.88).</li>
+<li><strong>Cap the sample.</strong> Primary key and data domain profiles default to 1,000 rows; column profiles default to <em>All</em>, the heaviest setting (pp.93, 95, 98). A small sample is fast but can call a column "unique" or "an SSN" wrongly (my reasoning).</li>
+<li><strong>Limit key columns</strong> (default 3, p.93) and avoid case-sensitive entity comparisons, which can slow the profile (p.99).</li>
+<li><strong>Search names first, then data.</strong> You can run a domain profile on column metadata and then on the data (p.100).</li>
+<li><strong>Pick only the domains you need</strong>: disabled domains are skipped (p.75), and choosing a policy includes all its domains at once.</li>
+<li><strong>Import metadata directly</strong> from the database when there are many tables (p.60), and use the same connection for import and profile (p.88).</li>
 </ul>

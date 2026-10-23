@@ -1,7 +1,9 @@
 <h2 id="c10-parameters">10.7 Advanced parameterization at a glance</h2>
 <p>Here is a problem you will meet within a week of working on a real project. ShopSphere's QA team needs test data for <em>sprint 14 regression</em> (orders from this month, in schema <code>QA1</code>), then for <em>performance tests</em> (orders from last year, in schema <code>PERF</code>, on a different server). Making a new plan for each request is slow. Editing one plan every time is error-prone.</p>
 <p>The guide's answer is <dfn>parameters</dfn>: placeholders in the plan that point to a value, and the value is read when the workflow runs (User Guide 10.5.10, pp.35, 51). You change the value and run the same plan again to get different test data.</p>
+
 <h3 id="c10-param-types">Three kinds of parameter</h3>
+
 <div class="tablewrap"><table>
 <thead><tr><th>Type</th><th>Placeholder for</th><th>ShopSphere use</th></tr></thead>
 <tbody>
@@ -9,10 +11,13 @@
 <tr><td>Owner</td><td>Source or target schema owner names</td><td><code>QA1</code> versus <code>PERF</code>.</td></tr>
 <tr><td>Criteria</td><td>Values in filter criteria of an entity</td><td>The <code>order_date</code> cut-off used to choose which orders to copy.</td></tr></tbody></table></div>
 <p>You can create parameters <strong>inside a project</strong>, or an administrator can create <strong>global parameters</strong> usable across Test Data Manager. Global parameters are marked with an asterisk (*) in parameter lists. If you import a global parameter into a project, you get a copy: changes you make to the copy do not touch the global parameter (p.35).</p>
+
 <div class="callout note"><strong class="ctitle">One rule to remember now</strong>
 <p>You must import source metadata from <em>every</em> source connection you might need into the project. A workflow whose parameter value points at metadata the project does not contain cannot run (p.35).</p></div>
+
 <h3 id="c10-param-flow">The sequence in the guide</h3>
 <p>The guide lists 16 tasks. Grouped into five phases they read like this (pp.35-36):</p>
+
 <ol class="steps">
 <li><strong>Prepare the project.</strong><p>Create a project and import the required source metadata. Create connection, owner and criteria parameters in it with default values, and choose whether the default may be overridden. Optionally import global parameters.</p></li>
 <li><strong>Use parameters in the entity.</strong><p>Create an entity with the required tables and add filter criteria that use parameters. You can add several criteria; they can be project or global parameters.</p></li>
@@ -21,24 +26,31 @@
 <li><strong>Run.</strong><p>From the plan Properties page, Actions &gt; Generate and Execute, then pick how values are supplied. Choose <em>Default</em> (the file entered in Plan Settings), <em>Use Parameter File</em> (a different file), or <em>Add Parameter Values</em> (edit values in Test Data Manager, and use the Select Parameter button to include criteria parameters). Click Generate and Execute and monitor the workflow.</p></li>
 </ol>
 <p class="expect">What you should see: the same plan, different data each time you change values. The guide's two examples: change owner and criteria values to get data in the same connection but a different schema, or change connection parameters and include different criteria to get data between different connections (p.36).</p>
+
 <div class="callout example"><strong class="ctitle">ShopSphere example</strong>
 <p>Plan "Customer Orders masked subset" uses an owner parameter for the target schema and a criteria parameter for the order date. Sprint run: owner value <code>QA1</code>, criteria "this month". Performance run: owner value <code>PERF</code>, criteria "last year". One plan, two results. The names and values are ours; the mechanism is the guide's.</p></div>
 <p>Details such as parameter naming prefixes, rules, and editing steps are in <a href="11-informatica-tdm-tour.html">the guided tour of Test Data Manager</a>. Using parameters inside plans is covered again in <a href="16-informatica-plans-workflows-and-warehouse.html">the Informatica plans, workflows and warehouse chapter</a>.</p>
+
 <div class="exercise">
 <h4>Lab: trace three ShopSphere problems to the right piece</h4>
 <p>Goal: practise using the architecture map. This is a paper exercise, no software needed. The failures are invented by us; the pieces and their jobs come from the guide (User Guide 10.5.10, pp.25-30).</p>
+
 <ol class="steps">
 <li><strong>Problem A.</strong><p>A data domain profile on <code>CUSTOMERS</code> finishes, but no results appear in Test Data Manager. Which service ran it, and where should the results be stored?</p></li>
 <li><strong>Problem B.</strong><p>A masking plan generates a workflow successfully, but the run fails to start. Which service runs workflows, and which connections did you choose in the plan?</p></li>
 <li><strong>Problem C.</strong><p>A tester cannot see the "Customer Orders" project in the list. Which kind of setting decides this, and where does an administrator manage users and roles?</p></li>
 </ol>
+
 <details class="sol"><summary>Show a worked answer</summary>
 <p><strong>A.</strong> The Data Integration Service performs discovery and loads profile results to the profiling warehouse. Check that service and the profiling warehouse connection. The guide also says to close and reopen a profile to see its results (p.103), so try that first.</p>
 <p><strong>B.</strong> The PowerCenter Integration Service runs the generated workflows (p.27). In the plan you selected source and target connections, and TDM tests them at generation (p.30). Check that service and those connections.</p>
 <p><strong>C.</strong> Project permissions. If a user has no permission on a project it does not appear in the list (p.68). Roles and privileges are managed in the Informatica Administrator (p.23). <a href="11-informatica-tdm-tour.html">The guided tour of Test Data Manager</a> explains the Read, Write and Execute levels.</p>
 </details></div>
+
 <h2 id="c10-mistakes">10.8 Common mistakes and gotchas</h2>
+
 <div class="callout warn"><strong class="ctitle">Watch out</strong>
+
 <ul>
 <li><strong>Looking for business data in the TDM repository.</strong> The repositories hold definitions, metadata, results and stored data sets. Your source and target databases are separate and need their own connections.</li>
 <li><strong>Treating "the TDM Server", "Test Data Manager" and "TDM" as three products.</strong> They are the web client, the go-between, and the product name respectively. When a document is ambiguous, ask which piece is meant.</li>
@@ -48,8 +60,11 @@
 <li><strong>Importing only one connection's metadata, then parameterizing the connection.</strong> The workflow cannot run (p.35).</li>
 <li><strong>Assuming every feature in the guide exists in your installation.</strong> Licences, privileges and version differ. Confirm in your version.</li>
 </ul></div>
+
 <h2 id="c10-recap">10.9 Recap</h2>
+
 <div class="callout recap"><strong class="ctitle">Key points</strong>
+
 <ul>
 <li>Informatica TDM finds sensitive data, makes smaller copies, masks, generates data, and stores versions of test data (User Guide 10.5.10, pp.21-22).</li>
 <li>Use cases fall into performance, security and compliance, and verified data with DVO.</li>
@@ -59,7 +74,9 @@
 <li>Generation needs its own plan; masking and subset can share one.</li>
 <li>Parameters (connection, owner, criteria) let one plan produce different test data.</li>
 </ul></div>
+
 <section class="sources"><h2 id="c10-sources">Sources used in this chapter</h2>
+
 <ul>
 <li>Informatica Test Data Management 10.5.10 User Guide (PDF, February 2026, 455 pages), chapter 1, PDF pages 21 to 36: overview, use cases, architecture (including the component figure on p.25), TDM process, TDM example, advanced parameterization. Read in full. Also p.38 and pp.51 to 58 for parameter types and the cross reference.</li>
 <li>Learner-supplied official architecture page: <a href="https://docs.informatica.com/data-security-group/test-data-management/10-5-10/user-guide/introduction-to-test-data-management/tdm-architecture.html" target="_blank" rel="noopener">docs.informatica.com, TDM architecture</a> <span class="badge unverified">not fetched, site blocks automated access</span>. Not used as a source.</li>

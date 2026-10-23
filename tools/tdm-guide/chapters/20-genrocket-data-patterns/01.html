@@ -1,6 +1,5 @@
-<p>So far in this part you have met the building blocks of GenRocket (<a href="17-genrocket-overview.html">the overview</a>, <a href="18-genrocket-domains-attributes-generators.html">domains, attributes and generators</a>, <a href="19-genrocket-receivers-and-scenarios.html">receivers and scenarios</a>). You know that every attribute gets a generator and that a generator decides each value. This chapter asks a sharper question: <em>which</em> values should a generator produce so that your tests find bugs?</p>
-<p>Test data is not just "some rows". A shopping app that has only ever seen order totals like 49.99 and 120.00 has not really been tested. The bugs live at the edges: a total of exactly 0.00, a total of 999999.99 (the biggest the column can hold), a customer who is exactly 18 years old, an email box left empty, a phone number with one digit too few. Testers call these <strong>data patterns</strong>: deliberate shapes that the data takes. This chapter covers the shapes in the syllabus for Day 47: sequential, random, boundary and edge cases, and null.</p>
-<p>For each pattern the chapter works the same way. First comes a plain-words explanation with a ShopSphere example. Then comes how GenRocket produces it, using only generator names and parameters that the official help centre documents. At the end there is a pattern coverage table and a lab that builds a small boundary-value suite. The <a href="21-genrocket-hands-on-50-records.html">next chapter</a> then uses several of these patterns in a full hands-on lab.</p>
+<p>So far in this part you have met the building blocks of GenRocket (<a href="17-genrocket-overview.html">the overview</a>, <a href="18-genrocket-domains-attributes-generators.html">domains, attributes and generators</a>, <a href="19-genrocket-receivers-and-scenarios.html">receivers and scenarios</a>). This chapter asks a sharper question: <em>which</em> values should a generator produce so that your tests find bugs?</p>
+<p>The bugs live at the edges: an order total of exactly 0.00 or 999999.99, a customer exactly 18 years old, an empty email, a phone number with a digit too few. Testers call these deliberate shapes <strong>data patterns</strong>. This chapter covers the Day 47 patterns: sequential, random, boundary and edge cases, and null. For each one you get a plain-words explanation with a ShopSphere example, then how GenRocket does it using only documented generators and parameters, then a pattern coverage table and a boundary-value lab. The <a href="21-genrocket-hands-on-50-records.html">next chapter</a> uses several of these patterns in a full hands-on lab.</p>
 <div class="callout recap"><strong class="ctitle">What you will learn</strong>
 <ul>
 <li>Why test data needs patterns, and the difference between positive tests and negative tests.</li>
@@ -33,25 +32,8 @@
 </dl>
 
 <h2 id="c20-why-patterns">20.2 Why test data needs patterns</h2>
-<p><span class="badge concept">General concept</span> Picture a vending machine. If you test it only by inserting the exact price, it will pass every time. The bugs appear when you insert one coin too few, one coin too many, a foreign coin, or no coin at all. Software behaves the same way. Most defects hide where the rules change: at a limit, at an empty field, or in a rare combination.</p>
-<p>That is why real testing needs both kinds of data:</p>
-<div class="compare">
-<div><h4>Typical data (positive tests)</h4><ul>
-<li>Looks like real customers and real orders.</li>
-<li>Proves the main flows work: place an order, view an invoice.</li>
-<li>Needs variety and volume more than precision.</li>
-<li>Tools: random generators, name and phone generators, lists.</li>
-</ul></div>
-<div><h4>Tricky data (negative and edge tests)</h4><ul>
-<li>Sits on the rules: the minimum, the maximum, empty, null, too long, wrong type.</li>
-<li>Proves the app rejects bad input safely.</li>
-<li>Needs precision: the exact value matters.</li>
-<li>Tools: lists, ranges, weights, edge-case and null generators.</li>
-</ul></div>
-</div>
-<p>A real production copy is poor at both. It has plenty of typical rows but may contain no order of exactly 0.00 and no 17-year-old customer, so the edge tests never run. Synthetic data fixes that, because you decide what exists. <span class="badge doc">From docs</span> GenRocket's CI/CD page describes its web platform as able to design "any form of test data (positive, negative, patterns, permutations, boundary values, dynamic, load, etc.)" for a given data model (<a href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">Automating Data Generation using CI/CD Pipeline</a>). The rest of this chapter shows which generators do each job.</p>
-<div class="callout why"><strong class="ctitle">Why this matters for a TDM engineer</strong>
-<p>When a developer says "the checkout broke on a zero total", the fix is a test row with a zero total, every time the suite runs. With a generator you write that row once as a rule ("one of the values is 0.00") and every future data refresh contains it. With a production copy you would have to hope such a row exists.</p></div>
+<p><span class="badge concept">General concept</span> A vending machine tested only with the exact price always passes. Bugs appear with one coin too few, one too many, or none. Software is the same: defects hide where rules change, at a limit, an empty field or a rare combination. So testing needs <strong>typical data</strong> (positive tests: looks real, proves the main flows) and <strong>tricky data</strong> (negative and edge tests: sits on the rules, proves the app rejects bad input safely). A production copy is poor at the second kind: it may contain no order of exactly 0.00 and no 17-year-old customer. Synthetic data fixes that, because you decide what exists.</p>
+<p><span class="badge doc">From docs</span> GenRocket's CI/CD page says its web platform can design "any form of test data (positive, negative, patterns, permutations, boundary values, dynamic, load, etc.)" for a data model (<a href="@@URL cicd_pipeline_and_cots_integrations_automating_data_generation_using_cicd_pipeline@@" target="_blank" rel="noopener">Automating Data Generation using CI/CD Pipeline</a>).</p>
 
 <h3 id="c20-shopsphere-patterns">20.2.1 The ShopSphere patterns we will build</h3>
 <p>Throughout this chapter we use the fictional ShopSphere tables from earlier chapters. All data is invented. The table below lists the patterns we want and where each is built.</p>
@@ -69,11 +51,4 @@
 </tbody></table></div>
 
 <h3 id="c20-how-genrocket-thinks">20.2.2 How GenRocket thinks about a pattern</h3>
-<p><span class="badge doc">From docs</span> In GenRocket, every pattern in the table above is a <em>generator choice plus its parameters</em> on an attribute. There is no separate "pattern" feature to switch on. You pick a generator for the attribute (see <a href="18-genrocket-domains-attributes-generators.html">the chapter on domains, attributes and generators</a>), set its parameters, and look at the Preview pane, which shows sample values immediately. The help centre says a generator "generates synthetic data or queries for enumerated data for a Domain Attribute", and that generators only create the raw values while <a href="19-genrocket-receivers-and-scenarios.html">receivers</a> format them into files.</p>
-<p>Three mechanisms cover almost everything in this chapter:</p>
-<ol>
-<li><strong>One generator with parameters.</strong> RangeGen with a start value counts up. RandomGen with a range picks randomly. ListGen walks a list.</li>
-<li><strong>Several generators linked in one attribute.</strong> One produces a value, another decides whether to use it, a last one combines them. The page "Linked Generators Overview" explains the left-to-right rule.</li>
-<li><strong>Attribute settings.</strong> The Attribute Dashboard has its own fields for nulls and for hiding values from the output, independent of the generator.</li>
-</ol>
-<p>The generator list is long. The generators overview page says GenRocket has "over 765+" generators, so no chapter can list them all. We stick to the ones that map to the syllabus patterns.</p>
+<p><span class="badge doc">From docs</span> In GenRocket a pattern is a <em>generator choice plus its parameters</em> on an attribute; there is no separate "pattern" switch. You pick a generator (see <a href="18-genrocket-domains-attributes-generators.html">the chapter on domains, attributes and generators</a>), set its parameters and read the Preview pane. Generators only create raw values; <a href="19-genrocket-receivers-and-scenarios.html">receivers</a> format them. Three mechanisms cover this chapter: one generator with parameters (RangeGen, RandomGen, ListGen), several generators linked in one attribute, and attribute settings such as <code>% Null</code> that sit outside the generator. The help centre says GenRocket has over 765 generators, so we stay with the ones that map to the syllabus.</p>

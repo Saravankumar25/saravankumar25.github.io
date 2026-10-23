@@ -1,11 +1,14 @@
 <h2 id="c12-labs">12.12 Hands-on labs: profiling, masking and subset on ShopSphere</h2>
 <p>The syllabus lists three hands-on items that start from profiling: <strong>TDM_Handson1</strong> (TDM and data profiling), <strong>TDM_Handson2</strong> (data profiling and masking) and <strong>TDM_Handson3</strong> (data profiling and subset). The syllabus gives only these titles. I do not know the exact tasks your trainer sets, so the three labs below are <em>my reconstruction</em>, built so they chain together on the shared ShopSphere example.</p>
+
 <div class="callout note"><strong class="ctitle">What is from the guide and what is illustrative</strong>
 <p>Every click path below (menu names, dialog names, option names) comes from the User Guide 10.5.10 and carries a page number. The <strong>ShopSphere choices</strong> (project name, profile names, which results you approve, and the expected result tables) are illustrative: they show what a sensible outcome looks like on our fictional data. Your own installation will show different numbers and may use different labels. If you have no TDM installation, do each lab on paper using the sample tables, then compare.</p></div>
 <p>Starting point for all three labs: a TDM environment where an administrator has already created the database connection to ShopSphere, the Data Integration Service and the Model Repository Service connections (p.92), and you have Write permission on the project (see <a href="11-informatica-tdm-tour.html#c11-permissions">the permissions section of the tour</a>). The sample rows are the shared ShopSphere rows: customers 1001 Asha Menon, 1002 Ravi Kumar, 1003 Meera Nair.</p>
+
 <div class="exercise">
 <h4>Lab 1 (TDM_Handson1): TDM and data profiling</h4>
 <p>Goal: bring ShopSphere into a project, discover sensitive columns, and approve the results. This lab uses the policy and domain you built in the <a href="11-informatica-tdm-tour.html">guided tour</a>; if you skipped it, use the PII policy pack that ships with TDM (p.77).</p>
+
 <ol class="steps">
 <li><strong>Create the project.</strong><p>Projects &gt; Actions &gt; New; Name <code>CustomerOrders</code>, then OK (pp.53-54). <em>Illustrative name.</em> A project is where profiles and results live.</p><p class="expect">The project opens in a new page.</p></li>
 <li><strong>Import the four tables.</strong><p>In the project click Actions &gt; Import Metadata, choose Datasource Connection, pick the ShopSphere schema, select <code>CUSTOMERS</code>, <code>ORDERS</code>, <code>ORDER_ITEMS</code>, <code>PRODUCTS</code>, choose Import Now (pp.66-67).</p><p class="expect">Import Progress finishes and the tables appear in the Data Sources view.</p></li>
@@ -15,13 +18,16 @@
 <li><strong>Close and reopen the profile, then open Profile &gt; Data Domain.</strong><p>The guide says results appear only after reopening (p.103, 105).</p><p class="expect">Rows for <code>CUSTOMERS</code> columns with a Profiled data domain column and conformance percentages.</p></li>
 <li><strong>Preview, then approve.</strong><p>Select <code>ssn</code>, open Data Preview, and confirm the first values look like 123-45-6789. Approve the rows you agree with, and Reject or fix any wrong match (p.105). Then mark the classification completed.</p></li>
 </ol>
+
 <details class="sol"><summary>Show a worked answer</summary>
 <p><strong>Illustrative result:</strong> <code>first_name</code> to First Name, <code>last_name</code> to Last Name, <code>email</code> to Email Address, <code>phone</code> to Phone, <code>ssn</code> to Social Security Number, <code>date_of_birth</code> to Birth Date, <code>zip_code</code> to ZIP, all approved. <code>tax_id</code> has no match, so open Discover &gt; Columns and set its Domain by hand (p.95), or add a domain for it. After this lab, Discover &gt; Columns lists those columns as sensitive, because assigning a domain marks a column sensitive (p.89).</p>
 <p><strong>What if it fails?</strong> No results after reopening usually means the job failed or did not finish: check Monitor and the TDM job log (p.33). A connection error at Execute points to the discovery connection setup (p.92). A column that you know is an SSN but does not match: check the pattern and conformance threshold on the domain, and remember patterns are case sensitive (p.74).</p></details>
 </div>
+
 <div class="exercise">
 <h4>Lab 2 (TDM_Handson2): data profiling and masking</h4>
 <p>Goal: use the approved domains from Lab 1 to mask <code>CUSTOMERS</code> in a test schema. The profiling steps are from the guide. The masking steps are only outlined here, because the <a href="14-informatica-data-masking.html">Informatica masking chapter</a> covers rule types and plan settings in detail.</p>
+
 <ol class="steps">
 <li><strong>Check that the domains are approved.</strong><p>Open Discover &gt; Columns and confirm each personal column has a Domain and is marked sensitive (p.89). If not, finish Lab 1 step 7 first.</p><p class="expect">Columns such as <code>ssn</code> and <code>email</code> show a domain name.</p></li>
 <li><strong>Assign the domain rules in Define &gt; Data Masking.</strong><p>The guide says that once you approve a domain for a column, you assign the domain's rules in the Define &gt; Data Masking view (p.105). The default rule of each domain is applied to its columns; you may switch a column to another preferred rule (p.73).</p><p class="expect">Each approved column shows a masking rule in that view.</p></li>
@@ -30,8 +36,10 @@
 <li><strong>Generate and run the workflow, then monitor.</strong><p>Generate the workflow from the plan and run it, then watch Monitor (pp.32-33).</p><p class="expect">The workflow job completes; a Row Count Report on the successful run shows rows affected (p.33).</p></li>
 <li><strong>Verify.</strong><p>Query the test target. The guide's example has the compliance officer validate the results (p.34).</p></li>
 </ol>
+
 <details class="sol"><summary>Show a worked answer</summary>
 <p><strong>Illustrative before and after</strong> for the three sample customers (the masked values are made up; real output depends on your rules and dictionaries, and the guide does not give these values):</p>
+
 <div class="tablewrap"><table class="sample">
 <caption>Illustrative masking outcome (invented)</caption>
 <thead><tr><th>customer_id</th><th>first_name</th><th>last_name</th><th>email</th><th>ssn</th></tr></thead>
@@ -41,9 +49,11 @@
 <tr><td>1003</td><td>Divya</td><td>Rao</td><td>divya.r@example.net</td><td>614-90-2271</td></tr></tbody></table></div>
 <p>What you check: no original name or SSN remains; the formats still look valid (an SSN still has 3-2-4 digits); and <code>ORDERS.customer_id</code> still matches <code>CUSTOMERS.customer_id</code> in the target. If an order has no matching customer, the key handling in step 3 was missed.</p></details>
 </div>
+
 <div class="exercise">
 <h4>Lab 3 (TDM_Handson3): data profiling and subset</h4>
 <p>Goal: discover keys and relationships, approve them, and set up a subset of ShopSphere customers. Profiling steps are from the guide. The subset plan itself is outlined; the <a href="13-informatica-data-subset.html">Informatica data subset chapter</a> gives the details.</p>
+
 <ol class="steps">
 <li><strong>Pretend the metadata has no declared keys.</strong><p>This matches the guide's example database (pp.33-34) and gives profiling something to find. If your imported tables already show keys under Discover &gt; Tables &gt; Constraints, you can disable the physical keys on the Columns tab to practise (p.88-89), or just read along.</p></li>
 <li><strong>Create a primary key and entity profile.</strong><p>Discover &gt; Profile &gt; Actions &gt; New Profile; name <code>pk_entity_shopsphere</code>; choose primary key and entity; select all four tables; Sampling Options: key columns maximum 3, Max Rows 1,000, conformance 99 (the guide's defaults, pp.93, 99); Save.</p><p>Why combined: an entity profile alone returns nothing when there are no physical keys (p.93).</p></li>
@@ -53,6 +63,7 @@
 <li><strong>Set the severity.</strong><p>On the constraints, choose Major for <code>ORDERS</code> to <code>CUSTOMERS</code> if you want a customer's other orders to follow a filtered order, Minor if not (pp.108-109). <em>Our design choice.</em></p></li>
 <li><strong>Define the subset structure.</strong><p>In Define, create an entity with <code>CUSTOMERS</code> as the driving table (p.107) so TDM adds <code>ORDERS</code> and <code>ORDER_ITEMS</code> by constraint, and a group for <code>PRODUCTS</code>, so the whole product list is copied as reference data (a group holds tables without tying them to the entity; p.32, p.51; that choice is ours). Create a subset plan with a filter on a parent-table column and run it as described in the subset chapter.</p></li>
 </ol>
+
 <details class="sol"><summary>Show a worked answer</summary>
 <p><strong>Illustrative result.</strong> Filtering <code>CUSTOMERS</code> to <code>customer_id &lt; 1003</code> keeps customers 1001 and 1002, all their orders and all items of those orders, with no orphan rows, plus the <code>PRODUCTS</code> in the group. Customer 1003 and her orders are absent. Verify by counting rows per table in the target and joining child to parent: the join should drop no rows.</p>
 <p>If the subset has orphans, look first for a missing or disabled constraint. If the subset is far larger than expected, a Major constraint is probably pulling in whole families of related rows (p.108). If cycles are involved, a staging connection is required (p.109).</p></details>
