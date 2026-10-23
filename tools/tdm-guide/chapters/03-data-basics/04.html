@@ -72,29 +72,12 @@ GROUP BY customer_id;</code></pre>
 <p>Returns 1001 with 2 orders and 1002 with 1 order. TDM people use COUNT constantly: how many rows before and after a subset? Does the masked table have as many rows as the source? Does the number of distinct values in a candidate key equal the number of rows? (<code>COUNT(DISTINCT customer_id)</code> counts the unique values.)</p>
 
 <h3 id="c3-insert-update">INSERT and UPDATE: change data</h3>
-<pre><code>INSERT INTO customers
-  (customer_id, first_name, last_name, email, phone, ssn, date_of_birth, zip_code, tax_id)
-VALUES
-  (1004, 'Test', 'User', 'test.user@example.com', '9000000000', '000-00-0000', '2000-01-01', '560001', 'TAX-T1004');</code></pre>
-<p><code>INSERT</code> adds a row. The column list and the value list must line up. If you inserted an order with <code>customer_id</code> 9999 when no such customer exists, a database that enforces the foreign key rejects it.</p>
+<p><code>INSERT INTO customers (...) VALUES (...)</code> adds a row (the lab below has full examples); the column list and value list must line up. If you inserted an order with <code>customer_id</code> 9999 when no such customer exists, a database that enforces the foreign key rejects it.</p>
 <pre><code>UPDATE customers
 SET zip_code = '560002'
 WHERE customer_id = 1001;</code></pre>
-<p><code>UPDATE</code> changes existing rows. After it, a SELECT for customer 1001 returns zip_code 560002. <strong>Never write UPDATE without a WHERE</strong> unless you really mean to change every row: the statement above, without its last line, would give all three customers the same postal code.</p>
+<p>After the UPDATE, a SELECT for customer 1001 returns zip_code 560002. <strong>Never write UPDATE without a WHERE</strong> unless you really mean to change every row: the statement above, without its last line, would give all three customers the same postal code.</p>
 <p>Masking is, at its core, a very large controlled UPDATE: replace the value in a sensitive column in every row (with a consistent rule). Delphix's in-place masking updates the source table; a copy-style approach writes to a different target. The tool generates the SQL for you, but understanding that it is an UPDATE explains why a table with no key is a problem: the tool needs a way to say "this exact row". Delphix's documentation says the custom SQL for a table must include the primary key column(s) and the columns to be masked (<a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>). <span class="badge doc">From docs</span></p>
-
-<h3 id="c3-sql-summary">SQL cheat sheet</h3>
-<div class="tablewrap"><table>
-<thead><tr><th>Statement</th><th>Meaning</th><th>Memory hook</th></tr></thead>
-<tbody>
-<tr><td><code>SELECT cols FROM t</code></td><td>Read columns from a table</td><td>"Show me"</td></tr>
-<tr><td><code>WHERE cond</code></td><td>Keep only matching rows</td><td>"Only those"</td></tr>
-<tr><td><code>JOIN t2 ON key match</code></td><td>Combine tables along a key</td><td>"Follow the key"</td></tr>
-<tr><td><code>COUNT(*)</code></td><td>Number of rows</td><td>"How many"</td></tr>
-<tr><td><code>INSERT INTO t ...</code></td><td>Add a row</td><td>"Add"</td></tr>
-<tr><td><code>UPDATE t SET ... WHERE</code></td><td>Change rows</td><td>"Change those"</td></tr>
-</tbody>
-</table></div>
 
 <div class="exercise">
 <h4>Lab: run the ShopSphere queries (database needed, any relational database)</h4>
@@ -142,8 +125,6 @@ FROM orders o
 LEFT JOIN customers c ON c.customer_id = o.customer_id
 WHERE c.customer_id IS NULL;</code></pre>
 <p class="expect">No rows returned.</p></li>
-<li><strong>Break it on purpose, then check again.</strong><p>With foreign keys enforced the database will block a bad insert. Many TDM jobs work on tables without enforcement, so test the other way: see for yourself what an orphan looks like. In a scratch copy with constraints off, delete customer 1001 only, then re-run step 3.</p>
-<p class="expect">Orders 5001 and 5002 are listed as orphans.</p></li>
 <li><strong>Write two queries of your own.</strong><p>(a) How many order items does each order have? (b) Which customers have no orders?</p></li>
 </ol>
 <details class="sol"><summary>Show a worked answer</summary>
@@ -155,15 +136,7 @@ WHERE c.customer_id IS NULL;</code></pre>
 
 <h2 id="c3-volume">3.7 Data volumes and why size matters</h2>
 <p>ShopSphere's sample tables hold ten rows between them. The real database holds millions of customers and tens of millions of orders. Size changes everything about TDM.</p>
-<div class="tablewrap"><table>
-<thead><tr><th>Unit</th><th>Rough meaning</th><th>Example</th></tr></thead>
-<tbody>
-<tr><td>KB (kilobyte)</td><td>A thousand bytes</td><td>A short text file of a few hundred customer lines</td></tr>
-<tr><td>MB (megabyte)</td><td>A thousand KB</td><td>A CSV of tens of thousands of customers</td></tr>
-<tr><td>GB (gigabyte)</td><td>A thousand MB</td><td>A small production database</td></tr>
-<tr><td>TB (terabyte)</td><td>A thousand GB</td><td>A large enterprise database</td></tr>
-</tbody>
-</table></div>
+<p>Sizes run from KB (a short text file) through MB (a CSV of tens of thousands of customers) and GB (a small production database) to TB (a large enterprise database).</p>
 <p>Why size matters to a TDM engineer:</p>
 <ul>
 <li><strong>Time.</strong> Masking updates every row of every sensitive column. Ten times the rows is roughly ten times the work unless you add parallelism. Delphix profile jobs have a setting for the number of parallel streams, for example two streams to run two tables of a rule set at once (<a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>). <span class="badge doc">From docs</span></li>
@@ -228,18 +201,6 @@ order_items.txt  (fixed width: item_id 1-4, order_id 5-8, product 9-12, qty 13-1
 <div class="callout warn">
 <strong class="ctitle">Assuming the database enforces the keys</strong>
 <p>Many databases, especially older ones and data warehouses, have no declared foreign keys. Relationships exist only by convention. That is why profiling for keys and logical keys exist.</p>
-</div>
-<div class="callout warn">
-<strong class="ctitle">Trusting the file extension</strong>
-<p>A <code>.dat</code> or <code>.txt</code> file can be any layout. Get the specification and open the file to confirm.</p>
-</div>
-<div class="callout warn">
-<strong class="ctitle">Forgetting line endings and encodings</strong>
-<p>A file produced on one system and read on another may have different line endings or a different encoding. When data looks garbled or every line ends with a stray character, suspect these first.</p>
-</div>
-<div class="callout warn">
-<strong class="ctitle">UPDATE or DELETE without WHERE</strong>
-<p>It changes or removes every row. Run the SELECT with the same WHERE first and check the count.</p>
 </div>
 <div class="callout warn">
 <strong class="ctitle">Masking keys inconsistently</strong>

@@ -12,39 +12,7 @@
 </ol>
 
 <h2 id="c4-leaks">4.11 Where test copies leak</h2>
-<p>Protecting the main test database is not enough. Real data escapes through side doors, and it is the TDM engineer's job to think about them. <span class="badge concept">General concept</span></p>
-<div class="tablewrap"><table><caption>Common leak points for test data (general concept; examples are fictional)</caption>
-<thead><tr><th>Where</th><th>How real data gets there</th><th>What helps</th></tr></thead>
-<tbody>
-<tr><td>Developer laptops</td><td>A developer exports a "quick sample" of production to debug an issue</td><td>Policy that production extracts are never allowed, and an easy masked sample on request</td></tr>
-<tr><td>Bug tickets and screenshots</td><td>A tester pastes a screen showing Asha Menon's real SSN into a ticket</td><td>Masked test data, so there is nothing real to paste</td></tr>
-<tr><td>Log files</td><td>The application writes request bodies with email and phone to logs</td><td>Masked inputs; review of what the application logs</td></tr>
-<tr><td>Backups and snapshots of test servers</td><td>A copy taken before masking was finished</td><td>Mask before the copy is made available, for example with the on-the-fly method described in <a href="06-masking-concepts.html">the masking concepts chapter</a></td></tr>
-<tr><td>Third-party vendors and offshore teams</td><td>Production data sent for performance testing</td><td>Contract terms plus masked or synthetic data</td></tr>
-<tr><td>Staging area of the TDM tool itself</td><td>Unmasked data lands in a temporary table or file during processing</td><td>Restrict access to the staging area and clean it up</td></tr>
-<tr><td>Free-text columns</td><td>Notes or comments hold IDs and names</td><td>Free-text redaction, or exclude the column</td></tr>
-</tbody></table></div>
-<p>GenRocket's G-Subset documentation shows how a vendor can design around the staging problem. It says the data stays in the customer's environment behind their firewall, that the sensitive columns are never read, and that temporary "dump" files are removed after the run (GenRocket "G-Subset Overview"). <span class="badge doc">From docs</span> Whatever the tool, ask the same question: <em>at which moment does unmasked data exist outside production, and who can reach it?</em></p>
-<div class="callout why"><strong class="ctitle">Why this belongs in a chapter about policy</strong>
-<p>A policy that only says "mask these columns" protects the final database. A good policy also states where unmasked data is allowed to exist, for how long, and who may touch it. That is the part the compliance officer and the security team will ask about first.</p></div>
-
-<h2 id="c4-template">4.13 A one-page policy record</h2>
-<p>Tool objects hold the technical settings. Someone still has to hold the decisions. A one-page record, kept next to the exported policy files, is what an auditor or a new colleague reads first. <span class="badge concept">General concept</span> Here is a template, filled in for ShopSphere.</p>
-<div class="tablewrap"><table class="sample"><caption>Illustrative policy record for ShopSphere (organisation-specific; adapt to your templates)</caption>
-<thead><tr><th>Field</th><th>Example entry</th><th>Why it is there</th></tr></thead>
-<tbody>
-<tr><td>Policy name and version</td><td><code>ShopSphere_Customer_PII</code>, v1.2</td><td>Everyone refers to the same thing; changes are traceable</td></tr>
-<tr><td>Scope</td><td>Schema <code>SHOPSPHERE_PROD</code>, tables <code>CUSTOMERS</code>, <code>ORDERS</code>, <code>ORDER_ITEMS</code>, <code>PRODUCTS</code></td><td>Says what is and is not covered</td></tr>
-<tr><td>Owner and approver</td><td>TDM engineer owns; compliance officer approves</td><td>Clear accountability</td></tr>
-<tr><td>Laws and standards in play</td><td>India DPDP Act, GDPR for EU customers, PCI DSS for card data (confirmed by compliance)</td><td>Explains why each rule exists</td></tr>
-<tr><td>Data domains covered</td><td>First Name, Last Name, Email Address, Phone, Social Security Number, Birth Date, ZIP</td><td>The detection side of the policy</td></tr>
-<tr><td>Protection per domain</td><td>See the policy table in section 4.8</td><td>The action side of the policy</td></tr>
-<tr><td>Columns handled by hand</td><td><code>tax_id</code> (assigned manually, not found by discovery)</td><td>Records exceptions the tool will not repeat on its own</td></tr>
-<tr><td>Where unmasked data may exist</td><td>Only the production source and the TDM staging area, access limited to the TDM team</td><td>Closes the leak points in section 4.11</td></tr>
-<tr><td>Validation evidence</td><td>Sample of 50 rows per table checked by a second person, search for SSN-like digits in notes returned nothing</td><td>Proof the policy works</td></tr>
-<tr><td>Review date</td><td>Every release, and whenever a column is added</td><td>Keeps the policy current</td></tr>
-</tbody></table></div>
-<p>Nothing in this template comes from a tool manual. It is a habit that fits the manuals: both Informatica and Delphix store the technical objects (policies, domains, rules, algorithms, rule sets), but neither can record <em>why</em> the compliance officer chose a given protection. Informatica's business glossary links (User Guide 10.5.10, pp.82 to 83) are one way to attach that explanation to an object, if your installation has the glossary configured. <span class="badge doc">From docs</span></p>
+<p><span class="badge concept">General concept</span> Protecting the test database is not enough. Real data also escapes through developer laptops ("quick samples"), bug tickets and screenshots, application logs, backups taken before masking finished, files sent to vendors, free-text notes and the TDM tool's own staging area. A good policy states where unmasked data may exist, for how long and who can reach it. GenRocket's G-Subset documentation shows one design answer: data stays behind the customer's firewall, sensitive columns are never read, and temporary dump files are removed after the run (GenRocket "G-Subset Overview"). <span class="badge doc">From docs</span></p>
 
 <div class="exercise"><h4>Lab: classify the ShopSphere columns</h4>
 <p>Goal: on paper or in a spreadsheet, decide the sensitivity level and the family (PII, PHI, PCI, none) for each ShopSphere column, and name the signal you would expect a tool to use to find it.</p>
@@ -70,14 +38,10 @@
 <tr><td>ORDERS.order_id, ORDER_ITEMS.*, PRODUCTS.*</td><td>Public or Internal</td><td>none</td><td>Not flagged</td></tr>
 </tbody></table></div></details></div>
 
-<h2 id="c4-cases">4.12 Judgement calls: four short cases</h2>
+<h2 id="c4-cases">4.12 Judgement calls: two short cases</h2>
 <p>Policies cover the common situations. The interesting work is in the edges. Each case below is fictional and shows the questions a TDM engineer asks before saying yes or no. <span class="badge concept">General concept</span></p>
 <div class="callout example"><strong class="ctitle">Case 1: "Give me last week's production orders to reproduce a bug"</strong>
 <p>A QA lead wants a copy of production. The reflex answer is no. The useful answer starts with questions. Which orders trigger the bug? Probably a handful, so a subset around those customers is enough (see <a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>). Does the bug depend on real names or only on the shape of the data, such as an order with 40 items? Usually only on the shape, so a masked subset reproduces it. The minimum-necessary idea turns a risky request into a small, safe one.</p></div>
-<div class="callout example"><strong class="ctitle">Case 2: "Our load-testing vendor needs production data"</strong>
-<p>The vendor needs volume (millions of orders), not real people. Masking millions of rows works, but so does generating fictional rows from scratch, which carries no personal data at all (the <a href="07-test-data-classification-and-generation-concepts.html">test data classification and generation chapter</a> covers this). The data steward helps by describing the realistic shape: how many items per order, how skewed the customers are.</p></div>
-<div class="callout example"><strong class="ctitle">Case 3: "Analytics wants real birth dates for age-band reports"</strong>
-<p>Exact birth date is Restricted, but the report only needs age bands such as 25 to 34. Options: replace dates with ones shifted by a few days (age band stays the same for most people), or store only the year. The compliance officer decides whether the remaining year plus zip is acceptable, remembering the uniqueness lab earlier in this chapter. The takeaway is that "mask or not" is often really "how much detail does the purpose need?".</p></div>
 <div class="callout example"><strong class="ctitle">Case 4: "Support agents paste customer details into notes"</strong>
 <p>An <code>ORDER_NOTES</code> column (not in the shared schema, added here to illustrate) contains lines like "Customer 123-45-6789 asked for a refund, call 9876543210". No column name flags it, and a column-level data pattern may miss it because the value is a whole sentence. Options: exclude the column from test copies, null it out, or use a free-text redaction algorithm that looks for patterns inside the text. Delphix provides a Free Text Redaction framework for this and says it needs expertise to configure (Delphix "Free Text Redaction (Algorithm frameworks)"). <span class="badge doc">From docs</span> Always check the output with a search for digit patterns afterwards.</p></div>
 

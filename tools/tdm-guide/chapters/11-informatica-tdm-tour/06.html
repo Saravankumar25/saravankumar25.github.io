@@ -7,8 +7,6 @@
 <div class="node"><b>Project</b>you assign the policy to a data source</div>
 </div>
 <p>The ShopSphere reading: a <em>rule</em> is "replace first names from a dictionary of fake names". A <em>domain</em> is "First Name", the group of every column that holds first names. The <em>policy</em> is the compliance officer's list of domains that must be masked in any customer-data project. Once the policy exists, the Customer Orders project simply receives it and every first-name column gets the first-name rule. You can apply one policy to many projects (p.71).</p>
-<div class="callout why"><strong class="ctitle">Why it matters</strong>
-<p>Without domains you would assign a rule to one column at a time, and forget one. With them, "any column that is a phone number" gets the phone rule, today and in the next project. This is also why the compliance officer, not the developer, owns the policy in the guide's example: it is a business decision about what is sensitive.</p></div>
 <p><strong>Policies task flow</strong> (p.72): create masking rules, define data domains that describe which columns can receive the same rules, assign the rules to the domains, create a policy, assign the domains to the policy. The order is flexible; you can create a policy first and fill it later.</p>
 <h3 id="c11-rules">Rules</h3>
 <p>A rule defines logic to mask sensitive data <em>or</em> to generate test data (p.72). You can create rules for string, numeric and date data types. You can add rules to data domains and then use the domains in policies and plans. After you add rules to a project, you still assign them to columns, matching the column's data type. The built-in masking techniques (substitution, shuffle, key masking and so on) are the subject of the <a href="14-informatica-data-masking.html">Informatica masking chapter</a>; generation rules are in the <a href="15-informatica-data-generation.html">Informatica data generation chapter</a>.</p>
@@ -40,21 +38,10 @@
 <tr><td><code>[ ]</code></td><td>One character from a set; a hyphen gives a range, such as <code>[a-zA-Z0-9]</code>.</td><td><code>[0-9]</code> is one digit.</td></tr>
 <tr><td><code>?</code></td><td>Makes the previous item optional.</td><td><code>-?</code> an optional dash.</td></tr>
 <tr><td><code>{n}</code></td><td>Repeats the previous item n times (n is 1 or more).</td><td><code>[0-9]{4}</code> is four digits.</td></tr></tbody></table></div>
-<div class="tablewrap"><table class="sample">
-<caption>Illustrative patterns for ShopSphere columns (our examples, built from the pieces above; test them in your tool)</caption>
-<thead><tr><th>Domain</th><th>Data pattern idea</th><th>Metadata pattern idea</th><th>Matches in <code>CUSTOMERS</code></th></tr></thead><tbody>
-<tr><td>Social Security Number</td><td><code>[0-9]{3}-[0-9]{2}-[0-9]{4}</code> (the guide's)</td><td><code>.*SSN*</code></td><td><code>ssn</code> values like 123-45-6789. Note the pattern is also true for any other column with that shape.</td></tr>
-<tr><td>Zip code (India style)</td><td><code>[0-9]{6}</code></td><td><code>.*ZIP*</code></td><td><code>zip_code</code> values like 560001, 600017, 682001.</td></tr>
-<tr><td>Phone (10 digits)</td><td><code>[0-9]{10}</code></td><td><code>.*PHONE*</code></td><td><code>phone</code> values like 9876543210.</td></tr></tbody></table></div>
 <div class="callout warn"><strong class="ctitle">Case and shape traps</strong>
 <p>Because regexes are case sensitive, a pattern in capitals may not match a lower-case column name such as <code>ssn</code>. Whether TDM treats metadata expressions case-insensitively is not stated in the part of the guide I read, so test it on your own data. And a 10-digit phone pattern also matches any other 10-digit column. This is why you review profile results rather than approving everything blindly.</p></div>
 <h3 id="c11-domain-options">Data domain options</h3>
-<div class="tablewrap"><table>
-<thead><tr><th>Option</th><th>Meaning (p.75)</th></tr></thead><tbody>
-<tr><td>Name</td><td>The data domain name.</td></tr>
-<tr><td>Sensitivity level</td><td>Applies to all columns in the domain. The administrator defines which levels you can choose from. The Overview dashboards use this.</td></tr>
-<tr><td>Description</td><td>Free text.</td></tr>
-<tr><td>Status</td><td>Enabled or disabled. When enabled, a data discovery profile includes the domain. Default enabled.</td></tr></tbody></table></div>
+<p>A data domain has four options (p.75): <strong>Name</strong>; <strong>Sensitivity level</strong>, applied to every column in the domain and chosen from the levels the administrator defines (the Overview dashboards use it); <strong>Description</strong>; and <strong>Status</strong>, enabled or disabled, where an enabled domain is included in discovery profiles (default enabled).</p>
 <h3 id="c11-create-domain">Creating a data domain</h3>
 <div class="exercise">
 <h4>Task: create a "Customer SSN" data domain</h4>

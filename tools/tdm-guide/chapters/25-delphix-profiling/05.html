@@ -1,10 +1,6 @@
 <h2 id="c25-shopsphere-predictions">25.10 ShopSphere: what should the profiler flag?</h2>
 <p>Before running the Day 52 lab, practise the skill a TDM engineer needs most: predicting the profiler's answer from the classifier definitions, so that you can spot a wrong result. Our ShopSphere tables are in <a href="03-data-basics.html">the data basics chapter</a>. I checked each column name against the published ASDD Standard PATH regexes (the 21.0.0.0 listing) using an ordinary regular-expression engine. The real engine also applies type checks, data sampling and its own matching options, so read the table as a <strong>prediction</strong>, not as engine output.</p>
-<div class="tablewrap"><table class="sample"><caption>Predicted ASDD Standard result for ShopSphere (illustrative prediction by the author, not engine output)</caption>
-<thead>
-<tr><th>Table.column</th><th>Expected domain</th><th>Why (evidence)</th><th>Human check</th></tr>
-</thead>
-<tbody>
+<div class="tablewrap"><table class="sample"><caption>Predicted ASDD Standard result for ShopSphere (illustrative prediction by the author, not engine output)</caption><thead><tr><th>Table.column</th><th>Expected domain</th><th>Why (evidence)</th><th>Human check</th></tr></thead><tbody>
 <tr><td>CUSTOMERS.customer_id</td><td>none</td><td>The Customer Number PATH rule wants "number", "num", "nbr" or "no" after "customer"; <code>customer_id</code> has none of them</td><td>Primary key. Usually left alone or masked consistently as a key, see <a href="24-delphix-rule-sets-and-keys.html">the rule sets and keys chapter</a></td></tr>
 <tr><td>CUSTOMERS.first_name</td><td>FIRST_NAME</td><td>PATH <code>f(irst)?_?-? ?(na?me?)</code> matches; a first-name list also checks values</td><td>Confirm algorithm is <code>dlpx-core:FirstName</code></td></tr>
 <tr><td>CUSTOMERS.last_name</td><td>LAST_NAME</td><td>PATH for "last name" matches; last-name list checks values</td><td>Confirm <code>dlpx-core:LastName</code></td></tr>
@@ -17,56 +13,33 @@
 <tr><td>ORDERS.total_amount</td><td>PAYMENT_AMOUNT (false alarm)</td><td>The Payment Amount PATH rule matches names ending in amount, amnt, amt, balance or price</td><td>Business decision: an order total is not personal data. Clear it</td></tr>
 <tr><td>ORDER_ITEMS.unit_price, PRODUCTS.price</td><td>PAYMENT_AMOUNT (false alarm)</td><td>Name ends in "price"</td><td>Catalogue prices are public. Clear them</td></tr>
 <tr><td>ORDERS.order_date, ORDERS.customer_id, ORDER_ITEMS.*_id and quantity, PRODUCTS.product_code and product_name</td><td>none</td><td>No rule matches these names</td><td>Keep as is. Foreign keys must follow the key policy</td></tr>
-</tbody>
-</table></div>
+</tbody></table></div>
 <div class="callout warn"><strong class="ctitle">Uncertain claim</strong>
-<p>The listing gives each TYPE classifier a <code>minimumLength</code> (for example 20 for email, 10 for first name). The documentation excerpt I had does not define it exactly; I read it as the declared length of the column. If that is right, a very short <code>first_name</code> column might be rejected. Do not take this as fact: run the job and look.</p>
-</div>
+<p>The listing gives each TYPE classifier a <code>minimumLength</code> (for example 20 for email, 10 for first name). The documentation excerpt I had does not define it exactly; I read it as the declared length of the column. If that is right, a very short <code>first_name</code> column might be rejected. Do not take this as fact: run the job and look.</p></div>
 <p>If the prediction holds, 8 of the 9 CUSTOMERS columns and 3 price or amount columns (11 in total) will carry a domain after the first run. Three of those are false alarms and one real column (<code>customer_id</code>) is deliberately left alone. Learning to see that pattern is the point of the lab.</p>
 
 <h2 id="c25-lab">25.11 Lab: profile ShopSphere (Day 52, TDM_Handson5)</h2>
 <div class="exercise"><h4>Lab: Create a profiling job for ShopSphere, run it, and correct the inventory</h4>
 <p>Goal: scan the four ShopSphere tables with the ASDD Standard profile set, compare the result with the prediction table above, and fix what is wrong. This lab assumes you already created the environment, the connector and the rule set (all four tables) in <a href="23-delphix-connectors-and-vdb.html">the connectors chapter</a> and <a href="24-delphix-rule-sets-and-keys.html">the rule sets chapter</a>. The data is fake; the screens follow the official documentation, but your engine version may differ slightly. The names I give (<code>ShopSphere_Profile_01</code>) are my own choices, not Delphix defaults.</p>
 <ol class="steps">
-<li><strong>Open your ShopSphere environment, Jobs tab, and click <em>+ Profiling Job</em>.</strong><p>Profiling jobs are grouped with masking jobs inside the environment.</p>
-<p class="expect">The Create Profile Job wizard opens at Details.</p>
-</li>
-<li><strong>Name it <code>ShopSphere_Profile_01</code>, pick the ShopSphere rule set, keep profile set <em>ASDD Standard</em>, and leave both checkboxes clear.</strong><p>The rule set limits the scan to your four tables. Leaving "Clear previous auto domain assignments" clear means nothing from older runs is wiped.</p>
-</li>
-<li><strong>On Configuration, keep 1 stream and set Max Memory to at least 1024 MB.</strong><p>The docs require 1024 MB per stream for ASDD profile sets. Add your own email address if SMTP is configured.</p>
-<p class="expect">Summary shows ASDD Standard and your memory values.</p>
-</li>
-<li><strong>Save, then <em>...</em> &gt; <em>Run</em>.</strong><p>The engine may queue the job if too many are running.</p>
-<p class="expect">Status goes Queued or Running, then Succeeded. Warning means it finished with caveats; open the logs.</p>
-</li>
-<li><strong>Click the job name and read <em>Profile Results</em>.</strong><p>Write down every table, column, domain and algorithm. Count the rows.</p>
-</li>
-<li><strong>Compare with the prediction table.</strong><p>Mark each column as: as predicted, extra (profiler flagged more), or missing (profiler flagged less). Explain any difference using classifier evidence, for example "column name matched PATH but the type was rejected".</p>
-</li>
-<li><strong>Open the rule set (Rule Sets tab, click its name) and fix the inventory.</strong><p>For the three price or amount columns: click the Clear Masking Assignment icon on each row (it removes the assignment and switches automatic updates off), and confirm the bar. For each real finding, confirm the algorithm. For <code>customer_id</code> and the foreign keys, apply the key policy from <a href="24-delphix-rule-sets-and-keys.html">the rule sets and keys chapter</a>. For any column the profiler missed that you know is sensitive, assign domain and algorithm by hand and untick automatic updates.</p>
-<p class="expect">Only truly sensitive columns carry an algorithm.</p>
-</li>
-<li><strong>Export the rule set to CSV (<em>Actions &gt; Export Rule Set</em>).</strong><p>This is your evidence file. Open it in a spreadsheet and check that the Is Masked, Algorithm and Domains values match your intent.</p>
-</li>
-<li><strong>Re-run the profiling job and check the inventory again.</strong><p class="expect">The columns you corrected with automatic updates off should keep your choices. If they changed, the checkbox was still ticked.</p>
-</li>
-<li><strong>Download the PDF (<em>Report and Logs &gt; Job Report</em>) and keep it with the CSV.</strong><p>These two files are what you would hand to a data steward.</p>
-</li>
+<li><strong>Open your ShopSphere environment, Jobs tab, and click <em>+ Profiling Job</em>.</strong><p>Profiling jobs are grouped with masking jobs inside the environment.</p><p class="expect">The Create Profile Job wizard opens at Details.</p></li>
+<li><strong>Name it <code>ShopSphere_Profile_01</code>, pick the ShopSphere rule set, keep profile set <em>ASDD Standard</em>, and leave both checkboxes clear.</strong><p>The rule set limits the scan to your four tables. Leaving "Clear previous auto domain assignments" clear means nothing from older runs is wiped.</p></li>
+<li><strong>On Configuration, keep 1 stream and set Max Memory to at least 1024 MB.</strong><p>The docs require 1024 MB per stream for ASDD profile sets. Add your own email address if SMTP is configured.</p><p class="expect">Summary shows ASDD Standard and your memory values.</p></li>
+<li><strong>Save, then <em>...</em> &gt; <em>Run</em>.</strong><p>The engine may queue the job if too many are running.</p><p class="expect">Status goes Queued or Running, then Succeeded. Warning means it finished with caveats; open the logs.</p></li>
+<li><strong>Click the job name and read <em>Profile Results</em>.</strong><p>Write down every table, column, domain and algorithm. Count the rows.</p></li>
+<li><strong>Compare with the prediction table.</strong><p>Mark each column as: as predicted, extra (profiler flagged more), or missing (profiler flagged less). Explain any difference using classifier evidence, for example "column name matched PATH but the type was rejected".</p></li>
+<li><strong>Open the rule set (Rule Sets tab, click its name) and fix the inventory.</strong><p>For the three price or amount columns: click the Clear Masking Assignment icon on each row (it removes the assignment and switches automatic updates off), and confirm the bar. For each real finding, confirm the algorithm. For <code>customer_id</code> and the foreign keys, apply the key policy from <a href="24-delphix-rule-sets-and-keys.html">the rule sets and keys chapter</a>. For any column the profiler missed that you know is sensitive, assign domain and algorithm by hand and untick automatic updates.</p><p class="expect">Only truly sensitive columns carry an algorithm.</p></li>
+<li><strong>Export the rule set to CSV (<em>Actions &gt; Export Rule Set</em>).</strong><p>This is your evidence file. Open it in a spreadsheet and check that the Is Masked, Algorithm and Domains values match your intent.</p></li>
+<li><strong>Re-run the profiling job and check the inventory again.</strong><p class="expect">The columns you corrected with automatic updates off should keep your choices. If they changed, the checkbox was still ticked.</p></li>
+<li><strong>Download the PDF (<em>Report and Logs &gt; Job Report</em>) and keep it with the CSV.</strong><p>These two files are what you would hand to a data steward.</p></li>
 </ol>
 <h4>Part B (optional): add your own classifier</h4>
 <p>Use the loyalty-number scenario from the classifiers section. This is an exercise on a lab engine; do not do it on shared ShopSphere tables.</p>
 <ol class="steps">
-<li><strong>Create the domain.</strong><p>Settings &gt; Domains &gt; <em>+ Domain</em>, name <code>LOYALTY_NO</code>, choose a default masking algorithm, skip the tokenization algorithm, Save.</p>
-<p class="expect">The domain appears in the Domains grid with your algorithm as its Masking Method.</p>
-</li>
-<li><strong>Create a PATH classifier.</strong><p>Settings &gt; Classifiers &gt; <em>+ Classifier</em>, pick the new domain, framework Path, enter a Field Value that matches column names containing "loyalty", click Add, then Save.</p>
-<p class="expect">The classifier shows in the grid with type PATH and your domain.</p>
-</li>
-<li><strong>Duplicate ASDD Standard and tick the new classifier.</strong><p>Settings &gt; Profile Sets, row menu &gt; Duplicate, give it a new name, tick your classifier, Save.</p>
-</li>
-<li><strong>Add a <code>loyalty_no</code> column to a scratch copy of CUSTOMERS, refresh the rule set, and run a profiling job with the new profile set.</strong><p>Rule set refresh is covered in <a href="24-delphix-rule-sets-and-keys.html">the rule sets and keys chapter</a>.</p>
-<p class="expect"><code>loyalty_no</code> is reported with domain LOYALTY_NO.</p>
-</li>
+<li><strong>Create the domain.</strong><p>Settings &gt; Domains &gt; <em>+ Domain</em>, name <code>LOYALTY_NO</code>, choose a default masking algorithm, skip the tokenization algorithm, Save.</p><p class="expect">The domain appears in the Domains grid with your algorithm as its Masking Method.</p></li>
+<li><strong>Create a PATH classifier.</strong><p>Settings &gt; Classifiers &gt; <em>+ Classifier</em>, pick the new domain, framework Path, enter a Field Value that matches column names containing "loyalty", click Add, then Save.</p><p class="expect">The classifier shows in the grid with type PATH and your domain.</p></li>
+<li><strong>Duplicate ASDD Standard and tick the new classifier.</strong><p>Settings &gt; Profile Sets, row menu &gt; Duplicate, give it a new name, tick your classifier, Save.</p></li>
+<li><strong>Add a <code>loyalty_no</code> column to a scratch copy of CUSTOMERS, refresh the rule set, and run a profiling job with the new profile set.</strong><p>Rule set refresh is covered in <a href="24-delphix-rule-sets-and-keys.html">the rule sets and keys chapter</a>.</p><p class="expect"><code>loyalty_no</code> is reported with domain LOYALTY_NO.</p></li>
 </ol>
 <details class="sol"><summary>Show a worked answer</summary>
 <p><strong>Likely corrections (prediction-based):</strong></p>
@@ -92,15 +65,10 @@
 <li><strong>Using legacy profile sets for new work.</strong> They are deprecated and give less coverage.</li>
 <li><strong>Expecting value-level detection in languages other than English.</strong> The built-in lists are English only.</li>
 <li><strong>Sharing the PDF report or CSV without thinking.</strong> They list table and column names with their domains, which tells a reader exactly where your sensitive data lives, so store them with care.</li>
-</ul>
-</div>
+</ul></div>
 
 <h3 id="c25-troubleshoot">Symptoms and likely causes</h3>
-<div class="tablewrap"><table>
-<thead>
-<tr><th>What you see</th><th>Likely cause (from the docs)</th><th>What to try</th></tr>
-</thead>
-<tbody>
+<div class="tablewrap"><table><thead><tr><th>What you see</th><th>Likely cause (from the docs)</th><th>What to try</th></tr></thead><tbody>
 <tr><td>The UI refuses to save a profiling job that uses an ASDD profile set</td><td>The rule set's connector is not supported by the ASDD profiler</td><td>Check ASDD support for your connector; otherwise assign algorithms by hand</td></tr>
 <tr><td>Memory trouble in an ASDD profiling job</td><td>Max Memory set below the documented minimum of 1024 MB per stream</td><td>Raise Max Memory, or lower the number of streams</td></tr>
 <tr><td>Warnings about not enough data for a column</td><td>Most values are null or empty; the extra sampling query hit its time limit</td><td>Adjust the null filter threshold or time limit, or assign the algorithm yourself</td></tr>
@@ -109,8 +77,7 @@
 <tr><td>Your manual edit vanished after a re-run</td><td>Enable Automatic Updates was still ticked</td><td>Untick it, or use Clear Masking Assignment, which unticks it</td></tr>
 <tr><td>New table not profiled</td><td>It is not in the rule set</td><td>Add it to the rule set and run again</td></tr>
 <tr><td>Job waits and does not run</td><td>Queued behind the running-jobs or memory limit</td><td>Check the Monitor screen for queue position</td></tr>
-</tbody>
-</table></div>
+</tbody></table></div>
 <h2 id="c25-recap">25.13 Recap</h2>
 <div class="callout recap"><strong class="ctitle">Key points</strong>
 <ul>
@@ -121,8 +88,7 @@
 <li>Read results on the job page, in the PDF, in the rule set inventory or in an exported CSV.</li>
 <li>Correct findings in the Edit dialog and untick Enable Automatic Updates so that the profiler does not overwrite you.</li>
 <li>For ShopSphere, expect the customer columns to be flagged and price or amount columns to be false alarms.</li>
-</ul>
-</div>
+</ul></div>
 
 <section class="sources"><h2 id="c25-sources">Sources used in this chapter</h2>
 <ul>
@@ -139,5 +105,4 @@
 <li><a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs</a>: the truncated learner link (<code>.../content/create</code>, 404) most likely meant this page; only its profiling-related content is used here.</li>
 <li><a href="https://help.delphix.com/cc/current/content/masking_api_client.htm" target="_blank" rel="noopener">Masking API client</a> (default values of ASDD and job settings) and <a href="https://help.delphix.com/cc/current/content/running_and_stopping_jobs.htm" target="_blank" rel="noopener">Running and stopping jobs</a> (Run, Cancel, queue limits).</li>
 <li>Not found in the corpus or not read: the ASDD profile set import and export API page; default algorithms for the SSN, DOB, ZIP and TAX_ID domains; exactly what the TYPE classifier's <code>minimumLength</code> compares.</li>
-</ul>
-</section>
+</ul></section>
