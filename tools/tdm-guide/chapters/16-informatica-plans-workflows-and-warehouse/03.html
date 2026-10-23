@@ -126,25 +126,26 @@ zip band        under 500    500-2000    over 2000
 <p>Here "large order from a Bengaluru customer" has no data. Fill moves rows in, or you generate more. Fill changes the data set itself (p.268), so keep a version first. Coverage jobs show in Monitor as Data Coverage Analysis and Fill Cell, run by the Data Integration Service (pp.26, 316-317).</p>
 
 <h2 id="c16-cli">16.14 Command-line tools: ilmcmd, tdwcmd and tdwquery</h2>
-<p>TDM ships three small command-line programs. All are batch files on Windows and shell scripts on UNIX. Command, option and object names are case sensitive, and you can show syntax with the <code>-h</code> option. Why bother with a command line? Scripts and schedulers can call it, so a nightly refresh needs no human clicking.</p>
+
+<p>TDM ships three small command-line programs (User Guide 10.5.10, pp.326-350). Scripts and schedulers can call them, so a nightly refresh needs no human clicking. Names of commands, options and objects are case sensitive, and <code>-h</code> shows the syntax.</p>
+
 <div class="tablewrap"><table>
-<caption>The three tools at a glance (User Guide 10.5.10, pp.326-350)</caption>
-<thead><tr><th>Tool</th><th>Purpose</th><th>Default install folder</th></tr></thead>
+<caption>The three tools at a glance</caption>
+<thead><tr><th>Tool</th><th>Purpose</th></tr></thead>
 <tbody>
-<tr><td><code>ilmcmd</code></td><td>A subset of Test Data Manager tasks: import and export XML objects, search, validate, delete, generate and run workflows, show workflow status, reset data sets, list plans of a data set version, generate and run data set subset plans</td><td><code>&lt;installation directory&gt;\utilities\ilmcli\bin</code></td></tr>
-<tr><td><code>tdwcmd</code></td><td>List test data warehouse details: the repository, the warehouse, connections, data sets, data set versions and version tables</td><td><code>&lt;TDM installation directory&gt;\utilities\tdwcli\bin</code></td></tr>
-<tr><td><code>tdwquery</code></td><td>Run SELECT queries (joins, aggregates, WHERE) on tables of one data set in the warehouse</td><td><code>&lt;Informatica installation directory&gt;/TDM/utilities/tdwquery</code></td></tr>
+<tr><td><code>ilmcmd</code></td><td>A subset of Test Data Manager tasks: import and export XML objects, search, validate, delete, generate and run workflows, show workflow status, reset data set versions, and run data set subset plans</td></tr>
+<tr><td><code>tdwcmd</code></td><td>List test data warehouse details: repository, warehouse, connections, data sets, versions and version tables (it lists and changes nothing)</td></tr>
+<tr><td><code>tdwquery</code></td><td>Run SELECT queries (joins, aggregates, WHERE) on the tables of one data set in the warehouse</td></tr>
 </tbody></table></div>
-<h3 id="c16-ilmcmd">16.14.1 ilmcmd</h3>
-<p>Limits: you need the required privileges and, for project tasks, project permission. You cannot use it to search data generation objects (pp.327, 333). If Test Data Manager runs on HTTPS you must first import the browser certificate, create a keystore with <code>keytool</code> and set the trust store location and password in <code>userConfig.ilm</code> (p.327).</p>
-<p>Examples printed in the guide (pp.329-336):</p>
+
+<p>Examples printed in the guide for <code>ilmcmd</code> (pp.329-338): generate a workflow, get its status, run it, export a policy, and reset a data set version from a reset file. It cannot search data generation objects (p.333), and over HTTPS you must first set up a keystore (p.327).</p>
+
 <pre><code>ilmcmd -wf -g -Project Infa_Project -pn Plan_NameMasking
 ilmcmd -wf -gs -JobId 360
 ilmcmd -wf -ex -Project TDM -pn Plan_NameMasking -is PCInteg
-ilmcmd -e -ot Policy -n Policy_Customer -f C:\Informatica\ILMServer\CLI\Policy_Customer.xml
 ilmcmd -r -dvn "RESET Version1" -rf "C:\Documents\ResetObject.json" -ris PIS</code></pre>
-<p>They generate a workflow, get a workflow's status, run a workflow, export a policy, and reset a data set version using a reset file. The guide also lists commands to import and delete objects, <code>ListPlans</code> (plans in a data set version), <code>TDWPlanGenerate</code>, <code>TDWPlanExecute</code> and <code>TDWPlanGenExe</code> for related data set plans, <code>Update Host</code> for moving plans to another host, and a way to update stored passwords (pp.334-342). Exportable object types include rules, policies, data domains, entities, groups, templates, profiles, projects, data sources, source definitions, connections and plans (p.330).</p>
-<h3 id="c16-tdwcmd">16.14.2 tdwcmd and tdwquery</h3>
-<p><code>tdwcmd --list</code> with one of Repository, TestDataWarehouse, Connection, Dataset, DatasetVersion or DatasetVersionTable, plus the host, port, user, password, security domain, domain name and Test Data Warehouse Service name, prints details (pp.345-347). It lists; it does not change anything. For <code>tdwquery</code> you first edit <code>userConfig.ilm</code> with the service URL, user, password, domain, namespace, service and warehouse names and the data set version name. Then you run, for example, <code>tdwquery "SELECT * FROM td_empdetails"</code> (pp.348-349). The user needs the View Data in Data Set privilege and at least read permission on the data set.</p>
+
+<p>For <code>tdwquery</code> you first fill in <code>userConfig.ilm</code> (service URL, user, domain, warehouse and data set version), then run for example <code>tdwquery "SELECT * FROM td_empdetails"</code> (pp.348-349).</p>
+
 <div class="callout warn"><strong class="ctitle">Passwords on the command line</strong>
-<p>The guide's <code>tdwcmd</code> examples place the password right in the command (<code>-pd Administrator</code>). Anyone who can read your shell history or the process list can read it too. In real scripts, follow your organisation's secret-handling rules, and never commit such a script. That advice is mine, not the guide's.</p></div>
+<p>The guide's <code>tdwcmd</code> examples put the password in the command (<code>-pd Administrator</code>), where shell history can expose it. Follow your organisation's secret-handling rules. That advice is mine, not the guide's.</p></div>
