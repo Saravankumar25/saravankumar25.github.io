@@ -19,13 +19,10 @@
 
 <h3 id="c15-create-standard">15.4.2 Creating a standard rule</h3>
 <ol class="steps">
-<li><strong>Open Policies and choose Actions &gt; New &gt; Generation Rule.</strong><p>This opens the Rule Wizard. Doing it in Policies (not inside a project) is what makes the rule global and reusable.</p></li>
-<li><strong>Enter a name and optional description, then pick the data type of the column the rule will serve.</strong><p>The data type decides which techniques the wizard offers, so choose it first.</p></li>
-<li><strong>Select the standard generation type and, if you want users to adjust it later, tick Override Allowed.</strong><p>Override is covered just below.</p></li>
-<li><strong>Click Next and fill in the parameters.</strong><p>The fields depend on the technique.</p></li>
-<li><strong>Set the exception test data options and click Finish.</strong><p>Here you choose whether to allow nulls or empty spaces and whether to produce invalid data (see <a href="#c15-exception">exception test data</a> below).</p><p class="expect">The new rule appears in the Policies list and can be assigned in any project.</p></li>
+<li><strong>Open Policies and choose Actions &gt; New &gt; Generation Rule.</strong><p>Creating it in Policies, not inside a project, makes the rule global and reusable.</p></li>
+<li><strong>Enter a name, pick the column's data type, select the standard type and optionally tick Override Allowed.</strong><p>The data type decides which techniques the wizard offers, so choose it first.</p></li>
+<li><strong>Click Next, fill in the parameters, set the exception test data options and click Finish.</strong><p>The options choose whether to allow nulls or empty spaces and whether to produce invalid data (see <a href="#c15-exception">exception test data</a>).</p><p class="expect">The rule appears in the Policies list and can be assigned in any project (p.195).</p></li>
 </ol>
-<p><em>Steps from User Guide 10.5.10, p.195.</em></p>
 
 <h3 id="c15-override">15.4.3 Override: one rule, small variations</h3>
 <p>If a rule has <strong>Override Allowed</strong> set, whoever assigns it can change its parameters for that one column without touching the global rule. The guide's example: a rule that makes random dates from 2011 to 2012 with override on; a user assigns it and adds Saturday and Sunday as excluded days, so that column gets weekday dates only (p.193). To do it, select the column in Define | Data Generation, choose Actions &gt; Override, edit the values and Save. The Override column then reads <strong>Yes-Overridden</strong> (p.196).</p>
@@ -34,23 +31,16 @@
 <p>A <strong>custom</strong> rule imports a PowerCenter mapplet. You must mark at least one input and one output column as required. The guide's use: combine first and last name into a full name, or use PowerCenter transformations such as an SQL or Stored Procedure transformation (User Guide 10.5.10, p.196). An <strong>advanced</strong> rule has input, variable and output ports and can mix techniques. Both get their own sections in <a href="#c15-techniques">the technique tour</a>.</p>
 
 <h2 id="c15-defaults">15.5 Default rules: what happens to columns you ignore</h2>
-<p>A table may have 30 columns, but your test only cares about five. TDM does not leave the other 25 empty: columns without an assigned rule receive the <strong>default rule for their data type</strong> (User Guide 10.5.10, p.193). The guide lists default settings you can see on a project's <strong>Overview | Properties</strong> tab:</p>
-<div class="tablewrap"><table>
-<caption>Default generation settings (User Guide 10.5.10, pp.193-194)</caption>
-<thead><tr><th>Group</th><th>Properties (one per data type)</th></tr></thead>
-<tbody>
-<tr><td>Default generation rules</td><td>Numeric, String, Date, Binary</td></tr>
-<tr><td>Default primary key generation rules</td><td>Primary Key Numeric, String, Date, Binary</td></tr>
-<tr><td>Default unique key generation rules</td><td>Unique Key Numeric, String, Date, Binary</td></tr>
-</tbody></table></div>
-<p>Why separate primary key and unique key defaults? A primary key must never repeat or be empty. A generic random rule could repeat a value, so keys get their own defaults. The administrator configures the initial defaults (p.193), and in the plan's Data Generation Properties you can adjust them again and tick <strong>Apply Default Rule to</strong> columns without rules (p.285).</p>
+<p>Columns without an assigned rule receive the <strong>default rule for their data type</strong> (User Guide 10.5.10, p.193). The defaults (Numeric, String, Date and Binary, plus separate primary key and unique key defaults for each type) are visible on a project's <strong>Overview | Properties</strong> tab (pp.193-194).</p>
+
+<p>Keys get their own defaults because a primary key must never repeat or be empty. The administrator configures the initial defaults (p.193), and in the plan's Data Generation Properties you can adjust them again and tick <strong>Apply Default Rule to</strong> columns without rules (p.285).</p>
 <p>Two more shortcuts the guide mentions (pp.194, 205):</p>
 <ul>
 <li><strong>Default data domain rule.</strong> You set this when you create and run a data domain profile (<a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>), so discovery can feed generation.</li>
 <li><strong>Auto rule.</strong> After a column profile you review and finalise results. Columns whose <strong>Inferred Rule</strong> shows <em>Yes</em> can take the Auto Rule, which fills the column from the approved profile results. Do not apply an auto rule to a primary key column, because a primary key cannot contain nulls.</li>
 </ul>
 <div class="callout warn"><strong class="ctitle">Default rules are not a plan</strong>
-<p>The guide notes that default rules are not filled in if the rules are not part of the project. If the default boxes in the plan are blank, you must choose the default rules yourself (p.284). Random defaults are fine for a column nobody tests. They are not fine for a column with a business meaning, such as <code>email</code>.</p></div>
+<p>The guide notes that default rules are not filled in if the rules are not part of the project. If the default boxes in the plan are blank, you must choose the default rules yourself (p.284). Random defaults are fine for a column nobody tests, not for one with business meaning such as <code>email</code>.</p></div>
 
 <h2 id="c15-assign">15.6 Assigning rules to columns</h2>
 <p>An assignment is made on one screen: <strong>Define | Data Generation</strong> inside the project. It is a grid with one row per target column and these fields (User Guide 10.5.10, p.203):</p>
