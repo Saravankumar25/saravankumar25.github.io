@@ -1,0 +1,107 @@
+<p>Every earlier Informatica chapter ended the same way: "then you put it in a plan and run it". The <a href="12-informatica-discovery-and-profiling.html">discovery</a>, <a href="13-informatica-data-subset.html">subsetting</a>, <a href="14-informatica-data-masking.html">masking</a> and <a href="15-informatica-data-generation.html">generation</a> chapters described <em>what</em> to do to data. This chapter covers the machinery that actually does it, and what happens afterwards: the <strong>plan</strong> that packages the work, the <strong>workflow</strong> TDM generates from it, the <strong>Monitor</strong> where you watch it, the <strong>reports</strong> that prove what happened, and the <strong>Test Data Warehouse</strong> where the result can be stored, versioned and restored.</p>
+<p>If you already know ETL from <a href="08-etl-from-scratch.html">the ETL from scratch chapter</a> and <a href="09-etl-and-tdm.html">the ETL and TDM chapter</a>, here is the key idea in one line: <strong>a TDM workflow is an ETL job that TDM writes for you.</strong> You describe the data and the rules; TDM builds the mappings and runs them. The Day 45 syllabus asks you to understand generation in Informatica; the plan and workflow side is what turns your rules into rows.</p>
+
+<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
+<p>Everything tool-specific comes from the <strong>Informatica Test Data Management 10.5.10 User Guide, PDF, February 2026, 455 pages</strong>. I read in full: User Guide chapter 13 "Plans and Workflows" (PDF pages 274 to 314), chapter 14 "Monitor" (315 to 320), chapter 15 "Reports" (321 to 325), chapter 11 "Working with Test Data Warehouse" (236 to 258). I read the introductions and main commands of chapter 12 "Analyzing Test Data with Data Coverage" (259 to 273), chapter 16 "ilmcmd" (326 to 342), chapter 17 "tdwcmd" (343 to 347) and chapter 18 "tdwquery" (348 onward; the long SELECT reference I skimmed). I also used the architecture tables in chapter 1 (pp.26-28). Citations look like <em>(User Guide 10.5.10, p.276)</em>.</p>
+<p>No official image URLs exist for Informatica, so I rendered PDF pages 203, 237, 245, 266, 316 and 319 and looked at them. Figures appear as <strong>Visual reference</strong> boxes. Diagrams and sketches marked "original" or "schematic" are mine. The ShopSphere story, names and numbers are <strong>my illustration</strong>. Log messages in the labs are invented to practise reading, not real TDM output.</p>
+<p>The guide describes version 10.5.10. Menu labels may differ in your version, so check your own screens.</p></div>
+
+<div class="callout recap"><strong class="ctitle">What you will learn</strong>
+<ul>
+<li>What a plan is, which plan types exist, and which components each can hold.</li>
+<li>How to build a masking and subset plan and a generation plan, and what the target, connection and error settings mean.</li>
+<li>How parameters and parameter files change a run without editing the plan.</li>
+<li>How a workflow is generated, executed, stopped and recovered.</li>
+<li>How to read the Monitor: job types, statuses, logs, severity levels and sessions.</li>
+<li>Which reports exist and when to use each.</li>
+<li>What the Test Data Warehouse is, how data sets and versions work, and how a reset restores a test system.</li>
+<li>What data coverage analysis, <code>ilmcmd</code>, <code>tdwcmd</code> and <code>tdwquery</code> are for.</li>
+<li>An end-to-end ShopSphere story from discovery to reuse, and three labs.</li>
+</ul></div>
+
+<h2 id="c16-words">16.1 Words to know first</h2>
+<dl class="defs">
+<div><dt>Plan</dt><dd>The saved definition of one operation: which components, which source and target connections, which settings. It does nothing until you generate and run a workflow from it.</dd></div>
+<div><dt>Workflow</dt><dd>The runnable job generated from a plan. It contains PowerCenter mappings and sessions and is run by the PowerCenter Integration Service.</dd></div>
+<div><dt>Mapping</dt><dd>PowerCenter's design of how data flows from a source through transformations to a target. TDM writes these for you.</dd></div>
+<div><dt>Session</dt><dd>One run of a mapping inside a workflow. A workflow may have several sessions.</dd></div>
+<div><dt>Job</dt><dd>Anything you start in Test Data Manager that appears in the Monitor: an import, a profile, a workflow generation, a workflow run, a reset.</dd></div>
+<div><dt>Connection</dt><dd>Saved details for reaching a database or file location. A plan names its source, target and helper connections.</dd></div>
+<div><dt>Parameter</dt><dd>A named placeholder (for a connection, an owner or a filter value) whose value you supply at run time, so one plan serves many runs.</dd></div>
+<div><dt>Test Data Warehouse (TDW)</dt><dd>A central store for versions of test data, so teams can save a known-good state and restore it later.</dd></div>
+<div><dt>Data set</dt><dd>A named collection of one or more tables stored in the warehouse. Each time you store it again, a new <em>version</em> is created.</dd></div>
+<div><dt>Reset</dt><dd>Copying a data set version from the warehouse back to a target so a test environment returns to a known state.</dd></div>
+<div><dt>Data pack</dt><dd>A data set published to the self-service portal for testers who do not use Test Data Manager.</dd></div>
+<div><dt>Data coverage</dt><dd>A check of whether a data set has enough rows for each combination of values your test cases need.</dd></div>
+</dl>
+
+<h2 id="c16-overview">16.2 Plans and workflows: the big picture</h2>
+<p>A plan defines a data subset, data masking or data generation operation, and includes the components you need to generate a workflow (User Guide 10.5.10, p.274). When you start a workflow, the PowerCenter Integration Service completes the operations in the plan (p.275).</p>
+<div class="flow">
+<div class="node"><b>Project</b>tables, rules, entities</div><div class="arrow">→</div>
+<div class="node"><b>Plan</b>components + settings</div><div class="arrow">→</div>
+<div class="node"><b>Generate</b>mappings + workflow</div><div class="arrow">→</div>
+<div class="node"><b>Execute</b>sessions run</div><div class="arrow">→</div>
+<div class="node"><b>Monitor</b>jobs, logs, reports</div><div class="arrow">→</div>
+<div class="node"><b>Target</b>database, file or warehouse</div>
+</div>
+
+<div class="tablewrap"><table>
+<caption>ETL ideas and their TDM names. This mapping is my teaching aid; the TDM terms and who does what come from the guide (pp.275, 308).</caption>
+<thead><tr><th>ETL idea (earlier chapters)</th><th>In Informatica TDM</th><th>Who creates it</th></tr></thead>
+<tbody>
+<tr><td>Job specification</td><td>Plan</td><td>You, in Test Data Manager</td></tr>
+<tr><td>Transformation logic</td><td>Mappings with masking, subset or generation logic</td><td>PowerCenter Repository Service generates them from the plan</td></tr>
+<tr><td>Job run</td><td>Workflow and its sessions</td><td>PowerCenter Integration Service runs them</td></tr>
+<tr><td>Source and target connections</td><td>Connections named in the plan</td><td>Administrator creates, you choose</td></tr>
+<tr><td>Run-time inputs</td><td>Parameters and parameter files</td><td>You</td></tr>
+<tr><td>Job scheduler and monitor</td><td>Run now or schedule; Monitor view</td><td>You</td></tr>
+<tr><td>Staging area</td><td>Staging connection (temporary tables)</td><td>Chosen in plan settings</td></tr>
+</tbody></table></div>
+<p>The analogy stops at one point. A hand-written ETL job is a thing you maintain. A TDM workflow is disposable: change the plan, generate again. The guide says so directly: when you update or delete a plan component you must generate and run the plan again to apply the change (p.275).</p>
+
+<h3 id="c16-types">16.2.1 Plan types and what each can contain</h3>
+<div class="tablewrap"><table>
+<caption>Plan components by operation (User Guide 10.5.10, pp.274-277, 306)</caption>
+<thead><tr><th>Component</th><th>What it is</th><th>Used in</th></tr></thead>
+<tbody>
+<tr><td>Rule</td><td>A masking rule, assigned to a policy or standalone</td><td>Masking plan</td></tr>
+<tr><td>Policy</td><td>A set of data domains, each with rules</td><td>Masking plan</td></tr>
+<tr><td>Entity</td><td>Related tables with a parent-child hierarchy and filter parameters</td><td>Subset or generation plan</td></tr>
+<tr><td>Group</td><td>A set of tables to copy to a target subset database</td><td>Subset plan</td></tr>
+<tr><td>Template</td><td>A reusable bundle of subset components</td><td>Subset plan</td></tr>
+<tr><td>Table</td><td>Target table columns that have generation rule assignments</td><td>Generation plan</td></tr>
+<tr><td>XSD file</td><td>An imported XML source definition</td><td>Subset, masking or generation plan</td></tr>
+</tbody></table></div>
+<p>The practical plan types are:</p>
+<ul>
+<li><strong>Masking, subset, or masking plus subset in one plan.</strong> If both kinds of component are present, subset has priority: TDM subsets first, then masks columns in the subset data that have assignments. It does <em>not</em> apply masking to source rows outside the subset, even if they are part of a cascade (p.275).</li>
+<li><strong>Generation plan.</strong> Only entities, tables or XSD files. You cannot add masking or subset components to the same plan, and the reverse (pp.274, 276). See <a href="15-informatica-data-generation.html">the Informatica generation chapter</a> for the reasoning.</li>
+<li><strong>Hadoop plan.</strong> Groups and masking components for Hadoop sources and targets. No subset or generation (p.306).</li>
+<li><strong>Data set (related data set) plan.</strong> Created from a data set in the warehouse to cut a smaller data set from it (p.251).</li>
+<li><strong>Reset and restore plans</strong> appear in the guide's notes about pre and post workflows (p.277); resets are covered in the warehouse section below.</li>
+</ul>
+
+<h3 id="c16-tasklist">16.2.2 The guide's task list, with reasons</h3>
+<ol class="steps">
+<li><strong>Create a plan with a name and description.</strong><p>The name becomes part of the workflow and job names you will search for in the Monitor.</p></li>
+<li><strong>Add masking rules and policies, subset entities, groups and templates, or generation entities and tables.</strong><p>This is the "what". Remember that generation cannot share a plan with the other two (p.275).</p></li>
+<li><strong>Switch individual masking rules off or on, and optionally change subset criteria.</strong><p>Lets you test a plan with only some rules, without deleting anything.</p></li>
+<li><strong>Configure plan settings: properties, error and recovery strategy, advanced settings.</strong><p>This is the "how" and "where".</p></li>
+<li><strong>To store the result, select the Test Data Warehouse as the target connection.</strong><p>That is what creates a data set.</p></li>
+<li><strong>Optionally configure test tool integration, and override settings per data source or table.</strong><p>For flat-file output to HP ALM, or exceptions to the plan-wide rule.</p></li>
+<li><strong>If the plan has parameters, download the parameter file to review values.</strong><p>Parameters let one plan serve many runs.</p></li>
+<li><strong>Generate the workflow (or generate and run in one step), pick parameter values, run, and monitor.</strong><p>Generating builds the mappings; running executes them.</p></li>
+</ol>
+<p><em>Condensed from User Guide 10.5.10, p.275.</em></p>
+
+<h2 id="c16-story-intro">16.3 The ShopSphere story we will follow</h2>
+<p>ShopSphere's QA team needs a safe, small, realistic copy of <code>SHOPSPHERE_PROD</code> for the next release of Customer Orders. They want to refresh it quickly after every destructive test run. The path through this chapter:</p>
+<ol class="steps">
+<li><strong>Discovery.</strong><p>A profile has already tagged <code>ssn</code>, <code>tax_id</code>, <code>phone</code>, <code>email</code>, <code>first_name</code> and <code>last_name</code> as sensitive data domains (<a href="12-informatica-discovery-and-profiling.html">the discovery chapter</a>).</p></li>
+<li><strong>Masking plus subset plan.</strong><p>An entity with <code>CUSTOMERS</code> as driving table pulls in its orders and items. A limit keeps about 5 percent of customers. Masking rules disguise the sensitive columns in that small slice.</p></li>
+<li><strong>Workflow.</strong><p>Generate and run it. The target is the Test Data Warehouse.</p></li>
+<li><strong>Monitor and reports.</strong><p>Watch the job turn to Success, read the session counts, run the Row Count report for the audit file.</p></li>
+<li><strong>Store.</strong><p>The warehouse now holds data set <code>SHOPSPHERE_MASKED</code>, version 1.</p></li>
+<li><strong>Reuse.</strong><p>After a test run damages the data, testers reset version 1 back into the test database, cut a smaller related data set for a hotfix, and check coverage.</p></li>
+</ol>

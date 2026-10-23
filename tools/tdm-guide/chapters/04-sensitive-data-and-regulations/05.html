@@ -1,0 +1,122 @@
+<h2 id="c4-walkthrough">4.10 Walkthrough: from a legal requirement to a policy</h2>
+<p>Here is the whole chain in one story, so the pieces above fit together. This is the shape of a real engagement, simplified. It is an illustrative process <span class="badge concept">General concept</span> that uses the tool facts from earlier sections where marked.</p>
+<ol class="steps">
+<li><strong>Start with the requirement, in business words.</strong><p>ShopSphere's compliance officer says: "No real customer identity may leave production, in India or Germany. Card data never leaves the payment zone." The reason to write it in plain words is that everything later is traced back to this sentence.</p><p class="expect">A one-page statement of scope: which systems, which data subjects, which laws.</p></li>
+<li><strong>Find candidate sensitive columns.</strong><p>Run discovery (<a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>, then the tool chapters). The tool proposes columns and domains from names, patterns and lists.</p><p class="expect">A candidate list of columns with a proposed domain and a match score or conformance percent.</p></li>
+<li><strong>Review with the data steward.</strong><p>Remove false alarms, add misses, resolve doubtful ones such as <code>zip_code</code> and <code>tax_id</code>. Informatica's flow lets you approve each suggested domain (User Guide 10.5.10, p.105). <span class="badge doc">From docs</span></p><p class="expect">An approved list, with a short reason for each yes and no.</p></li>
+<li><strong>Classify.</strong><p>Give each approved column a level (section 4.6) and decide the action for each level: mask, null out, or exclude.</p><p class="expect">A table like the lab answer below, signed off by the compliance officer.</p></li>
+<li><strong>Choose a protection for each domain.</strong><p>Pick techniques that keep data usable for tests (see <a href="06-masking-concepts.html">the masking concepts chapter</a>). In Informatica, attach them as preferred rules and mark one default per domain; in Delphix, choose the default algorithm for each domain.</p><p class="expect">Each domain has one default protection and a written reason.</p></li>
+<li><strong>Bundle into a policy and store it.</strong><p>In Informatica you add the domains to a named policy and assign the policy to a project's data source (p.71). You can export policies, domains and rules to XML files and import them into another TDM repository, so a tested policy can travel from a test setup to the real one (p.80). Importing fails if the object already has assignments, so clear them or rename the file first (pp.80 to 81). <span class="badge doc">From docs</span></p><p class="expect">A versioned policy and a copy of its exported files.</p></li>
+<li><strong>Prove it works.</strong><p>Run on a small sample, look at the results, and have a second person check. <a href="06-masking-concepts.html">The masking concepts chapter</a> lists what to check.</p><p class="expect">A short report: columns covered, rule used, sample before and after.</p></li>
+<li><strong>Repeat on change.</strong><p>New columns appear whenever the application changes. Delphix notes that a profiling job only covers tables and files already in the rule set, and that newly reachable objects must be added by hand (Delphix "Discovering your sensitive data"). <span class="badge doc">From docs</span> Re-run discovery on every release.</p><p class="expect">A standing step in the release checklist.</p></li>
+</ol>
+
+<h2 id="c4-leaks">4.11 Where test copies leak</h2>
+<p>Protecting the main test database is not enough. Real data escapes through side doors, and it is the TDM engineer's job to think about them. <span class="badge concept">General concept</span></p>
+<div class="tablewrap"><table><caption>Common leak points for test data (general concept; examples are fictional)</caption>
+<thead><tr><th>Where</th><th>How real data gets there</th><th>What helps</th></tr></thead>
+<tbody>
+<tr><td>Developer laptops</td><td>A developer exports a "quick sample" of production to debug an issue</td><td>Policy that production extracts are never allowed, and an easy masked sample on request</td></tr>
+<tr><td>Bug tickets and screenshots</td><td>A tester pastes a screen showing Asha Menon's real SSN into a ticket</td><td>Masked test data, so there is nothing real to paste</td></tr>
+<tr><td>Log files</td><td>The application writes request bodies with email and phone to logs</td><td>Masked inputs; review of what the application logs</td></tr>
+<tr><td>Backups and snapshots of test servers</td><td>A copy taken before masking was finished</td><td>Mask before the copy is made available, for example with the on-the-fly method described in <a href="06-masking-concepts.html">the masking concepts chapter</a></td></tr>
+<tr><td>Third-party vendors and offshore teams</td><td>Production data sent for performance testing</td><td>Contract terms plus masked or synthetic data</td></tr>
+<tr><td>Staging area of the TDM tool itself</td><td>Unmasked data lands in a temporary table or file during processing</td><td>Restrict access to the staging area and clean it up</td></tr>
+<tr><td>Free-text columns</td><td>Notes or comments hold IDs and names</td><td>Free-text redaction, or exclude the column</td></tr>
+</tbody></table></div>
+<p>GenRocket's G-Subset documentation shows how a vendor can design around the staging problem. It says the data stays in the customer's environment behind their firewall, that the sensitive columns are never read, and that temporary "dump" files are removed after the run (GenRocket "G-Subset Overview"). <span class="badge doc">From docs</span> Whatever the tool, ask the same question: <em>at which moment does unmasked data exist outside production, and who can reach it?</em></p>
+<div class="callout why"><strong class="ctitle">Why this belongs in a chapter about policy</strong>
+<p>A policy that only says "mask these columns" protects the final database. A good policy also states where unmasked data is allowed to exist, for how long, and who may touch it. That is the part the compliance officer and the security team will ask about first.</p></div>
+
+<h2 id="c4-template">4.13 A one-page policy record</h2>
+<p>Tool objects hold the technical settings. Someone still has to hold the decisions. A one-page record, kept next to the exported policy files, is what an auditor or a new colleague reads first. <span class="badge concept">General concept</span> Here is a template, filled in for ShopSphere.</p>
+<div class="tablewrap"><table class="sample"><caption>Illustrative policy record for ShopSphere (organisation-specific; adapt to your templates)</caption>
+<thead><tr><th>Field</th><th>Example entry</th><th>Why it is there</th></tr></thead>
+<tbody>
+<tr><td>Policy name and version</td><td><code>ShopSphere_Customer_PII</code>, v1.2</td><td>Everyone refers to the same thing; changes are traceable</td></tr>
+<tr><td>Scope</td><td>Schema <code>SHOPSPHERE_PROD</code>, tables <code>CUSTOMERS</code>, <code>ORDERS</code>, <code>ORDER_ITEMS</code>, <code>PRODUCTS</code></td><td>Says what is and is not covered</td></tr>
+<tr><td>Owner and approver</td><td>TDM engineer owns; compliance officer approves</td><td>Clear accountability</td></tr>
+<tr><td>Laws and standards in play</td><td>India DPDP Act, GDPR for EU customers, PCI DSS for card data (confirmed by compliance)</td><td>Explains why each rule exists</td></tr>
+<tr><td>Data domains covered</td><td>First Name, Last Name, Email Address, Phone, Social Security Number, Birth Date, ZIP</td><td>The detection side of the policy</td></tr>
+<tr><td>Protection per domain</td><td>See the policy table in section 4.8</td><td>The action side of the policy</td></tr>
+<tr><td>Columns handled by hand</td><td><code>tax_id</code> (assigned manually, not found by discovery)</td><td>Records exceptions the tool will not repeat on its own</td></tr>
+<tr><td>Where unmasked data may exist</td><td>Only the production source and the TDM staging area, access limited to the TDM team</td><td>Closes the leak points in section 4.11</td></tr>
+<tr><td>Validation evidence</td><td>Sample of 50 rows per table checked by a second person, search for SSN-like digits in notes returned nothing</td><td>Proof the policy works</td></tr>
+<tr><td>Review date</td><td>Every release, and whenever a column is added</td><td>Keeps the policy current</td></tr>
+</tbody></table></div>
+<p>Nothing in this template comes from a tool manual. It is a habit that fits the manuals: both Informatica and Delphix store the technical objects (policies, domains, rules, algorithms, rule sets), but neither can record <em>why</em> the compliance officer chose a given protection. Informatica's business glossary links (User Guide 10.5.10, pp.82 to 83) are one way to attach that explanation to an object, if your installation has the glossary configured. <span class="badge doc">From docs</span></p>
+
+<div class="exercise"><h4>Lab: classify the ShopSphere columns</h4>
+<p>Goal: on paper or in a spreadsheet, decide the sensitivity level and the family (PII, PHI, PCI, none) for each ShopSphere column, and name the signal you would expect a tool to use to find it.</p>
+<ol class="steps">
+<li><strong>List every column of the four tables from the shared schema.</strong><p>Use <code>CUSTOMERS</code>, <code>ORDERS</code>, <code>ORDER_ITEMS</code> and <code>PRODUCTS</code>.</p></li>
+<li><strong>For each column, assign Public, Internal, Confidential or Restricted using the table in section 4.6.</strong><p>Ask the three-question test from section 4.2.</p></li>
+<li><strong>Mark the family and the detection signal.</strong><p>Is it found by name, by data pattern, by a list, or only by a human?</p><p class="expect">You should end with a list of about nine sensitive columns and at least one that some tools would miss.</p></li>
+<li><strong>Flag columns that are indirect identifiers.</strong><p>Which combinations could single out a customer?</p></li>
+</ol>
+<details class="sol"><summary>Show a worked answer</summary>
+<div class="tablewrap"><table class="sample"><caption>One reasonable answer (yours may differ: ask what the compliance officer would say)</caption>
+<thead><tr><th>Column</th><th>Level</th><th>Family</th><th>Likely signal</th></tr></thead>
+<tbody>
+<tr><td>CUSTOMERS.customer_id</td><td>Internal</td><td>none, but a key</td><td>Not sensitive; needs consistent handling (see <a href="06-masking-concepts.html">the masking concepts chapter</a>)</td></tr>
+<tr><td>first_name, last_name</td><td>Confidential</td><td>PII</td><td>Name pattern plus list of names</td></tr>
+<tr><td>email</td><td>Confidential</td><td>PII</td><td>Name and data pattern</td></tr>
+<tr><td>phone</td><td>Confidential</td><td>PII</td><td>Name and data pattern</td></tr>
+<tr><td>ssn</td><td>Restricted</td><td>PII</td><td>Name and data pattern</td></tr>
+<tr><td>date_of_birth</td><td>Restricted</td><td>PII, indirect identifier</td><td>Name pattern; date type</td></tr>
+<tr><td>zip_code</td><td>Confidential</td><td>PII, indirect identifier</td><td>Name pattern; human review</td></tr>
+<tr><td>tax_id</td><td>Restricted</td><td>PII</td><td>By name where the tool has a tax-ID pattern; otherwise a person must add it</td></tr>
+<tr><td>ORDERS.order_date, total_amount</td><td>Internal</td><td>none</td><td>Not flagged. A rare huge total could still stand out.</td></tr>
+<tr><td>ORDERS.order_id, ORDER_ITEMS.*, PRODUCTS.*</td><td>Public or Internal</td><td>none</td><td>Not flagged</td></tr>
+</tbody></table></div></details></div>
+
+<h2 id="c4-cases">4.12 Judgement calls: four short cases</h2>
+<p>Policies cover the common situations. The interesting work is in the edges. Each case below is fictional and shows the questions a TDM engineer asks before saying yes or no. <span class="badge concept">General concept</span></p>
+<div class="callout example"><strong class="ctitle">Case 1: "Give me last week's production orders to reproduce a bug"</strong>
+<p>A QA lead wants a copy of production. The reflex answer is no. The useful answer starts with questions. Which orders trigger the bug? Probably a handful, so a subset around those customers is enough (see <a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>). Does the bug depend on real names or only on the shape of the data, such as an order with 40 items? Usually only on the shape, so a masked subset reproduces it. The minimum-necessary idea turns a risky request into a small, safe one.</p></div>
+<div class="callout example"><strong class="ctitle">Case 2: "Our load-testing vendor needs production data"</strong>
+<p>The vendor needs volume (millions of orders), not real people. Masking millions of rows works, but so does generating fictional rows from scratch, which carries no personal data at all (the <a href="07-test-data-classification-and-generation-concepts.html">test data classification and generation chapter</a> covers this). The data steward helps by describing the realistic shape: how many items per order, how skewed the customers are.</p></div>
+<div class="callout example"><strong class="ctitle">Case 3: "Analytics wants real birth dates for age-band reports"</strong>
+<p>Exact birth date is Restricted, but the report only needs age bands such as 25 to 34. Options: replace dates with ones shifted by a few days (age band stays the same for most people), or store only the year. The compliance officer decides whether the remaining year plus zip is acceptable, remembering the uniqueness lab earlier in this chapter. The takeaway is that "mask or not" is often really "how much detail does the purpose need?".</p></div>
+<div class="callout example"><strong class="ctitle">Case 4: "Support agents paste customer details into notes"</strong>
+<p>An <code>ORDER_NOTES</code> column (not in the shared schema, added here to illustrate) contains lines like "Customer 123-45-6789 asked for a refund, call 9876543210". No column name flags it, and a column-level data pattern may miss it because the value is a whole sentence. Options: exclude the column from test copies, null it out, or use a free-text redaction algorithm that looks for patterns inside the text. Delphix provides a Free Text Redaction framework for this and says it needs expertise to configure (Delphix "Free Text Redaction (Algorithm frameworks)"). <span class="badge doc">From docs</span> Always check the output with a search for digit patterns afterwards.</p></div>
+
+<h2 id="c4-mistakes">Common mistakes and gotchas</h2>
+<div class="callout warn"><strong class="ctitle">Mistakes beginners make</strong>
+<ul>
+<li><strong>"We removed the names, so it is anonymous."</strong> Birth date plus zip plus gender can identify people (section 4.4).</li>
+<li><strong>Trusting automatic discovery.</strong> It gives candidates. Review them, and add what it misses.</li>
+<li><strong>Forgetting free-text columns.</strong> Notes, comments and descriptions can hold names and ID numbers that no column name reveals.</li>
+<li><strong>Ticking "sensitive" and stopping.</strong> In Informatica the flag is only a label. A masking rule must still be assigned (p.89).</li>
+<li><strong>Assuming a law's definition fits every country.</strong> Ask your compliance officer which regimes apply to your data subjects.</li>
+<li><strong>Mixing up Delphix "rule set" with Informatica "rule".</strong></li>
+<li><strong>Treating PCI as a law.</strong> It is an industry standard, enforced through payment contracts.</li>
+<li><strong>Copying documentation sample values into tests.</strong> Samples like card numbers can be real by accident.</li>
+</ul></div>
+
+<h2 id="c4-recap">Recap</h2>
+<div class="callout recap"><strong class="ctitle">Remember</strong><ul>
+<li>Sensitive data is whatever could harm a person or the company if leaked. PII identifies people, PHI ties health facts to a person, PCI covers payment card data.</li>
+<li>Direct identifiers point to one person. Indirect identifiers (zip, birth date, gender) identify when combined, so deleting names is not enough.</li>
+<li>GDPR and HIPAA, in plain words, say: have a lawful purpose, use the minimum necessary, secure it, and de-identify where you can. This is the legal case for subsetting and masking. This guide is not legal advice.</li>
+<li>Classification gives each column a sensitivity level, and each level maps to an action.</li>
+<li>Tools find sensitive columns by column names, data patterns and value lists, plus type checks. The output is candidates for human review.</li>
+<li>An Informatica policy contains data domains. A domain holds patterns, a sensitivity level and preferred rules. A rule is a technique plus parameters. Delphix uses domains, classifiers, profile sets and algorithm instances for the same ideas.</li>
+<li>People decide: the compliance officer sets what is sensitive, the data steward explains the data, the TDM engineer builds and runs the policy.</li>
+</ul></div>
+
+<h2 id="c4-quiz">Check yourself</h2>
+<details class="quiz"><summary>1. ShopSphere deletes names, emails, phones and SSNs from an extract but keeps date of birth, zip code and gender. Is the extract safely anonymous?</summary><p>Not necessarily. Birth date, zip and gender are indirect identifiers. Combined with an outside list that holds the same facts plus a name, they can single out individuals. Anonymity has to be judged on combinations, not only on direct identifiers.</p></details>
+<details class="quiz"><summary>2. What is the difference between a data pattern and a metadata pattern in an Informatica data domain?</summary><p>A data pattern is a regular expression that matches the values in a column (for example <code>[0-9]{3}-[0-9]{2}-[0-9]{4}</code> for an SSN). A metadata pattern matches column names (for example <code>.*SSN*</code>). A column belongs to the domain if it matches any expression.</p></details>
+<details class="quiz"><summary>3. A colleague says "I marked the SSN column Sensitive in TDM, so it will be masked." What is wrong?</summary><p>In Informatica the Sensitive flag is reference only and does not affect processing. Masking needs a rule assigned to the column (directly or through a data domain) and a plan that runs it.</p></details>
+<details class="quiz"><summary>4. Which legal idea justifies subsetting, and which justifies masking?</summary><p>Minimum necessary or data minimisation justifies subsetting: copy only the data the test needs. De-identification or anonymisation justifies masking: make the copy no longer identify anyone.</p></details>
+<details class="quiz"><summary>5. In Delphix, what is a rule set?</summary><p>A group of tables or flat files in a data source on which profiling, masking or tokenization jobs run. It is not a masking rule. Delphix's masking logic lives in algorithm instances attached to domains.</p></details>
+
+<section class="sources"><h2 id="c4-sources">Sources used in this chapter</h2><ul>
+<li>Informatica TDM 10.5.10 User Guide (PDF, February 2026), chapter 4 "Policies", pp.71 to 85: policy, data domain, rule, data and metadata patterns, sensitivity level, preferred and default rules, PII/PHI/PCI policy packs (pp.77 to 80), business glossary links, privileges.</li>
+<li>Informatica TDM 10.5.10 User Guide, chapter 5 "Data Discovery", pp.86 to 106 (read for): Sensitive and Restricted column properties (p.89), data domain profile sampling options (p.95), profile results and approval (p.105); chapter 8, p.158 (credit card example number).</li>
+<li>Delphix Continuous Compliance 2026.5 docs: <a href="https://help.delphix.com/cc/current/content/discovering_your_sensitive_data.htm" target="_blank" rel="noopener">Discovering your sensitive data</a> (profile set, domain, classifier frameworks); <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a> (domain, rule set, outlier example); <a href="https://help.delphix.com/cc/current/content/managing_domains.htm" target="_blank" rel="noopener">Managing domains</a> (and its screenshot); <a href="https://help.delphix.com/cc/current/content/out_of_the_box_profiling_settings.htm" target="_blank" rel="noopener">Out of the box profiling settings</a>; <a href="https://help.delphix.com/cc/current/content/asdd_standard_profile_set.htm" target="_blank" rel="noopener">ASDD standard profile set</a> (SSN classifiers); <a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a> (regulation mentions); <a href="https://help.delphix.com/cc/current/content/identifying_sensitive_data.htm" target="_blank" rel="noopener">Identifying sensitive data</a> (section index).</li>
+<li>GenRocket help: <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/pii-discovery-with-data-column-profiling-identify-sensitive-data-columns" target="_blank" rel="noopener">PII Discovery with Data Column Profiling</a> (column-header keyword scanning, 102 built-in names).</li>
+<li>General concepts, not from tool sources: summaries of GDPR, HIPAA, PCI DSS, CCPA and India's DPDP Act, the re-identification discussion, the four-level classification scheme and the roles table. Not legal advice.</li>
+<li>Next chapters: <a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a> (discovery and subsetting), <a href="06-masking-concepts.html">the masking concepts chapter</a> (masking).</li>
+</ul></section>

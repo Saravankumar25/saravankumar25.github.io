@@ -1,0 +1,93 @@
+<p>You cannot protect data you have not found. A real application database has hundreds of tables and thousands of columns, and nobody remembers which of them hold a customer's phone number, a tax id, or a note typed in by a support agent. <dfn>Profiling</dfn> is Delphix's answer: a job that scans your data source, decides which columns look sensitive, and writes its decisions into a list that you review before any masking happens.</p>
+<p>This chapter explains that scan from zero. It covers what a profile set, a classifier, a domain and an inventory are, how they fit together, how to create and run a profiling job, how to read the results, and how to correct them by hand. It ends with the Day 52 lab (TDM_Handson5) on the ShopSphere sample database. The connections and rule sets the lab needs are set up in <a href="23-delphix-connectors-and-vdb.html">the Delphix connectors chapter</a> and <a href="24-delphix-rule-sets-and-keys.html">the rule sets and keys chapter</a>; the algorithms that profiling assigns are explained in <a href="26-delphix-algorithms-and-masking-jobs.html">the algorithms and masking jobs chapter</a>. If you want the Informatica view of the same idea, see <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>.</p>
+<div class="callout recap"><strong class="ctitle">What you will learn</strong>
+<ul>
+<li>The difference between a profile set, a classifier, a domain, an algorithm assignment and an inventory.</li>
+<li>How the ASDD profiler scores a column using its name, its type and its values, and what the assignment threshold does.</li>
+<li>How to create, edit, view, delete and run a profiling job, and what each field means.</li>
+<li>Where to read the results (job page, PDF report, rule set inventory, CSV) and how to correct them.</li>
+<li>How to stop the profiler from overwriting your manual choices.</li>
+<li>Which ShopSphere columns you should expect to be flagged, which will be false alarms, and which need a hand correction.</li>
+</ul>
+</div>
+<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
+<p>The Delphix Continuous Compliance documentation, version 2026.5 (last published October 16, 2026), read in full for these pages: <a href="https://help.delphix.com/cc/current/content/managing_profiling_jobs.htm" target="_blank" rel="noopener">Managing profiling jobs</a>, <a href="https://help.delphix.com/cc/current/content/configuring_profile_sets.htm" target="_blank" rel="noopener">Configuring profile sets</a>, <a href="https://help.delphix.com/cc/current/content/asdd_standard_profile_set.htm" target="_blank" rel="noopener">ASDD standard profile set</a>, <a href="https://help.delphix.com/cc/current/content/asdd_features_and_support.htm" target="_blank" rel="noopener">ASDD features and support</a>, <a href="https://help.delphix.com/cc/current/content/legacy_profile_set_classifiers.htm" target="_blank" rel="noopener">Legacy profile set classifiers</a>, <a href="https://help.delphix.com/cc/current/content/managing_classifiers.htm" target="_blank" rel="noopener">Managing classifiers</a>, <a href="https://help.delphix.com/cc/current/content/profiletypeexpressions.htm" target="_blank" rel="noopener">profileTypeExpressions</a>, <a href="https://help.delphix.com/cc/current/content/out_of_the_box_profiling_settings.htm" target="_blank" rel="noopener">Out of the box profiling settings</a>, <a href="https://help.delphix.com/cc/current/content/managing_domains.htm" target="_blank" rel="noopener">Managing domains</a>, <a href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Managing inventories</a>, <a href="https://help.delphix.com/cc/current/content/createinventory.htm" target="_blank" rel="noopener">createInventory</a>, <a href="https://help.delphix.com/cc/current/content/reporting_profiling_results.htm" target="_blank" rel="noopener">Reporting profiling results</a>, <a href="https://help.delphix.com/cc/current/content/identifying_sensitive_data.htm" target="_blank" rel="noopener">Identifying sensitive data</a>, <a href="https://help.delphix.com/cc/current/content/discovering_your_sensitive_data.htm" target="_blank" rel="noopener">Discovering your sensitive data</a>, <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs</a> (profiling parts only here) and <a href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">Job monitoring</a>. I also used <a href="https://help.delphix.com/cc/current/content/masking_api_client.htm" target="_blank" rel="noopener">the Masking API client page</a> for default values of application settings and <a href="https://help.delphix.com/cc/current/content/running_and_stopping_jobs.htm" target="_blank" rel="noopener">Running and stopping jobs</a> for the Run action.</p>
+<p>The learner-supplied fourth link (<code>help.delphix.com/cc/current/content/create</code>) was cut off and returns 404 (checked). The intended page is almost certainly <code>create__view__edit__delete__verify_jobs.htm</code>, which is the one used here. Official screenshots come from the engine versions printed in their banners (22.0.0.0 to 26.0.0.0), so your screen may look slightly different. The ShopSphere predictions are my own reasoning from the published classifier definitions; they are labelled as predictions, not engine output.</p>
+</div>
+
+<h2 id="c25-words">25.1 Words to know first</h2>
+<dl class="defs">
+<div><dt>Sensitive data discovery / profiling</dt>
+<dd>The process of scanning a data source to find columns or file fields that hold sensitive information. The docs use both names for the same thing.</dd>
+</div>
+<div><dt>Profiling job</dt>
+<dd>A saved set of instructions that says "scan this rule set using this profile set". You create it once and can run it many times.</dd>
+</div>
+<div><dt>Rule set</dt>
+<dd>The list of tables (or files) that a job is allowed to look at. A profiling job covers only what is in the rule set; new tables are not discovered until you add them.</dd>
+</div>
+<div><dt>Profile set</dt>
+<dd>A bundle of recognition rules (classifiers). Choosing a profile set decides which kinds of sensitive data the job can detect.</dd>
+</div>
+<div><dt>Classifier</dt>
+<dd>One recognition rule, tied to one domain. Example: "a column whose name looks like <em>ssn</em>" or "a value that looks like an email address".</dd>
+</div>
+<div><dt>Domain</dt>
+<dd>A named kind of sensitive data, such as FIRST_NAME, SSN or EMAIL, together with the default masking algorithm for it.</dd>
+</div>
+<div><dt>Algorithm</dt>
+<dd>The recipe that actually replaces a real value with a safe one. Profiling only <em>chooses</em> an algorithm; the masking job <em>runs</em> it.</dd>
+</div>
+<div><dt>Inventory</dt>
+<dd>The table of every column or field in a rule set with its domain and algorithm. It is the profiler's output and the masking job's input.</dd>
+</div>
+<div><dt>Confidence</dt>
+<dd>The number (shown 0 to 100 in the UI) that says how sure the profiler is about a match.</dd>
+</div>
+<div><dt>Assignment threshold</dt>
+<dd>The minimum confidence needed before the profiler writes a domain and algorithm into the inventory.</dd>
+</div>
+<div><dt>ASDD profiler</dt>
+<dd>Automated Sensitive Data Discovery, the current profiler. It uses classifiers. The older "legacy" profiler uses search and type expressions.</dd>
+</div>
+</dl>
+
+<h2 id="c25-why">25.2 Why profile at all?</h2>
+<p>Picture the ShopSphere developers asking for a copy of <code>SHOPSPHERE_PROD</code> to test the Customer Orders app. A TDM engineer must hide every real name, phone number and tax id before handing it over. With four tables and nine customer columns you could do that by reading the table definitions. With a real database of 3,000 columns you cannot, and one forgotten column is a privacy incident.</p>
+<p>A profiling job automates the first pass. The documentation describes it as examining metadata (column names and types) and potentially the data itself, then assigning the matching domain and its algorithm to each column it judges sensitive <span class="badge doc">From docs</span>. A person then reviews the result. That last step matters: the profiler is a fast assistant, not an auditor.</p>
+<div class="callout why"><strong class="ctitle">Why it matters</strong>
+<p>Profiling is where masking projects are won or lost. Masking jobs only protect what is in the inventory. A column the profiler missed, and nobody caught, goes to the test environment untouched.</p>
+</div>
+
+<h3 id="c25-flow">The whole pipeline on one line</h3>
+<div class="flow">
+<div class="node"><b>Rule set</b>which tables to scan</div><div class="arrow">→</div>
+<div class="node"><b>Profile set</b>which rules to use</div><div class="arrow">→</div>
+<div class="node"><b>Profiling job</b>scan and score</div><div class="arrow">→</div>
+<div class="node"><b>Inventory</b>column, domain, algorithm</div><div class="arrow">→</div>
+<div class="node"><b>You review</b>fix and approve</div><div class="arrow">→</div>
+<div class="node"><b>Masking job</b>applies algorithms</div>
+</div>
+<p>Analogy: an airport scanner flags bags using a rulebook (the profile set). A security officer (you) opens the flagged bags, waves through the harmless ones, and sometimes stops a bag the scanner missed. The analogy stops being accurate in one place: the scanner has no memory of the officer's decisions unless you tell it, which is what the "automatic updates" checkbox, described in the inventory review part of this chapter, is for.</p>
+
+<h2 id="c25-concepts">25.3 Profile, domain, algorithm assignment and inventory: how they differ</h2>
+<p>Beginners often use these four words as if they meant one thing. They are four different layers, and each answers one question.</p>
+<div class="tablewrap"><table>
+<thead>
+<tr><th>Layer</th><th>Question it answers</th><th>Where you manage it</th><th>ShopSphere example</th></tr>
+</thead>
+<tbody>
+<tr><td>Profile set (made of classifiers)</td><td>How do we recognise sensitive data?</td><td>Settings, Profile Sets and Classifiers</td><td>"ASDD Standard"</td></tr>
+<tr><td>Domain</td><td>What kind of sensitive data is this, and what is its default algorithm?</td><td>Settings, Domains</td><td>FIRST_NAME, SSN, TELEPHONE_NO</td></tr>
+<tr><td>Algorithm assignment</td><td>Which recipe masks this particular column?</td><td>Inventory screen of a rule set</td><td><code>CUSTOMERS.first_name</code> gets <code>dlpx-core:FirstName</code></td></tr>
+<tr><td>Inventory</td><td>For this rule set, what is every column's domain and algorithm?</td><td>Click a rule set name</td><td>The whole list for <code>SHOPSPHERE_PROD</code></td></tr>
+</tbody>
+</table></div>
+<p>Two consequences follow, both stated in the docs <span class="badge doc">From docs</span>:</p>
+<ul>
+<li>Because the profiler assigns an algorithm through the domain, the same kind of data is masked the same way everywhere. Every FIRST_NAME column in every rule set gets the same default algorithm, which keeps results consistent.</li>
+<li>Each domain has exactly one default algorithm, so if you want the profiler to pick a different algorithm for some data, a separate domain (with its own recognition logic) has to exist for it.</li>
+</ul>
+<div class="callout note"><strong class="ctitle">Changing a domain later</strong>
+<p>Editing a domain's default algorithm affects only future profiling runs. It does not change assignments already sitting in existing inventories <span class="badge doc">From docs</span>. If you change a default and expect old inventories to follow, they will not.</p>
+</div>

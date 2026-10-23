@@ -21,7 +21,7 @@ The reader is an **absolute beginner**: no knowledge of TDM, ETL, databases beyo
    Explain the *reason* behind each step, not just which button to click.
 4. `<h2>` "Common mistakes and gotchas" (use callout.warn).
 5. `<h2>` "Recap" (callout.recap, 4 to 8 bullets).
-6. `<h2>` "Check yourself": 3 to 5 `<details class="quiz"><summary>Question</summary><p>Answer + why</p></details>`.
+6. (No quizzes, practice questions or self-tests anywhere in this guide. Hands-on labs are fine.)
 7. `<section class="sources"><h2 id="cNN-sources">Sources used in this chapter</h2><ul>...</ul></section>` listing every source you actually read for this chapter, with what it was used for.
 8. Connect chapters: link to related chapters with relative hrefs (`12-informatica-discovery-and-profiling.html`) when you mention them.
 
@@ -113,7 +113,6 @@ Test team: QA engineers, developers, a "TDM engineer" (the learner's target role
 | 28 | 28-delphix-hands-on-labs.html |
 | 29 | 29-planning-real-engagements.html |
 | 30 | 30-capstone-project.html |
-| 31 | 31-practice-and-cheat-sheets.html |
 | 32 | 32-glossary.html |
 | 99 | 99-sources-and-limitations.html |
 Parts: 1 = ch 1-9 (Foundations), 2 = ch 10-16 (Informatica), 3 = ch 17-21 (GenRocket), 4 = ch 22-28 (Delphix), 5 = ch 29-32 and 99.

@@ -1,0 +1,121 @@
+<h2 id="c12-entity-discovery">12.6 Entity (foreign key) discovery</h2>
+<p>An <dfn>entity</dfn> is a parent table plus its related child tables. An <strong>entity profile</strong> finds possible entities by <em>comparing column names</em> in the source tables, and returns a list you choose from. The entities you define for a subset determine the structure and content of the subset database (User Guide 10.5.10, p.93).</p>
+<p>The guide's example: Employee, Employee_Detail and Employee_Address all contain an EmpID column, so the profile suggests Employee as an entity with two direct relationships and two child tables. You select Employee as the entity. Later, a subset filter on EmpID (for example EmpID less than 2000) filters each table in the entity relationship (p.93).</p>
+<p><strong>ShopSphere reading</strong> (illustrative): <code>customer_id</code> appears in <code>CUSTOMERS</code> and <code>ORDERS</code>; <code>order_id</code> appears in <code>ORDERS</code> and <code>ORDER_ITEMS</code>; <code>product_code</code> appears in <code>ORDER_ITEMS</code> and <code>PRODUCTS</code>. The profile can therefore suggest CUSTOMERS to ORDERS to ORDER_ITEMS as a chain, and ORDER_ITEMS to PRODUCTS as another link.</p>
+<div class="callout warn"><strong class="ctitle">Needs keys, or run both together</strong>
+<p>If you choose the Entity type and the physical database has <strong>no primary keys</strong>, the profile returns <strong>no results</strong>. If you run it as a <em>primary key and entity</em> profile, it discovers possible primary and foreign keys and returns results even without physical keys (p.93). The creation steps repeat the advice: select primary key and entity profile if the database has no primary keys (p.99).</p></div>
+
+<h3 id="c12-entity-options">Entity profile options</h3>
+<p>TDM infers foreign key candidates and you can limit the results with these options (pp.93-94, 99):</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Option</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Datatypes used in comparisons</td><td><em>Inferred</em>: compare primary and foreign key using datatypes TDM infers. <em>Documented</em>: use the datatypes defined on the source columns.</td></tr>
+<tr><td>Comparison case sensitivity</td><td>Perform case-sensitive comparisons. The creation steps warn this can affect performance.</td></tr>
+<tr><td>Trim spaces before comparison</td><td>None, Both, Leading or Trailing.</td></tr>
+<tr><td>Maximum foreign keys returned</td><td>Cap on matched foreign key results (listed in the options table on p.94).</td></tr>
+<tr><td>Minimum confidence percent</td><td>Minimum percentage of foreign key values that match the inferred datatype (p.94).</td></tr>
+<tr><td>Minimum conformance percent</td><td>Minimum percentage of rows without key violations allowed for foreign key discovery (p.99).</td></tr>
+<tr><td>Regenerate signature</td><td>Whether the profiling warehouse clears existing object information before the Data Integration Service runs the profile.</td></tr>
+</tbody></table></div>
+<p>The guide's two lists (pp.94 and 99) differ slightly: the p.94 summary mentions "maximum foreign keys returned" and "minimum confidence percent", while the p.99 creation dialog lists "minimum conformance percent". Your version's dialog is the truth; read the labels on screen.</p>
+
+<h3 id="c12-entity-create">Creating an entity profile</h3>
+<ol class="steps">
+<li><strong>Open the project, Discover, then Profile.</strong><p>The Profile view lists the project's profiles.</p></li>
+<li><strong>Click Actions &gt; New Profile.</strong><p>Enter a name and description.</p></li>
+<li><strong>Choose to create an entity profile.</strong><p>Select primary key and entity if the physical database has no primary keys, as above.</p></li>
+<li><strong>Click Next, select tables, click OK, then Next.</strong><p>Choose all tables that may relate.</p></li>
+<li><strong>On Sampling Options, set the key-column maximum, the maximum rows, the minimum conformance, and the entity options from the table above.</strong><p>Defaults are fine for a first run.</p></li>
+<li><strong>Click Save, then Actions &gt; Execute.</strong><p>Follow the job in Monitor.</p></li>
+</ol>
+
+<h3 id="c12-entity-results">Reading entity results</h3>
+<p>Close and reopen the profile, then click the <strong>Profile &gt; Entity</strong> view (pp.104). It lists possible entity relationships. Select a column in the results to see other columns that may contain the same data. Select an entity to see the <strong>Constraints</strong> view with parent columns, child columns and relationships. <strong>Approve the constraints to add them to an entity</strong>, and approve each entity you want in the project.</p>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.104, Figure "results of an entity discovery profile". What to look for: a list of profiled relationships (rows named Entity_1_...), a type column, a direct relationship count, and a status; an Actions menu offering Approve checked items, Reject checked items, Clear status of checked items and Verify checked items; and a lower Constraints tab listing parent key columns, child key columns, relationship type and confirmation percentage.</div>
+<div class="tablewrap"><table class="sample">
+<caption>Illustrative entity result for ShopSphere (invented, shaped like the guide's Constraints view)</caption>
+<thead><tr><th>Parent table, column</th><th>Child table, column</th><th>Relationship</th><th>Confirmation</th><th>Decision</th></tr></thead>
+<tbody>
+<tr><td>CUSTOMERS.customer_id</td><td>ORDERS.customer_id</td><td>PK-FK</td><td>100%</td><td>Approve</td></tr>
+<tr><td>ORDERS.order_id</td><td>ORDER_ITEMS.order_id</td><td>PK-FK</td><td>100%</td><td>Approve</td></tr>
+<tr><td>PRODUCTS.product_code</td><td>ORDER_ITEMS.product_code</td><td>PK-FK</td><td>100%</td><td>Approve</td></tr>
+</tbody></table></div>
+<p>Approved relationships become <strong>logical constraints</strong>. TDM adds them to its repository and does not apply them to the source tables, and when you generate a workflow from a subset plan, TDM uses these constraints to produce subset data with referential integrity (p.86).</p>
+
+<h2 id="c12-domain-discovery">12.7 Data domain discovery</h2>
+<p>A data domain profile finds the source columns that hold similar data and assigns each the same data domain name, so you can apply the same masking rules to all of them at once (User Guide 10.5.10, p.94). Domains are defined with regular expressions on data and on column names (see <a href="11-informatica-tdm-tour.html#c11-data-domains">the data domains section of the Test Data Manager tour</a>). A project must contain <strong>policies</strong> before you create a data domain profile, because policies hold the domains the profile can search for (p.100).</p>
+
+<h3 id="c12-domain-options">Sampling options for a domain profile</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Option</th><th>Meaning (p.95)</th></tr></thead>
+<tbody>
+<tr><td>Data</td><td>Search for patterns in the data only.</td></tr>
+<tr><td>Column Name</td><td>Search for patterns in the column name only.</td></tr>
+<tr><td>Data and Column Name</td><td>Search both.</td></tr>
+<tr><td>Maximum Rows to Profile</td><td>Limit rows profiled. Default 1,000.</td></tr>
+<tr><td>Minimum Conformance Percent</td><td>Minimum percentage of rows in which the data or metadata matches the domain.</td></tr>
+</tbody></table></div>
+<p>Why a conformance percent? Real data is messy. If 97 of 100 rows look like SSNs and three are blank or mistyped, a threshold lets the column still match. The guide says all rows might not conform, so you enter the minimum percentage of profiled rows that must (p.100).</p>
+
+<h3 id="c12-domain-create">Creating and running a data domain profile</h3>
+<ol class="steps">
+<li><strong>Open the project, click Discover, then Profile, then Actions &gt; New Profile.</strong><p>You need a policy in the project first.</p></li>
+<li><strong>Enter a name and description; choose a data domain profile.</strong><p>For ShopSphere: <code>dd_customers</code>.</p></li>
+<li><strong>Select the tables to profile and click OK, then Next.</strong><p>Start with <code>CUSTOMERS</code>.</p></li>
+<li><strong>In Select Sampling Options, choose to add policies or data domains, then select them.</strong><p>Selecting a policy includes all its domains, which is faster to set up than ticking each one.</p></li>
+<li><strong>In the Sampling panel, choose Data, Column Name, or Data and Column Name.</strong><p>You can run the profile for column metadata and then again for source data.</p></li>
+<li><strong>Enter the maximum rows to profile and the minimum conformance percent.</strong><p>Defaults are a sensible start.</p></li>
+<li><strong>Click Save, then Actions &gt; Execute.</strong><p>Watch Monitor; when done close and reopen the profile.</p></li>
+</ol>
+
+<h3 id="c12-domain-results">Reading and curating data domain results</h3>
+<p>Click <strong>Profile &gt; Data Domain</strong>. Each row is a source column with a suggested domain (pp.105-106).</p>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.105, Figure "data domain discovery results". What to look for: a table of columns with conformance and null percentages and pattern counts, a Current Data Domain and a Profiled data domain column with drop-down lists, and a lower Data Preview tab listing matching data values.</div>
+<div class="tablewrap"><table>
+<thead><tr><th>Column</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Table; Source</td><td>The table and the column to mask.</td></tr>
+<tr><td>% Data Conformance</td><td>Percentage of rows whose data or metadata pattern matches the domain.</td></tr>
+<tr><td>% Null</td><td>Rows that contain NULL in the column (the guide says "number of rows").</td></tr>
+<tr><td>Patterns</td><td>How many of the domain's data or metadata patterns match the column.</td></tr>
+<tr><td>Column Name Match</td><td>Whether the column name is the matching pattern.</td></tr>
+<tr><td>Current Data Domain</td><td>The previous domain, shown if you profiled more than once.</td></tr>
+<tr><td>Profiled data domain</td><td>The domain returned by the latest run.</td></tr>
+<tr><td>Status</td><td>Whether the assignment is verified or approved.</td></tr>
+</tbody></table></div>
+<div class="tablewrap"><table class="sample">
+<caption>Illustrative data domain results for <code>CUSTOMERS</code> (invented numbers)</caption>
+<thead><tr><th>Source</th><th>% Data Conformance</th><th>% Null</th><th>Patterns</th><th>Column Name Match</th><th>Profiled domain</th><th>Decision</th></tr></thead>
+<tbody>
+<tr><td>first_name</td><td>100</td><td>0</td><td>1</td><td>Yes</td><td>First Name</td><td>Approve</td></tr>
+<tr><td>email</td><td>100</td><td>0</td><td>2</td><td>Yes</td><td>Email Address</td><td>Approve</td></tr>
+<tr><td>phone</td><td>100</td><td>1</td><td>2</td><td>Yes</td><td>Phone</td><td>Approve</td></tr>
+<tr><td>ssn</td><td>100</td><td>0</td><td>2</td><td>Yes</td><td>Social Security Number</td><td>Approve</td></tr>
+<tr><td>tax_id</td><td>0</td><td>0</td><td>0</td><td>No</td><td>none</td><td>Assign by hand (or add a domain)</td></tr>
+<tr><td>zip_code</td><td>100</td><td>0</td><td>1</td><td>Yes</td><td>ZIP</td><td>Approve</td></tr>
+</tbody></table></div>
+<p>The made-up <code>tax_id</code> row shows a realistic situation: nothing matched, because no domain describes it. The fix is on you: either create a domain (see <a href="11-informatica-tdm-tour.html#c11-create-domain">the create-a-data-domain steps</a>) or assign one manually below.</p>
+<ul>
+<li><strong>Data Preview tab:</strong> select a column and click Data Preview to see its source values. The data viewer shows the <strong>first 200 records</strong> of columns returned in the profile (p.105). Use it to sanity-check before approving.</li>
+<li><strong>Approve:</strong> select rows and approve the domain for each column. Approved domains let you assign the domain's rules to those columns in the <strong>Define &gt; Data Masking</strong> view.</li>
+<li><strong>Verify:</strong> a tracking column; it does not affect the profile.</li>
+<li><strong>Mark classification completed:</strong> when you finish approving, mark the data domain classification as completed to confirm you reviewed everything. It affects no process.</li>
+</ul>
+
+<h3 id="c12-domain-assign">Assigning domains by hand, and by CSV</h3>
+<p>Discovery is a suggestion, so you need ways to correct it (pp.95-96).</p>
+<ol class="steps">
+<li><strong>One column:</strong> in Discover &gt; Columns click the <em>Domain</em> cell of the column and choose a domain.<p>The column is marked sensitive automatically.</p></li>
+<li><strong>Many columns:</strong> select the columns, click Actions &gt; Edit Assignments, choose the domain in the Edit Data Domain Assignment dialog, Save.<p>Choosing a blank domain removes the previous assignment.</p></li>
+<li><strong>Export or import as CSV:</strong> Actions &gt; Export Data Domain Assignments, or Actions &gt; Import Data Domain Assignments and pick the CSV, Finish.<p>You need read and write permission on the project and the Discover Project privilege.</p></li>
+</ol>
+<p>The import file must have these columns in order: <em>Data Source Name, Owner Name, Table Name, Column Name, Is Sensitive, Domain Name</em>. The <strong>first row is treated as a header and skipped</strong>, so a file without a header loses its first data row. Records import one at a time; a failure is logged and the import continues with the next record. Errors appear in Administrator &gt; Application Logs. If an assignment already exists it is overwritten. Assignments exported from Secure@Source can be imported this way (p.96).</p>
+<div class="tablewrap"><table class="sample">
+<caption>Illustrative assignment CSV for ShopSphere (header row first)</caption>
+<thead><tr><th>Data Source Name</th><th>Owner Name</th><th>Table Name</th><th>Column Name</th><th>Is Sensitive</th><th>Domain Name</th></tr></thead>
+<tbody>
+<tr><td>(header row, skipped)</td><td></td><td></td><td></td><td></td><td></td></tr>
+<tr><td>SHOPSPHERE_PROD</td><td>SHOP</td><td>CUSTOMERS</td><td>TAX_ID</td><td>Yes</td><td>Customer_SSN</td></tr>
+</tbody></table></div>
+<p>The values for owner, source name and the "Yes" spelling are my guesses at a plausible file. The guide gives only the column order, not sample values, so check an exported file from your own project before importing.</p>
