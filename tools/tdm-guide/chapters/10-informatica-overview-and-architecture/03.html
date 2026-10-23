@@ -1,0 +1,74 @@
+<h3 id="c10-services">The application services</h3>
+<p>The guide says TDM uses Informatica services that you create in the Administrator tool (User Guide 10.5.10, p.27). Here is the list with the plain-English job of each.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Service</th><th>Its job (from the guide)</th><th>When you notice it</th></tr></thead>
+<tbody>
+<tr><td>Test Data Manager Service</td><td>Creates and manages the TDM repository; runs Test Data Manager and manages connections between service components and users (pp.26, 28).</td><td>Every login and every click.</td></tr>
+<tr><td>Data Integration Service</td><td>Performs data discovery; stores profile metadata through the Model Repository Service; loads results to the profiling warehouse you chose when creating it; also runs data coverage tasks for the test data warehouse (p.27).</td><td>When a profile runs.</td></tr>
+<tr><td>Model Repository Service</td><td>Manages the Model repository for data discovery (p.27).</td><td>Behind profiles; also when you import metadata or data domains from the Model repository.</td></tr>
+<tr><td>monitoring Model Repository Service</td><td>A Model Repository service that monitors statistics for Data Integration Service jobs (p.27).</td><td>Rarely, as an administrator.</td></tr>
+<tr><td>PowerCenter Repository Service</td><td>Manages the PowerCenter repository and accepts requests from the PowerCenter Integration Service when a workflow runs (p.27).</td><td>Generating a workflow; importing metadata from PowerCenter.</td></tr>
+<tr><td>PowerCenter Integration Service</td><td>Runs the data subset, generation and masking workflows. You choose which one when you create the Test Data Manager Service, and again when you generate a workflow from a plan (pp.27, 29).</td><td>Every plan run.</td></tr>
+<tr><td>Test Data Warehouse Service</td><td>Manages the test data warehouse repository and the warehouse; copies the metadata created with a data set and creates the data set tables (p.27).</td><td>Creating or resetting data sets.</td></tr>
+<tr><td>Analyst Service</td><td>Manages the Analyst tool TDM uses to link TDM objects to Business Glossary objects; needs a licence that supports Business Glossary (pp.27, 29).</td><td>Linking glossary terms to policies and domains.</td></tr>
+<tr><td>Content Management Service</td><td>Manages reference data (p.26).</td><td>The guide does not tie it to a particular TDM screen in this chapter.</td></tr>
+<tr><td>Service Manager</td><td>Manages all domain operations and the domain configuration repository (p.26).</td><td>Login and domain-level problems.</td></tr>
+</tbody></table></div>
+
+<h3 id="c10-databases">The TDM databases (repositories)</h3>
+<p>These are the "recipe books and pantries". The guide lists seven relational databases that TDM connects to for metadata, profiling, TDM configuration, domain configuration and the test data warehouse (User Guide 10.5.10, p.28). Notice that only one of them holds a copy of <em>test data</em>; the rest hold Informatica's own working information.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Database</th><th>What it stores</th><th>ShopSphere reading</th></tr></thead>
+<tbody>
+<tr><td>TDM repository</td><td>The components you define in Test Data Manager (policies, projects, entities, rules) plus source or target metadata you imported (pp.26, 28).</td><td>The masking policy, the "Customer Orders" project, the imported structure of <code>CUSTOMERS</code> and <code>ORDERS</code>.</td></tr>
+<tr><td>Model repository</td><td>Table metadata for data discovery profiles; connection information for connections made in TDM; optionally mappings saved for Hadoop operations (p.28).</td><td>The profile's view of the tables.</td></tr>
+<tr><td>PowerCenter repository</td><td>Metadata for PowerCenter sources and targets and for the workflows generated from plans; also permissions and privileges for its users (pp.26, 28).</td><td>The generated masking workflow.</td></tr>
+<tr><td>Profiling warehouse</td><td>Profile results for data discovery (p.28).</td><td>"<code>ssn</code> looks like an SSN domain" lives here until you approve it.</td></tr>
+<tr><td>Domain configuration repository</td><td>Connections and metadata for the Informatica domain, including users (pp.26, 28).</td><td>Who can log in.</td></tr>
+<tr><td>Test data warehouse repository</td><td>Project and source table metadata for stored data sets (p.28).</td><td>The description of the stored "masked set v1".</td></tr>
+<tr><td>Test data warehouse</td><td>The source data of stored data sets (p.28).</td><td>The masked customer rows themselves.</td></tr>
+</tbody></table></div>
+<div class="callout warn"><strong class="ctitle">Do not confuse these with SHOPSPHERE_PROD</strong>
+<p>Your business database (the source <code>SHOPSPHERE_PROD</code> and any test target) is <em>not</em> on the list above. TDM needs a connection to it, but it is not one of TDM's own repositories. Beginners often mix this up and look for "their data" inside the TDM repository. The guide says that importing copies source <em>metadata</em> into the TDM repository (p.31), and that constraints you add in a project are stored in the TDM repository while the TDM server does not update the data sources (p.32).</p></div>
+
+<h3 id="c10-connections">TDM connections</h3>
+<p>TDM needs connections to databases, repositories and services, and what it needs depends on what you run (User Guide 10.5.10, p.28):</p>
+<ul>
+<li><strong>Discovery</strong> needs a database source connection and a Data Integration Service.</li>
+<li><strong>Subset and masking workflows</strong> need connections to services, the TDM repository, external database sources, and Informatica sources and targets.</li>
+<li><strong>Workflows that store data in the test data warehouse</strong> need external database sources, the test data warehouse repository and the test data warehouse itself.</li>
+<li>To copy flat file results to a test tool, you first integrate the test tool server with TDM.</li>
+</ul>
+<p>The guide splits them into service, repository and database connections. The table below keeps its meaning and shortens the words.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Connection kind</th><th>Examples and purpose (pp.29-30)</th></tr></thead>
+<tbody>
+<tr><td>Service connections</td><td>Data Integration Service (discovery); Model Repository Service; PowerCenter Integration Service (running generated workflows; you pick its name when you generate the workflow); PowerCenter Repository Service (extracts source metadata from the PowerCenter repository on import); Analyst Service; Test Data Warehouse Service; Test Data Manager Service.</td></tr>
+<tr><td>Repository connections</td><td>TDM repository (a masking, generation or subset workflow needs it); Model repository; profiling warehouse (the Data Integration Service loads profile results there); PowerCenter repository; test data warehouse repository and test data warehouse.</td></tr>
+<tr><td>Database connections</td><td>A database source for discovery, a database target for generation, relational sources and targets for subset and masking, and a source plus the test data warehouse for storing data sets. You configure them in the Administrator view of Test Data Manager and do not need a separate driver. You pick them when creating a plan; TDM tests them when it generates the workflow, and the Integration Service uses them when it runs it.</td></tr>
+</tbody></table></div>
+
+<h3 id="c10-requests">Following a click through the pieces</h3>
+<p>The guide describes three journeys in words. Putting them side by side shows how the pieces cooperate (pp.29-32).</p>
+<div class="flow">
+<div class="node"><b>1. Run a profile</b>Test Data Manager</div><div class="arrow">→</div>
+<div class="node"><b>TDM Server</b>asks the Data Integration Service to extract source data</div><div class="arrow">→</div>
+<div class="node"><b>Model Repository Service</b>loads table metadata into the Model repository</div><div class="arrow">→</div>
+<div class="node"><b>Profiling warehouse</b>receives the results</div>
+</div>
+<div class="flow">
+<div class="node"><b>2. Import metadata</b>from a database</div><div class="arrow">→</div>
+<div class="node"><b>TDM Server</b>extracts table metadata</div><div class="arrow">→</div>
+<div class="node"><b>TDM repository</b>holds it</div>
+</div>
+<div class="flow">
+<div class="node"><b>2b. Import from PowerCenter</b></div><div class="arrow">→</div>
+<div class="node"><b>TDM Server</b>asks the PowerCenter Repository Service</div><div class="arrow">→</div>
+<div class="node"><b>TDM repository</b>receives a copy of the metadata</div>
+</div>
+<div class="flow">
+<div class="node"><b>3. Run a plan's workflow</b></div><div class="arrow">→</div>
+<div class="node"><b>PowerCenter Integration Service</b>runs it using the chosen connections</div><div class="arrow">→</div>
+<div class="node"><b>Target database</b>receives masked or generated data</div>
+</div>
+<p><span class="badge concept">General concept</span> The practical lesson (my reasoning from the three journeys, not a quote): a failed profile points at the Data Integration Service, its connection, or the profiling warehouse. A failed workflow points at the PowerCenter Integration Service or the connections you picked in the plan. A missing table in a project usually means the metadata import did not finish or was rejected.</p>
