@@ -12,7 +12,7 @@
 </tbody></table></div>
 <p>The SQL below is a hand-made miniature of the pipeline. A tool would do the same work from rules and plans, with logging; the goal here is to see each stage with your own eyes. Mark which statements are extract, transform and load as you go.</p>
 <div class="exercise"><h4>Lab: run the ShopSphere TDM pipeline by hand</h4>
-<p>Goal: profile, subset, mask, load and verify, and confirm that the test tables contain no original SSN or email. Use an empty SQLite database (or adapt the function names for another database). All data is fake. <span class="badge concept">Illustrative data, not from vendor docs</span></p>
+<p>Goal: profile, subset, mask, load and verify, and confirm that the test tables contain no original SSN or email. Use an empty SQLite database (or adapt the function names for another database).</p>
 <ol class="steps">
 <li><strong>Create the fake production tables, the staging helper, a name dictionary and empty test tables.</strong><p>Production stays read only for the whole lab; we only ever select from it.</p><pre><code>-- "Production" (fake data, as in the shared ShopSphere example)
 CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, first_name TEXT, last_name TEXT, email TEXT,
@@ -93,7 +93,7 @@ SELECT 'Tester' || 1001 = last_name AS same_as_first_run FROM t_customers WHERE 
 <h3 id="c9-pit-order">9.8.1 Masking after load instead of before</h3>
 <p>The ETL reflex "land the raw data, then clean it" is wrong for sensitive data. Between the load and the end of masking, real values sit in an environment with wide access, and a failure leaves them there. Prefer on-the-fly or pre-load masking, or in-place masking inside a protected staging environment that testers cannot reach, and copy onward only after verification. Informatica's plan masks data inside the same workflow that loads the target, with subset first (p.275); Delphix on-the-fly jobs never write unmasked rows to the target; GenRocket G-Subset replaces sensitive values in the dump file before insertion. <span class="badge doc">From docs</span></p>
 <h3 id="c9-pit-consistency">9.8.2 Consistency across ETL and masking</h3>
-<p>When keys are masked, they must be masked identically wherever they appear. I tested this with the three ShopSphere customers and four orders by adding 70000 to the key.</p>
+<p>When keys are masked, they must be masked identically wherever they appear. Example: adding 70000 to the key of the three ShopSphere customers and four orders.</p>
 <pre><code>-- Customer keys masked, order keys left alone: the join breaks
 SELECT COUNT(*) FROM orders o JOIN (SELECT customer_id + 70000 AS customer_id FROM customers) c
   ON c.customer_id = o.customer_id;                        -- returns 0
@@ -106,11 +106,11 @@ SELECT COUNT(*) FROM (SELECT order_id, customer_id + 70000 AS customer_id FROM o
 <h3 id="c9-pit-performance">9.8.3 Performance</h3>
 <p>Masking adds work to every row, and subsetting adds joins. Plan for it as you would for ETL: choose commit sizes, parallelism and index handling, and expect trade-offs. Delphix's guidance includes number of streams, update threads (reduce them if you see database deadlocks), and the option to drop indexes during a job; Informatica allows up to eight workflows at once. A subset reduces volume, which is usually the biggest performance win, so extract less before you optimise anything else. <span class="badge doc">From docs</span></p>
 <h3 id="c9-pit-audit">9.8.4 Audit trails</h3>
-<p>An ordinary ETL log says whether the job ran. A TDM log must also help answer: who masked this, with which rules, and when? What the tools provide, from the pages I read: <span class="badge doc">From docs</span></p>
+<p>An ordinary ETL log says whether the job ran. A TDM log must also help answer: who masked this, with which rules, and when? What the tools provide:</p>
 <ul>
 <li><strong>Informatica:</strong> an Audit Trail Report listing recent activities in Test Data Manager (type of activity, object, user, date and time, with filters and CSV download), a Data Masking Report listing columns with their assigned rules and policies, a Plan Audit Report, and a Row Count Report (User Guide 10.5.10, pp.321 to 322, 324). The Monitor view shows job types such as Generate Workflow, Execute Workflow and Reset Data Set from Test Data Warehouse (p.316).</li>
 <li><strong>Delphix:</strong> audit logs record user actions in the UI or REST API: the action, user and time, with action categories such as Create, Edit, Run, Login; the UI page is for admin users and can export a PDF. <a href="https://help.delphix.com/cc/current/content/audit_logs.htm" target="_blank" rel="noopener">Audit logs ↗</a></li>
-<li><strong>GenRocket:</strong> the pages I read do not describe an audit log for the G-Subset feature, so check your version.</li>
+<li><strong>GenRocket:</strong> the documentation does not describe an audit log for the G-Subset feature, so check your version.</li>
 </ul>
 <div class="callout warn"><strong class="ctitle">Other gotchas</strong>
 <ul>

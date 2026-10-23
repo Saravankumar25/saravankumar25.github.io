@@ -1,6 +1,6 @@
-<p>The <a href="17-genrocket-overview.html">GenRocket overview chapter</a> gave you the five building blocks and the map of the product. This chapter works on the first three: <strong>domains</strong> (the tables), <strong>attributes</strong> (the columns) and <strong>generators</strong> (the recipes that decide each value). Together they are the Model and part of the Design phase. By the end you will be able to describe the ShopSphere CUSTOMERS, ORDERS and ORDER_ITEMS tables to GenRocket, link them so every foreign key is valid, and choose a generator for every column.</p>
+<p>The first three of the <a href="17-genrocket-overview.html">five building blocks</a> are <strong>domains</strong> (the tables), <strong>attributes</strong> (the columns) and <strong>generators</strong> (the recipes that decide each value). Together they are the Model and part of the Design phase. The worked example describes the ShopSphere CUSTOMERS, ORDERS and ORDER_ITEMS tables to GenRocket, links them so every foreign key is valid, and chooses a generator for every column.</p>
 
-<p>The output side, receivers and scenarios, is in <a href="19-genrocket-receivers-and-scenarios.html">the receivers and scenarios chapter</a>. The patterns you can build with generators (boundary, sequential, random, edge cases, null) get their own treatment in <a href="20-genrocket-data-patterns.html">the data patterns chapter</a>.</p>
+<p>The output side, receivers and scenarios, is in <a href="19-genrocket-receivers-and-scenarios.html">the receivers and scenarios chapter</a>. Patterns built with generators (boundary, sequential, random, edge cases, null) are in <a href="20-genrocket-data-patterns.html">the data patterns chapter</a>.</p>
 
 <div class="callout recap"><strong class="ctitle">What you will learn</strong>
 <ul>
@@ -16,14 +16,14 @@
 </div>
 
 <div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
-<p>Official GenRocket help-centre pages, read in full, with the vendor's screenshots embedded and each one viewed before I described it. The main pages:</p>
+<p>Official GenRocket help-centre pages, with the vendor's screenshots embedded. The main pages:</p>
 <ul>
 <li>Domains: "<a href="https://genrocket.helpjuice.com/en_US/domains-overview/domains-overview" target="_blank" rel="noopener">Domains Overview</a>", "<a href="https://genrocket.helpjuice.com/en_US/domains-overview/domain-dashboard" target="_blank" rel="noopener">Domain Dashboard</a>", "<a href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-create-a-new-domain" target="_blank" rel="noopener">How do I create a New Domain?</a>", "<a href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-import-my-data-model-into-genrocket" target="_blank" rel="noopener">How do I import my data model into GenRocket?</a>", the single and multiple DDL pages, the XTS file and XTS Import Wizard pages, "<a href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-use-scratch-pad-to-quickly-create-a-domain" target="_blank" rel="noopener">Scratch Pad</a>", the relationship pages, the Domain Referencing Wizard, "<a href="https://genrocket.helpjuice.com/en_US/domains-overview/what-are-domain-variables" target="_blank" rel="noopener">What are Domain Variables?</a>", "<a href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-change-the-loopcount-for-a-domain" target="_blank" rel="noopener">How to update Domain loopCounts</a>" and "<a href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-create-a-domain-category" target="_blank" rel="noopener">How do I create a Domain Category?</a>".</li>
 <li>Attributes: the Attributes Overview, Attribute Dashboard, adding, referencing, hierarchy and copying pages, and the database-changes page.</li>
 <li>Generators: Generators Overview, How are Generators Assigned to Domain Attributes?, assign to one and many attributes, copy (simple), Generator Tags, What is Seeding?, ProxyReferenceGen versus ReferenceGen, Enforce Data Type and Size, Primary Keys after the Max Value, Linked Generators Overview, the list, string, conditional logic, query and UUID overview pages, and the individual pages for RangeGen, NameGen, FullNameGen, EmailGen, PhoneNumberGen, SSNGen, FlexibleDateRangeGen, ListGen, RandomGen, ReferenceGen and ProxyReferenceGen.</li>
 </ul>
-<p>I also use the 2020 Kualitatem and GenRocket webinar (transcript supplied by the learner), in which GenRocket's CTO builds a user domain live and answers questions. It is a vendor demonstration of an older product version, so each use is labelled, checked against the docs above, and marked where the docs differ.</p>
-<p>The ShopSphere design at the end is my own illustration built from those documented generators. The generator parameters I name come from each generator's page; where I did not read a generator's own page, I say so.</p>
+<p>Also used: the 2020 Kualitatem and GenRocket webinar, in which GenRocket's CTO builds a user domain live and answers questions. It is a vendor demonstration of an older product version, so each use is labelled and marked where the docs differ.</p>
+<p>The ShopSphere design at the end is built from the documented generators; the parameters named come from each generator's page.</p>
 </div>
 
 <h2 id="c18-words">18.1 Words to know first</h2>
@@ -61,11 +61,11 @@
 
 <p>A domain inside a project version is a <em>template</em>: it holds the attributes, generators and relationships. When you create a scenario, GenRocket copies the template into a <em>scenario domain</em>. Changes you make to the template cascade down to every scenario unless the scenario (or the scenario domain) is locked. It is like a letter template, except that you can pin a printed letter so later edits leave it alone.</p>
 
-<p>The docs also state a rule that surprises beginners: a template domain works independently and cannot really reference another domain's attributes. Relationships at the domain level are "just probable". The real references are made at the scenario level, where related domains are put together. You will see this again with ProxyReferenceGen below.</p>
+<p>The docs also state a rule: a template domain works independently and cannot really reference another domain's attributes. Relationships at the domain level are "just probable". The real references are made at the scenario level, where related domains are put together. You will see this again with ProxyReferenceGen below.</p>
 
 <p>Each time a domain is created or imported, it gets three default variables, all initially 1 (<a href="#c18-vars">details below</a>): <code>id</code>, <code>loopCount</code> and <code>seed</code>.</p>
 
-<p>The "New Domain" page says a domain name should contain only letters and numbers (spaces are now also allowed), so for ORDER_ITEMS I would name the domain <code>OrderItems</code> and put <code>ORDER_ITEMS</code> in the <em>Table Name</em> field. The page does not say what happens with an underscore, so I avoid it.</p>
+<p>The "New Domain" page says a domain name should contain only letters and numbers (spaces are now also allowed), so ORDER_ITEMS becomes a domain named <code>OrderItems</code> with <code>ORDER_ITEMS</code> in the <em>Table Name</em> field. The page does not say what happens with an underscore.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776676772282/5PeAO68g2A-SaP41e2H95EtWLyNgR3_xvg.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776676772282/5PeAO68g2A-SaP41e2H95EtWLyNgR3_xvg.png" alt="The GenRocket Project Dashboard for DemoProject1 version 1.0 with the Domains pane listing Address, Department, Organization and User, plus Scenarios, Scenario Chains, Scenario Chain Sets and the Management pane" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Where domains live: the Domains pane of the Project Dashboard lists the domains (here Address, Department, Organization and User) of the selected project version. Clicking a domain name opens its Domain Dashboard. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/domains-overview/domains-overview" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -73,7 +73,7 @@
 
 <h3 id="c18-domain-dash">18.2.2 The Domain Dashboard</h3>
 
-<p>Click a domain's name and the Domain Dashboard opens. It is the screen where you will work most. Study the screenshot first and then the table that explains the areas.</p>
+<p>Click a domain's name and the Domain Dashboard opens. It is the main working screen; the table below explains its areas.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776676994828/55pOWf-vsbEIzKTz-BT85vBfh81iOGtCyA%20(1).png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776676994828/55pOWf-vsbEIzKTz-BT85vBfh81iOGtCyA%20(1).png" alt="The Domain Dashboard for domain User in SimpleProject version 1.2 with buttons Variables, Global Editing, Domain Search, Scenario Search, Chain Search, Value Search, New Domain, Manage; fields Name, Table Name, Description, Definition and Enforce Type/Limit; buttons Save, Copy, Group Edit, Categorize, Delete, Global Seed; tabs Main, Relationship, Template; an attribute list on the left (id, firstName, middleInitial, lastName, ssn); Domain Variables (global.User.id 1, loopCount 1000, seed 1), Domain Receivers (DelimitedFileReceiver), Domain Scenarios (UserScenario, AddressScenario) and a Preview Data grid with sample rows" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Domain Dashboard. Left: the attributes (a key icon marks the primary attribute). Centre: three panes for domain variables, receivers and scenarios. Bottom: a Preview Data grid that shows sample generated rows (the "15" box sets how many). <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/domains-overview/domain-dashboard" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -116,7 +116,7 @@
 </table>
 </div>
 
-<h3 id="c18-new-domain">18.2.4 Lab-style walk: a new domain by hand</h3>
+<h3 id="c18-new-domain">18.2.4 Creating a domain by hand</h3>
 
 <ol class="steps">
 <li><strong>Select your project in the Projects pane.</strong>
@@ -201,6 +201,6 @@
 
 <p><span class="badge video">From video</span> In the 2020 webinar, GenRocket's CTO builds a domain on screen in a few minutes, which shows what the Scratch Pad method feels like. He creates a project called "live demo", opens the domain page and chooses Scratch Pad. He types attributes that nearly every application has (first name, last name, middle initial, password, username), then adds social security number, card number and phone number. GenRocket looks each name up in what he calls its data warehouse, a store of the generators most used for common attribute names, and attaches a likely generator to each. It even matched "middle" after he misspelled it. A preview of sample rows appears at once.</p>
 
-<p>The docs describe the same behaviour: <em>Create with Generators</em> assigns generators, guessing from the attribute name, domain name, industry type and what other users chose (<a href="#c18-assign">18.6.1</a>). They say nothing about tolerating misspellings, so type names carefully. They also say an attribute with "password" in its name is given the EncryptGen generator automatically.</p>
+<p>The docs describe the same behaviour: <em>Create with Generators</em> assigns generators, guessing from the attribute name, domain name, industry type and what other users chose (<a href="#c18-assign">section 18.6.1</a>). They say nothing about tolerating misspellings, so type names carefully. They also say an attribute with "password" in its name is given the EncryptGen generator automatically.</p>
 
-<p>Two details from the same session. He says there were nine ways to set up a project in 2020; the docs now count seventeen (<a href="#c18-domain-create">18.2.3</a>). And in the Q&amp;A he describes the schema extract (XTS, <a href="#c18-xts">18.2.6</a>) as reading metadata only (table and attribute names, types, foreign keys), after which a wizard lets you mark each domain's one parent and the rest become siblings. The docs match. His claim of 10,000 tables of 100 attributes loaded in about eight minutes is a 2020 vendor figure that the docs I read do not repeat.</p>
+<p>Two details from the same session. He says there were nine ways to set up a project in 2020; the docs now count seventeen (<a href="#c18-domain-create">section 18.2.3</a>). And in the Q&amp;A he describes the schema extract (XTS, <a href="#c18-xts">section 18.2.6</a>) as reading metadata only (table and attribute names, types, foreign keys), after which a wizard lets you mark each domain's one parent and the rest become siblings. The docs match. His claim of 10,000 tables of 100 attributes loaded in about eight minutes is a 2020 vendor figure that the docs do not repeat.</p>

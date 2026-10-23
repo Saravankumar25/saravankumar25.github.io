@@ -83,11 +83,11 @@
 <div class="tablewrap"><table class="sample"><caption>PRODUCTS</caption><thead><tr><th>product_code (PK)</th><th>product_name</th><th>price</th></tr></thead><tbody><tr><td>P100</td><td>Wireless Mouse</td><td>799.00</td></tr>
 <tr><td>P200</td><td>USB-C Cable</td><td>299.00</td></tr>
 <tr><td>P300</td><td>Laptop Stand</td><td>1499.00</td></tr></tbody></table></div>
-<p>These rows are illustrative and fake. Customer 1003 (Meera) has no orders: a parent with no children is perfectly legal. The reverse is not.</p>
+<p>Customer 1003 (Meera) has no orders: a parent with no children is perfectly legal. The reverse is not.</p>
 
 <h3 id="c3-ri">Referential integrity</h3>
 <p><dfn>Referential integrity</dfn> is the rule that every foreign key value must match a primary key value that exists. Every order must belong to a customer who exists; every item to an order that exists.</p>
-<p>A child row whose parent is missing is called an <dfn>orphan</dfn>. Suppose someone deletes customer 1001 but leaves orders 5001 and 5002. Those orders now point to nobody. The "my orders" page crashes. When the database has the foreign key declared, it refuses such a delete, and it refuses to insert an order for a customer ID that does not exist. (When I tried this in SQLite with foreign key enforcement switched on, both attempts were rejected with a foreign key constraint error.)</p>
+<p>A child row whose parent is missing is called an <dfn>orphan</dfn>. Suppose someone deletes customer 1001 but leaves orders 5001 and 5002. Those orders now point to nobody. The "my orders" page crashes. When the database has the foreign key declared, it refuses such a delete, and it refuses to insert an order for a customer ID that does not exist. (In SQLite with foreign key enforcement switched on, both attempts are rejected with a foreign key constraint error.)</p>
 
 <div class="callout why">
 <strong class="ctitle">Why keys matter so much to TDM</strong>
@@ -102,7 +102,7 @@
 
 <h3 id="c3-logical-keys">Logical keys: keys the database does not know about</h3>
 <p>Everything above assumed the keys are <em>declared</em> in the database. In real life they often are not. Older systems, performance-minded designs and imported data frequently have tables with no declared primary or foreign keys at all, even though the application treats certain columns as keys. The relationships exist in the developers' heads and in the code, not in the schema.</p>
-<p>TDM tools cannot follow a relationship they do not know about. So they let you (or their profilers) describe the relationships separately. Keys defined this way are called <dfn>logical keys</dfn> in this guide: the tool is told "treat this column as the key" without any change to the real database.</p>
+<p>TDM tools cannot follow a relationship they do not know about. So they let you (or their profilers) describe the relationships separately. Keys defined this way are called <dfn>logical keys</dfn>: the tool is told "treat this column as the key" without any change to the real database.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Tool</th><th>What its documentation says</th></tr></thead><tbody><tr><td>Informatica</td><td>Primary-key and foreign-key profiles can discover potential relationships (p.21). The foreign key profile adds the discovered logical constraints to the TDM repository but does not apply them in the source tables; the subset workflow uses them to produce referentially intact data (p.86). You can also add a logical primary key to a table (p.109) and a logical foreign key choosing a column from a parent table (p.110). In its worked example the database contains no primary or foreign keys, so the developer creates logical ones (p.34). For data sets it advises creating logical keys in transactional tables that have no primary keys (p.239).</td></tr>
 <tr><td>Delphix</td><td>In a rule set, a logical key is a unique, non-null value identifying a row. If a table has no primary key defined and you use in-place masking, you must name an existing column or columns as the logical key. It does not change the target database; it only informs Delphix. Without one, an identity column may be created, which requires permission to modify the schema or the job may fail. The rule set "Checklist" validates that every table has a primary key, an indexed identity column or a logical key (<a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>).</td></tr></tbody></table></div>

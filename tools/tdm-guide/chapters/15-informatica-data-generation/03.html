@@ -19,8 +19,6 @@
 <tr><td>Custom</td><td>Mapplet</td><td>String, numeric, date</td><td>Logic imported from a PowerCenter mapplet</td></tr>
 </tbody></table></div>
 
-<p>For each technique below you get what it does, when to reach for it, its parameters and a ShopSphere example. The example outputs are my illustrations of what such a rule would produce, not captured TDM output, unless I say the guide shows them.</p>
-
 <h3 id="c15-t-sequence">15.9.1 Sequence</h3>
 
 <p><span class="badge doc">From docs</span> A global or ad hoc rule that makes numeric or date values in a sequence. You pick a beginning value and an increment (User Guide 10.5.10, p.230).</p>
@@ -46,7 +44,7 @@
 <p>For strings the usable operators are <code>.</code>, <code>\d</code>, <code>\w</code>, alternation <code>(a|b|c)</code>, <code>{n}</code> repeat counts and <code>[ ]</code> sets. To make numbers that contain special characters, use the <em>string</em> technique. To make plain numbers use the <em>numeric</em> technique, which allows <code>\d</code>, alternates like <code>(1|2|3)</code> and <code>[0-9]</code>, and alternates cannot be nested (p.223).</p>
 
 <div class="tablewrap"><table class="sample">
-<caption>ShopSphere pattern examples (my illustrations, using the operators the guide lists on p.223)</caption>
+<caption>ShopSphere pattern examples (example patterns using the operators listed on p.223)</caption>
 <thead><tr><th>Goal</th><th>Technique</th><th>Pattern</th><th>Example output</th></tr></thead>
 <tbody>
 <tr><td>ShopSphere mobile, 10 digits starting 6 to 9</td><td>Numeric</td><td><code>(6|7|8|9)\d{9}</code></td><td>9123456780</td></tr>
@@ -55,7 +53,7 @@
 <tr><td>ShopSphere test email</td><td>String</td><td><code>[a-z]{8}@example\.(com|org)</code></td><td>qkdmpzra@example.org</td></tr>
 </tbody></table></div>
 
-<p>Read a pattern left to right as slots: <code>\d</code> is one digit, <code>{n}</code> repeats the previous piece, <code>[A-Z]</code> is one character from a range, <code>(a|b)</code> is a choice and <code>\.</code> is a literal dot. So <code>(6|7|8|9)\d{9}</code> is a first digit 6 to 9 followed by nine digits. This reading aid is general knowledge. Test a pattern by generating a few rows into a scratch table first.</p>
+<p>Read a pattern left to right as slots: <code>\d</code> is one digit, <code>{n}</code> repeats the previous piece, <code>[A-Z]</code> is one character from a range, <code>(a|b)</code> is a choice and <code>\.</code> is a literal dot. So <code>(6|7|8|9)\d{9}</code> is a first digit 6 to 9 followed by nine digits. Test a pattern by generating a few rows into a scratch table first.</p>
 
 <div class="callout warn"><strong class="ctitle">Patterns cannot make valid checksummed numbers</strong>
 <p>For credit card, Social Security and Social Insurance numbers the guide warns that pattern-made values might not be valid, because real numbers follow algorithms that a pattern cannot reproduce (p.224). That is fine for "SSN-like" test data, and it is why the Credit Card technique exists.</p></div>
@@ -78,7 +76,7 @@
 
 <p>If both lookup and table columns are of double data type the process generates nulls (p.216). The guide's example makes two string rules from one names dictionary: one picks the first-name column, one the last-name column (p.215).</p>
 
-<p><strong>ShopSphere:</strong> <code>first_name</code> uses dictionary NAMES column FIRST, <code>last_name</code> uses column LAST. Sample output: Meera, Nair; Ravi, Kumar; Asha, Menon. The dictionary's name and column names here are placeholders I made up. Because the two rules pick independently, "Ravi Menon" is as likely as "Ravi Kumar", which is fine for testing and wrong for anything that needs a believable family name.</p>
+<p><strong>ShopSphere:</strong> <code>first_name</code> uses dictionary NAMES column FIRST, <code>last_name</code> uses column LAST. Sample output: Meera, Nair; Ravi, Kumar; Asha, Menon. Dictionary and column names here are placeholders. Because the two rules pick independently, "Ravi Menon" is as likely as "Ravi Kumar", which is fine for testing and wrong for anything that needs a believable family name.</p>
 
 <h3 id="c15-t-card">15.9.5 Credit Card</h3>
 
@@ -86,7 +84,7 @@
 
 <p>Parameters (pp.227-228): Issuing Network (required: American Express, Discover, JCB, Mastercard or Visa); an optional Issuer Identification Number of up to six starting digits (a value invalid for the network makes the workflow fail; blank lets TDM use valid ones); Distribution % (must total 100); Generate Formatted Values; Generate Unique Values; Null and Invalid Values. Valid starting digits include Visa 4, Mastercard 51 to 55 and American Express 34 and 37.</p>
 
-<p><strong>ShopSphere:</strong> the four tables hold no card numbers, so imagine a later <code>PAYMENTS.card_no</code> column. A rule with Visa at 60 percent and Mastercard at 40 percent, formatted, gives values shaped like <code>4666-1760-3137-2159</code> and <code>5122-3307-9244-0268</code>. I computed those two to pass the Luhn check, but TDM would produce its own digits.</p>
+<p><strong>ShopSphere:</strong> the four tables hold no card numbers, so imagine a later <code>PAYMENTS.card_no</code> column. A rule with Visa at 60 percent and Mastercard at 40 percent, formatted, gives values shaped like <code>4666-1760-3137-2159</code> and <code>5122-3307-9244-0268</code>. Those two pass the Luhn check; TDM would produce its own digits.</p>
 
 <h3 id="c15-t-ref">15.9.6 Reference Lookup</h3>
 
@@ -103,7 +101,7 @@
 
 <p><span class="badge doc">From docs</span> An <strong>ad hoc</strong> rule that computes a value from an expression you build in the Expression Builder, choosing columns and functions from lists. Works for string, numeric and date (p.219). Parameters: Expression, Null Values, Invalid Values (invalid = does not follow the expression) (p.220). If you tick "Override Data Type to Numeric" on a string column, you cannot enter a numeric expression (p.219).</p>
 
-<p>The guide's example builds a Name column from FirstName and LastName with <code>CONCAT (FirstName+'/'+LastName)</code>. <strong>ShopSphere:</strong> imagine a <code>display_name</code> column built as <code>CONCAT(CONCAT(first_name,' '),last_name)</code>, giving "Asha Menon". I mirrored the nested <code>CONCAT</code> style the guide uses in its advanced example; check the exact function list in your Expression Builder.</p>
+<p>The guide's example builds a Name column from FirstName and LastName with <code>CONCAT (FirstName+'/'+LastName)</code>. <strong>ShopSphere:</strong> imagine a <code>display_name</code> column built as <code>CONCAT(CONCAT(first_name,' '),last_name)</code>, giving "Asha Menon". Check the exact function list in your Expression Builder.</p>
 
 <p><strong>When:</strong> any column that is a function of other columns in the same row. The dependent column must still be assignable after its inputs, so assign rules to the inputs too.</p>
 
@@ -133,7 +131,7 @@
 
 <p>The guide also shows 50 "Invoice-n" plus 50 "Order-n" ids built from a conditional sequence (pp.199-200).</p>
 
-<div class="callout example"><strong class="ctitle">ShopSphere: realistic emails (my adaptation of the guide's example)</strong>
+<div class="callout example"><strong class="ctitle">ShopSphere: realistic emails (adapted from the guide's example)</strong>
 <p>Input <code>in_FirstName</code> mapped to <code>first_name</code>. Variable <code>var_Domain</code> with a Generation Rule Set: <code>example.com</code> 50 percent, <code>example.org</code> 50 percent. Output <code>out_Email</code> with the expression above. Result: Asha@example.com, Ravi@example.org.</p>
 <p>Two customers called Asha share the same name before the @. The guide does not say whether an input port reads the value <em>generated</em> for another column in the same run, so check that <code>first_name</code> is generated before the email. <span class="badge unverified">Verify in your version</span></p></div>
 
@@ -161,7 +159,7 @@
 <h2 id="c15-pick">15.11 Choosing a technique for every ShopSphere column</h2>
 
 <div class="tablewrap"><table>
-<caption>One reasonable rule set for the four ShopSphere tables (my design; techniques are from the guide)</caption>
+<caption>One reasonable rule set for the four ShopSphere tables (example rule set)</caption>
 <thead><tr><th>Column</th><th>Technique</th><th>Parameters</th><th>Why</th></tr></thead>
 <tbody>
 <tr><td>first_name, last_name</td><td>Dictionary</td><td>one names dictionary, two columns</td><td>Looks like a name</td></tr>

@@ -1,9 +1,9 @@
-<h2 id="c26-labs">26.12 Labs on ShopSphere (Day 55 and Day 56)</h2>
+<h2 id="c26-labs">26.12 Labs on ShopSphere</h2>
 <p>Both labs mask a <strong>test copy</strong> of ShopSphere, never <code>SHOPSPHERE_PROD</code>. They assume the environment, connector and rule set from <a href="23-delphix-connectors-and-vdb.html">the connectors chapter</a> and <a href="24-delphix-rule-sets-and-keys.html">the rule sets chapter</a>, and an inventory from <a href="25-delphix-profiling.html">the profiling chapter</a>. The SQL is generic; adjust it for your database (Oracle, PostgreSQL and SQL Server differ in small ways, noted where it matters). The Delphix hands-on chapter repeats these labs in a wider flow: <a href="28-delphix-hands-on-labs.html">the Delphix hands-on labs chapter</a>.</p>
 <div class="callout warn"><strong class="ctitle">Take a "before" snapshot first</strong>
-<p>An in-place job overwrites the data, so create a copy of the original rows to compare against. In PostgreSQL or Oracle: <code>CREATE TABLE customers_before AS SELECT * FROM customers;</code> (SQL Server: <code>SELECT * INTO customers_before FROM customers;</code>). This snapshot table is my lab convention, not a Delphix feature. Drop it when you finish: it holds the real-looking data.</p></div>
+<p>An in-place job overwrites the data, so create a copy of the original rows to compare against. In PostgreSQL or Oracle: <code>CREATE TABLE customers_before AS SELECT * FROM customers;</code> (SQL Server: <code>SELECT * INTO customers_before FROM customers;</code>). The snapshot table is a lab convention, not a Delphix feature. Drop it when you finish: it holds the real-looking data.</p></div>
 
-<div class="exercise"><h4>Lab A (Day 55, TDM_Handson7): mask FirstName</h4>
+<div class="exercise"><h4>Lab A: mask FirstName</h4>
 <p>Goal: mask <code>CUSTOMERS.first_name</code> with <code>dlpx-core:FirstName</code>, run an in-place job and prove the result with SQL.</p>
 <ol class="steps">
 <li><strong>Take the snapshot (above) and note the row counts of CUSTOMERS and ORDERS.</strong><p>You need the "before" numbers to judge "after".</p></li>
@@ -42,7 +42,7 @@ SELECT COUNT(*) FROM orders o JOIN customers c ON c.customer_id = o.customer_id;
 <details class="sol"><summary>Show a worked answer</summary>
 <p><strong>Expected results.</strong></p>
 <ul>
-<li>Query 1: both counts equal. Query 2: every row shows a new name; compare with the illustrative table in the first name section.</li>
+<li>Query 1: both counts equal. Query 2: every row shows a new name; compare with the example table in the first name section.</li>
 <li>Query 3: a small number. The documentation says <code>dlpx-core:FirstName</code> can mask a name to itself, so do not demand zero. With three rows, zero or one is normal.</li>
 <li>Query 4: <code>d_after</code> is at most <code>d_before</code>, because Name algorithms are not unique.</li>
 <li>Query 5: no rows. The same input must give the same output (deterministic). Rows here would mean the algorithm was re-keyed during the run or case settings differ.</li>
@@ -50,7 +50,7 @@ SELECT COUNT(*) FROM orders o JOIN customers c ON c.customer_id = o.customer_id;
 </ul>
 <p><strong>If it fails:</strong> status Warning means open the Error Report (see the non-conformant data part above); status Failed means read the Execution Log. An unchanged column means the algorithm was never saved in the inventory.</p></details></div>
 
-<div class="exercise"><h4>Lab B (Day 56, TDM_Handson8): mask alphanumeric text, SSN and telephone number</h4>
+<div class="exercise"><h4>Lab B: mask alphanumeric text, SSN and telephone number</h4>
 <p>Goal: mask <code>tax_id</code> (alphanumeric), <code>ssn</code> and <code>phone</code> with format-preserving algorithms and prove uniqueness, format and consistency. Start from a fresh test copy (restore the original rows and take a new <code>customers_before</code> snapshot).</p>
 <ol class="steps">
 <li><strong>Create the SSN algorithm: Settings &gt; Algorithms &gt; <em>+ Algorithm</em>, name <code>SHOPSPHERE_SSN</code>, framework Segment Mapping.</strong><p>Built-in instances exist, but building one shows how Segment Mapping works and guarantees uniqueness.</p></li>
@@ -95,7 +95,7 @@ SELECT COUNT(*) FROM orders o JOIN customers c ON c.customer_id = o.customer_id;
 <ul>
 <li><strong>tax_id:</strong> Character Mapping keeps letters as letters and digits as digits, and gives no two inputs the same output, so the shape and uniqueness checks should pass. The docs promise a masked value never equals the input if at least one character is masked.</li>
 <li><strong>ssn:</strong> Segment Mapping produces "no overlaps or repetitions", so duplicates should be 0. The page does not say a value can never map to itself, which is why that check is "0 or very close". If your application validates SSN rules (no 000 or 666 area, for instance), inspect the output; these frameworks do not promise valid issuing patterns.</li>
-<li><strong>phone:</strong> Phone Unique masks only the last seven digits and keeps all other characters, so the first three digits must be unchanged. The documentation excerpt I had does not guarantee distinct inputs always give distinct outputs, so a lower <code>d_after</code> than <code>d_before</code> is a finding to report, not necessarily a failure.</li>
+<li><strong>phone:</strong> Phone Unique masks only the last seven digits and keeps all other characters, so the first three digits must be unchanged. The documentation does not guarantee distinct inputs always give distinct outputs, so a lower <code>d_after</code> than <code>d_before</code> is a finding to report, not necessarily a failure.</li>
 <li><strong>Joins:</strong> none of these columns is a key, so the join count equals the number of orders.</li>
 </ul>
 <p><strong>Consistency across tables.</strong> If an SSN or tax id also appears in another table or file, that column must use the same algorithm, or the same person gets two different masked values and tests break.</p>

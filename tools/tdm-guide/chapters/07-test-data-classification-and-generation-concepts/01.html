@@ -1,10 +1,10 @@
-<p>So far you have met two ways to get test data. You can copy and cut down real data (<a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>) and then hide the sensitive parts (<a href="06-masking-concepts.html">the masking concepts chapter</a>). This chapter introduces the third way: <strong>make the data up</strong>, on purpose, from rules. Before we do that we need a better question than "where do I get data?". The better question is: <em>what is this data for?</em></p>
+<p>Two ways to get test data are to copy and cut down real data (<a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>) and then hide the sensitive parts (<a href="06-masking-concepts.html">the masking concepts chapter</a>). The third way is to <strong>make the data up</strong>, on purpose, from rules. Before choosing a way, the better question is not "where do I get data?" but <em>what is this data for?</em></p>
 <p>A tester checking the login screen does not need "a lot of customers". She needs one normal customer, one customer whose account is locked, one with a very long surname, one with no phone number, and one whose date of birth makes them exactly 18 today. Each of those rows has a different job. Naming the jobs is called <strong>classifying</strong> test data, and it is the starting point for designing any data set, whether you copy it, mask it or generate it.</p>
-<p>This chapter is also where the course syllabus phrase "Model, Design, Deploy, Manage" first appears, and where the five "data patterns" of the syllabus (boundary conditions, sequential, random, edge cases, null) are placed on a map. The tool chapters later (<a href="15-informatica-data-generation.html">the Informatica data generation chapter</a> and the <a href="17-genrocket-overview.html">GenRocket chapters</a>) assume you have read this one.</p>
+<p>The chapter also covers the "Model, Design, Deploy, Manage" cycle and places the five data patterns (boundary conditions, sequential, random, edge cases, null) on a map. Tool detail is in <a href="15-informatica-data-generation.html">the Informatica data generation chapter</a> and the <a href="17-genrocket-overview.html">GenRocket chapters</a>.</p>
 <div class="callout recap"><strong class="ctitle">What you will learn</strong>
 <ul>
 <li>Three ways to classify test data: by <em>source</em>, by <em>sensitivity</em> and by <em>purpose</em>.</li>
-<li>The seven purposes of test data (valid, invalid, boundary, edge case, null or empty, volume, security) and how the syllabus "data patterns" map onto them.</li>
+<li>The seven purposes of test data (valid, invalid, boundary, edge case, null or empty, volume, security) and how the data patterns map onto them.</li>
 <li>What synthetic data is, and an honest comparison with masked production data.</li>
 <li>How generation works in principle: rules, generators, seeds and distributions.</li>
 <li>How to generate parent and child tables so every foreign key is valid.</li>
@@ -12,17 +12,6 @@
 <li>A complete design for 50 ShopSphere customers and their orders, with a coverage matrix.</li>
 </ul>
 </div>
-<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
-<p>This is mostly a concepts chapter, so most statements carry the badge <span class="badge concept">General concept</span>. Where I name what a tool does, it comes from these sources, which I read for this chapter:</p>
-<ul>
-<li><strong>Informatica:</strong> TDM 10.5.10 User Guide (PDF, February 2026), User Guide chapter 9 "Data Generation" (pp.190 to 207) and chapter 10 "Data Generation Techniques and Parameters" (pp.208 onward), plus chapter 13 (plans, p.285) and chapter 1 (p.24). Cited as (User Guide 10.5.10, p.NN).</li>
-<li><strong>GenRocket:</strong> help-centre pages "Why Synthetic Test Data?", "The GenRocket Methodology", "GenRocket Five Key Components", the General FAQ, "Generators Overview", "What is Seeding?", "Parent, Child, and Sibling Relationships", the G-Cases overview, the G-Portal overview and the "What is Synthetic Data Replacement (SDR)?" page. Each is linked where used.</li>
-<li><strong>Delphix:</strong> only the terminology page, for one sentence about its self-service interface.</li>
-<li><strong>Videos:</strong> the learner supplied transcripts of GenRocket's 2022 overview video and the 2020 Kualitatem and GenRocket webinar. They are vendor presentations, so I attribute them in the text; they are used in 7.3.3 and 7.9.</li>
-</ul>
-<p>The numbers in the ShopSphere design (50 customers, 75 orders) are my own illustrative choices, not from any vendor document. The Python snippet and the SQL checks were run by me before being printed here.</p>
-</div>
-
 <h2 id="c7-words">7.1 Words to know first</h2>
 <dl class="defs">
 <div>
@@ -102,9 +91,9 @@
 </div>
 
 <h3 id="c7-by-source">7.3.1 By source</h3>
-<p>The source is how the data came to exist. The syllabus groups tool capabilities exactly along this line: subsetting and masking work on production-derived data, while generation makes new data.</p>
+<p>The source is how the data came to exist. Tool capabilities divide along this line: subsetting and masking work on production-derived data, while generation makes new data.</p>
 <div class="tablewrap"><table><thead>
-<tr><th>Source class</th><th>How it is made</th><th>Typical risk</th><th>Where this guide covers it</th></tr>
+<tr><th>Source class</th><th>How it is made</th><th>Typical risk</th><th>Where it is covered</th></tr>
 </thead>
 <tbody>
 <tr><td>Production copy (raw)</td><td>Straight copy of the real database</td><td>Exposes real personal data; not allowed in test for regulated data</td><td><a href="02-why-tdm.html">Why TDM exists</a></td></tr>
@@ -152,4 +141,4 @@
 <div class="callout tip"><strong class="ctitle">Negative data usually does not live in the table</strong>
 <p>A database column with a 10-digit phone constraint will refuse <code>98765abcde</code> when you try to load it. Negative and security data are normally sent in through the screen, the API or an input file, not inserted straight into the table. Only load invalid values into a table if the table has no constraint and the test is about how the application reads bad stored data (for example a legacy table).</p>
 </div>
-<p><span class="badge video">From video</span> A vendor's view of the same list. In its 2022 overview video, GenRocket's CEO says masked copies of production leave "data gaps" and lists what its customers need instead: positive and negative data, <em>unique permutations</em> (every combination of values worth testing), <em>stateful data</em> (rows in a particular condition, such as a certain step of a complex workflow), referential integrity throughout, rules that condition the output, any volume from small to huge, and any file or database format. Most of this is the table above in other words. The additions to remember are <em>state</em> (a row's condition, not just its values) and <em>permutations</em> (all combinations, not single edge values). It is the vendor's pitch, not a measured finding.</p>
+<p>A vendor's view of the same list: in its 2022 overview video, GenRocket's CEO says masked copies of production leave "data gaps" and lists what its customers need instead: positive and negative data, <em>unique permutations</em> (every combination of values worth testing), <em>stateful data</em> (rows in a particular condition, such as a certain step of a complex workflow), referential integrity throughout, rules that condition the output, any volume from small to huge, and any file or database format. Most of this is the table above in other words. The additions to remember are <em>state</em> (a row's condition, not just its values) and <em>permutations</em> (all combinations, not single edge values). This is the vendor's pitch, not a measured finding.</p>

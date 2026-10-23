@@ -11,7 +11,7 @@
 <li><strong>Group B:</strong> delete the Skill criterion, then put a criterion on <code>City</code>: Equals, BLR, scope Department. The output has every department whose address city is BLR, with all child elements.</li>
 </ul>
 
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.127, Figure (Criteria tab of the file page). What I saw: a dialog titled "Edit - Skill" with tabs General, Data Masking, Data Generation and Criteria. Criteria is selected and shows three fields: Operator set to Equals, Value set to JAVA, Scope set to Departments/Department/Employee, with OK and Cancel buttons.</div>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.127, Figure (Criteria tab of the file page). Shows a dialog titled "Edit - Skill" with tabs General, Data Masking, Data Generation and Criteria. Criteria is selected and shows three fields: Operator set to Equals, Value set to JAVA, Scope set to Departments/Department/Employee, with OK and Cancel buttons.</div>
 
 <p>The lesson carries over to relational data: the level where you filter decides which ancestors and descendants appear. For the ShopSphere tables the equivalent of "scope" is your choice of driving table and relationship types.</p>
 
@@ -31,7 +31,7 @@
 
 <h2 id="c13-workflow">13.10 The whole workflow, start to finish</h2>
 
-<p>The guide's own summary of "Creating a Data Subset" is seven steps (User Guide 10.5.10, p.126) <span class="badge doc">From docs</span>. Here they are with the reason and what you should see.</p>
+<p>The guide's own summary of "Creating a Data Subset" is seven steps (User Guide 10.5.10, p.126) <span class="badge doc">From docs</span>.</p>
 
 <ol class="steps">
 <li><strong>Create a project and add the data sources.</strong>
@@ -75,18 +75,13 @@
 <div class="node"><b>7 Monitor</b></div>
 </div>
 
-<p>Plans and workflows get a full chapter of their own: see <a href="16-informatica-plans-workflows-and-warehouse.html">the Informatica plans and workflows chapter</a>. For connections and the profile that finds constraints, see <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>. The tour of the TDM screens is <a href="11-informatica-tdm-tour.html">the Informatica TDM tour</a>.</p>
+<p>Related: <a href="16-informatica-plans-workflows-and-warehouse.html">the Informatica plans and workflows chapter</a> (plans and workflows), <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a> (connections and constraint discovery) and <a href="11-informatica-tdm-tour.html">the Informatica TDM tour</a> (screens).</p>
 
 <h2 id="c13-shopsphere">13.11 Worked example: ShopSphere down to 10 percent</h2>
 
-<div class="callout note">
-<strong class="ctitle">What is documented and what is illustrative</strong>
-<p>The steps and settings follow the guide as cited. The data, the counts and the names (<code>SHOPSPHERE_PROD</code>, <code>MAX_CUST_ID</code>, the products) are my fictional ShopSphere example. The exact row counts in "Option A versus a major relationship" are made up to show the <em>effect</em> the guide describes, not measured in a real run.</p>
-</div>
-
 <h3 id="c13-ss-goal">The goal</h3>
 
-<p>ShopSphere's QA team wants a test database with about 10 percent of customers, with all their orders and order lines, and the products on those lines. The source has 20 customers (1001 to 1020), 36 orders, 80 order lines and 12 products (illustrative). Target: 2 customers.</p>
+<p>ShopSphere's QA team wants a test database with about 10 percent of customers, with all their orders and order lines, and the products on those lines. The source has 20 customers (1001 to 1020), 36 orders, 80 order lines and 12 products. Target: 2 customers.</p>
 
 <h3 id="c13-ss-before">Before: the source rows we care about</h3>
 
@@ -99,7 +94,7 @@
 <tr><td>... 1004 to 1020</td><td colspan="4">17 more customers</td></tr>
 </tbody></table></div>
 
-<div class="tablewrap"><table class="sample"><caption>ORDERS and ORDER_ITEMS rows for customers 1001 and 1002 (illustrative)</caption>
+<div class="tablewrap"><table class="sample"><caption>ORDERS and ORDER_ITEMS rows for customers 1001 and 1002 (example data)</caption>
 <thead><tr><th>order_id</th><th>customer_id</th><th>item_id</th><th>product_code</th><th>quantity</th><th>unit_price</th></tr></thead>
 <tbody>
 <tr><td>5001</td><td>1001</td><td>9001</td><td>P-100</td><td>1</td><td>999.00</td></tr>
@@ -161,7 +156,7 @@ WHERE o.order_id IS NULL;</code></pre>
 
 <h3 id="c13-ss-after">After: what lands in the target</h3>
 
-<div class="tablewrap"><table class="sample"><caption>Row counts, source versus target (illustrative)</caption>
+<div class="tablewrap"><table class="sample"><caption>Row counts, source versus target (example data)</caption>
 <thead><tr><th>Table</th><th>Source</th><th>Target with minor PRODUCTS link</th><th>Target with major PRODUCTS link</th></tr></thead>
 <tbody>
 <tr><td>CUSTOMERS</td><td>20</td><td>2 (1001, 1002)</td><td>15</td></tr>
@@ -174,7 +169,7 @@ WHERE o.order_id IS NULL;</code></pre>
 
 <h3 id="c13-ss-loop">Option A versus a major relationship</h3>
 
-<p>Why did I insist on changing PRODUCTS to minor? With the default (all major), the loop from 13.6 applies: line 9001 pulls in its parent product P-100. As a major parent, P-100 then selects <em>all</em> order lines for P-100, from every customer. Those lines pull their orders, the orders pull their customers, and so on, until nothing new is added. A popular product like P-100 can connect nearly everyone, so "10 percent of customers" turns into most of the database (the right-hand column above, illustrative counts). Minor means: bring the product along, but do not let the product pull its other lines.</p>
+<p>Why change PRODUCTS to minor? With the default (all major), the loop from 13.6 applies: line 9001 pulls in its parent product P-100. As a major parent, P-100 then selects <em>all</em> order lines for P-100, from every customer. Those lines pull their orders, the orders pull their customers, and so on, until nothing new is added. A popular product like P-100 can connect nearly everyone, so "10 percent of customers" turns into most of the database (the right-hand column above). Minor means: bring the product along, but do not let the product pull its other lines.</p>
 
 <pre class="ascii">
 Major PRODUCTS link                  Minor PRODUCTS link
@@ -190,13 +185,13 @@ customer 1001                        customer 1001
 
 <p>PRODUCTS is small and looks like reference data. Another valid design: disable the ORDER_ITEMS to PRODUCTS relationship in the entity (p.120) so the entity is just customers, orders and lines, then create a <strong>group</strong> containing PRODUCTS (tick it from the residual tables, p.116) and add both the entity and the group to the plan. The target gets all 12 products (unfiltered) and still has no orphan lines. The trade-off: 8 unused products travel along, which is harmless here but would matter for a 2-million-row table. Pick Option A for big parent tables and Option B for small reference tables.</p>
 
-<p><a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a> covers why test teams usually want reference data complete and transactional data small; <a href="14-informatica-data-masking.html">the Informatica masking chapter</a> shows masking the customers you just selected, so the 2 customers in this subset do not carry real names or SSNs.</p>
+<p>To mask the customers just selected, see <a href="14-informatica-data-masking.html">the Informatica masking chapter</a>.</p>
 
-<h2 id="c13-lab">13.12 Lab: TDM_Handson3 (profiling and subset), ShopSphere version</h2>
+<h2 id="c13-lab">13.12 Lab: subsetting ShopSphere</h2>
 
 <div class="exercise">
 <h4>Lab: subset ShopSphere to about 10 percent of customers</h4>
-<p>Goal: after profiling the source for constraints (the profiling half of TDM_Handson3 is in <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>), build an entity with CUSTOMERS as the driving table, filter with a parameter and run a plan so the target has the first 10 percent of customers with their orders, order lines and products. Everything below on ShopSphere is illustrative; the screens are from the guide, so use your lab environment's real database and its real table names.</p>
+<p>Goal: after profiling the source for constraints (see <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>), build an entity with CUSTOMERS as the driving table, filter with a parameter and run a plan so the target has the first 10 percent of customers with their orders, order lines and products. Use the lab environment's real database and table names.</p>
 <ol class="steps">
 <li><strong>Check the source.</strong>
 <p>Query counts on the four tables and write them down. You need them for the before and after comparison.</p>
@@ -265,5 +260,5 @@ customer 1001                        customer 1001
 <li>Informatica Test Data Management 10.5.10 User Guide (PDF, February 2026, 455 pages), User Guide chapter 6 "Creating a Data Subset", pages 112 to 134, read in full. Used for: components, entities, views, constraint properties, parameters, database functions, optimizing relations, integrity options, groups, component management, the seven-step workflow and the XSD example. Pages 113, 115, 119, 121 and 127 were rendered to read the figures.</li>
 <li>Same guide, chapter 3 "Projects" (Creating a Parameter, p.57 to 58), User Guide chapter 5 "Data Discovery" (constraints and major/minor severity, p.107 to 109), User Guide chapter 1 (template definition, p.32). Used for parameter types and naming, constraint types and the severity rules.</li>
 <li>Same guide, chapter 13 "Plans and Workflows": plan overview (p.274 to 275), Connection Options and Advanced settings (p.279, p.283, p.287), Subset Components and Component Criteria (p.293 to 294), creating a plan (p.304 to 305), workflow generation and execution and parameter files (p.308 to 312). Used for plan-level criteria, Limit, integrity option field, running the workflow.</li>
-<li>Syllabus mapping from the course curriculum (Day 44, TDM_Handson3). The ShopSphere data, row counts and the 10 percent target are the author's illustrative example.</li>
+<li>The ShopSphere data, row counts and the 10 percent target are example data.</li>
 </ul></section>

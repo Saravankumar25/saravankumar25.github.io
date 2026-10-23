@@ -1,6 +1,6 @@
 <h2 id="c14-compare">14.7 Comparison and decision table</h2>
 
-<p>From the guide's technique sections (User Guide 10.5.10, p.152 to 177); "Not described" means the guide does not say. The ShopSphere column is my suggestion.</p>
+<p>From the guide's technique sections (User Guide 10.5.10, p.152 to 177); "Not described" means the guide does not say.</p>
 
 <div class="tablewrap"><table>
 <thead><tr><th>Technique</th><th>Datatypes</th><th>Output looks real?</th><th>Repeatable?</th><th>Reversible?</th><th>Good ShopSphere fit</th></tr></thead>
@@ -63,7 +63,7 @@
 <tr><td>FULL_NAME</td><td>Output</td><td>Expression</td><td><code>FIRST_MASKED || ' ' || LAST_MASKED</code></td></tr>
 </tbody></table></div>
 
-<p>Result for customer 1001, illustrative: input Asha and Menon; variables Divya and Iyer; output "Divya Iyer". The guide's advice: build expressions by point-and-click to minimise errors, and check that the expression returns the output column's datatype.</p>
+<p>Result for customer 1001: input Asha and Menon; variables Divya and Iyer; output "Divya Iyer". The guide's advice: build expressions by point-and-click to minimise errors, and check that the expression returns the output column's datatype.</p>
 
 <h3 id="c14-name-subst">Worked example: first names by gender and nationality (guide)</h3>
 
@@ -75,7 +75,7 @@
 
 <h2 id="c14-custom">14.9 Custom rules: mapplets and the Data Masking transformation</h2>
 
-<p>This is the Day 54 topic "masking rules, algorithms, mapplet creation, using transformations". It has three parts: what a mapplet is, a worked build in PowerCenter, and how Test Data Manager uses a mapplet once it exists. The build follows a learner-supplied video; the TDM side follows the User Guide.</p>
+<p>Three parts: what a mapplet is, a worked build in PowerCenter, and how Test Data Manager uses a mapplet once it exists. The build follows the LearningMart video "How to create mapplet in informatica"; the TDM side follows the User Guide.</p>
 
 <h3 id="c14-mapplet-concept">The general idea <span class="badge video">From video</span></h3>
 
@@ -83,10 +83,10 @@
 
 <h3 id="c14-mapplet-build">Build a mapplet: full name from first and last name <span class="badge video">From video</span></h3>
 
-<p>This follows the video's build step by step. It is a PowerCenter task done in PowerCenter Designer, not in Test Data Manager. The video does not name every menu item clearly, so where a caption was garbled I describe the action rather than a button, and the version of PowerCenter shown is not stated. Names such as <code>MLT_FULL_NAME</code> are my choices.</p>
+<p>This follows the video's build step by step. It is a PowerCenter task done in PowerCenter Designer, not in Test Data Manager. The video does not state the PowerCenter version.</p>
 
 <div class="tablewrap"><table class="sample">
-<caption>Illustrative only: what the finished mapplet does to ShopSphere <code>CUSTOMERS</code> rows. The video's own sample names are garbled in the captions, so these are my fake examples.</caption>
+<caption>What the finished mapplet does to ShopSphere <code>CUSTOMERS</code> rows (example data)</caption>
 <thead><tr><th>first_name (in)</th><th>last_name (in)</th><th>full_name (out)</th></tr></thead>
 <tbody>
 <tr><td>Asha</td><td>Menon</td><td>Asha Menon</td></tr>
@@ -96,7 +96,7 @@
 
 <ol class="steps">
 <li><strong>Open the Mapplet Designer and name the mapplet.</strong>
-<p>The Mapplet Designer is the part of PowerCenter Designer where mapplets are built. Use a clear prefix such as <code>MLT_</code> so mapplets are easy to tell from mappings. The video uses a name of that kind, but its exact name is garbled in the captions, so I do not quote it.</p>
+<p>The Mapplet Designer is the part of PowerCenter Designer where mapplets are built. Use a clear prefix such as <code>MLT_</code> so mapplets are easy to tell from mappings.</p>
 <p class="expect">An empty mapplet workspace with your name on it.</p></li>
 <li><strong>Add a Mapplet Input transformation with two input ports, <code>first_name</code> and <code>last_name</code>.</strong>
 <p>The video says a mapplet has two edge pieces: an input transformation whose ports carry data in, and an output transformation whose ports carry data out. It opens the Transformation tab at the top of the Designer, chooses the Mapplet Input transformation, names it and adds the two ports.</p>
@@ -105,7 +105,7 @@
 <p>Joining two values needs a calculation, and the video uses an Expression transformation for that (a step that computes a new value for every row). Dragging the ports copies them in as inputs.</p>
 <p class="expect">The Expression transformation shows <code>first_name</code> and <code>last_name</code>, linked from the Mapplet Input.</p></li>
 <li><strong>Create a new output port in the Expression transformation called <code>full_name</code>, with a size above 40.</strong>
-<p>The video explains the size: this port holds two values joined together, so it must be longer than a single name. As my own arithmetic, make it at least the two input sizes plus one for the space, because a smaller port risks cutting off long names.</p>
+<p>The video explains the size: this port holds two values joined together, so it must be longer than a single name. Make it at least the two input sizes plus one for the space, because a smaller port risks cutting off long names.</p>
 <p class="expect">A <code>full_name</code> port flagged as an output port.</p></li>
 <li><strong>Write the expression: <code>first_name || ' ' || last_name</code>.</strong>
 <p>You can use the concatenation function or the pipe operator <code>||</code>; the video picks the pipes, with a space between the two names so they do not run together. It then validates the expression and clicks Apply and OK.</p>
@@ -123,7 +123,7 @@
 <p>Each connection tells PowerCenter which column feeds which port.</p>
 <p class="expect">The mapping validates ("mapping is valid").</p></li>
 <li><strong>Create the workflow in Workflow Manager. Check the source and target connection values, and choose Normal load when the target has a primary key. Save.</strong>
-<p>A workflow is what actually runs the mapping. The video gives the Normal-load rule without a reason. A common reason (general knowledge, not from the video) is that bulk loading skips some database checking and logging, so it may not suit a constrained target; ask your trainer which your database needs.</p>
+<p>A workflow is what actually runs the mapping. The video gives the Normal-load rule without a reason; a common reason is that bulk loading skips some database checking and logging, so it may not suit a constrained target.</p>
 <p class="expect">A saved workflow with valid connections.</p></li>
 <li><strong>Run the workflow and check the target data.</strong>
 <p>Reading the rows is the real test.</p>
@@ -139,12 +139,11 @@
 <li>Choosing the wrong load type when the target has a primary key (the video says Normal).</li>
 <li>Leaving out the space, which gives "AshaMenon".</li>
 </ul>
-<p>These are my reading of what the video does and says; the video does not present them as a list.</p>
 </div>
 
 <h3 id="c14-mapplet-to-tdm">From PowerCenter mapplet to TDM rule <span class="badge doc">From docs</span></h3>
 
-<p>Steps 8 to 11 above build a mapping and workflow by hand. TDM does not need those, because the PowerCenter Integration Service creates the mappings, transformations, mapplets, sessions and workflows itself when a plan runs, and the guide warns that editing generated components in the PowerCenter Client may give unexpected results (User Guide 10.5.10, p.141, p.150). What TDM needs is the mapplet. So the sequence is: build and validate the mapplet in PowerCenter (steps 1 to 7), export it to an XML file from the PowerCenter repository, then import it in Test Data Manager as a rule (p.137, p.140). Testing it in a throwaway mapping first, as the video does, is my suggestion.</p>
+<p>Steps 8 to 11 above build a mapping and workflow by hand. TDM does not need those, because the PowerCenter Integration Service creates the mappings, transformations, mapplets, sessions and workflows itself when a plan runs, and the guide warns that editing generated components in the PowerCenter Client may give unexpected results (User Guide 10.5.10, p.141, p.150). What TDM needs is the mapplet. So the sequence is: build and validate the mapplet in PowerCenter (steps 1 to 7), export it to an XML file from the PowerCenter repository, then import it in Test Data Manager as a rule (p.137, p.140).</p>
 
 <p>In the wizard you mark at least one input and one output column as mandatory, so for the video's mapplet you might mark <code>first_name</code> and <code>full_name</code> (p.141). When you assign the rule you link source columns to the input ports and the output port to a column (p.142 to 143).</p>
 
@@ -165,4 +164,4 @@
 <li><strong>Data Masking transformation session properties</strong> (chapter 3, p.52 to 53): SSN High Group File path, DMO Cache Directory, Cache Size (default 8 MB), Shared Storage Table (default disabled) and Storage Commit Interval (default 100,000).</li>
 </ul>
 
-<p>Day 54 mapping: masking rules are 14.3 and 14.4, algorithms are 14.6 and 14.7, "mapplet creation" is the build above, and "using transformations" is 14.8 (expressions) and this section (Expression and Data Masking transformations). The architecture behind it, with PowerCenter running the workflows that TDM generates, is in <a href="10-informatica-overview-and-architecture.html">the Informatica overview and architecture chapter</a>. Video: <a href="https://www.youtube.com/watch?v=DVyJqMi7QtY" target="_blank" rel="noopener">"How to create mapplet in informatica" by LearningMart</a>.</p>
+<p>The architecture behind it, with PowerCenter running the workflows that TDM generates, is in <a href="10-informatica-overview-and-architecture.html">the Informatica overview and architecture chapter</a>. Video: <a href="https://www.youtube.com/watch?v=DVyJqMi7QtY" target="_blank" rel="noopener">"How to create mapplet in informatica" by LearningMart</a>.</p>

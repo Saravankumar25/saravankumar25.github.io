@@ -30,7 +30,7 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 <p>Discovery suggests; constraints are what TDM actually uses. Foreign key constraints define parent-child relationships between source tables, and TDM uses them to decide which tables go into a subset and to limit the values in subset columns (User Guide 10.5.10, p.107). When you create an entity you pick one table as the <strong>driving table</strong>, and TDM adds other tables based on the constraints of that table (p.107). The <a href="13-informatica-data-subset.html">Informatica data subset chapter</a> builds on this.</p>
 
 <h3 id="c12-table-class">Table classification</h3>
-<p>In Discover &gt; Tables you can classify tables as <em>Temporary, Master, Configuration, Transactional, Log</em> or <em>Seed</em>. It does not affect profiles, but you can filter tables by it when creating entities or plans. The guide's reason: knowing which tables are master helps you decide driving tables, and transaction and log tables are candidates for extra filter criteria (p.107). ShopSphere reading: <code>CUSTOMERS</code> and <code>PRODUCTS</code> look like master tables; <code>ORDERS</code> and <code>ORDER_ITEMS</code> look transactional (our classification).</p>
+<p>In Discover &gt; Tables you can classify tables as <em>Temporary, Master, Configuration, Transactional, Log</em> or <em>Seed</em>. It does not affect profiles, but you can filter tables by it when creating entities or plans. The guide's reason: knowing which tables are master helps you decide driving tables, and transaction and log tables are candidates for extra filter criteria (p.107). ShopSphere reading: <code>CUSTOMERS</code> and <code>PRODUCTS</code> look like master tables; <code>ORDERS</code> and <code>ORDER_ITEMS</code> look transactional.</p>
 
 <h3 id="c12-constraint-types">Constraint types</h3>
 
@@ -53,7 +53,7 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 <p>One direction only, child to parent. The parent row is included, but <strong>not all its other children</strong>.</p></div>
 </div>
 <p><strong>The guide's example:</strong> Customer is the parent of Leads. You filter Leads to high-quality leads. With a major constraint the subset includes the customer for each high-quality lead and all that customer's leads. With a minor constraint it includes the high-quality leads and their customers only (pp.108-109).</p>
-<p><strong>ShopSphere version (illustrative):</strong> you filter <code>ORDERS</code> to <code>total_amount &gt; 500</code>. Major: you get those orders, their customers, and <em>all other orders</em> of those customers. Minor: you get those orders and their customers only.</p>
+<p><strong>ShopSphere version:</strong> you filter <code>ORDERS</code> to <code>total_amount &gt; 500</code>. Major: you get those orders, their customers, and <em>all other orders</em> of those customers. Minor: you get those orders and their customers only.</p>
 
 <ul>
 <li>Selecting more records in the child can pull in more parents, which pull in more children, and so on until no related records remain (p.108).</li>
@@ -66,7 +66,7 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 
 <div class="exercise">
 <h4>Task: add a logical primary key and a logical foreign key in ShopSphere</h4>
-<p>Goal: tell TDM that <code>ORDERS.customer_id</code> refers to <code>CUSTOMERS.customer_id</code>. Steps from the guide (pp.109-110); table and column choices are ours.</p>
+<p>Goal: tell TDM that <code>ORDERS.customer_id</code> refers to <code>CUSTOMERS.customer_id</code>. (pp.109-110)</p>
 
 <ol class="steps">
 <li><strong>Primary key on CUSTOMERS.</strong><p>In the project click Discover &gt; Tables, click <code>CUSTOMERS</code>, click Constraints, then Create New Constraint. Select Primary Key, Next, click Add, choose <code>customer_id</code>, Finish.</p><p class="expect">The constraint appears in the table's Constraints list.</p></li>
@@ -75,15 +75,13 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 </ol>
 
 <details class="sol"><summary>Show a worked answer</summary>
-<p>Illustrative result: <code>CUSTOMERS</code> has primary key constraint on <code>customer_id</code>; <code>ORDERS</code> has a foreign key constraint to <code>CUSTOMERS</code> with severity Major if you want a customer's other orders to come with a filtered order. Repeat for <code>ORDER_ITEMS.order_id</code> to <code>ORDERS.order_id</code>. For the <code>ORDER_ITEMS.product_code</code> to <code>PRODUCTS</code> link, Minor is a reasonable choice because you do not want every item that uses a product. That severity choice is a design judgement of ours.</p></details>
+<p>Result: <code>CUSTOMERS</code> has primary key constraint on <code>customer_id</code>; <code>ORDERS</code> has a foreign key constraint to <code>CUSTOMERS</code> with severity Major if you want a customer's other orders to come with a filtered order. Repeat for <code>ORDER_ITEMS.order_id</code> to <code>ORDERS.order_id</code>. For the <code>ORDER_ITEMS.product_code</code> to <code>PRODUCTS</code> link, Minor is a reasonable choice because you do not want every item that uses a product.</p></details>
 </div>
 <p>For a <strong>unique key</strong>, choose Unique Key instead of Primary Key and add columns (pp.110-111). For a <strong>conditional constraint</strong>, enter a name, choose Conditional, click Next, build an expression in the Expression Builder (see <a href="11-informatica-tdm-tour.html#c11-expression-builder">the Expression Builder section</a>), and click Finish (p.111).</p>
 
 <h2 id="c12-performance">12.11 Performance and accuracy tips from the guide</h2>
-<p>The guide has no dedicated discovery performance section; these tips are scattered through it.</p>
-
 <ul>
-<li><strong>Cap the sample.</strong> Primary key and data domain profiles default to 1,000 rows; column profiles default to <em>All</em>, the heaviest setting (pp.93, 95, 98). A small sample is fast but can call a column "unique" or "an SSN" wrongly (my reasoning).</li>
+<li><strong>Cap the sample.</strong> Primary key and data domain profiles default to 1,000 rows; column profiles default to <em>All</em>, the heaviest setting (pp.93, 95, 98). A small sample is fast but can call a column "unique" or "an SSN" wrongly.</li>
 <li><strong>Limit key columns</strong> (default 3, p.93) and avoid case-sensitive entity comparisons, which can slow the profile (p.99).</li>
 <li><strong>Search names first, then data.</strong> You can run a domain profile on column metadata and then on the data (p.100).</li>
 <li><strong>Pick only the domains you need</strong>: disabled domains are skipped (p.75), and choosing a policy includes all its domains at once.</li>

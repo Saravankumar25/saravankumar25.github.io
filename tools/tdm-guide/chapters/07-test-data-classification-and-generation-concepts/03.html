@@ -18,7 +18,7 @@
 </div>
 </div>
 <h3 id="c7-generator-kinds">7.7.1 The common kinds of generator</h3>
-<p>Almost every column in a business table can be filled by one of about eight ideas. The table shows each idea, then the names the two tools use for it. Names come from the pages I read; I list only what those pages state.</p>
+<p>Almost every column in a business table can be filled by one of about eight ideas. The table shows each idea, then the names the two tools use for it. Only names the documentation states are listed.</p>
 <div class="tablewrap"><table><thead>
 <tr><th>Idea</th><th>ShopSphere column</th><th>Informatica technique</th><th>GenRocket generator named in its docs</th></tr>
 </thead>
@@ -43,7 +43,7 @@
 <p><strong>Concept.</strong> Computers do not produce truly random numbers. They run a formula that produces a long, random-looking list, starting from a number called the <dfn>seed</dfn>. Same seed, same list.</p>
 <p><strong>Why it matters.</strong> Suppose a test fails on Tuesday because customer 2003 had a zip code with a leading zero. If the data is regenerated on Wednesday with different random values, you may never see that customer again. With a fixed seed you can rebuild exactly Tuesday's data and debug it. Change the seed on purpose when you want fresh data.</p>
 <p>GenRocket describes this directly: seeding generates the same set of random data for the same seed value every time, a seed can be set on the domain (a global seed variable) or in an attribute's generator configuration, and two attributes using the same generator and same seed produce the same random series. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/-what-is-seeding" target="_blank" rel="noopener">What is Seeding? ↗</a></p>
-<p>The snippet below is my own illustration of the principle in plain Python, not a vendor tool. It builds the 50 customers and orders designed in section 7.10. Run it twice with seed 42 and you get identical data; run it with seed 7 and you get different data.</p>
+<p>The snippet below illustrates the principle in plain Python (not a vendor tool). It builds the 50 customers and orders designed in section 7.10. Run it twice with seed 42 and you get identical data; run it with seed 7 and you get different data.</p>
 <pre><code>import random
 
 def generate(seed):
@@ -70,7 +70,7 @@ c2, o2 = generate(42)
 c3, o3 = generate(7)
 print(len(c1), len(o1), sum(x[2] for x in o1))   # 50 75 179
 print(c1 == c2 and o1 == o2, c1 == c3)           # True False</code></pre>
-<p class="expect">Expected result when I ran it (Python 3.13): the first print shows <code>50 75 179</code> and the second shows <code>True False</code>. The first three customers with seed 42 were <code>(2001, 'Ravi', 'Menon', '560095')</code>, <code>(2002, 'Divya', 'Iyer', '560029')</code> and <code>(2003, 'Meera', 'Kumar', '560087')</code>. The item total 179 and these exact names depend on the random generator inside your Python version, so yours may differ. What must hold on your machine is <code>True False</code>.</p>
+<p class="expect">Expected result: the first print shows <code>50 75 179</code> and the second shows <code>True False</code>. The first three customers with seed 42 were, under Python 3.13, <code>(2001, 'Ravi', 'Menon', '560095')</code>, <code>(2002, 'Divya', 'Iyer', '560029')</code> and <code>(2003, 'Meera', 'Kumar', '560087')</code>. The item total 179 and these exact names depend on the random generator inside your Python version, so yours may differ. What must hold on your machine is <code>True False</code>.</p>
 
 <h3 id="c7-distributions">7.7.3 Distributions: how values are spread</h3>
 <p>If every customer got exactly two orders, the data would be repeatable but unrealistic. Real shops have many customers with none, most with one or two, and a few with many. The snippet above states this on purpose: 10, 20, 15 and 5 customers get 0, 1, 2 and 5 orders. That is a <em>distribution</em>.</p>
@@ -131,5 +131,5 @@ print(c1 == c2 and o1 == o2, c1 == c3)           # True False</code></pre>
 <h3 id="c7-children-per-parent">7.8.2 How many children per parent?</h3>
 <p>Informatica's plan settings for data generation include a <strong>minimum and maximum number of child records for each parent record, each with a default of 1</strong>, and percentages for "parent records without children" and "child records without parent" for self-cyclic tables and reference lookup rules (User Guide 10.5.10, p.285). <span class="badge doc">From docs</span> Those last two settings exist because sometimes you <em>want</em> a customer with no orders (a null-style condition) or, rarely, a deliberately orphaned child (for a data-quality test). Do this only on purpose and label it, so nobody mistakes it for a bug.</p>
 <div class="callout warn"><strong class="ctitle">Self-referencing tables</strong>
-<p>A table whose foreign key points at itself (an employee table with a manager id) has no "parents first" order. The tool needs a special rule: the first rows have no parent, later rows point back at earlier ones. Informatica's setting names self-cyclic tables specifically (p.285). ShopSphere has none, so we do not build one here.</p>
+<p>A table whose foreign key points at itself (an employee table with a manager id) has no "parents first" order. The tool needs a special rule: the first rows have no parent, later rows point back at earlier ones. Informatica's setting names self-cyclic tables specifically (p.285). ShopSphere has none.</p>
 </div>

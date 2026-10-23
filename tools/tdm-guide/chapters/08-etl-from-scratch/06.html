@@ -24,7 +24,7 @@
 <text x="540" y="92" text-anchor="middle" fill="currentColor" font-size="11">product_code</text>
 </svg><figcaption>Original diagram: the target star schema. The fact table holds one row per order line; the dimensions describe who and what; the summary table is built from the fact table.</figcaption></figure>
 <h3 id="c8-run-log">8.17.1 What the two runs did</h3>
-<p>These row counts come from my two SQLite runs of the full job. Run 1 is the first load; run 2 is the next day, after Asha's zip code changed and two new orders (5006 and 5007) arrived.</p>
+<p>These row counts come from two SQLite runs of the full job. Run 1 is the first load; run 2 is the next day, after Asha's zip code changed and two new orders (5006 and 5007) arrived.</p>
 <div class="tablewrap"><table class="sample"><caption>Run log (counts at each step)</caption>
 <thead><tr><th>Step</th><th>Run 1</th><th>Run 2</th></tr></thead>
 <tbody>
@@ -40,9 +40,9 @@
 <p>Order 5007 has an unknown product (P-999) and an unmapped status (Z); it still loads, as "UNKNOWN PRODUCT" and "Unknown", because the lookups use left joins. The 2026-10-23 summary row (2 orders, 3 units, 220.0) includes that line. Whether unknown products count as revenue is a decision to raise, not to bury.</p>
 
 <h2 id="c8-labs">8.18 Hands-on labs</h2>
-<p>You need any SQL database. I used SQLite because it is free and has no setup: install the SQLite command-line tool or use an online SQLite playground, open a new empty in-memory database, and paste each block. If you use another database, adjust the function names as noted in section 8.7.</p>
+<p>You need any SQL database. SQLite is free and has no setup: install the SQLite command-line tool or use an online SQLite playground, open a new empty in-memory database, and paste each block. If you use another database, adjust the function names as noted in section 8.7.</p>
 <div class="exercise"><h4>Lab 1: ETL by hand with SQL</h4>
-<p>Goal: run extract-staged data through clean, deduplicate, reject, convert, look up, derive, aggregate and reconcile, and compare your results with mine. The staged data is the ShopSphere batch 1 from section 8.6. <span class="badge concept">Illustrative data, not from vendor docs</span></p>
+<p>Goal: run extract-staged data through clean, deduplicate, reject, convert, look up, derive, aggregate and reconcile, and compare the results with the worked answer. The staged data is the ShopSphere batch 1 from section 8.6.</p>
 <ol class="steps">
 <li><strong>Create the staging and target tables.</strong><p>Staging holds the raw text; the targets are empty until the transform runs.</p><pre><code>CREATE TABLE stg_customers (customer_id TEXT, first_name TEXT, last_name TEXT, email TEXT, zip_code TEXT);
 INSERT INTO stg_customers VALUES
@@ -236,7 +236,7 @@ SELECT * FROM feed_orders
 WHERE CAST(order_id AS INTEGER) &gt; (SELECT last_order_id FROM etl_control WHERE job_name = 'orders_daily');
 SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 <details class="sol"><summary>Show a worked answer</summary>
-<p>Output I got for the final query of each step: staging order ids 5006 and 5007; four customer rows (keys 1, 4, 2, 3); fact rows 7 and 8; watermark 5007; re-run extract 0.</p>
+<p>Output of the final query of each step: staging order ids 5006 and 5007; four customer rows (keys 1, 4, 2, 3); fact rows 7 and 8; watermark 5007; re-run extract 0.</p>
 <p>This lab omits the reject step; see 8.13.3. Challenge: add the reject step from Lab 1, with a batch id.</p>
 </details></div>
 

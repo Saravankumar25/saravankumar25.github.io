@@ -43,7 +43,7 @@
 <p>The built-in PATH classifiers usually carry 0.67. A REGEX or LIST classifier has to beat that to override a name match, which is why the docs advise a low match strength (0.1 to 0.5) for patterns that are not unique. A nine-digit pattern could be an SSN, an account number or a row id, so it gets a small score. A dashed pattern like <code>001-23-4567</code> is distinctive, so it gets a high one.</p>
 
 <h3 id="c25-ssn-example">What the SSN classifiers actually look like</h3>
-<p>The ASDD Standard profile set is published as JSON. For the SSN domain it holds three classifiers (listing as of the 21.0.0.0 release). I summarise rather than copy:</p>
+<p>The ASDD Standard profile set is published as JSON. For the SSN domain it holds three classifiers (listing as of the 21.0.0.0 release), summarised here:</p>
 <div class="tablewrap"><table><thead><tr><th>Classifier</th><th>Framework</th><th>What it checks</th><th>Strength</th></tr></thead><tbody>
 <tr><td>Social Security Number - Path</td><td>PATH</td><td>Name ends in <em>ssn</em> or contains <em>social security</em> plus number, code or id</td><td>match 0.67</td></tr>
 <tr><td>Social Security Number - Regex</td><td>REGEX</td><td>Dashed or spaced pattern, plain nine digits</td><td>dashed forms 0.7, plain nine digits 0.1, reject 0.1</td></tr>
@@ -52,13 +52,13 @@
 <p>Notice the design: the name gives a good clue, the value pattern confirms it, and the type check rules out nonsense. The same three-part shape repeats for most domains.</p>
 
 <h3 id="c25-coverage">Which domains can be found by value, and which only by name?</h3>
-<p>Not every domain has all three kinds of evidence. Reading the ASDD Standard listing (21.0.0.0) shows the pattern, and it matters when column names are cryptic. I grouped the domains by the classifier frameworks that the listing gives them:</p>
+<p>Not every domain has all three kinds of evidence. Reading the ASDD Standard listing (21.0.0.0) shows the pattern, and it matters when column names are cryptic. The domains are grouped by the classifier frameworks that the listing gives them:</p>
 <div class="tablewrap"><table><thead><tr><th>Evidence available</th><th>Domains (examples from the listing)</th><th>What it means for you</th></tr></thead><tbody>
 <tr><td>Name, type and value list</td><td>FIRST_NAME, LAST_NAME, FULL_NAME, CITY, COUNTRY, COMPANY_NAME, GENDER, JOB_TITLE, US_STATE</td><td>Can be found even in a column called <code>COL_17</code>, as long as values are in the English lists</td></tr>
 <tr><td>Name, type and value pattern</td><td>SSN, EMAIL, TELEPHONE_NO, ZIP, CREDIT CARD, IBAN, IP ADDRESS, US_PASSPORT, PAYMENT_AMOUNT, ADDRESS</td><td>Value patterns can rescue a badly named column, if the values fit the pattern (US-shaped for ZIP and phone)</td></tr>
 <tr><td>Name and type only</td><td>DOB, TAX_ID, ACCOUNT_NO, CUSTOMER_NO, USER_ID, TEXT, PASSWORD, SERIAL_NO</td><td>No value check: if the column is not named sensibly, the profiler will not find it</td></tr>
 </tbody></table></div>
-<p>Two ShopSphere consequences follow. <code>date_of_birth</code> and <code>tax_id</code> are found only because their names are clear, so a legacy table with a column called <code>DT1</code> would slip through. And all grouping here comes from my reading of the JSON, so check the live Classifiers screen of your engine for the exact picture.</p>
+<p>Two ShopSphere consequences follow. <code>date_of_birth</code> and <code>tax_id</code> are found only because their names are clear, so a legacy table with a column called <code>DT1</code> would slip through. The grouping is read from the JSON listing, so check the live Classifiers screen of the engine for the exact picture.</p>
 <h3 id="c25-threshold">Assignment threshold</h3>
 <p>The default minimum confidence for ASDD is 1, so "any positive match, no matter how weak, triggers an assignment" <span class="badge doc">From docs</span>. That is very permissive, and the docs contrast it with the legacy profiler, which by default wanted an 80% match for data-level expressions. You can raise the threshold per profile set (integer 1 to 100) or globally with the application setting <code>ASDD/DefaultAssignmentThreshold</code>. A higher threshold means fewer false alarms and more missed columns. Because a missed column is worse than a false alarm, many teams keep the threshold low and review the inventory.</p>
 

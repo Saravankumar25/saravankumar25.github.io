@@ -1,20 +1,20 @@
-<h2 id="c30-a1">30.4 Activity 1: profile and mask FirstName and LastName</h2>
+<h2 id="c30-a1">30.4 Part 1: profile and mask FirstName and LastName</h2>
 
-<h3 id="c30-a1-brief">Brief</h3>
+<h3 id="c30-a1-brief">Scope</h3>
 
-<p><strong>Inputs.</strong> CUSTOMERS with first_name and last_name; the "before" snapshot; two edge rows added for this activity: <code>(1005, 'Ann-Marie', 'von Wilke')</code> and <code>(1006, 'S.', 'K.')</code>, plus the duplicate-name row 1004 (Asha Iyer) from the labs. <strong>Tool.</strong> Delphix primary; Informatica as a cross-check. <strong>Output.</strong> Masked names, an inventory showing the two assignments, verification output, and a note on every decision.</p>
+<p><strong>Inputs.</strong> CUSTOMERS with first_name and last_name; the "before" snapshot; two added edge rows: <code>(1005, 'Ann-Marie', 'von Wilke')</code> and <code>(1006, 'S.', 'K.')</code>, plus the duplicate-name row 1004 (Asha Iyer) from the labs. <strong>Tool.</strong> Delphix primary; Informatica as a cross-check. <strong>Output.</strong> Masked names and an inventory showing the two assignments.</p>
 
 <h3 id="c30-a1-steps">Steps</h3>
 
 <ol class="steps">
 <li><strong>Connect and profile.</strong>
 <p>Follow Labs 4 and 5 in <a href="28-delphix-hands-on-labs.html">the Delphix labs</a>; concepts in <a href="25-delphix-profiling.html">the Delphix profiling chapter</a>. For Informatica, the equivalent is a data domain profile (see <a href="12-informatica-discovery-and-profiling.html">the Informatica profiling chapter</a>).</p>
-<p class="expect">first_name is assigned FIRST_NAME and last_name LAST_NAME, as the official profiling screenshots show; record each assignment and who confirmed it.</p></li>
+<p class="expect">first_name is assigned FIRST_NAME and last_name LAST_NAME, as the official profiling screenshots show; record each assignment.</p></li>
 <li><strong>Choose the algorithms and write down why.</strong>
 <p>Delphix: <code>dlpx-core:FirstName</code> and <code>dlpx-core:LastName</code>. <span class="badge doc">From docs</span> Both are instances of the Name framework; they are deterministic, require string input, return null, empty and whitespace-only values unmasked, and are not unique, so a masked value may equal the input (<a href="https://help.delphix.com/cc/current/content/dlpx_core__firstname.htm" target="_blank" rel="noopener">FirstName</a>, <a href="https://help.delphix.com/cc/current/content/dlpx_core__lastname.htm" target="_blank" rel="noopener">LastName</a>). A single character is treated as an abbreviation and masked to a single character; hyphenated words count as one word. The default FirstName instance returns at most two names; the LastName instance is configured with a particles file and masks only the first word after removing particles. Informatica alternative: substitution masking from a name dictionary, with Repeatable Output for the same replacement each run (User Guide 10.5.10, pp.154, 176 to 177).</p></li>
 <li><strong>Mask only these columns.</strong>
 <p>Use a rule set whose inventory has just these two assignments (duplicate, clear, assign), as in Lab 7, and run an in-place job on a restored or snapshotted copy.</p></li>
-<li><strong>Verify and collect evidence</strong> using the queries below and the job's execution summary.</li>
+<li><strong>Verify</strong> using the queries below and the job's execution summary.</li>
 </ol>
 
 <h3 id="c30-a1-criteria">Acceptance criteria and test queries</h3>
@@ -22,12 +22,12 @@
 <div class="tablewrap"><table>
 <thead><tr><th>ID</th><th>Criterion</th><th>Test</th></tr></thead>
 <tbody>
-<tr><td>A1-1</td><td>Both columns profiled and assigned</td><td>Inventory export lists both with domain and algorithm</td></tr>
-<tr><td>A1-2</td><td>Names changed</td><td>Query 1: rows where the name equals the original (expect 0; a rare equal value is allowed by the docs and must be explained)</td></tr>
-<tr><td>A1-3</td><td>Same input, same output</td><td>Query 2: both Asha rows share one masked first name</td></tr>
-<tr><td>A1-4</td><td>Nothing else changed; row count same</td><td>Query 3</td></tr>
-<tr><td>A1-5</td><td>Edge rows behave as documented</td><td>Query 4: initials stay single characters; the hyphenated name is masked as one word</td></tr>
-<tr><td>A1-6</td><td>No warnings for these columns</td><td>Execution summary: nonconforming data 0</td></tr>
+<tr><td>AC1-1</td><td>Both columns profiled and assigned</td><td>Inventory export lists both with domain and algorithm</td></tr>
+<tr><td>AC1-2</td><td>Names changed</td><td>Query 1: rows where the name equals the original (expect 0; a rare equal value is allowed by the docs and must be explained)</td></tr>
+<tr><td>AC1-3</td><td>Same input, same output</td><td>Query 2: both Asha rows share one masked first name</td></tr>
+<tr><td>AC1-4</td><td>Nothing else changed; row count same</td><td>Query 3</td></tr>
+<tr><td>AC1-5</td><td>Edge rows behave as documented</td><td>Query 4: initials stay single characters; the hyphenated name is masked as one word</td></tr>
+<tr><td>AC1-6</td><td>No warnings for these columns</td><td>Execution summary: nonconforming data 0</td></tr>
 </tbody></table></div>
 
 <pre><code>-- 1 unchanged names (compare with your before-copy table)
@@ -41,13 +41,12 @@ WHERE c.phone &lt;&gt; b.phone OR c.ssn &lt;&gt; b.ssn OR c.zip_code &lt;&gt; b.
 -- 4 edge rows
 SELECT customer_id, first_name, last_name FROM customers WHERE customer_id IN (1005, 1006);</code></pre>
 
-<p><strong>Evidence:</strong> the inventory CSV, the query output, the execution summary, and a one-line decision per column ("FirstName: dlpx-core:FirstName, deterministic, not unique, acceptable because names repeat in real data").</p>
 
-<h2 id="c30-a2">30.5 Activity 2: profile and subset</h2>
+<h2 id="c30-a2">30.5 Part 2: profile and subset</h2>
 
-<h3 id="c30-a2-brief">Brief</h3>
+<h3 id="c30-a2-brief">Scope</h3>
 
-<p><strong>Goal.</strong> Produce a smaller copy of ShopSphere that is still referentially intact: a chosen set of customers with all their orders, all the items of those orders, and the products those items use. <strong>Inputs.</strong> A source with enough rows to make a subset visible: at least 30 customers across several postal prefixes, with orders and items. If your source is only the three lab rows, generate more: GenRocket produces fake rows without touching production, using generators such as NameGen, PhoneNumberGen and SSNGen (<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-five-key-components" target="_blank" rel="noopener">five key components</a>; SSNGen sequential or random: <a href="https://genrocket.helpjuice.com/en_US/identification-generators/how-do-i-use-the-ssngen-generator" target="_blank" rel="noopener">SSNGen</a>). <strong>Criterion (my choice).</strong> Customers whose zip_code starts with <code>560</code>.</p>
+<p><strong>Goal.</strong> Produce a smaller copy of ShopSphere that is still referentially intact: a chosen set of customers with all their orders, all the items of those orders, and the products those items use. <strong>Inputs.</strong> A source with enough rows to make a subset visible: at least 30 customers across several postal prefixes, with orders and items. If your source is only the three lab rows, generate more: GenRocket produces fake rows without touching production, using generators such as NameGen, PhoneNumberGen and SSNGen (<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-five-key-components" target="_blank" rel="noopener">five key components</a>; SSNGen sequential or random: <a href="https://genrocket.helpjuice.com/en_US/identification-generators/how-do-i-use-the-ssngen-generator" target="_blank" rel="noopener">SSNGen</a>). <strong>Criterion (design choice).</strong> Customers whose zip_code starts with <code>560</code>.</p>
 
 <h3 id="c30-a2-steps">Steps with Informatica TDM (primary)</h3>
 
@@ -60,22 +59,22 @@ SELECT customer_id, first_name, last_name FROM customers WHERE customer_id IN (1
 <p>The guide says an entity is a driving table plus related tables, found by physical and logical constraints; you add filter criteria on a column, which can be a value or a parameter changed at run time (pp.113 to 114). Put the criterion on zip_code and check the Entity Map: confirm ORDERS, ORDER_ITEMS and PRODUCTS are present and the relationships are enabled. See <a href="13-informatica-data-subset.html">the Informatica subset chapter</a>.</p></li>
 <li><strong>Create a subset plan, generate the workflow and run it.</strong>
 <p>Add the entity to a plan with a target connection (<a href="16-informatica-plans-workflows-and-warehouse.html">plans and workflows</a>). The guide notes a masking and a subset operation can share one plan (p.32), which is what a real project would do so the subset is never exposed unmasked.</p></li>
-<li><strong>Run the Row Count Report</strong> on the plan: it lists the tables and rows each plan affects (p.324). Keep it as evidence.</li>
+<li><strong>Run the Row Count Report</strong> on the plan: it lists the tables and rows each plan affects (p.324).</li>
 </ol>
 
-<p><strong>Alternatives, to name but not use as primary.</strong> Delphix rule sets accept a per-table filter (<code>customers.zip_code LIKE '560%'</code>, with the table prefix on the column, as the docs show) or custom SQL that must include the key columns; the pages I read do not describe following related tables automatically, so related-table filters would be yours to write (<a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>). GenRocket's G-Subset subsets by a where clause, percentage or row count, supports no composite keys, and migrates only between databases of the same type (<a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-overview-formerly-g-migration" target="_blank" rel="noopener">G-Subset overview</a>).</p>
+<p><strong>Alternatives.</strong> Delphix rule sets accept a per-table filter (<code>customers.zip_code LIKE '560%'</code>, with the table prefix on the column, as the docs show) or custom SQL that must include the key columns; the docs do not describe following related tables automatically, so related-table filters would be yours to write (<a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>). GenRocket's G-Subset subsets by a where clause, percentage or row count, supports no composite keys, and migrates only between databases of the same type (<a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-overview-formerly-g-migration" target="_blank" rel="noopener">G-Subset overview</a>).</p>
 
 <h3 id="c30-a2-criteria">Acceptance criteria and test queries</h3>
 
 <div class="tablewrap"><table>
 <thead><tr><th>ID</th><th>Criterion</th><th>Test</th></tr></thead>
 <tbody>
-<tr><td>A2-1</td><td>Relationships profiled or declared and recorded</td><td>Relationship map or profile results</td></tr>
-<tr><td>A2-2</td><td>Only the selected customers are present</td><td>Query 1: customers outside the criterion (expect 0)</td></tr>
-<tr><td>A2-3</td><td>Complete family: every order of a selected customer is present</td><td>Query 2: compare order counts per customer with the source</td></tr>
-<tr><td>A2-4</td><td>No orphans</td><td>Queries 3 to 5</td></tr>
-<tr><td>A2-5</td><td>Subset is smaller, with a stated ratio</td><td>Row counts target against source, per table</td></tr>
-<tr><td>A2-6</td><td>Source unchanged</td><td>Source row counts equal the baseline</td></tr>
+<tr><td>AC2-1</td><td>Relationships profiled or declared and recorded</td><td>Relationship map or profile results</td></tr>
+<tr><td>AC2-2</td><td>Only the selected customers are present</td><td>Query 1: customers outside the criterion (expect 0)</td></tr>
+<tr><td>AC2-3</td><td>Complete family: every order of a selected customer is present</td><td>Query 2: compare order counts per customer with the source</td></tr>
+<tr><td>AC2-4</td><td>No orphans</td><td>Queries 3 to 5</td></tr>
+<tr><td>AC2-5</td><td>Subset is smaller, with a stated ratio</td><td>Row counts target against source, per table</td></tr>
+<tr><td>AC2-6</td><td>Source unchanged</td><td>Source row counts equal the baseline</td></tr>
 </tbody></table></div>
 
 <pre><code>-- 1 customers outside the criterion (run on the target)
@@ -89,9 +88,8 @@ SELECT COUNT(*) FROM order_items i LEFT JOIN orders o ON o.order_id = i.order_id
 -- 5 items without a product
 SELECT COUNT(*) FROM order_items i LEFT JOIN products p ON p.product_code = i.product_code WHERE p.product_code IS NULL;</code></pre>
 
-<p><strong>Evidence:</strong> profile results, entity map screenshot, Row Count Report, the five query outputs, a table of source against target row counts with the ratio, and the criterion you chose and why.</p>
 
 <div class="callout warn">
 <strong class="ctitle">A subset is real data</strong>
-<p>A subset copies real rows. Until it is masked (Activities 1 and 3), treat the subset target as sensitive. Say so in your report, and say how you would combine the two in one plan.</p>
+<p>A subset copies real rows. Until it is masked (Parts 1 and 3), treat the subset target as sensitive. A real run puts masking and subsetting in one plan so the subset is never exposed unmasked.</p>
 </div>

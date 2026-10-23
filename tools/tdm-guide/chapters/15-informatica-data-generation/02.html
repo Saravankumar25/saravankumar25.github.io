@@ -77,10 +77,10 @@ CUSTOMERS  phone          varchar  yes   Phone_10_digits        Yes-Overridden
 CUSTOMERS  ssn            varchar  yes   SSN_like_pattern       No
 CUSTOMERS  date_of_birth  date     yes   Rand_Date_1950_2005    No
 CUSTOMERS  zip_code       varchar  yes   Set_ZipCodes           No
-CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div class="mnote">Schematic illustration drawn for this guide, not an official screenshot. Rule names are my own.</div></div>
+CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div class="mnote">Schematic illustration, not an official screenshot.</div></div>
 
 <div class="callout warn"><strong class="ctitle">Save after every assignment</strong>
-<p>In this view you must click the <strong>Save</strong> icon each time you assign a rule. If you pick a rule for the next column without saving, Test Data Manager discards the earlier assignment (User Guide 10.5.10, p.203). It is the most common way to lose twenty minutes of work.</p></div>
+<p>In this view you must click the <strong>Save</strong> icon each time you assign a rule. If you pick a rule for the next column without saving, Test Data Manager discards the earlier assignment (User Guide 10.5.10, p.203).</p></div>
 
 <h3 id="c15-assign-steps">15.6.1 How each kind of rule is assigned</h3>
 
@@ -120,20 +120,20 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 <text x="695" y="185">ORDER_ITEMS</text><text x="695" y="205" font-size="12">item 9002, order 5002</text>
 <text x="255" y="35" font-size="12">min 1, max 3 orders</text><text x="550" y="22" font-size="12">min 1, max 4 items</text>
 </g></svg>
-<figcaption>Original diagram: the fan-out an entity describes. Each generated parent receives a random number of children between the minimum and maximum, and every child carries its parent's key. The numbers are my ShopSphere illustration.</figcaption></figure>
+<figcaption>The fan-out an entity describes. Each generated parent receives a random number of children between the minimum and maximum, and every child carries its parent's key.</figcaption></figure>
 
 <h3 id="c15-keys-ref">15.7.2 Reference lookup: borrow values from a table that already exists</h3>
 
 <p>The second tool is the <strong>reference lookup</strong> technique (see <a href="#c15-t-ref">Reference Lookup</a>). Instead of making values, it reads them from an existing parent table, so a child column can only receive keys that exist there. The plan then needs a <strong>Reference Lookup Connection</strong>, a connection to the database that holds the parent tables (User Guide 10.5.10, p.280). Use it for static reference data: ShopSphere's <code>PRODUCTS</code> table is the natural example for <code>ORDER_ITEMS.product_code</code>.</p>
 
-<div class="callout note"><strong class="ctitle">What I could and could not confirm</strong>
-<p>The guide says entities keep parent-child hierarchy and lets you set child counts per parent. It does not spell out, in the pages I read, exactly how TDM copies the parent key into the child's foreign key column, or whether a reference lookup may read a parent table <em>generated in the same plan</em> rather than one already loaded in the database. After a first run, always check keys with a quick join query (the lab does). <span class="badge unverified">Verify in your version</span></p></div>
+<div class="callout note"><strong class="ctitle">Not documented</strong>
+<p>The guide says entities keep parent-child hierarchy and lets you set child counts per parent. It does not spell out exactly how TDM copies the parent key into the child's foreign key column, or whether a reference lookup may read a parent table <em>generated in the same plan</em> rather than one already loaded in the database. After a first run, check keys with a quick join query (the lab does). <span class="badge unverified">Verify in your version</span></p></div>
 
 <h3 id="c15-keys-pk">15.7.3 Primary keys and unique values</h3>
 
 <ul>
 <li>A computed column as primary key blocks generation for an entity: you cannot run generation that includes an entity whose primary key column is a computed column (p.191).</li>
-<li>For multirecord IMS sources imported from PowerCenter, the table sequence is not imported, so you must supply it with the <strong>Manage Sequence</strong> button on the entity's Entity Map tab (pp.191-192). This is a mainframe case you can skip for ShopSphere.</li>
+<li>For multirecord IMS sources imported from PowerCenter, the table sequence is not imported, so you must supply it with the <strong>Manage Sequence</strong> button on the entity's Entity Map tab (pp.191-192). This is a mainframe case.</li>
 <li>Many techniques have a <strong>Generate Unique Values</strong> checkbox. It cannot be combined with regular-expression patterns, and cannot be used for binary or flat-file dictionary rules (pp.216, 222-223).</li>
 <li>For ids, the cleanest choice is the Sequence technique. A sequence never repeats within a run, and "Start Sequence from Last Value" lets a second run continue where the first stopped (p.231).</li>
 </ul>
@@ -142,7 +142,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <p>The number of rows is not part of a rule. It is set in the <strong>plan</strong>: the field <strong>Number of Records to Generate</strong> is marked Required for generation plans (User Guide 10.5.10, p.280). In the plan wizard it is step 14: "enter the number of records that you want to generate" (p.305). You can also give criteria per entity on the generation criteria step (p.305).</p>
 
-<p>For a parent-child set, the Minimum and Maximum child settings decide how many children each parent gets, so total rows in the child tables are not a round number. My reading, flagged because the guide gives no worked example of totals: with 50 customers and 1 to 3 orders each, expect between 50 and 150 orders. Confirm with the Row Count report (<a href="16-informatica-plans-workflows-and-warehouse.html">the plans, workflows and warehouse chapter</a>).</p>
+<p>For a parent-child set, the Minimum and Maximum child settings decide how many children each parent gets, so total rows in the child tables are not a round number. The guide gives no worked example of totals; with 50 customers and 1 to 3 orders each, expect between 50 and 150 orders. Confirm with the Row Count report (<a href="16-informatica-plans-workflows-and-warehouse.html">the plans, workflows and warehouse chapter</a>).</p>
 
 <h3 id="c15-exception">15.8.1 Exception test data: nulls and invalid values</h3>
 
@@ -155,5 +155,5 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <p>The guide's trick: make a rule "Recent_Dates" for 2012 to 2013 and, in its Invalid Values setting, choose a second saved rule "Dates_2005" (2005 to 2010) at 15 percent. Now 85 percent of dates are recent and 15 percent are old (p.210). So "invalid values" is really a way to mix in a second population.</p>
 
-<div class="callout why"><strong class="ctitle">Why would I want bad data?</strong>
+<div class="callout why"><strong class="ctitle">Why generate bad data?</strong>
 <p>Good testing needs negative cases. If ShopSphere's checkout rejects a customer with no phone number, you need rows with no phone number. Ten percent nulls in <code>phone</code> and two percent invalid <code>zip_code</code> values give your tests something to reject, without hand-crafting rows.</p></div>

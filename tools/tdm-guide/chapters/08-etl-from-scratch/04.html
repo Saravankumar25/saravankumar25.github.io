@@ -40,9 +40,9 @@ DO UPDATE SET full_name = excluded.full_name,
 <p>Notice the property that makes upserts valuable: <strong>running the same load twice gives the same result</strong>. A property like this is called <em>idempotence</em>, and it is what lets you safely re-run a failed job.</p>
 <h3 id="c8-scd">8.8.3 Keeping history: a slowly changing dimension</h3>
 <p>An upsert overwrites. After it, the warehouse says Asha always lived in 560002, so a report on October 20 sales would attribute them to the wrong zip. If history matters, keep both versions with validity dates. This pattern is commonly called a <strong>Type 2 slowly changing dimension</strong>. <span class="badge concept">General concept</span></p>
-<p>The pattern needs two statements, which you will run in Lab 2: first <em>close</em> the current row of any customer whose data changed (set <code>valid_to</code> and <code>is_current = 0</code>), then <em>insert</em> a new current row for every customer who has none. The table gets a <em>surrogate key</em> (<code>customer_key</code>), an artificial id, because the business key <code>customer_id</code> now appears more than once.</p>
+<p>The pattern needs two statements, run in Lab 2: first <em>close</em> the current row of any customer whose data changed (set <code>valid_to</code> and <code>is_current = 0</code>), then <em>insert</em> a new current row for every customer who has none. The table gets a <em>surrogate key</em> (<code>customer_key</code>), an artificial id, because the business key <code>customer_id</code> now appears more than once.</p>
 <div class="tablewrap"><table class="sample">
-<caption>dim_customer after run 2 (real output from my SQLite run, 1002 and 1003 omitted)</caption>
+<caption>dim_customer after run 2 (output from the SQLite run, 1002 and 1003 omitted)</caption>
 <thead><tr><th>customer_key</th><th>customer_id</th><th>zip_code</th><th>valid_from</th><th>valid_to</th><th>is_current</th></tr></thead>
 <tbody>
 <tr><td>1</td><td>1001</td><td>560001</td><td>2026-10-23</td><td>2026-10-24</td><td>0</td></tr>
@@ -111,7 +111,7 @@ DO UPDATE SET full_name = excluded.full_name,
 <h2 id="c8-reusable">8.12 Reusable components and the mapplet</h2>
 <p><strong>Concept.</strong> A reusable component is a piece of ETL logic you build once and use in many places, like a function in programming.</p>
 <p><strong>Why it matters.</strong> Without reuse, the same rule (clean a phone number, standardise a country name) is copied into twenty mappings. When the rule changes, someone must find and fix twenty copies, and will miss one.</p>
-<p>In Informatica's world, the reusable group of transformations is called a <dfn>mapplet</dfn>. A mapplet has input and output ports (named connection points), contains one or more transformations, and can be placed into many mappings. Think of it as a small mapping with sockets at each end. <span class="badge video">From video</span> The LearningMart video "How to create mapplet in informatica" defines a mapplet the same way: a reusable object created in the Mapplet Designer, for example one that joins first and last name into a full name for many mappings. A step-by-step build is in <a href="14-informatica-data-masking.html#c14-mapplet-build">the mapplet walkthrough in the Informatica masking chapter</a>.</p>
+<p>In Informatica's world, the reusable group of transformations is called a <dfn>mapplet</dfn>. A mapplet has input and output ports (named connection points), contains one or more transformations, and can be placed into many mappings. Think of it as a small mapping with sockets at each end. The LearningMart video "How to create mapplet in informatica" defines a mapplet the same way: a reusable object created in the Mapplet Designer, for example one that joins first and last name into a full name for many mappings. A step-by-step build is in <a href="14-informatica-data-masking.html#c14-mapplet-build">the mapplet walkthrough in the Informatica masking chapter</a>.</p>
 <div class="flow">
 <div class="node"><b>Input port</b>FIRST_NAME</div>
 <div class="arrow">→</div>
@@ -127,4 +127,4 @@ DO UPDATE SET full_name = excluded.full_name,
 <li>The TDM repository stores the mapplet logic when imported, and you cannot change the mapplet inside Test Data Manager. The guide also says that if you change the name or type of a field of a custom masking rule, you must import the mapplet again (p.144). <span class="badge doc">From docs</span></li>
 <li>Data generation uses the same idea: a <em>custom generation rule</em> is based on PowerCenter mapplet logic, for example one that joins first and last name into a full name (pp.196 and 211). <span class="badge doc">From docs</span></li>
 </ul>
-<p>The syllabus mentions "mapplet creation" on Day 54; the <a href="14-informatica-data-masking.html">Informatica data masking chapter</a> returns to this and builds one.</p>
+<p>The <a href="14-informatica-data-masking.html">Informatica data masking chapter</a> builds a mapplet.</p>

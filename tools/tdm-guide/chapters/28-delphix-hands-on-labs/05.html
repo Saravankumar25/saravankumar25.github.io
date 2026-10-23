@@ -1,11 +1,11 @@
-<h2 id="c28-lab7">28.7 Lab 7: mask FirstName in the database (TDM_Handson7)</h2>
+<h2 id="c28-lab7">28.7 Lab 7: mask FirstName in the database</h2>
 <h3 id="c28-lab7-goal">Goal</h3>
 <p>Run one real in-place masking job on the ShopSphere VDB that changes <code>customers.first_name</code> and nothing else, then prove by query that the job did exactly that. The algorithm rationale is in <a href="26-delphix-algorithms-and-masking-jobs.html">the algorithms and masking jobs chapter</a>; here you see it work.</p>
 <h3 id="c28-lab7-prereq">Prerequisites and setup data</h3>
 <ul>
 <li>Labs 4 and 5 are done: rule set SS_DB_RS exists and has an inventory.</li>
-<li>The VDB can be restored if a job goes wrong. Ask how: for example, a snapshot or bookmark taken before the run. The docs I read describe rewind and refresh for masked VDBs only, so I cannot promise the exact route for your VDB.</li>
-<li>Two extra lab-only things in the VDB (fake data, delete them after the course): a copy table for before/after comparison, and an edge-case customer. The copy table holds unmasked fake data. In real work you would never copy sensitive data next to the masked data.</li>
+<li>The VDB can be restored if a job goes wrong, for example from a snapshot or bookmark taken before the run. Not documented: the exact restore route for a given VDB (the docs describe rewind and refresh for masked VDBs only).</li>
+<li>Two extra lab-only things in the VDB (delete them afterwards): a copy table for before/after comparison, and an edge-case customer. The copy table holds unmasked fake data. In real work you would never copy sensitive data next to the masked data.</li>
 </ul>
 <pre><code>CREATE TABLE customers_before AS SELECT * FROM customers;
 
@@ -78,12 +78,7 @@ WHERE  c.last_name &lt;&gt; b.last_name OR c.phone &lt;&gt; b.phone OR c.ssn &lt
 <tr><td>Nothing changed, job SUCCEEDED</td><td>No algorithm assigned (Clear Assignments removed it, or Save was missed)</td><td>Reopen the inventory and confirm the row</td></tr>
 <tr><td>Rule set shows a stale table list</td><td>Table structure changed since the last refresh</td><td>Refresh the rule set; assignments are kept</td></tr>
 <tr><td>You cannot edit or delete the job</td><td>It is running; the docs say editing and deleting are blocked while running</td><td>Wait, or Cancel the job (this leaves semi-masked data: restore afterwards)</td></tr>
-</tbody></table></div>
-<div class="callout real">
-<strong class="ctitle">What to say in the walkthrough</strong>
-<p>"I duplicated the rule set, cleared all assignments, and kept only first_name with dlpx-core:FirstName so the job could change nothing else. I ran it in-place on the VDB after taking a snapshot. Afterwards I compared with a before-copy: every first name changed, both Asha rows got the same masked value, and last name, phone and SSN were untouched. I also know the algorithm is not unique and may, rarely, return the input, so I do not use it on a key."</p>
-</div>
-<h2 id="c28-lab8">28.8 Lab 8: mask alphanumeric text, SSN and telephone number (TDM_Handson8)</h2>
+</tbody></table></div><h2 id="c28-lab8">28.8 Lab 8: mask alphanumeric text, SSN and telephone number</h2>
 <h3 id="c28-lab8-goal">Goal</h3>
 <p>Mask three different kinds of value with three algorithms, verify format and consistency with queries, and deliberately feed in two bad values to see what non-conformant data looks like in a log. The ShopSphere table has no free alphanumeric column, so this lab adds one, <code>membership_code</code>, such as <code>SS-A7K29X</code>.</p>
 <h3 id="c28-lab8-prereq">Prerequisites and setup data</h3>
@@ -97,13 +92,13 @@ UPDATE customers_before b SET membership_code =
   (SELECT c.membership_code FROM customers c WHERE c.customer_id = b.customer_id);</code></pre>
 <p>Then refresh the rule set SS_DB_RS (actions menu, Refresh) so it sees the new column, duplicate it as <code>SS_DB_RS_Sens</code>, clear its assignments, and assign the three below. Lab 7's first-name masking is not repeated here.</p>
 <h3 id="c28-lab8-choice">Choosing the algorithms</h3>
-<p>The choice column below separates what the docs state from what I decided. The default algorithm for the SSN domain is not stated in the pages I read, so confirm it in Settings, Domains instead of relying on my memory of any product.</p>
+<p>The table separates what the docs state from the design choice. The default algorithm for the SSN domain is not stated in the documentation, so confirm it in Settings, Domains.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Column</th><th>Algorithm</th><th>Basis in the docs</th><th>Design choice or caution</th></tr></thead>
 <tbody>
 <tr><td>membership_code (alphanumeric text)</td><td>dlpx-core:CM Alpha-Numeric</td><td>Masks ASCII digits, lower and upper case letters, keeps other characters; for non-numeric data types. Example: "ABCxyz123" becomes "HANwhp391"</td><td>The "SS-" prefix will be masked too. To keep it, a custom Character Mapping instance with a preserve range is the documented route</td></tr>
-<tr><td>ssn (text, ddd-dd-dddd)</td><td>dlpx-core:CM Digits</td><td>Masks every digit and keeps letters and punctuation; Character Mapping gives one-to-one output for text inputs and is deterministic until the key changes</td><td>My choice. Segment Mapping with dashes ignored is the other documented option for SSNs. The docs I read do not say outputs follow US SSN validity rules</td></tr>
-<tr><td>phone (10 digits)</td><td>dlpx-core:Phone US</td><td>Keeps the first digits, replaces the three digits before the last four with 555, and masks the last four with a hash of the digits; other characters are preserved; input up to 30 symbols and at least one digit</td><td>My choice for a clearly fake number. Phone Unique (last 7 digits hashed) was the profiler's own pick in the official screenshot; the page does not promise uniqueness</td></tr>
+<tr><td>ssn (text, ddd-dd-dddd)</td><td>dlpx-core:CM Digits</td><td>Masks every digit and keeps letters and punctuation; Character Mapping gives one-to-one output for text inputs and is deterministic until the key changes</td><td>Design choice. Segment Mapping with dashes ignored is the other documented option for SSNs. The docs do not say outputs follow US SSN validity rules</td></tr>
+<tr><td>phone (10 digits)</td><td>dlpx-core:Phone US</td><td>Keeps the first digits, replaces the three digits before the last four with 555, and masks the last four with a hash of the digits; other characters are preserved; input up to 30 symbols and at least one digit</td><td>Design choice for a clearly fake number. Phone Unique (last 7 digits hashed) was the profiler's own pick in the official screenshot; the page does not promise uniqueness</td></tr>
 </tbody></table></div>
 <p>Pages: <a href="https://help.delphix.com/cc/current/content/dlpx_core__cm_alpha_numeric.htm" target="_blank" rel="noopener">CM Alpha-Numeric</a>, <a href="https://help.delphix.com/cc/current/content/dlpx_core__cm_digits.htm" target="_blank" rel="noopener">CM Digits</a>, <a href="https://help.delphix.com/cc/current/content/dlpx_core__phone_us.htm" target="_blank" rel="noopener">Phone US</a>, <a href="https://help.delphix.com/cc/current/content/character_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Character Mapping</a> and <a href="https://help.delphix.com/cc/current/content/segment_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Segment Mapping</a>.</p>
 <h3 id="c28-lab8-steps">Steps</h3>
@@ -150,8 +145,3 @@ SELECT customer_id, ssn, phone, membership_code FROM customers WHERE customer_id
 <tr><td>Phone looks masked but two customers share it</td><td>Phone US varies only four digits</td><td>Fine for phone; use a unique-output algorithm only if the column must be unique</td></tr>
 <tr><td>SSN masked in one table but not in an extract file</td><td>Different algorithm or key in the two places</td><td>Use the same algorithm instance everywhere the SSN appears</td></tr>
 </tbody></table></div>
-<div class="callout real">
-<strong class="ctitle">What to say in the walkthrough</strong>
-<p>"I matched each algorithm to the kind of value: CM Alpha-Numeric for the membership code, CM Digits for the SSN so the dashes stay and every digit changes, and Phone US for phone so numbers look obviously fake. My checks were shape, uniqueness, no values left equal and no orphans. I planted a bad row on purpose: the job finished with a WARNING, and the log showed the pattern of the bad value, not the value. I would never sign off a run that has an unexplained warning."</p>
-<p>Be ready to say which parts are documented (what each algorithm does) and which parts are your own design (choosing CM Digits for SSN).</p>
-</div>

@@ -1,4 +1,4 @@
-<p>You have found the sensitive columns (<a href="04-sensitive-data-and-regulations.html">the sensitive data chapter</a>) and cut the data down to a slice (<a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>). Now comes the step that makes the copy safe to hand to testers: <strong>masking</strong>, replacing real sensitive values with realistic fake ones. This chapter explains the idea and the common techniques in plain words, with before and after values on ShopSphere data. The tool-specific chapters, <a href="14-informatica-data-masking.html">Informatica data masking</a> and <a href="26-delphix-algorithms-and-masking-jobs.html">Delphix algorithms and masking jobs</a>, then show where the buttons are.</p>
+<p>After the sensitive columns are found (<a href="04-sensitive-data-and-regulations.html">the sensitive data chapter</a>) and the data is cut down to a slice (<a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>), <strong>masking</strong> makes the copy safe to hand to testers by replacing real sensitive values with realistic fake ones. Tool detail is in <a href="14-informatica-data-masking.html">Informatica data masking</a> and <a href="26-delphix-algorithms-and-masking-jobs.html">Delphix algorithms and masking jobs</a>.</p>
 
 <div class="callout recap"><strong class="ctitle">What you will learn</strong><ul>
 <li>How masking differs from obfuscation, encryption, tokenization, anonymisation and pseudonymisation.</li>
@@ -7,12 +7,6 @@
 <li>Why the same input must give the same output in every table and system, and how tools achieve it.</li>
 <li>Static versus dynamic masking, in-place versus on-the-fly, the main risks, how to choose a technique, and how to validate the result.</li>
 </ul></div>
-
-<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
-
-<p><span class="badge doc">From docs</span> Informatica TDM 10.5.10 User Guide (PDF, February 2026): chapter 7 "Performing a Data Masking Operation" (pp.135 to 150) and chapter 8 "Data Masking Techniques and Parameters" (pp.151 to 185), all technique sections read. Delphix Continuous Compliance 2026.5 (last published October 16, 2026): "Delphix masking terminology", "Algorithms", "Algorithm frameworks", "Secure Lookup", "SecureShuffle", "Date Shift", "Payment Card", "Character Mapping", "Character Replacement", "Free Text Redaction", "String Algorithm Chain", "Tokenization", "Algorithm syncability", "Best practices for Delphix data masking", and the job-creation page for in-place and on-the-fly. One GenRocket page on Synthetic Data Replacement.</p>
-
-<p><span class="badge concept">General concept</span> The comparison of terms, static versus dynamic masking, the risks list and the decision table are explained for this guide. Technique names are marked as coming from the sources or as universally standard.</p></div>
 
 <h2 id="c6-words-to-know">6.1 Words to know first</h2>
 
@@ -52,7 +46,7 @@
 <li>GenRocket argues that traditional masking "can be reverse engineered" and that its Synthetic Data Replacement generates new values that cannot be traced back (GenRocket "G-Subset Overview" and "What is Synthetic Data Replacement").</li>
 </ul>
 
-<p><strong>A third option: replace instead of obscure.</strong> <span class="badge video">From video</span> In the Q&A of its 2020 webinar, GenRocket's CTO was asked how to mask sensitive data when moving production to staging. He said the sensitive attributes are marked in the domain, and during the move their values are never touched, so nothing is obfuscated; they are replaced with synthetic values. His argument was that this is fully secure because the real value is never handled, and that production values may not be valid anyway, so patterns give testers control. This is one vendor's approach with a trade-off: the replacements lose the realism of real data. It suits tests that depend on a value's format, such as a valid-looking SSN, and does not suit tests that depend on real distributions, such as how often a postcode occurs. The vendor's documentation calls it Synthetic Data Replacement (see the list above).</p>
+<p><strong>A third option: replace instead of obscure.</strong> In the Q&A of its 2020 webinar, GenRocket's CTO was asked how to mask sensitive data when moving production to staging. He said the sensitive attributes are marked in the domain, and during the move their values are never touched, so nothing is obfuscated; they are replaced with synthetic values. His argument was that this is fully secure because the real value is never handled, and that production values may not be valid anyway, so patterns give testers control. This is one vendor's approach with a trade-off: the replacements lose the realism of real data. It suits tests that depend on a value's format, such as a valid-looking SSN, and does not suit tests that depend on real distributions, such as how often a postcode occurs. The vendor's documentation calls it Synthetic Data Replacement (see the list above).</p>
 
 <div class="callout warn"><strong class="ctitle">Reversible is a risk in test data</strong>
 
