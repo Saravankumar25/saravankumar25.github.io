@@ -44,18 +44,6 @@
 <div class="callout warn"><strong class="ctitle">Do not copy these numbers from the docs into your own tests</strong>
 <p>A card number from a documentation page may look fake and still be a real, working card by coincidence. When you need card numbers for testing, use numbers designed for testing (payment providers publish "test card numbers") or let a generator or masking tool make numbers that pass the format check but belong to no account.</p></div>
 
-<h3 id="c4-families-compare">The three families side by side</h3>
-<div class="tablewrap"><table><caption>PII, PHI and PCI compared (definitions are general; examples are ShopSphere or hypothetical)</caption>
-<thead><tr><th></th><th>PII</th><th>PHI</th><th>PCI</th></tr></thead>
-<tbody>
-<tr><th>Core idea</th><td>Identifies a person</td><td>Health facts tied to a person</td><td>Payment card details</td></tr>
-<tr><th>Typical columns</th><td>name, email, phone, SSN, birth date</td><td>diagnosis, medical record no., plan member ID</td><td>card number, expiry, security code</td></tr>
-<tr><th>ShopSphere example</th><td><code>CUSTOMERS.ssn</code></td><td>hypothetical <code>PRESCRIPTIONS.diagnosis_code</code></td><td>hypothetical <code>PAYMENTS.card_number</code></td></tr>
-<tr><th>Usually governed by</th><td>GDPR, CCPA and similar privacy laws</td><td>HIPAA (US), plus privacy laws</td><td>PCI DSS (industry standard)</td></tr>
-<tr><th>Informatica policy pack</th><td>PII, 26 domains</td><td>PHI, 17 domains</td><td>PCI, 6 domains</td></tr>
-</tbody></table></div>
-<p>Some domains appear in more than one pack: Birth Date, First Name and Last Name are in all three, Social Security Number is in both PII and PHI, and Account Number is in both PHI and PCI (User Guide 10.5.10, pp.78 to 80). That is a feature, not a bug: one column can matter to several rules at once.</p>
-
 <h2 id="c4-identifiers">4.4 Direct and indirect identifiers: why "just remove the names" fails</h2>
 <p>A common beginner idea is: "We will delete the name column and then the data is anonymous." It is not, and understanding why is the most important privacy idea in this chapter.</p>
 <h3 id="c4-direct-indirect">Two kinds of identifier</h3>
@@ -87,8 +75,6 @@
 <div class="callout why"><strong class="ctitle">What this means for masking</strong>
 <p>Protecting a data set means looking at <em>combinations</em>. It is why the PII and PHI packs both include Birth Date, ZIP and State, not only names and ID numbers. It is also why masking techniques that move a date a little or blur a number (see <a href="06-masking-concepts.html">the masking concepts chapter</a>) exist: they weaken the combination while keeping the data useful for testing.</p></div>
 
-<h3 id="c4-unusual-values">Rare values reveal people too</h3>
-<p>Delphix gives two examples in its terminology page. A salary of $1 suggests a company's CEO, and some age ranges suggest higher insurance risk. Extreme values let a viewer infer who someone is "even if their name has been masked". The Delphix "Min Max" algorithm exists to push such outliers into the middle range. <span class="badge doc">From docs</span> (Delphix "Delphix masking terminology", <a class="badge-link" href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">source page ↗</a>). The lesson for a TDM engineer: when you look for sensitive columns, also ask "which columns have very rare or extreme values?".</p>
 <div class="callout real"><strong class="ctitle">Free text is the other hiding place</strong>
 <p>Informatica's data domain page notes that a Social Security number might sit in an <code>SSN</code> column, in a column called <code>SOCIAL_SECURITY</code> in another table, and also inside a <code>COMMENTS</code> column (User Guide 10.5.10, p.73). <span class="badge doc">From docs</span> A support agent typing "customer 123-45-6789 called about refund" into a notes field has just put an SSN where no column name will ever warn you. Delphix's Free Text Redaction algorithm exists for exactly this problem (<a href="06-masking-concepts.html">the masking concepts chapter</a> explains it).</p></div>
 <div class="exercise"><h4>Lab: how unique are your customers?</h4>

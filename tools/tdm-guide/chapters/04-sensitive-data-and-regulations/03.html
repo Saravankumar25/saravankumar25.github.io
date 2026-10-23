@@ -24,32 +24,6 @@
 </ul>
 <p><span class="badge doc">From docs</span> Both tools mention these regimes only briefly. Delphix's introduction lists HIPAA, PCI and GDPR as examples of mandates organisations must stay compliant with, and Informatica packages its PHI and PCI policy packs for healthcare and banking respectively (User Guide 10.5.10, pp.79 to 80). GenRocket's column-profiling page says that identifying PII early helps organisations meet requirements "such as HIPAA".</p>
 
-<h3 id="c4-hipaa-18">HIPAA's identifier list, mapped to TDM domains</h3>
-<p>The first de-identification method above (remove a fixed list of identifiers) is useful to a TDM engineer because the list reads like a checklist of columns to look for. <span class="badge concept">General concept</span> The table below gives the commonly cited 18 kinds of identifiers in our own words (check the exact wording in the official HIPAA text) and, where the tool documentation lists a matching domain, which one. The domain names are taken from the Informatica PHI and PII policy packs (User Guide 10.5.10, pp.78 to 79) and the Delphix ASDD standard domain list. <span class="badge doc">From docs</span> A dash means I found no clearly matching domain in the pages I read.</p>
-<div class="tablewrap"><table><caption>HIPAA-style identifier list and the closest domains in the two tools</caption>
-<thead><tr><th>#</th><th>Kind of identifier (general concept)</th><th>Informatica pack domain</th><th>Delphix domain</th></tr></thead>
-<tbody>
-<tr><td>1</td><td>Names</td><td>First Name, Last Name</td><td>FIRST_NAME, LAST_NAME, FULL_NAME</td></tr>
-<tr><td>2</td><td>Locations smaller than a state (street, city, ZIP)</td><td>ZIP (PHI), Street Name and Full Address UPPER (PII)</td><td>ADDRESS, CITY, ZIP</td></tr>
-<tr><td>3</td><td>Dates tied to a person, except the year</td><td>Birth Date</td><td>DOB, HIPAA_DATE</td></tr>
-<tr><td>4</td><td>Phone numbers</td><td>Phone</td><td>TELEPHONE_NO</td></tr>
-<tr><td>5</td><td>Fax numbers</td><td>-</td><td>-</td></tr>
-<tr><td>6</td><td>Email addresses</td><td>Email Address</td><td>EMAIL</td></tr>
-<tr><td>7</td><td>Social security numbers</td><td>Social Security Number</td><td>SSN</td></tr>
-<tr><td>8</td><td>Medical record numbers</td><td>Medical Record Number</td><td>RECORD_NO</td></tr>
-<tr><td>9</td><td>Health plan beneficiary numbers</td><td>Health Plan Beneficiary Number</td><td>BENEFICIARY_NO</td></tr>
-<tr><td>10</td><td>Account numbers</td><td>Account Number</td><td>ACCOUNT_NO</td></tr>
-<tr><td>11</td><td>Certificate or licence numbers</td><td>Certificate License Number</td><td>CERTIFICATE_NO</td></tr>
-<tr><td>12</td><td>Vehicle identifiers and licence plates</td><td>Vehicle Registration Number (PII pack)</td><td>PLATE_NO, VIN_NO</td></tr>
-<tr><td>13</td><td>Device identifiers and serial numbers</td><td>Device Identifier Serial Number</td><td>SERIAL_NO</td></tr>
-<tr><td>14</td><td>Web addresses (URLs)</td><td>Web URL</td><td>WEB</td></tr>
-<tr><td>15</td><td>IP addresses</td><td>IP Address</td><td>IP ADDRESS</td></tr>
-<tr><td>16</td><td>Biometric identifiers (fingerprints, voiceprints)</td><td>-</td><td>BIOMETRIC</td></tr>
-<tr><td>17</td><td>Full-face photographs</td><td>-</td><td>No domain, but the Binary Lookup algorithm can replace image objects with a fictional image</td></tr>
-<tr><td>18</td><td>Any other unique identifying number or code</td><td>Unique Identifier</td><td>-</td></tr>
-</tbody></table></div>
-<p>Two lessons. First, the vendors' packs line up well with the legal checklist, which is why they are good starting points. Second, the gaps (fax numbers, photographs) show where a human must step in. Delphix's own documentation notes that its engine cannot change data within images, such as the name on an X-ray or driver's licence, and can only swap the whole image for a fictional one that the data owner provides (Delphix "Delphix masking terminology", Binary Lookup). <span class="badge doc">From docs</span></p>
-
 <h3 id="c4-others">Other regimes, kept general</h3>
 <div class="tablewrap"><table><caption>Other privacy rules you will hear about (very general; verify details with your compliance team)</caption>
 <thead><tr><th>Name</th><th>Where</th><th>One-line idea</th></tr></thead>
@@ -69,9 +43,6 @@
 <tr><td>De-identification / anonymisation</td><td>Make the data no longer point to a person.</td><td>This is the legal argument for <strong>masking</strong> (see <a href="06-masking-concepts.html">the masking concepts chapter</a>).</td></tr>
 <tr><td>Security safeguards</td><td>Protect what you keep with access control and logging.</td><td>Applies to the TDM tool itself and to any unmasked staging copy.</td></tr>
 </tbody></table></div>
-<div class="callout example"><strong class="ctitle">Putting it together at ShopSphere</strong>
-<p>ShopSphere sells in India and Germany, and plans to add pharmacy items. A compliance officer would say: names, emails, phones and SSN/tax IDs are personal data under privacy laws; card details are covered by PCI DSS; prescription data is health information and needs the strictest handling. The TDM engineer's job is not to interpret those laws. It is to translate the compliance officer's decisions into a policy a tool can run (section 4.8).</p></div>
-
 <h2 id="c4-classification">4.6 Data classification: how sensitive is each column?</h2>
 <p><dfn>Data classification</dfn> means labelling data by how much damage a leak could do, so that you can apply protection in proportion. Organisations choose their own scheme. A typical four-level scheme <span class="badge concept">General concept</span> looks like this:</p>
 <div class="tablewrap"><table><caption>A typical four-level classification (illustrative; your organisation's levels may differ)</caption>
@@ -91,16 +62,4 @@
 </ul>
 <div class="callout tip"><strong class="ctitle">Sensitive flag versus masking rule</strong>
 <p>In Informatica, marking a column "sensitive" does not mask it. It documents your decision. Masking happens only when a rule is assigned to the column and a plan runs (see <a href="14-informatica-data-masking.html">the Informatica data masking chapter</a>). Beginners often tick "sensitive" and think the job is done.</p></div>
-<h3 id="c4-special-categories">Special categories: data that is sensitive even without an ID number</h3>
-<p><span class="badge concept">General concept</span> Many privacy laws (GDPR is the well-known example) single out certain kinds of personal data for stricter treatment because misuse can lead to discrimination or serious harm: racial or ethnic origin, political opinions, religious beliefs, trade union membership, health, sex life or orientation, and genetic or biometric data. Treat these as Restricted by default and expect the compliance officer to ask extra questions before any of them reaches a test system.</p>
-<p><span class="badge doc">From docs</span> You can see the same idea in the tool: the Delphix ASDD Standard profile set includes domains named ETHNICITY, RELIGIOUS_ORIEN, POLITICAL_ORIEN, SEXUAL_ORIENTATION, UNION_MEMBERSHIP_NO, BIOMETRIC, NATIONAL_ORIGIN, MARITAL_STATUS, BLOOD_TYPE, MEDICAL_CODES and MEDICAL_DRUG (Delphix "ASDD standard profile set" listing). In the Delphix screenshot later in this chapter you can spot BIOMETRIC and BLOOD_TYPE among the domains, and the default masking method for BIOMETRIC is shown as NullValueLookup, a method that, by its name, suppresses the value rather than faking one. Hiding a value entirely is often the right answer for the most delicate data, because a realistic fake adds risk without adding test value.</p>
-<div class="tablewrap"><table><caption>Sensitivity beyond the obvious (general concept, with Delphix domain names as evidence of what a tool looks for)</caption>
-<thead><tr><th>Category</th><th>Why it is delicate</th><th>Delphix domain examples</th></tr></thead>
-<tbody>
-<tr><td>Health</td><td>Diagnoses and drugs reveal conditions</td><td>MEDICAL_CODES, MEDICAL_DRUG, BLOOD_TYPE</td></tr>
-<tr><td>Beliefs and affiliations</td><td>Can expose a person to discrimination</td><td>RELIGIOUS_ORIEN, POLITICAL_ORIEN, UNION_MEMBERSHIP_NO</td></tr>
-<tr><td>Origin and personal status</td><td>Ethnicity and national origin; marital status</td><td>ETHNICITY, NATIONAL_ORIGIN, MARITAL_STATUS</td></tr>
-<tr><td>Biometrics</td><td>Cannot be changed if leaked, unlike a password</td><td>BIOMETRIC</td></tr>
-<tr><td>Credentials</td><td>Direct route into accounts</td><td>PASSWORD, SECURITY_CODE, USER_ID</td></tr>
-</tbody></table></div>
-<p>ShopSphere's schema has none of these today. When someone adds a "preferred language" or "marital status" column next year, this table is a reminder to ask whether it is special.</p>
+<p><span class="badge concept">General concept</span> Many laws treat some data as especially sensitive: ethnic origin, political opinions, religion, trade union membership, health, sexual orientation, biometrics. The Delphix ASDD Standard profile set has domains for these (for example ETHNICITY, RELIGIOUS_ORIEN, POLITICAL_ORIEN, UNION_MEMBERSHIP_NO, BIOMETRIC and MEDICAL_CODES), and the default masking method it shows for BIOMETRIC is NullValueLookup. <span class="badge doc">From docs</span> For the most delicate data, blanking a value is often better than faking it.</p>

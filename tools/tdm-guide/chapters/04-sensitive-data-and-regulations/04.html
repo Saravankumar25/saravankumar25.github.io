@@ -46,63 +46,10 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 <li><strong>A TYPE classifier.</strong><p>The column must be a Number or String of at least 9 characters. This rejects tiny columns.</p></li>
 </ol>
 <p>The excerpt I had does not explain how the strengths are combined into a final decision, so read the product page for your version before relying on the numbers. What matters for a beginner is the design: several weak clues, each with a weight, are combined to decide.</p>
-<p>For readers who like to see the real thing, here are two of those classifiers as the Delphix page prints them (shortened to the relevant lines). Each one names a <code>domain</code>, a <code>type</code> (the framework from the table above) and its <code>properties</code>:</p>
-<pre><code>{ "domain": "SSN",
-  "name": "Social Security Number - Path",
-  "type": "PATH",
-  "properties": { "paths": [ { "matchType": "REGEX",
-                               "matchStrength": 0.67,
-                               "fieldValue": "(?i)(?&gt;(ssn$|social_?-? ?security_?-? ?(number|num|nbr|no|code|id)))" } ],
-                  "rejectStrength": 0.0 } }
-
-{ "domain": "SSN",
-  "name": "Social Security Number - Type",
-  "type": "TYPE",
-  "properties": { "allowedTypes": [ { "minimumLength": "9", "typeName": "Number" },
-                                    { "minimumLength": "9", "typeName": "String" } ] } }
-</code></pre>
-<p>Reading the first one: it looks at the <em>path</em> (table and column name); the pattern accepts <code>ssn</code> at the end of a name or the words "social security" followed by number, num, nbr, no, code or id, with optional separators between the words. The <code>rejectStrength</code> of 0.0 suggests this classifier never argues <em>against</em> the domain. The second says: only Number or String columns of at least nine characters can be an SSN. Together they show the PATH plus TYPE pairing in action: one clue proposes, another can veto.</p>
-<div class="callout note"><strong class="ctitle">Why show code in a beginner chapter?</strong>
-<p>Because the profile set is not magic. It is a list of small, readable rules. When a column is wrongly flagged or missed, you can open the classifier, read its pattern and know exactly why. Delphix also lets you import and export profile sets and create extra classifier instances through its API client (Delphix "Discovering your sensitive data"), so your team can keep its own additions in version control. <span class="badge doc">From docs</span></p></div>
-
 <h3 id="c4-genrocket-names">What GenRocket does: column names only</h3>
 <p><span class="badge doc">From docs</span> GenRocket's "Data Column Profiling" scans column <em>headers</em>, not the data. It checks whether each column name contains a keyword from a list: 102 built-in names plus any your organisation adds (for example <code>user_email</code> matches <code>email</code>, <code>client_ssn</code> matches <code>ssn</code>). It then shows you the matches to choose from (GenRocket "PII Discovery with Data Column Profiling", <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/pii-discovery-with-data-column-profiling-identify-sensitive-data-columns" target="_blank" rel="noopener">source page ↗</a>). It is the "column name" signal on its own. The upside is that the tool never needs to read real values.</p>
 
-<h3 id="c4-regex-primer">A beginner's regular expression primer</h3>
-<p>You do not need to be a regex expert to be a TDM engineer, but you must be able to read the patterns in a policy and fix one that misfires. Informatica's guide lists the building blocks it supports (User Guide 10.5.10, pp.74 to 75). <span class="badge doc">From docs</span> They are the same few ideas used everywhere:</p>
-<div class="tablewrap"><table><caption>The common building blocks (listed in the Informatica guide), with a ShopSphere use</caption>
-<thead><tr><th>Piece</th><th>Meaning</th><th>Small example</th></tr></thead>
-<tbody>
-<tr><td>an ordinary character, e.g. <code>abc</code></td><td>matches itself</td><td><code>abc</code> matches abc</td></tr>
-<tr><td><code>[0-9]</code></td><td>one character from a set or range</td><td>one digit</td></tr>
-<tr><td><code>[a-zA-Z0-9]</code></td><td>any letter or digit</td><td>one letter or digit</td></tr>
-<tr><td><code>{n}</code></td><td>repeat the previous item n times</td><td><code>[0-9]{10}</code> is ten digits in a row</td></tr>
-<tr><td><code>*</code></td><td>the previous item zero or more times</td><td><code>.*SSN*</code> style name patterns</td></tr>
-<tr><td><code>?</code></td><td>the previous item is optional</td><td><code>-?</code> is an optional hyphen</td></tr>
-<tr><td><code>\</code> (backslash)</td><td>take the next special character literally</td><td><code>\.</code> is a real dot</td></tr>
-</tbody></table></div>
-<p>The guide adds that regular expressions are case sensitive and points to outside tutorials for more. The exact dialect (for example whether a pattern is case-insensitive by default) differs between products, so test patterns in the tool's own preview. Delphix's built-in patterns, for instance, start with <code>(?i)</code> to make name matching case-insensitive, which shows a different dialect from the simple examples above. <span class="badge doc">From docs</span></p>
-<div class="tablewrap"><table class="sample"><caption>Illustrative ShopSphere data patterns, written in the simple style of the Informatica guide's examples</caption>
-<thead><tr><th>Kind of data</th><th>Pattern</th><th>Matches</th><th>Also (wrongly) matches</th></tr></thead>
-<tbody>
-<tr><td>SSN with hyphens</td><td><code>[0-9]{3}-[0-9]{2}-[0-9]{4}</code></td><td>123-45-6789</td><td>A part number formatted 100-20-3000</td></tr>
-<tr><td>Ten-digit phone</td><td><code>[0-9]{10}</code></td><td>9876543210</td><td>Any ten-digit order reference</td></tr>
-<tr><td>Six-digit zip (PIN) code</td><td><code>[0-9]{6}</code></td><td>560001</td><td>A six-digit invoice number</td></tr>
-<tr><td>Birth date, ISO style</td><td><code>[0-9]{4}-[0-9]{2}-[0-9]{2}</code></td><td>1990-04-12</td><td>An order_date such as 2026-10-23</td></tr>
-</tbody></table></div>
-<p>The last column is the point: a data pattern says what the value <em>looks like</em>, not what it <em>is</em>. That is why name patterns and data patterns are combined and why a "minimum conformance percent" exists, and it is the source of false alarms (a false positive: a harmless column flagged). The opposite problem, a real SSN column that does not match because someone stored it without hyphens, is a false negative. The <a href="05-discovery-and-subsetting-concepts.html">discovery and subsetting concepts chapter</a> returns to both.</p>
-<div class="exercise"><h4>Lab: read the patterns</h4>
-<p>Goal: predict which ShopSphere values each pattern catches, then spot a false alarm and a miss.</p>
-<ol class="steps">
-<li><strong>Test <code>[0-9]{10}</code> against these values:</strong> 9876543210, 98765 43210, 0987654321, 98765432101, +91 9876543210.<p>The guide's example patterns do not say whether a match must cover the whole value, so assume a match can sit inside a longer string unless your tool says otherwise.</p></li>
-<li><strong>Write a pattern that also accepts a hyphen or space after the fifth digit.</strong><p>Use optional pieces with <code>?</code>.</p></li>
-<li><strong>Decide:</strong> would both <code>order_id</code> (for example 1000000001) and <code>phone</code> be flagged by <code>[0-9]{10}</code>? What second signal would you add?</li>
-</ol>
-<details class="sol"><summary>Show a worked answer</summary>
-<p>Step 1: 9876543210 and 0987654321 match. 98765 43210 does not, because a space breaks the run of digits. 98765432101 is eleven digits but contains a ten-digit run, so it matches only if partial matches are allowed, which is a trap. +91 9876543210 also matches only as a partial match.</p>
-<p>Step 2: <code>[0-9]{5}[- ]?[0-9]{5}</code> accepts ten digits with an optional hyphen or space in the middle. (Here <code>[- ]</code> means "a hyphen or a space".)</p>
-<p>Step 3: both would be flagged. Add the column-name signal (<code>phone</code>, <code>mobile</code>, <code>tel</code>) and a minimum conformance percent so a column is only claimed when most rows match.</p></details></div>
-
+<p>You will read many patterns in policies, so here is the minimum: <code>[0-9]</code> means one digit, <code>{n}</code> repeats the previous item n times, <code>?</code> makes it optional, <code>*</code> means zero or more, and a backslash makes a special character literal (User Guide 10.5.10, pp.74 to 75). <span class="badge doc">From docs</span> A data pattern says what a value <em>looks like</em>, not what it <em>is</em>: <code>[0-9]{10}</code> matches a phone number and also a ten-digit order reference. That is the source of false alarms (false positives); a real SSN column stored without hyphens that fails the pattern is a false negative. Dialects differ: Delphix patterns start with <code>(?i)</code> for case-insensitive matching.</p>
 <h3 id="c4-shopsphere-detection">ShopSphere example: what each signal finds</h3>
 <div class="tablewrap"><table class="sample"><caption>Illustrative: how the three signals would treat ShopSphere columns</caption>
 <thead><tr><th>Column</th><th>Name signal</th><th>Data signal</th><th>Verdict</th></tr></thead>
@@ -117,17 +64,6 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 </tbody></table></div>
 <div class="callout warn"><strong class="ctitle">Automatic does not mean finished</strong>
 <p>Detection produces <em>candidates</em>. A person must review them: remove false alarms and add the misses (a column like <code>tax_id</code> is caught by a tool whose pattern list includes it and missed by one whose list does not). Informatica builds this review into its workflow: profile results show columns and proposed domains, and a user approves the ones to use (User Guide 10.5.10, p.105). The <a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a> covers false positives and false negatives in detail.</p></div>
-
-<div class="mock"><div class="mbar">Data domain profile results (schematic)</div><div class="mbody">
-<div class="tablewrap"><table class="sample"><thead><tr><th>Table</th><th>Source column</th><th>% Data conformance</th><th>% Null</th><th>Patterns</th><th>Column name match</th><th>Profiled data domain</th><th>Status</th></tr></thead>
-<tbody>
-<tr><td>CUSTOMERS</td><td>ssn</td><td>100</td><td>0</td><td>2</td><td>Yes</td><td>Social Security Number</td><td>Approved</td></tr>
-<tr><td>CUSTOMERS</td><td>phone</td><td>100</td><td>0</td><td>2</td><td>Yes</td><td>Phone</td><td>Approved</td></tr>
-<tr><td>CUSTOMERS</td><td>tax_id</td><td>38</td><td>12</td><td>1</td><td>No</td><td>Social Security Number</td><td>Rejected</td></tr>
-<tr><td>ORDERS</td><td>order_id</td><td>71</td><td>0</td><td>1</td><td>No</td><td>Phone</td><td>Rejected</td></tr>
-</tbody></table></div></div>
-<div class="mnote">Schematic illustration drawn for this guide, not an official screenshot. The column names come from the Informatica data domain results table (User Guide 10.5.10, pp.105 to 106); the values are made up.</div></div>
-<p>Read the sketch like a reviewer. <code>ssn</code> and <code>phone</code> are easy yeses: the name matches and every row conforms. <code>tax_id</code> was proposed as an SSN because only 38 percent of rows fit the pattern and the name does not match, so a human rejects it (and then assigns the right domain by hand). <code>order_id</code> is a false alarm: 71 percent of its values happen to look like a phone number. This is exactly the review the guide describes: you select rows, approve the domain for each column, and can mark the classification as completed to show you reviewed everything (User Guide 10.5.10, p.105). <span class="badge doc">From docs</span></p>
 
 <h2 id="c4-policies">4.8 Policies, rules and data domains</h2>
 <p>Now the vocabulary promised at the start. A TDM tool needs one place that records the answer to "what is sensitive here, and how do we protect each kind?". Informatica calls that place a <strong>policy</strong>. The structure is worth learning exactly, because it explains many menus you will see later. <span class="badge doc">From docs</span> (User Guide 10.5.10, p.71)</p>

@@ -40,9 +40,6 @@
 
 <h3 id="c14-nullification">Nullification masking</h3>
 <p><strong>What it does.</strong> Replaces the value with NULL. Works on binary, date, numeric and string data. No parameters (p.168) <span class="badge doc">From docs</span>.</p>
-<div class="tablewrap"><table class="sample"><caption>Nullification on ssn and tax_id (illustrative)</caption>
-<thead><tr><th>customer_id</th><th>ssn before</th><th>ssn after</th></tr></thead>
-<tbody><tr><td>1001</td><td>123-45-6789</td><td>NULL</td></tr><tr><td>1002</td><td>234-56-7890</td><td>NULL</td></tr></tbody></table></div>
 <p><strong>Use it</strong> for columns the test environment does not need at all: the strongest privacy result, since nothing is left. <strong>Gotchas.</strong> The target column must allow NULL, or the load fails. The application may validate that an SSN is present. Not repeatable in any meaningful way since every row gets the same NULL. A related plan setting, "Target Empty Value", exists in the New Project dialog for non-null columns (p.56), but that is a project setting, not part of this technique.</p>
 
 <h3 id="c14-ssn">SSN masking</h3>
@@ -57,10 +54,7 @@
 <p>SIN means Social Insurance Number, the Canadian equivalent of the SSN (general background, not from the guide). The technique handles a nine-digit SIN with any delimiters, on string columns (p.175) <span class="badge doc">From docs</span>. With no delimiters in the input the output has none; otherwise the output format is <code>xxx-xxx-xxx</code>. You can enable <strong>Start Digit</strong> and give a digit so all masked SINs start with it. Repeatable Output with a seed value is supported. ShopSphere does not hold SINs, so there is no table for it; use the same thinking as for SSN.</p>
 
 <h3 id="c14-phone">Phone masking</h3>
-<p><strong>What it does.</strong> Changes phone numbers while keeping the original format; string columns only (p.169) <span class="badge doc">From docs</span>. The guide's example: <code>(408)382 0658</code> becomes <code>(408)256 3106</code>. Input may contain digits, spaces, hyphens and parentheses; alphabetic and special characters are not masked. The excerpt lists no parameters, and does not say which digits are preserved; in the example the first three stayed, but I would not assume that rule holds for every format.</p>
-<div class="tablewrap"><table class="sample"><caption>Phone masking (illustrative output, format unchanged)</caption>
-<thead><tr><th>customer_id</th><th>phone before</th><th>phone after</th></tr></thead>
-<tbody><tr><td>1001</td><td>9876543210</td><td>9876012345</td></tr><tr><td>1002</td><td>9123456780</td><td>9123870465</td></tr></tbody></table></div>
+<p><strong>What it does.</strong> Changes phone numbers while keeping the original format; string columns only (p.169) <span class="badge doc">From docs</span>. The guide's example: <code>(408)382 0658</code> becomes <code>(408)256 3106</code>. Input may contain digits, spaces, hyphens and parentheses; alphabetic and special characters are not masked. Illustration: 9876543210 might become 9876012345. The excerpt lists no parameters, and does not say which digits are preserved; in the example the first three stayed, but I would not assume that rule holds for every format.</p>
 <p><strong>Gotchas.</strong> If your phone column contains words like "ext 12", only digits are masked. Repeatability is not mentioned for phone in the excerpt. If you need the same phone masked the same way in two tables, use key masking with a numeric mask format and the same seed instead (a design alternative, <span class="badge concept">General concept</span>).</p>
 
 <h3 id="c14-credit-card">Credit card masking</h3>
