@@ -27,6 +27,26 @@
 <p><strong>Rejection.</strong> A column named <code>ssn_present</code> matches the SSN PATH classifier (0.67). But it is boolean, the SSN TYPE classifier returns -1.0, and the verdict is -1.0, so SSN is not assigned.</p>
 <p><strong>Competition.</strong> A column named <code>passport_no</code> holds 9-digit numbers. Both the SSN and the PASSPORT_NO REGEX classifiers give 0.5. Only the PASSPORT_NO PATH classifier also matches (0.67). Final confidence: PASSPORT_NO 0.84, SSN 0.5, so PASSPORT_NO wins.</p>
 </div>
+<figure class="diagram"><svg viewBox="0 0 800 260" role="img" aria-label="Bar chart: for column passport_no, PASSPORT_NO confidence 0.84 beats SSN 0.5">
+<text x="20" y="28" fill="currentColor" font-size="16" font-weight="bold">Column passport_no (9 digits): how the scores add up</text>
+<text x="20" y="70" fill="currentColor" font-size="14">SSN</text>
+<rect x="130" y="52" width="250" height="26" fill="none" stroke="currentColor"/>
+<text x="140" y="70" fill="currentColor" font-size="13">REGEX 0.5</text>
+<text x="400" y="70" fill="currentColor" font-size="13">PATH: no match (0)  ⇒  final 0.5</text>
+<text x="20" y="130" fill="currentColor" font-size="14">PASSPORT_NO</text>
+<rect x="130" y="112" width="250" height="26" fill="none" stroke="currentColor"/>
+<text x="140" y="130" fill="currentColor" font-size="13">REGEX 0.5</text>
+<rect x="380" y="112" width="167" height="26" fill="var(--accent)" fill-opacity="0.35" stroke="currentColor"/>
+<text x="390" y="130" fill="currentColor" font-size="13">PATH 0.67</text>
+<text x="560" y="130" fill="currentColor" font-size="13">⇒  final 0.84 (wins)</text>
+<line x1="130" y1="170" x2="630" y2="170" stroke="var(--line)"/>
+<text x="130" y="190" fill="currentColor" font-size="12">0</text>
+<text x="380" y="190" fill="currentColor" font-size="12">0.5</text>
+<text x="620" y="190" fill="currentColor" font-size="12">1.0</text>
+<text x="20" y="225" fill="currentColor" font-size="13">The block widths are drawn to scale from the docs' example. The engine's exact combining formula is not published and may change.</text>
+</svg>
+<figcaption>Original diagram: the "passport_no" example from the classifier documentation. Both domains get the same data-level score, and only PASSPORT_NO also matches by column name.</figcaption>
+</figure>
 <p>The built-in PATH classifiers usually carry 0.67. A REGEX or LIST classifier has to beat that to override a name match, which is why the docs advise a low match strength (0.1 to 0.5) for patterns that are not unique. A nine-digit pattern could be an SSN, an account number or a row id, so it gets a small score. A dashed pattern like <code>001-23-4567</code> is distinctive, so it gets a high one.</p>
 
 <h3 id="c25-ssn-example">What the SSN classifiers actually look like</h3>

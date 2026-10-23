@@ -90,6 +90,19 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 <li><strong>Remove an assignment:</strong> select the column and choose Actions &gt; Clear Assignment (p.205).</li>
 </ul>
 
+<h3 id="c15-order">15.6.2 Dependencies between columns</h3>
+<p>Some rules read other columns, so the order in which values appear matters. What the guide says: for a conditional rule, TDM generates the column the condition reads first, and the dependent column afterwards; that column must therefore have its own rule (User Guide 10.5.10, p.234). A conditional constraint on a table is applied as the rows are generated, and a conflicting rule wins with a warning (p.202).</p>
+<div class="tablewrap"><table>
+<caption>Where one column depends on another (ShopSphere illustration)</caption>
+<thead><tr><th>Dependent column</th><th>Reads</th><th>Technique that creates the dependency</th></tr></thead>
+<tbody>
+<tr><td>email</td><td>first_name</td><td>Advanced rule input port</td></tr>
+<tr><td>city (hypothetical)</td><td>zip_code</td><td>Conditional</td></tr>
+<tr><td>end_date (hypothetical)</td><td>start_date</td><td>Effective Dates, or a conditional constraint</td></tr>
+<tr><td>ORDERS.customer_id</td><td>CUSTOMERS.customer_id</td><td>Entity relationship or Reference Lookup</td></tr>
+</tbody></table></div>
+<p>The practical habit: draw this table before you assign anything. Every row is a place where the first generated run can disagree with your expectations, so those are the columns to inspect first.</p>
+
 <h2 id="c15-keys">15.7 Tables, entities, relationships and keys</h2>
 <p>Real data is not a pile of independent tables. Every ShopSphere order must point to a customer that exists, and every order item to an order that exists. If you generate each table separately with random numbers, the foreign keys will point nowhere and the app will fail for reasons unrelated to what you wanted to test. TDM gives you two tools for this.</p>
 <h3 id="c15-keys-entity">15.7.1 Entities: generate a parent with its children</h3>

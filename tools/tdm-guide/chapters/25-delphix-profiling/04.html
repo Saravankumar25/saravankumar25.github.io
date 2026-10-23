@@ -89,6 +89,14 @@
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_inventories5.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_inventories5.png" alt="Database inventory with Status Rejected and column rows showing Domain and Algorithm" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> A database inventory under the approval workflow. I viewed this image: the header shows "Status: Rejected" in red, buttons "All Logical Keys", "All Filters" and "Actions", and column rows with domain ZIP and algorithm RepeatFirstDigit on the ID column. The key, filter and code icons on the table row are for logical key, filter condition and custom SQL. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption>
 </figure>
+<h3 id="c25-api-inventory">Doing the same from a script</h3>
+<p>Everything above is also available through the Masking API. The documentation's <code>createInventory</code> example logs in, finds a connector, rule set and table, creates table metadata for that table, then updates one column's inventory entry (it assigns an algorithm and a domain). The payload that does the assigning is just two fields <span class="badge doc">From docs</span>:</p>
+<pre><code>PUT /column-metadata/{columnMetadataId}
+{
+  "algorithmName": "AddrLine2Lookup",
+  "domainName": "ADDRESS_LINE2"
+}</code></pre>
+<p>That is the same act as picking a domain and algorithm in the Edit dialog. Teams use scripts like this to apply the same corrections to many rule sets. The script relies on helper files (<code>apiHostInfo</code>, <code>loginCredentials</code>, <code>helpers</code>) that are not shown, so you cannot run it as printed. To fetch the profiling results of a database job you would call <code>/profileResultDatabase/{executionId}</code>, mentioned earlier.</p>
 <div class="callout why"><strong class="ctitle">Why the checkbox matters in teams</strong>
 <p>A TDM engineer who fixes ten columns by hand, and a colleague who re-runs profiling the next day, are a common cause of "my changes disappeared". Untick automatic updates on every column you corrected deliberately, and let the profiler keep updating the rest.</p>
 </div>
