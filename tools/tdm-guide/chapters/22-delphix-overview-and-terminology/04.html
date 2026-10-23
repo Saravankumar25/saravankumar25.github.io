@@ -36,10 +36,39 @@
 </ul>
 <h3 id="c22-size">22.8.2 Sizing and rules that affect your work</h3>
 <p>The best-practices page gives a standard configuration for a <em>dedicated</em> Compliance Engine: 8 vCPUs, 64 GB of RAM as a minimum (128 GB or more recommended), a 127 GB system disk and at least 50 GB for the data storage pool, more if mapping algorithms are heavily used. The same page offers rules of thumb that affect how you plan jobs: about one vCPU per concurrent masking job, at least 1 GB of memory per masking job, and at least 1 GB per stream when a job uses several parallel streams. It notes that the engine can become I/O-bound waiting for the database, that slow networks with many hops hurt, and that cloning an engine through hypervisor features or copying its storage is not supported as a backup method.</p>
+<h3 id="c22-network">22.8.3 What the engine must be able to reach</h3>
+<p>A masking engine is useful only if it can reach your databases and files, and if your users can reach it. The network requirements page lists the connections. When a connector test fails later, this table is your first checklist. <span class="badge doc">From docs</span></p>
+<div class="tablewrap"><table><thead><tr><th>Direction</th><th>Port (protocol)</th><th>Purpose (as the page says)</th></tr></thead><tbody>
+<tr><td>Outbound</td><td>25 (TCP)</td><td>A local SMTP server for sending email</td></tr>
+<tr><td>Outbound</td><td>53 (TCP/UDP)</td><td>Local DNS servers</td></tr>
+<tr><td>Outbound</td><td>123 (UDP)</td><td>An NTP time server (VM engine)</td></tr>
+<tr><td>Outbound</td><td>162 (UDP)</td><td>SNMP trap messages to an SNMP manager (VM engine)</td></tr>
+<tr><td>Outbound</td><td>443 (TCP)</td><td>HTTPS to the Delphix support upload server; also to an S3 endpoint when you use the AWS or S3-compatible file connector</td></tr>
+<tr><td>Outbound</td><td>636 (TCP/UDP)</td><td>Secure connection to an LDAP server (VM engine)</td></tr>
+<tr><td>Outbound</td><td>"various" (TCP/UDP)</td><td><strong>Your target environments</strong>: databases over JDBC, and files over FTP, SFTP, NFS or CIFS. The port is whatever your database or file server uses.</td></tr>
+<tr><td>Inbound</td><td>22 (TCP)</td><td>SSH to the engine (VM engine)</td></tr>
+<tr><td>Inbound</td><td>443 (TCP)</td><td>HTTPS to the web interface. Use HTTPS.</td></tr>
+<tr><td>Inbound</td><td>80 (TCP)</td><td>Optional HTTP to the interface. Not recommended.</td></tr>
+<tr><td>Inbound</td><td>161 (UDP)</td><td>SNMPv3 from an SNMP manager (VM engine)</td></tr>
+</tbody></table></div>
+<p>The same page adds a surprising rule: a security mechanism prevents the masking engine from being deployed behind a reverse proxy on the network. For a containerized engine the inbound ports are internal ones (the example maps external 30080 and 30443 to internal 8080 and 8443, left entirely to the customer). The prerequisites page says the interface works in the latest version of Microsoft Edge, Mozilla Firefox and Chrome, plus the immediately previous version of each.</p>
+<div class="callout why"><strong class="ctitle">Why the "various" row is the one that bites</strong>
+<p>The ports for your own databases cannot be listed in advance, because they are yours. A connector test that hangs usually means a firewall between the engine and the database host, not a wrong password. Ask your network team to open the port between the engine and the database, in that direction.</p></div>
+<h3 id="c22-vmvscontainer">22.8.4 VM engine versus containerized engine</h3>
+<p>The prerequisites page describes the containerized product as built for <em>ephemeral</em> engines: small engines spun up for a specific need and thrown away afterwards. It also lists functional differences. <span class="badge doc">From docs</span></p>
+<div class="tablewrap"><table><thead><tr><th>Capability</th><th>VM-based engine</th><th>Containerized engine</th></tr></thead><tbody>
+<tr><td>FTP for file masking</td><td>Yes</td><td>No</td></tr>
+<tr><td>SSL/TLS for connectors, LDAP over TLS/SSL, local file masking over NFS or CIFS</td><td>Yes (set through the Engine Setup app)</td><td>Yes (set through Kubernetes)</td></tr>
+<tr><td>Kerberos</td><td>Yes</td><td>No</td></tr>
+<tr><td>SSO / OAuth</td><td>Yes</td><td>No</td></tr>
+<tr><td>Upgrade and upgrade validation</td><td>Yes</td><td>No</td></tr>
+<tr><td>Db2 z/OS and iSeries connector</td><td>Yes</td><td>No</td></tr>
+</tbody></table></div>
+<p>For this guide the practical consequence is small: your training engine is most likely a VM-based engine, and the screens are the same. If your organisation runs the containerized one, expect FTP file connectors, Kerberos login to databases and SSO to be unavailable.</p>
 <div class="callout warn"><strong class="ctitle">Two engines, never one machine</strong>
 <p>Both the masked-provisioning pages and the configuration page say that Delphix Masking and Delphix Virtualization must never run inside the same virtual machine. Use separate, dedicated engines. The best-practices page also says that Continuous Data and Continuous Compliance are delivered in one OVA, and you pick which one at first setup. So an engine <em>image</em> can become either product, but one running engine is only one of them.</p></div>
 <div class="callout note"><strong class="ctitle">What I could not ground</strong>
-<p>I did not read the per-cloud installation pages in full, so I give no instance sizes, ports or prices. Usage-based pricing is mentioned on the supported-connectors page (per terabyte of data managed), but I have no price list. Ask your Delphix administrator for the concrete deployment you are using.</p></div>
+<p>I did not read the per-cloud installation pages in full, so I give no per-cloud instance sizes or prices. Usage-based pricing is mentioned on the supported-connectors page (per terabyte of data managed), but I have no price list. Ask your Delphix administrator for the concrete deployment you are using.</p></div>
 
 <h2 id="c22-roles">22.9 Users and roles overview</h2>
 <p>The masking engine uses role-based access control: a <dfn>role</dfn> is a set of allowed actions on certain kinds of objects, and a <dfn>user</dfn> is a person who has one role and access to certain environments. This is how ShopSphere keeps the data steward from editing connection passwords and keeps testers away from masking jobs. <span class="badge doc">From docs</span></p>
@@ -172,6 +201,8 @@
 <li><a href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Managing environments</a>, <a href="https://help.delphix.com/cc/current/content/managing_jobs.htm" target="_blank" rel="noopener">Managing jobs</a> and <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs</a>: environment as container, job types, in-place and on-the-fly definitions.</li>
 <li><a href="https://help.delphix.com/cc/current/content/discovering_your_sensitive_data.htm" target="_blank" rel="noopener">Discovering your sensitive data</a> and <a href="https://help.delphix.com/cc/current/content/managing_domains.htm" target="_blank" rel="noopener">Managing domains</a>: profile sets, domains, classifiers.</li>
 <li><a href="https://help.delphix.com/cc/current/content/users_and_roles.htm" target="_blank" rel="noopener">Users and roles</a> and <a href="https://help.delphix.com/cc/current/content/best_practices_for_defining_masking_roles.htm" target="_blank" rel="noopener">Best practices for defining masking roles</a>: roles, actions, objects, default roles, sample RACI; two screenshots.</li>
+<li><a href="https://help.delphix.com/cc/current/content/network_connectivity_requirements.htm" target="_blank" rel="noopener">Network connectivity requirements</a> and <a href="https://help.delphix.com/cc/current/content/prerequisites.htm" target="_blank" rel="noopener">Prerequisites</a>: ports, browsers, VM versus container differences.</li>
+<li><a href="https://help.delphix.com/cc/current/content/audit_logs.htm" target="_blank" rel="noopener">Audit logs</a>, <a href="https://help.delphix.com/cc/current/content/monitor_async_task_status.htm" target="_blank" rel="noopener">Monitor Async Task Status</a>, <a href="https://help.delphix.com/cc/current/content/managing_application_settings.htm" target="_blank" rel="noopener">Managing application settings</a>, <a href="https://help.delphix.com/cc/current/content/utilization.htm" target="_blank" rel="noopener">Utilization</a>, <a href="https://help.delphix.com/cc/current/content/introduction__managing_multiple_engines_for_masking_.htm" target="_blank" rel="noopener">Managing multiple engines</a> and <a href="https://help.delphix.com/cc/current/content/sync_concepts.htm" target="_blank" rel="noopener">Sync concepts</a>: monitoring, audit, settings and moving objects between engines.</li>
 <li><a href="https://help.delphix.com/cc/current/content/best_practices_for_delphix_data_masking.htm" target="_blank" rel="noopener">Best practices for Delphix data masking</a>, <a href="https://help.delphix.com/cc/current/content/installation.htm" target="_blank" rel="noopener">Installation</a> and <a href="https://help.delphix.com/cc/current/content/containerized_masking_installation.htm" target="_blank" rel="noopener">Containerized masking installation</a>: sizing and deployment families.</li>
 <li><a href="https://help.delphix.com/cc/current/content/2026_5_release_notes.htm" target="_blank" rel="noopener">2026.5 release notes</a> and <a href="https://help.delphix.com/cc/current/content/release_notes.htm" target="_blank" rel="noopener">Release notes index</a>: release cadence and the JDK 17 change.</li>
 </ul></section>

@@ -1,0 +1,176 @@
+
+<h2 id="c8-load">8.8 Load: writing into the target</h2>
+<p><strong>Concept.</strong> Loading writes the transformed rows into the target tables, in a way that is correct, repeatable and fast enough.</p>
+<p><strong>Why it matters.</strong> A load that half-finishes leaves the target in a state nobody understands: some rows from tonight, some from yesterday. Loads must either complete or leave things as they were, and they must be safe to run again.</p>
+<h3 id="c8-load-strategies">8.8.1 Load strategies</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Strategy</th><th>What it does</th><th>Good for</th><th>Danger</th></tr></thead>
+<tbody>
+<tr><td>Truncate and load (full refresh)</td><td>Empty the target table, then insert everything</td><td>Small tables, reference data, test databases</td><td>Target is empty or partial during the load; slow for big tables</td></tr>
+<tr><td>Append (insert only)</td><td>Add new rows, never touch old ones</td><td>Event or fact data that never changes</td><td>Running twice duplicates rows</td></tr>
+<tr><td>Incremental</td><td>Load only the rows extracted incrementally</td><td>Large tables</td><td>Depends on a correct watermark</td></tr>
+<tr><td>Upsert (merge)</td><td>Update rows that exist, insert those that do not</td><td>Dimensions and master data</td><td>Needs a reliable key to match on</td></tr>
+<tr><td>Bulk load</td><td>Use the database's fast loading path, bypassing row-by-row inserts</td><td>Millions of rows</td><td>May skip triggers and constraint checks, so check afterwards</td></tr>
+<tr><td>History-keeping load (SCD)</td><td>Close the old version of a row and insert a new one</td><td>Dimensions where history matters</td><td>More complex; the table grows</td></tr>
+</tbody></table></div>
+<p>What the tools say about these ideas, all in their own terms:</p>
+<ul>
+<li>Informatica's plan has update strategy options: treat source rows as <em>Insert</em> or <em>Update</em>, and an "Update as" choice of <em>Update</em>, <em>Insert</em> or <em>Update else Insert</em>, which updates a row if it exists in the target and inserts the rest (User Guide 10.5.10, p.284). That is the upsert strategy, named. <span class="badge doc">From docs</span></li>
+<li>Informatica lets you run SQL before and after writing to a target. Its example is <code>TRUNCATE TABLE $OWNERNAME.$TABLENAME;</code>, which deletes all rows from the target table first (pp.277 to 278). That is truncate and load. <span class="badge doc">From docs</span></li>
+<li>Delphix on-the-fly masking jobs have a <em>Truncate</em> option that sets whether target database tables are emptied before the masked data is loaded, and a <em>Batch Update</em> option for loading in batches sized by the commit size. <span class="badge doc">From docs</span> <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs ↗</a></li>
+<li>GenRocket's FAQ says that for very large volumes you do not want to connect through JDBC; you generate data in the database's native bulk load format using bulk load receivers. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">GenRocket General FAQ ↗</a></li>
+</ul>
+<h3 id="c8-load-upsert">8.8.2 Upsert in SQL</h3>
+<p>Suppose Asha Menon's zip code changes in the next feed. A plain insert would collide with the existing row. An upsert updates it:</p>
+<pre><code>-- SQLite and PostgreSQL syntax
+INSERT INTO dim_customer_simple (customer_id, full_name, email, zip_code)
+VALUES (1001, 'Asha Menon', 'asha.menon@example.com', '560002')
+ON CONFLICT (customer_id)
+DO UPDATE SET full_name = excluded.full_name,
+              email     = excluded.email,
+              zip_code  = excluded.zip_code;
+
+-- Oracle and SQL Server use MERGE instead:
+-- MERGE INTO dim_customer_simple t USING (...) s ON (t.customer_id = s.customer_id)
+-- WHEN MATCHED THEN UPDATE SET ... WHEN NOT MATCHED THEN INSERT ...</code></pre>
+<div class="tablewrap"><table class="sample">
+<caption>Upsert effect on one row</caption>
+<thead><tr><th></th><th>customer_id</th><th>full_name</th><th>zip_code</th></tr></thead>
+<tbody>
+<tr><td>Before</td><td>1001</td><td>Asha Menon</td><td>560001</td></tr>
+<tr><td>After</td><td>1001</td><td>Asha Menon</td><td>560002</td></tr>
+</tbody></table></div>
+<p>Notice the property that makes upserts valuable: <strong>running the same load twice gives the same result</strong>. A property like this is called <em>idempotence</em>, and it is what lets you safely re-run a failed job.</p>
+<h3 id="c8-scd">8.8.3 Keeping history: a slowly changing dimension</h3>
+<p>An upsert overwrites. After it, the warehouse says Asha always lived in 560002, so a report on October 20 sales would attribute them to the wrong zip. If history matters, keep both versions with validity dates. This pattern is commonly called a <strong>Type 2 slowly changing dimension</strong>. <span class="badge concept">General concept</span></p>
+<pre><code>CREATE TABLE dim_customer (
+  customer_key INTEGER PRIMARY KEY AUTOINCREMENT,   -- surrogate key
+  customer_id  INTEGER,                             -- business key
+  full_name    TEXT, email TEXT, zip_code TEXT,
+  valid_from   TEXT, valid_to TEXT, is_current INTEGER
+);
+
+-- Step 1: close the current row of any customer whose data changed
+UPDATE dim_customer
+SET    valid_to = '2026-10-24', is_current = 0
+WHERE  is_current = 1
+  AND  EXISTS (SELECT 1 FROM clean_customers n
+               WHERE n.customer_id = dim_customer.customer_id
+                 AND (n.full_name &lt;&gt; dim_customer.full_name
+                   OR n.email     &lt;&gt; dim_customer.email
+                   OR n.zip_code  &lt;&gt; dim_customer.zip_code));
+
+-- Step 2: insert a current row for anyone who has none (new or just closed)
+INSERT INTO dim_customer (customer_id, full_name, email, zip_code, valid_from, valid_to, is_current)
+SELECT n.customer_id, n.full_name, n.email, n.zip_code, '2026-10-24', '9999-12-31', 1
+FROM   clean_customers n
+WHERE  NOT EXISTS (SELECT 1 FROM dim_customer d
+                   WHERE d.customer_id = n.customer_id AND d.is_current = 1);</code></pre>
+<p>Here <code>clean_customers</code> is the cleaned and de-duplicated customer query from 8.7. The table gets a <em>surrogate key</em> (<code>customer_key</code>), an artificial id, because the business key <code>customer_id</code> now appears more than once.</p>
+<div class="tablewrap"><table class="sample">
+<caption>dim_customer after run 2 (real output from my SQLite run, 1002 and 1003 omitted)</caption>
+<thead><tr><th>customer_key</th><th>customer_id</th><th>zip_code</th><th>valid_from</th><th>valid_to</th><th>is_current</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>1001</td><td>560001</td><td>2026-10-23</td><td>2026-10-24</td><td>0</td></tr>
+<tr><td>4</td><td>1001</td><td>560002</td><td>2026-10-24</td><td>9999-12-31</td><td>1</td></tr>
+</tbody></table></div>
+<p>A fact row loaded on 20 October can now be joined to the version of the customer that was valid that day (<code>order_date</code> between <code>valid_from</code> and <code>valid_to</code>). The far-future date 9999-12-31 is a common convention for "still current".</p>
+<h3 id="c8-load-safety">8.8.4 Making a load safe</h3>
+<ul>
+<li><strong>Transactions and commit size.</strong> Rows are written in groups; each group is committed. Informatica's plan lets you set a source-based or target-based commit (target-based is the default) and a commit interval whose default is 10,000 rows (User Guide 10.5.10, p.285). Delphix masking jobs have a <em>Commit Size</em> field with the same meaning. <span class="badge doc">From docs</span></li>
+<li><strong>Constraints.</strong> Load parents before children, or disable and re-enable constraints carefully. Delphix jobs have optional <em>Disable Constraints</em>, <em>Disable Triggers</em> and <em>Drop Indexes</em> checkboxes, all off by default, for exactly this reason. <span class="badge doc">From docs</span></li>
+<li><strong>Recovery.</strong> Decide in advance what a failed load does: roll back and stop, skip the bad row, or resume from a checkpoint (see 8.14).</li>
+</ul>
+
+<h2 id="c8-batch-streaming">8.9 Batch, streaming, and ETL versus ELT</h2>
+<h3 id="c8-batch-vs-streaming">8.9.1 Batch versus streaming at a glance</h3>
+<div class="compare">
+<div>
+<h4>Batch</h4>
+<p>Collect data for a period (an hour, a night), then process it as one group.</p>
+<p><strong>Easy to reason about and re-run.</strong> Results are always "as of last run".</p>
+<p>Most ETL, and nearly all test data provisioning, is batch.</p>
+</div>
+<div>
+<h4>Streaming</h4>
+<p>Process each event, or tiny groups of events, within seconds of arrival.</p>
+<p><strong>Fresh results, harder to build.</strong> You must handle duplicates, late and out-of-order events.</p>
+<p>Needed when the answer must be current: fraud alerts, live dashboards.</p>
+</div>
+</div>
+<p>A middle path, <em>micro-batching</em>, runs a small batch every minute or so. For this guide you can treat all jobs as batch. <span class="badge concept">General concept</span></p>
+<h3 id="c8-etl-vs-elt">8.9.2 ETL versus ELT</h3>
+<p>In <strong>ETL</strong>, transformations run in the ETL engine, on its own servers, before data reaches the target. In <strong>ELT</strong>, raw data is loaded into the target first (often a powerful cloud warehouse) and transformed there using its SQL engine.</p>
+<div class="tablewrap"><table>
+<thead><tr><th></th><th>ETL</th><th>ELT</th></tr></thead>
+<tbody>
+<tr><td>Where transforms run</td><td>Separate ETL engine</td><td>Inside the target database</td></tr>
+<tr><td>Raw data reaches target?</td><td>Usually no, only cleaned data</td><td>Yes, kept as a raw layer</td></tr>
+<tr><td>Strength</td><td>Sensitive data can be cleaned or masked before it lands in the target</td><td>Uses the target's power; raw data can be re-transformed later</td></tr>
+<tr><td>Weakness</td><td>The engine can become a bottleneck</td><td>Raw (maybe sensitive) data sits in the target</td></tr>
+</tbody></table></div>
+<p>Look at the last row, because it matters for test data. If raw data holds real personal details, ELT would place them in the target before masking. That is why TDM favours the ETL order: mask first, then load. The ShopSphere example in this chapter is really a hybrid: staging is a lightweight "EL" step and the transformation is done by SQL. Many practical systems mix both styles. <span class="badge concept">General concept</span></p>
+
+<h2 id="c8-architecture">8.10 ETL architecture</h2>
+<p>An ETL tool is more than a place to run SQL. Look back at the diagram in 8.4. Here is each part and what a real product adds to the plain SQL of our example.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Part</th><th>What it does</th><th>In our SQL example</th></tr></thead>
+<tbody>
+<tr><td>Sources</td><td>The systems and files that hold the original data</td><td>The customer, order and item feeds</td></tr>
+<tr><td>Integration (ETL) engine</td><td>The program that actually reads, transforms and writes rows</td><td>The SQLite engine running our statements</td></tr>
+<tr><td>Metadata repository</td><td>A database that stores the definitions of mappings, connections and run history</td><td>The SQL script files and the <code>etl_control</code> table</td></tr>
+<tr><td>Scheduler</td><td>Starts jobs at the right time or after another job finishes</td><td>You, running the script by hand</td></tr>
+<tr><td>Monitoring and logging</td><td>Shows progress, row counts, rejects, errors; sends alerts</td><td>The reject table and the reconciliation query</td></tr>
+<tr><td>Targets</td><td>The systems that receive the result</td><td>dim_customer, fact_order_line, agg_daily_sales</td></tr>
+</tbody></table></div>
+<h3 id="c8-informatica-architecture">8.10.1 A documented example: the pieces in Informatica TDM</h3>
+<p>Informatica TDM's architecture section lists these parts, and they line up with the general model. All quoted from the User Guide chapter 1, pages 25 to 27 and 29. <span class="badge doc">From docs</span></p>
+<ul>
+<li>The <strong>PowerCenter Integration Service</strong> is the engine. It "runs sessions and workflows that you run from Test Data Manager" (p.26) and runs the data subset, data generation and data masking workflows (p.27).</li>
+<li>The <strong>PowerCenter Repository Service</strong> manages the PowerCenter repository, the metadata store. That repository holds "information required to extract, transform, and load data", along with permissions and privileges for users (p.26).</li>
+<li>The <strong>PowerCenter Client</strong> is where you "design mappings, mapplets, and sessions to load the data" (p.25).</li>
+<li>The <strong>Informatica Administrator</strong> is a web application to "manage, monitor, deploy, and undeploy data flows" (p.25).</li>
+<li>The <strong>Monitor view</strong> in Test Data Manager is where you watch workflow progress (plan task list, p.275).</li>
+</ul>
+<p>The product's guide treats PowerCenter, an ETL product, as the engine under TDM. That is the central link between this chapter and the next, so we pick it up properly in <a href="09-etl-and-tdm.html">ETL and TDM: how they relate</a>.</p>
+
+<h2 id="c8-mappings-workflows">8.11 Mappings, sessions, workflows and jobs</h2>
+<p>Every ETL tool has a few layers of "thing you can define and run". Names vary, so learn the layers and then the names. <span class="badge concept">General concept</span></p>
+<ol class="steps">
+<li><strong>Transformation.</strong><p>One operation on rows: filter, lookup, aggregate. The smallest piece.</p></li>
+<li><strong>Mapping.</strong><p>A diagram or definition that connects a source to a target through a chain of transformations. It describes <em>what</em> happens to the data, but does not run by itself.</p></li>
+<li><strong>Session (or task).</strong><p>A runnable instance of one mapping, with the run settings: which connections, commit size, error rules.</p></li>
+<li><strong>Workflow (or job, or pipeline).</strong><p>A set of sessions and other steps with an order and conditions: "run session A; if it works, run B and C; if it fails, send an email".</p></li>
+<li><strong>Schedule or trigger.</strong><p>When the workflow starts: a time, a file arriving, another workflow ending.</p></li>
+</ol>
+<div class="callout real"><strong class="ctitle">These layers in the Informatica TDM guide</strong>
+<ul>
+<li>When you generate a workflow from a plan, "the PowerCenter Repository Service generates mappings for the workflow"; when you start it, the PowerCenter Integration Service does the subset, masking and generation tasks defined in the plan (p.308). <span class="badge doc">From docs</span></li>
+<li>You can view the sessions that run from each workflow, with statistics for affected rows, rejected rows and rows written to the target (p.275, "Session Details" tab). <span class="badge doc">From docs</span></li>
+<li>A plan can run a chosen workflow before ("pre workflow") and after ("post workflow") the main one: its example copies files from production to test area first, then masks, then runs statistics on the tables (p.277). <span class="badge doc">From docs</span></li>
+<li>Up to eight workflows run at one time; others queue (p.276). <span class="badge doc">From docs</span></li>
+<li>The guide also warns that if you edit components generated from Test Data Manager in the PowerCenter Client, "the session might generate unexpected results" (p.150). <span class="badge doc">From docs</span></li>
+</ul></div>
+
+<h2 id="c8-reusable">8.12 Reusable components and the mapplet</h2>
+<p><strong>Concept.</strong> A reusable component is a piece of ETL logic you build once and use in many places, like a function in programming.</p>
+<p><strong>Why it matters.</strong> Without reuse, the same rule (clean a phone number, standardise a country name) is copied into twenty mappings. When the rule changes, someone must find and fix twenty copies, and will miss one.</p>
+<p>In Informatica's world, the reusable group of transformations is called a <dfn>mapplet</dfn>. A mapplet has input and output ports (named connection points), contains one or more transformations, and can be placed into many mappings. Think of it as a small mapping with sockets at each end.</p>
+<div class="flow">
+<div class="node"><b>Input port</b>FIRST_NAME</div>
+<div class="arrow">→</div>
+<div class="node"><b>Transformations inside</b>trim, fix case, reject blanks</div>
+<div class="arrow">→</div>
+<div class="node"><b>Output port</b>FIRST_NAME_CLEAN</div>
+</div>
+<p>What the TDM guide says about mapplets (the rest of the product is not needed to follow this):</p>
+<ul>
+<li>Test Data Manager can create a masking rule <em>from a mapplet</em>. The mapplet holds the logic that masks the input columns and returns data to the target columns (User Guide 10.5.10, p.137). <span class="badge doc">From docs</span></li>
+<li>You import the mapplet from an XML file exported from the PowerCenter repository or the Model repository, and the mapplet can contain "any passive transformations" (p.137). A passive transformation is one that does not change the number of rows. <span class="badge doc">From docs</span></li>
+<li>A mapplet can have multiple input and multiple output columns; at least one input and one output must be marked required. When you assign the rule to a column you map the mapplet's column names to the real table columns (p.137). <span class="badge doc">From docs</span></li>
+<li>The TDM repository stores the mapplet logic when imported, and you cannot change the mapplet inside Test Data Manager. To change it, edit it in PowerCenter and import it again (pp.137 and 151). <span class="badge doc">From docs</span></li>
+<li>Data generation uses the same idea: a <em>custom generation rule</em> is based on PowerCenter mapplet logic, for example one that joins first and last name into a full name (pp.192 and 211). <span class="badge doc">From docs</span></li>
+</ul>
+<p>The syllabus mentions "mapplet creation" on Day 54, so the <a href="14-informatica-data-masking.html">Informatica data masking chapter</a> returns to this with the actual TDM steps. For the building of a mapplet in PowerCenter itself, this guide has no documentation excerpt, so I only link the related video above, whose content I could not check.</p>
+<div class="callout example"><strong class="ctitle">ShopSphere mapplet idea</strong>
+<p>Define one mapplet, <code>m_clean_name</code>: input <code>NAME_IN</code>, output <code>NAME_OUT</code>, doing trim, first-letter upper case and the rest lower case. Use it for <code>first_name</code> and for <code>last_name</code> in the customer mapping. If a rule later says "keep apostrophes and capitals inside names like O'Brien", you change one mapplet, not two mappings. The SQL equivalent is a view or a function.</p></div>

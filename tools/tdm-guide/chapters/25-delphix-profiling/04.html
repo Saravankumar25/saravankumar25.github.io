@@ -4,6 +4,9 @@
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_jobs.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_jobs.png" alt="Environment Jobs tab listing a succeeded MASK job, a running PROFILE job and a MASK job with a warning" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Job statuses on the Jobs tab. I viewed this image: job 95 of Type PROFILE shows RUNNING at 0%, job 96 MASK shows SUCCEEDED at 100%, and job 1 MASK shows a yellow WARNING at 100%. Each row has a "..." Actions menu. <a class="badge-link" href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption>
 </figure>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_profile4.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_profile4.png" alt="Jobs tab with the row Actions menu open showing Run, View, Edit and Delete" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The row Actions menu. I viewed this image: on an environment Jobs tab (engine 24.0.0.0) the "..." menu of a job row is open with four items, Run, View, Edit and Delete. Other rows show statuses CREATED (never run), WARNING and SUCCEEDED; job 8 has Type PROFILE. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_profiling_jobs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
 <h3 id="c25-monitor">Monitor it</h3>
 <p>Go to <strong>Monitor &gt; Job Executions</strong>, or click the job name from anywhere. The list can be sorted and filtered by Environment, Job Name, Status, Submit Time, Start Time and Type. A job moves through these states <span class="badge doc">From docs</span>:</p>
 <div class="tablewrap"><table>
@@ -82,7 +85,7 @@
 </figure>
 <p>Three more inventory tools worth knowing <span class="badge doc">From docs</span>:</p>
 <ul>
-<li><strong>Clear Masking Assignment</strong> (an icon above the grid) removes every assignment in the rule set and switches automatic updates off. A confirmation bar appears for a few seconds; if you do nothing, the clearing goes ahead, and Cancel keeps your assignments.</li>
+<li><strong>Clear Masking Assignment</strong> (the circular-arrow icon in a row's Actions column, enabled only when that column or field has an assignment) removes the applied masking assignment and, in the same click, switches automatic updates off for it. A confirmation bar appears for a few seconds; if you do nothing, the clearing goes ahead, and Cancel keeps your assignment.</li>
 <li><strong>Nulling algorithms.</strong> If you pick an algorithm that can return null (such as Null SL) for a column that has a NOT NULL constraint, the UI shows an error.</li>
 <li><strong>Inventory Approval Workflow</strong> (database rule sets only, enabled per environment). Every edit sets the status to NEW; the editor clicks Submit; an Admin or a user with the Inventory Approval privilege clicks Approve or Reject. A masking job for that rule set will not run unless the status is Approved. This gives a data steward a formal sign-off point.</li>
 </ul>
@@ -92,7 +95,7 @@
 <h3 id="c25-reading-example">Reading a report like a reviewer</h3>
 <p>Take the PDF screenshot earlier: it has TELEPHONE_NO and EMAIL rows with confidence 80 and "Auto ID true". Ask four questions of every row, in this order:</p>
 <ol class="steps">
-<li><strong>Is the domain right for what the column holds?</strong><p>A phone number column marked TELEPHONE_NO is right. A column of random codes marked TELEPHONE_NO is a false alarm that a name or a list of digits can cause.</p>
+<li><strong>Is the domain right for what the column holds?</strong><p>A phone number column marked TELEPHONE_NO is right. A column of order codes marked TELEPHONE_NO would be a false alarm.</p>
 </li>
 <li><strong>Is the algorithm right for the application?</strong><p>The domain's default is only a default. A unique-email algorithm keeps each person distinct; a lookup-based one can map two people to the same address. Which one the tests need is a design decision, see <a href="26-delphix-algorithms-and-masking-jobs.html">the algorithms chapter</a>.</p>
 </li>
@@ -139,6 +142,9 @@ PRODUCTS   price          PAYMENT_AMOUNT clear (false alarm)</pre></div>
   "domainName": "ADDRESS_LINE2"
 }</code></pre>
 <p>That is the same act as picking a domain and algorithm in the Edit dialog. Teams use scripts like this to apply the same corrections to many rule sets. The script relies on helper files (<code>apiHostInfo</code>, <code>loginCredentials</code>, <code>helpers</code>) that are not shown, so you cannot run it as printed. To fetch the profiling results of a database job you would call <code>/profileResultDatabase/{executionId}</code>, mentioned earlier.</p>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_inventories6.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_inventories6.png" alt="Database inventory with two confirmation bars asking to reset masking assignments and disable automatic updates for DATA_00 and DATA_01" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The Clear Masking Assignment action. I viewed this image: after clicking the circular-arrow icon on two rows, two blue "Information" bars ask "Are you sure you want to reset masking assignments and disable automatic updates for DATA_00 ..." each with a red Cancel link. The grid also shows Domain and Algorithm columns (NULL_SL on two rows, ZIP with RepeatFirst... on the ID row) and the Automatic Updates column. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
 <div class="callout why"><strong class="ctitle">Why the checkbox matters in teams</strong>
 <p>A TDM engineer who fixes ten columns by hand, and a colleague who re-runs profiling the next day, are a common cause of "my changes disappeared". Untick automatic updates on every column you corrected deliberately, and let the profiler keep updating the rest.</p>
 </div>
