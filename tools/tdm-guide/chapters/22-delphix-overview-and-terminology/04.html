@@ -10,61 +10,12 @@
 <p>It runs as a pod of three containers (<code>delphix-masking-app</code>, <code>delphix-masking-database</code> and <code>delphix-masking-proxy</code>) and can be deployed directly or with Helm. One documented limitation you will meet in the connector chapter: FTP and FTPS file connectors are disabled in containerized deployments.</p></div>
 </div>
 <h3 id="c22-setup">22.8.1 What the Setup Wizard asks</h3>
-<p>I read the whole wizard description. These are its pages in order, with what each one is for:</p>
-<ol>
-<li><strong>Welcome.</strong> Pick the engine type. Choose <em>Continuous Compliance</em> for a masking engine. Here you also set the masking administrator's email and password and the SMTP settings, with limits: only those settings are supported in the wizard, LDAP needs the API, and later changes also go through the Masking API.</li>
-<li><strong>Continuous Compliance Password.</strong> Enter the current default password of the compliance engine.</li>
-<li><strong>Administrators.</strong> Credentials for the System Administrator, the Compliance Administrator and the Engine Administrator.</li>
-<li><strong>Time.</strong> Choose how to maintain the system time.</li>
-<li><strong>Network.</strong> Network interfaces and services. The page warns that changing interfaces or the default gateway here can make the engine unreachable from the browser, so do it from the console CLI after installation.</li>
-<li><strong>Network Security.</strong> Review the certificates created by the engine's certificate authority and replace any if needed.</li>
-<li><strong>Storage.</strong> Choose the storage type, make sure the devices you need are enabled, and optionally expand capacity or rediscover newly attached devices.</li>
-<li><strong>Outbound Connectivity.</strong> Web proxy for reaching Delphix Support, the daily "phone home" support bundle, anonymous usage analytics, and the SMTP server (server name or IP, from address, subject) used for job email.</li>
-<li><strong>Authentication.</strong> LDAP, SAML/SSO and OAuth2 options.</li>
-<li><strong>Network Authorization.</strong> Kerberos, and password vaults (for example CyberArk) for storing host credentials outside the engine.</li>
-<li><strong>Registration.</strong> Activate the engine online, or offline with a registration code.</li>
-<li><strong>Summary.</strong> Review and submit.</li>
-</ol>
-<p>Details worth remembering from those pages:</p>
-<ul>
-<li>The documented first logins use default accounts (a <code>sysadmin</code> account for engine setup and an <code>admin</code> account for the masking application). The page tells you to change the default password for security. I do not repeat the defaults here.</li>
-<li><strong>Engine type cannot be changed</strong> once set in the wizard, because other features such as SSO depend on it.</li>
-<li>After three failed attempts the account is locked from the Compliance service.</li>
-<li>The Compliance engine <strong>operates only in UTC</strong>; time zone choices during setup do not apply. Remember this when you read job times in Monitor.</li>
-<li>LDAP for non-containerized engines is configured in the setup application, not in the masking UI; containerized engines keep LDAP settings local. This is a change from earlier releases that the page calls out, which is a good example of why you check your version.</li>
-<li>Email for job completion needs the SMTP settings from the Outbound Connectivity page.</li>
-</ul>
+<p>The wizard walks through Welcome (pick <em>Continuous Compliance</em> as the engine type), passwords and the three administrator accounts, time, network, certificates, storage, outbound connectivity (support proxy, usage analytics and the SMTP server used for job email), authentication (LDAP, SAML/SSO, OAuth2), Kerberos and password vaults, registration and a summary. Facts worth keeping: the documented first logins use default accounts that you must change; the <strong>engine type cannot be changed</strong> once chosen; three failed logins lock the account; the engine <strong>works only in UTC</strong>, so read job times in Monitor accordingly; and in non-containerized engines LDAP is configured in the setup application, not in the masking UI, a change from earlier releases.</p>
 <h3 id="c22-size">22.8.2 Sizing and rules that affect your work</h3>
 <p>The best-practices page gives a standard configuration for a <em>dedicated</em> Compliance Engine: 8 vCPUs, 64 GB of RAM as a minimum (128 GB or more recommended), a 127 GB system disk and at least 50 GB for the data storage pool, more if mapping algorithms are heavily used. The same page offers rules of thumb that affect how you plan jobs: about one vCPU per concurrent masking job, at least 1 GB of memory per masking job, and at least 1 GB per stream when a job uses several parallel streams. It notes that the engine can become I/O-bound waiting for the database, that slow networks with many hops hurt, and that cloning an engine through hypervisor features or copying its storage is not supported as a backup method.</p>
-<h3 id="c22-network">22.8.3 What the engine must be able to reach</h3>
-<p>A masking engine is useful only if it can reach your databases and files, and if your users can reach it. The network requirements page lists the connections. When a connector test fails later, this table is your first checklist. <span class="badge doc">From docs</span></p>
-<div class="tablewrap"><table><thead><tr><th>Direction</th><th>Port (protocol)</th><th>Purpose (as the page says)</th></tr></thead><tbody>
-<tr><td>Outbound</td><td>25 (TCP)</td><td>A local SMTP server for sending email</td></tr>
-<tr><td>Outbound</td><td>53 (TCP/UDP)</td><td>Local DNS servers</td></tr>
-<tr><td>Outbound</td><td>123 (UDP)</td><td>An NTP time server (VM engine)</td></tr>
-<tr><td>Outbound</td><td>162 (UDP)</td><td>SNMP trap messages to an SNMP manager (VM engine)</td></tr>
-<tr><td>Outbound</td><td>443 (TCP)</td><td>HTTPS to the Delphix support upload server; also to an S3 endpoint when you use the AWS or S3-compatible file connector</td></tr>
-<tr><td>Outbound</td><td>636 (TCP/UDP)</td><td>Secure connection to an LDAP server (VM engine)</td></tr>
-<tr><td>Outbound</td><td>"various" (TCP/UDP)</td><td><strong>Your target environments</strong>: databases over JDBC, and files over FTP, SFTP, NFS or CIFS. The port is whatever your database or file server uses.</td></tr>
-<tr><td>Inbound</td><td>22 (TCP)</td><td>SSH to the engine (VM engine)</td></tr>
-<tr><td>Inbound</td><td>443 (TCP)</td><td>HTTPS to the web interface. Use HTTPS.</td></tr>
-<tr><td>Inbound</td><td>80 (TCP)</td><td>Optional HTTP to the interface. Not recommended.</td></tr>
-<tr><td>Inbound</td><td>161 (UDP)</td><td>SNMPv3 from an SNMP manager (VM engine)</td></tr>
-</tbody></table></div>
-<p>The same page adds a surprising rule: a security mechanism prevents the masking engine from being deployed behind a reverse proxy on the network. For a containerized engine the inbound ports are internal ones (the example maps external 30080 and 30443 to internal 8080 and 8443, left entirely to the customer). The prerequisites page says the interface works in the latest version of Microsoft Edge, Mozilla Firefox and Chrome, plus the immediately previous version of each.</p>
-<div class="callout why"><strong class="ctitle">Why the "various" row is the one that bites</strong>
-<p>The ports for your own databases cannot be listed in advance, because they are yours. A connector test that hangs usually means a firewall between the engine and the database host, not a wrong password. Ask your network team to open the port between the engine and the database, in that direction.</p></div>
-<h3 id="c22-vmvscontainer">22.8.4 VM engine versus containerized engine</h3>
-<p>The prerequisites page describes the containerized product as built for <em>ephemeral</em> engines: small engines spun up for a specific need and thrown away afterwards. It also lists functional differences. <span class="badge doc">From docs</span></p>
-<div class="tablewrap"><table><thead><tr><th>Capability</th><th>VM-based engine</th><th>Containerized engine</th></tr></thead><tbody>
-<tr><td>FTP for file masking</td><td>Yes</td><td>No</td></tr>
-<tr><td>SSL/TLS for connectors, LDAP over TLS/SSL, local file masking over NFS or CIFS</td><td>Yes (set through the Engine Setup app)</td><td>Yes (set through Kubernetes)</td></tr>
-<tr><td>Kerberos</td><td>Yes</td><td>No</td></tr>
-<tr><td>SSO / OAuth</td><td>Yes</td><td>No</td></tr>
-<tr><td>Upgrade and upgrade validation</td><td>Yes</td><td>No</td></tr>
-<tr><td>Db2 z/OS and iSeries connector</td><td>Yes</td><td>No</td></tr>
-</tbody></table></div>
-<p>For this guide the practical consequence is small: your training engine is most likely a VM-based engine, and the screens are the same. If your organisation runs the containerized one, expect FTP file connectors, Kerberos login to databases and SSO to be unavailable.</p>
+<h3 id="c22-network">22.8.3 What the engine must reach</h3>
+<p>The network requirements page lists the traffic. Outbound, the engine needs SMTP (25), DNS (53), NTP (123, VM engine), HTTPS to Delphix Support and to an S3 endpoint if you use one (443), LDAPS (636) and, most important for you, <strong>"various" ports to your own databases (JDBC) and file servers (FTP, SFTP, NFS, CIFS)</strong>. Inbound, users reach the web interface on 443 (use HTTPS, not 80) and administrators use SSH on 22. The engine cannot be deployed behind a reverse proxy. Supported browsers are the latest and previous versions of Edge, Firefox and Chrome. When a connector test hangs, suspect a firewall on the database port before you suspect the password.</p>
+<p>The containerized product is meant for <em>ephemeral</em> engines (spun up for a need, then discarded) and differs from the VM engine: no FTP file masking, no Kerberos, no SSO/OAuth, no upgrade validation and no Db2 z/OS or iSeries connector. <span class="badge doc">From docs</span></p>
 <div class="callout warn"><strong class="ctitle">Two engines, never one machine</strong>
 <p>Both the masked-provisioning pages and the configuration page say that Delphix Masking and Delphix Virtualization must never run inside the same virtual machine. Use separate, dedicated engines. The best-practices page also says that Continuous Data and Continuous Compliance are delivered in one OVA, and you pick which one at first setup. So an engine <em>image</em> can become either product, but one running engine is only one of them.</p></div>
 <div class="callout note"><strong class="ctitle">What I could not ground</strong>
@@ -99,35 +50,12 @@
 <p>Creating a user needs: user name, email (the engine mails job completion to it), optionally first and last name and a principal for OAuth2, a password (at least eight and at most 65 characters, with an uppercase letter, a special character from a short list and a number), the Administrator checkbox, a role and the environments. An account locks after three invalid login attempts. Roles and users can also be managed through the engine's API.</p>
 
 <h2 id="c22-multi">22.10 Moving work between engines: export, import and sync</h2>
-<p>Real organisations rarely have one engine. The "managing multiple engines" introduction gives two reasons. One is the software development life cycle (SDLC): separate engines for development, QA and production, so you build and test a masking setup in one and promote it. The other is horizontal scale: one engine cannot handle the whole workload, so several production engines share it. Both need a way to copy objects (connectors, rule sets, jobs and more) from one engine to another. The docs describe two tools. <span class="badge doc">From docs</span></p>
-<div class="tablewrap"><table><thead><tr><th>Tool</th><th>What it moves</th><th>How you use it</th></tr></thead><tbody>
-<tr><td>Export / Import Settings</td><td>Settings objects: Domain, Algorithm, File Format and so on.</td><td>On the Environments page, the Actions list has Export Settings (optional passphrase) and Import Settings (passphrase, Force Override checkbox and the file). Each returns an Async Task ID.</td></tr>
-<tr><td>Export / Import Environment</td><td>Everything inside one environment: connectors, rule sets, inventory, jobs.</td><td>From the Actions (...) menu of the environment, or the Export Environment button on the Jobs tab. Import has more options: whether to include settings, force overwrite, which application and environment to import into, and a passphrase.</td></tr>
-<tr><td>Sync (API based)</td><td>Syncable objects such as connectors, rule sets, jobs, domains, JDBC drivers and keys.</td><td>Through the engine's API. The multiple-engines introduction recommends moving objects in one direction only: export from one engine, import into others, never back.</td></tr>
-</tbody></table></div>
-<p>Three cautions from these pages are worth writing down:</p>
-<ul>
-<li>After an import, you must re-enter connector passwords or SSH keys and sensitive fields of a password-vault configuration. The Import Settings dialog in the screenshot says the sync operation does not sync those objects.</li>
-<li>Sync does not currently support the Application object, and certain algorithms cannot be synced (<a href="24-delphix-rule-sets-and-keys.html">the keys chapter</a> explains which and why).</li>
-<li>Sync bundles from a newer engine may not import into an older one. Older bundles import into newer engines unless they contain a feature that no longer exists.</li>
-</ul>
+<p>Real organisations often run several engines: one per stage of the software life cycle (development, QA, production), or several production engines to share a large workload. Objects must then be copied between them. <strong>Export Settings / Import Settings</strong> (on the Environments page) moves shared settings such as domains, algorithms and file formats. <strong>Export / Import Environment</strong> moves everything inside one environment (connectors, rule sets, inventory, jobs). An API-based <em>sync</em> does the same at scale; the docs advise moving objects in one direction only. Sync does not currently support the Application object or certain algorithms, and bundles from a newer engine may not import into an older one. <span class="badge doc">From docs</span></p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_environments3.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_environments3.png" alt="The Import Settings dialog with a blue note about updating connector passwords after import, a Force Override checkbox, an optional passphrase box and a Choose File button" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The dialog you use to bring settings from another engine. The blue note matters: passwords are not carried across, so every imported connector needs its password set again before it can connect. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
-<h2 id="c22-story">22.11 ShopSphere, start to finish, in object terms</h2>
-<p>Here is the whole running example mapped onto the objects. The names are my illustration. The shape is what the documentation describes.</p>
-<div class="tablewrap"><table class="sample"><caption>ShopSphere's masking setup, object by object (illustrative values)</caption><thead><tr><th>Object</th><th>ShopSphere value</th><th>Set up in</th></tr></thead><tbody>
-<tr><td>Application</td><td>SHOPSPHERE_APP</td><td>Environments page, + Application</td></tr>
-<tr><td>Environment</td><td>SHOPSPHERE_DEV (purpose: Mask)</td><td>Environments page, + Environment</td></tr>
-<tr><td>Connector</td><td>SHOPSPHERE_VDB_CONN, pointing at the VDB that holds an unmasked copy of SHOPSPHERE_PROD</td><td>Inside the environment, Connectors tab (<a href="23-delphix-connectors-and-vdb.html">next chapter</a>)</td></tr>
-<tr><td>Rule set</td><td>SHOPSPHERE_RS: CUSTOMERS, ORDERS, ORDER_ITEMS, PRODUCTS</td><td>Rule Sets tab (<a href="24-delphix-rule-sets-and-keys.html">keys chapter</a>)</td></tr>
-<tr><td>Inventory</td><td>One row per column; sensitive ones carry a domain and algorithm</td><td>Click the rule set name</td></tr>
-<tr><td>Domains used</td><td>First name, last name, email, phone, SSN, date of birth, zip, tax ID (names depend on the built-in set)</td><td>Settings > Domains</td></tr>
-<tr><td>Profile job</td><td>PROFILE_SHOPSPHERE</td><td>Jobs tab, + Profiling Job (<a href="25-delphix-profiling.html">profiling chapter</a>)</td></tr>
-<tr><td>Masking job</td><td>MASK_SHOPSPHERE (in-place)</td><td>Jobs tab, + Masking Job (<a href="26-delphix-algorithms-and-masking-jobs.html">jobs chapter</a>)</td></tr>
-<tr><td>Roles</td><td>TDM engineer: All Privileges; data steward: SME; DBA: DBA</td><td>Admin > Roles, Admin > Users</td></tr>
-</tbody></table></div>
-<p>Notice that CUSTOMERS.customer_id and ORDERS.customer_id both need the <em>same</em> algorithm, so that every order still points to the right customer after masking. The inventory is where you will check that, and <a href="24-delphix-rule-sets-and-keys.html">the keys chapter</a> spends its middle sections on it.</p>
+<h2 id="c22-story">22.11 ShopSphere in object terms</h2>
+<p>For ShopSphere the objects will be: application SHOPSPHERE_APP; environment SHOPSPHERE_DEV (purpose Mask); a connector to the VDB that holds an unmasked copy of SHOPSPHERE_PROD; a rule set with CUSTOMERS, ORDERS, ORDER_ITEMS and PRODUCTS; a profile job and an in-place masking job; and roles for the TDM engineer (All Privileges), data steward (SME) and DBA. These names are my illustration. Notice that CUSTOMERS.customer_id and ORDERS.customer_id must get the <em>same</em> algorithm so every order still points to the right customer; <a href="24-delphix-rule-sets-and-keys.html">the keys chapter</a> is about exactly that.</p>
 
 <div class="exercise"><h4>Lab: find your way around an engine</h4>
 <p>Goal: confirm you can locate every object type in this chapter on a real engine (or on the screenshots, if you have no engine yet). This lab uses documented screens only, with ShopSphere names as illustration. Do not click Delete anywhere.</p>
@@ -156,27 +84,18 @@
 <p>The mandatory hands-on list also includes <em>TDM_Handson4</em>: create a connector to a VDB from the Delphix masking engine. <a href="23-delphix-connectors-and-vdb.html">The connectors and VDB chapter</a> builds that lab step by step. Day 54 also mentions mapplets (an Informatica idea), which is not a Delphix feature; see <a href="14-informatica-data-masking.html">the Informatica masking chapter</a> for that part.</p>
 
 <h2 id="c22-versions">22.13 Frequent releases: expect your screen to differ</h2>
-<p>The documentation set has a release-notes page for each of 2025.1 through 2026.5, and the 2026.5 notes are dated September 2026. That is eleven releases in under two years. Several facts in this chapter already show how fast the product moves:</p>
-<ul>
-<li>The screenshots on the documentation pages carry different version numbers in the corner (for example 21.0.0.0, 22.0.0.0, 24.0.0.0, 26.0.0.0 and 2025.6.0.0), so the same documentation mixes pictures from different generations.</li>
-<li>The environments screenshot has an Approval column that the text for that screen does not list.</li>
-<li>The connector wizard in the text says "Connection Mode: Basic or Advanced"; the screenshot of the same wizard says "Select Connection Method: Hostname/IP (Basic) or JDBC URL (advanced)".</li>
-<li>Release 2026.5 upgrades the host's Java from JDK 8 to JDK 17 and warns that custom algorithm plugins and custom JDBC drivers must be Java 17 compatible. Older pages on extended connectors still talk about Java 8, so some pages lag behind.</li>
-<li>A rule set screenshot shows an action called Checklist, while the same page's text calls the action "Verify" in one place and "Checklist" in another.</li>
-</ul>
+<p>The documentation has a release-notes page for each of 2025.1 to 2026.5 (eleven releases in under two years), and it shows. Screenshots carry different version numbers in the corner (21.0.0.0, 22.0.0.0, 24.0.0.0, 26.0.0.0, 2025.6.0.0). The environments screenshot has an Approval column its text does not list. The connector wizard text says "Connection Mode: Basic or Advanced" while the screenshot says "Hostname/IP (Basic) or JDBC URL (advanced)". Release 2026.5 moves the host from JDK 8 to JDK 17, while older pages on extended connectors still mention Java 8. A rule set page calls one action both "Verify" and "Checklist".</p>
 <div class="callout tip"><strong class="ctitle">A habit that saves hours</strong>
 <p>Before following any procedure in this guide on a real engine, find the version of your engine (the screenshots show it in the corner of the top bar; the Admin menu also has an About page, which I did not read) and compare it with the page you are reading. When screen and text disagree, trust the screen and tell your trainer.</p></div>
 
 <h2 id="c22-mistakes">22.14 Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Things that trip beginners</strong>
 <ul>
-<li><strong>Looking for algorithms inside the environment.</strong> They live under Settings, shared by all environments. A deleted environment never takes them with it.</li>
-<li><strong>Assuming profiling masks anything.</strong> A profiling job only <em>proposes</em> domains and algorithms in the inventory. Nothing changes in the database until a masking job runs.</li>
-<li><strong>Running an in-place job on the real production database.</strong> In-place overwrites the source values. Mask a copy.</li>
-<li><strong>Forgetting the Purpose of an environment is fixed.</strong> Mask versus Tokenize/Re-Identify cannot be edited later. Create a new environment instead.</li>
-<li><strong>Special characters in names.</strong> A colon or bracket in a rule set or job name fails the save.</li>
-<li><strong>Ignoring warnings.</strong> Non-conformant data is left unmasked by default and only produces a yellow warning.</li>
-<li><strong>Believing a screenshot is exact.</strong> Versions differ; read the labels on your screen.</li>
+<li><strong>Looking for algorithms inside the environment.</strong> They live in Settings and survive an environment delete.</li>
+<li><strong>Assuming profiling masks anything.</strong> It only proposes; data changes when a masking job runs.</li>
+<li><strong>Running an in-place job on production.</strong> It overwrites the source values. Mask a copy.</li>
+<li><strong>Expecting to change an environment's Purpose.</strong> It is fixed; create a new environment.</li>
+<li><strong>Ignoring warnings.</strong> Non-conformant data is left unmasked by default and only shows a yellow warning.</li>
 </ul></div>
 
 <h2 id="c22-recap">22.15 Recap</h2>

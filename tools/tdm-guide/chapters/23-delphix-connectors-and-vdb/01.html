@@ -1,0 +1,81 @@
+<p>A masking engine that cannot reach your data cannot mask it. This chapter is about the connection layer of Delphix Continuous Compliance: the application and environment that hold your work, the <strong>connector</strong> that tells the engine how to log in to a database or a file store, and the database-side preparation that has to happen before the first job. It also answers a question the syllabus asks on Day 51 in the hands-on list as <em>TDM_Handson4</em>: what does it mean to "create a connector to a VDB from the Delphix masking engine"?</p>
+<p>To answer that we start from zero on VDBs. You met the vocabulary in <a href="22-delphix-overview-and-terminology.html">the Delphix overview chapter</a>; here you will see why a VDB is the recommended thing to mask, and what the Delphix pages do and do not tell you about connecting to one. The chapter then hands over to <a href="24-delphix-rule-sets-and-keys.html">the rule sets and keys chapter</a>, which builds the next object on top of the connector, and to <a href="25-delphix-profiling.html">the profiling chapter</a> and <a href="28-delphix-hands-on-labs.html">the hands-on labs</a>, which use it.</p>
+
+<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
+<p>Sources: <strong>Delphix Continuous Compliance documentation, version 2026.5, last published October 16, 2026</strong>. I read in full the pages on <a href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">managing environments</a>, <a href="https://help.delphix.com/cc/current/content/managing_connectors.htm" target="_blank" rel="noopener">managing connectors</a>, <a href="https://help.delphix.com/cc/current/content/create__test__edit__and_delete_a_connector.htm" target="_blank" rel="noopener">create, test, edit and delete a connector</a>, <a href="https://help.delphix.com/cc/current/content/supported_connectors.htm" target="_blank" rel="noopener">supported connectors</a>, <a href="https://help.delphix.com/cc/current/content/managing_extended_connectors.htm" target="_blank" rel="noopener">managing extended connectors</a>, <a href="https://help.delphix.com/cc/current/content/database_user_permissions_for_executing_masking_and_profiling_job.htm" target="_blank" rel="noopener">database user permissions</a>, <a href="https://help.delphix.com/cc/current/content/preparing_data.htm" target="_blank" rel="noopener">preparing data</a> with its Oracle, SQL Server, Db2 and Sybase pages, <a href="https://help.delphix.com/cc/current/content/masked_provisioning.htm" target="_blank" rel="noopener">masked provisioning</a>, <a href="https://help.delphix.com/cc/current/content/provision_masked_vdbs.htm" target="_blank" rel="noopener">provision masked VDBs</a> and <a href="https://help.delphix.com/cc/current/content/configuring_virtualization_service_for_masked_provisioning.htm" target="_blank" rel="noopener">configuring the virtualization service for masked provisioning</a>.</p>
+<p><strong>Gaps you should know about.</strong> The connector pages link to a "Data Source Support" page that was not in my copy of the documentation, and the live address returned "not found" when I tried it, so I cannot give you the version-by-version support matrix for every database. The documentation also has <em>no page called "create a connector to a VDB"</em>. In the VDB section below I build the lab from the documented connector steps and the masked-provisioning pages, and I mark every step the documents do not spell out. I viewed each screenshot before writing its caption.</p></div>
+
+<div class="callout recap"><strong class="ctitle">What you will learn</strong>
+<ul>
+<li>How applications and environments are created, edited, copied, exported and deleted.</li>
+<li>What a connector is, how database, file and mainframe connectors differ, and every field of the Create Connection wizard as documented.</li>
+<li>How to test, edit and delete a connector, and which settings win when the same property is set in two places.</li>
+<li>Which connectors ship with the engine, what "extended connectors" (extra JDBC drivers) are, and what the database user must be allowed to do.</li>
+<li>How to prepare an Oracle, SQL Server, Db2 or Sybase database for masking, at overview level.</li>
+<li>What a VDB is, how a masked VDB is provisioned, and what a "connector to a VDB" really is.</li>
+</ul></div>
+
+<h2 id="c23-words">23.1 Words to know first</h2>
+<dl class="defs">
+<div><dt>Application</dt>
+<dd>A tag, assigned to one or more environments, naming the system whose data you manage. You must create one before you can create an environment.</dd></div>
+<div><dt>Environment</dt>
+<dd>The folder-like container that holds the connectors, rule sets and jobs for one group of data sources.</dd></div>
+<div><dt>Connector</dt>
+<dd>A saved definition of how the engine reaches one data source: type, host, port, credentials and options.</dd></div>
+<div><dt>Meta Data Source</dt>
+<dd>The grouping label on the connector screen: Database, File or Mainframe.</dd></div>
+<div><dt>JDBC</dt>
+<dd>Java Database Connectivity: the standard way a Java program talks to a database. The engine uses a <dfn>JDBC driver</dfn> (a library) for each kind of database and a <dfn>JDBC URL</dfn> (a connection string such as <code>jdbc:vendor://host:port/name</code>) to say where to connect.</dd></div>
+<div><dt>Extended connector</dt>
+<dd>A connector built on a JDBC driver that <em>you</em> upload, for databases the engine does not support natively.</dd></div>
+<div><dt>Masking user</dt>
+<dd>A dedicated database account that the connector logs in as, with just the permissions masking needs.</dd></div>
+<div><dt>dSource</dt>
+<dd>In Delphix virtualization, the engine's compressed copy of a source database's data, from which VDBs are made.</dd></div>
+<div><dt>VDB (virtual database)</dt>
+<dd>A full read-and-write copy of source data, provisioned from a dSource or from another VDB and managed by the Continuous Data engine.</dd></div>
+<div><dt>Masked VDB</dt>
+<dd>A VDB whose data was masked by a masking job during provisioning.</dd></div>
+<div><dt>SDD (Selective Data Distribution)</dt>
+<dd>A way to replicate a masked VDB to another Delphix Engine in non-production without sending the original unmasked data.</dd></div>
+</dl>
+
+<h2 id="c23-environments">23.2 Applications and environments</h2>
+<h3 id="c23-env-what">23.2.1 What they are and why they exist</h3>
+<p>Think of a shared drive at work. You do not dump every project's files in one folder; you create a folder per project and put sub-folders inside. An environment is that project folder. The environments page describes it as a place where "a specified user can create and manage connectors, rule sets, and jobs". The <em>application</em> is a label above it that groups related environments: for ShopSphere, one application "SHOPSPHERE_APP" and environments such as SHOPSPHERE_DEV and SHOPSPHERE_QA. Analogy limit: unlike a shared-drive folder, an environment also carries rules (its Purpose and whether approvals are required).</p>
+<p>The main Environment screen is the first page every user sees after signing in. It lists only the environments that user may access. Its columns are ID (the number used to refer to it from the Masking API), Application, Environment, Purpose, and Actions (Edit, Export, Duplicate, Delete). The screenshots below show it. Sorting a column also sorts the Environment column ascending.</p>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_environments.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_environments.png" alt="The Environments page with a grid showing ID, Application, Environment, Purpose, Approval and Actions, plus buttons + Application, + Environment and Actions" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The Environments list. The three buttons at the top right are the three places you will start: + Application, + Environment, and an Actions menu (which holds Export Settings, Import Settings and Import Environment). The environment name is a link that opens the environment. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<h3 id="c23-app">23.2.2 Adding an application</h3>
+<p>An environment cannot be created without an application, so start here. <span class="badge doc">From docs</span></p>
+<ol class="steps">
+<li><strong>Click + Application</strong> near the top right of the Environments page.<p>The engine wants a label first so that every environment is tagged with the system it belongs to.</p><p class="expect">A small "Add Application" dialog with one box, Application Name, and Cancel and Save buttons.</p></li>
+<li><strong>Type a name and Save.</strong><p>Use only characters the naming rules allow (see the overview chapter). Example for ShopSphere: <code>SHOPSPHERE_APP</code>.</p><p class="expect">You return to the Environments list.</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_environments1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_environments1.png" alt="A small Add Application dialog with a single Application Name box and Cancel and Save buttons" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The whole Add Application dialog. It really is just one field. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<h3 id="c23-envcreate">23.2.3 Creating an environment</h3>
+<ol class="steps">
+<li><strong>Click + Environment.</strong><p>It opens the Add Environment dialog.</p><p class="expect">A dialog with Select Application, Environment Name, Purpose and an approval checkbox.</p></li>
+<li><strong>Choose the application.</strong><p>The dropdown shows existing applications. It is "for informative purposes", the page says: it labels the environment and does not change behaviour.</p></li>
+<li><strong>Type an Environment Name.</strong><p>For example <code>SHOPSPHERE_DEV</code>.</p></li>
+<li><strong>Choose the Purpose.</strong><p><em>Mask</em> or <em>Tokenize/Re-Identify</em>. This decides which job types the environment offers. The screenshot shows the default as "Masking". Purpose becomes read-only after creation, so choose carefully.</p></li>
+<li><strong>Decide on "Enable Approval Workflow (Database rulesets only)".</strong><p>If ticked, inventories must be approved before masking jobs can run in this environment. It applies only to database rule sets. For a first lab leave it clear.</p></li>
+<li><strong>Click Save, or Save And View.</strong><p>Save returns to the list; Save And View opens the environment's Jobs screen.</p><p class="expect">The new environment is in the grid. Opening it shows tabs Jobs, Rule Sets and Connectors.</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_environments2.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_environments2.png" alt="The Add Environment dialog with Select Application, Environment Name, Purpose set to Masking, an Enable Approval Workflow checkbox and the buttons Cancel, Save and Save And View" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The dialog behind the steps above. Purpose defaults to Masking in this picture, and the approval checkbox is clear. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<h3 id="c23-envmanage">23.2.4 Editing, copying, exporting and deleting</h3>
+<p>All of these are in the Actions (...) menu beside each environment.</p>
+<ul>
+<li><strong>Edit.</strong> You may change the application and the name and the approval workflow setting. Purpose is read-only.</li>
+<li><strong>Duplicate.</strong> Makes an exact copy (the page calls this "a very powerful feature" when you want several similar environments). You give a new name; the copy has the same purpose. Choose Duplicate or Duplicate And View.</li>
+<li><strong>Export.</strong> Writes everything in the environment (connectors, rule sets, inventory, jobs and so on) to a file, with an optional passphrase. The engine returns an Async Task ID; follow it under Monitor, and when it succeeds, use Download File in that task's Actions menu. The main reason to export is moving environments between masking engines.</li>
+<li><strong>Delete.</strong> After a confirmation, deletes <em>everything</em> for that environment: connections, inventory, rule sets and so on. It does not delete universal settings such as algorithms and domains.</li>
+</ul>
+<p>Two more actions live in the page-level Actions menu: <strong>Export Settings / Import Settings</strong> (Domain, Algorithm, File Format and similar; the import has a Force Overwrite checkbox and must use the same passphrase as the export) and <strong>Import Environment</strong> (with options to import settings too, to overwrite, to choose the target application and environment, and an OTF Environment checkbox for importing on-the-fly connectors). Details are in <a href="22-delphix-overview-and-terminology.html#c22-multi">the overview chapter's section on moving work between engines</a>.</p>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_environments3.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_environments3.png" alt="The Export Settings dialog: a note that Domain, Algorithm and File Format will be exported, an optional passphrase box, and Cancel and Export buttons" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> Export Settings. Notice the text: settings such as Domain, Algorithm and File Format go into the file. A passphrase is optional, but if you set one you need the same passphrase to import. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<div class="callout warn"><strong class="ctitle">Delete is bigger than it looks</strong>
+<p>Deleting a <em>connector</em> also deletes its rule sets and inventory data (the connector page says so). Deleting an <em>environment</em> deletes all its connectors, rule sets, inventories and jobs. Neither can be undone from the screen. Export the environment first if you might want it back.</p></div>

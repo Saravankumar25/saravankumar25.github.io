@@ -18,16 +18,7 @@
 <text x="6" y="166" font-size="12" fill="currentColor">Optional after step 8: if the masked copy is a VDB, the Virtualization Engine can run the masking job while provisioning it.</text>
 <text x="6" y="192" font-size="12" fill="currentColor">Steps 6 and 7 can loop: profile, review, adjust, run the profile again.</text>
 </svg><figcaption>Original diagram: a typical order of work. The sequence is my summary of how the documentation's sections depend on each other; the documentation does not publish a single numbered "project plan". Section titles in the last notes are the documentation's own.</figcaption></figure>
-<div class="tablewrap"><table><thead><tr><th>Step</th><th>What you do</th><th>Why that order</th><th>Learn it in</th></tr></thead><tbody>
-<tr><td>1. Engine</td><td>Install the virtual appliance, run the Setup Wizard, create administrators, roles and users.</td><td>Nothing else works until the engine runs and you can sign in.</td><td><a href="#c22-deploy">Deployment</a> and <a href="#c22-roles">users and roles</a> later in this chapter</td></tr>
-<tr><td>2. Database</td><td>Create a dedicated masking user in the database, give it the documented privileges, tune the copy you will mask.</td><td>The connector in step 4 will log in as this user.</td><td><a href="23-delphix-connectors-and-vdb.html">Connectors and VDB</a></td></tr>
-<tr><td>3. Container</td><td>Add an application, then an environment (Purpose: Mask).</td><td>Connectors, rule sets and jobs all live in an environment.</td><td><a href="23-delphix-connectors-and-vdb.html">Connectors and VDB</a></td></tr>
-<tr><td>4. Connector</td><td>Create and test a connector to the database or files.</td><td>A rule set needs a connector to list the tables.</td><td><a href="23-delphix-connectors-and-vdb.html">Connectors and VDB</a></td></tr>
-<tr><td>5. Rule set</td><td>Choose tables, add a logical key where a table has no primary key, run the Checklist.</td><td>The profiler and the masking job work on exactly the tables in the rule set.</td><td><a href="24-delphix-rule-sets-and-keys.html">Rule sets and keys</a></td></tr>
-<tr><td>6. Profile</td><td>Run a profiling job with a profile set.</td><td>It proposes which columns are sensitive and which domain and algorithm each gets.</td><td><a href="25-delphix-profiling.html">Profiling</a></td></tr>
-<tr><td>7. Inventory</td><td>Review the proposals; change or add algorithm assignments by hand.</td><td>Profiling is a recommendation. A human, usually a data steward, confirms.</td><td><a href="25-delphix-profiling.html">Profiling</a>, <a href="26-delphix-algorithms-and-masking-jobs.html">Algorithms and jobs</a></td></tr>
-<tr><td>8. Mask</td><td>Create a masking job on the rule set, choose in-place or on-the-fly, run it, watch Monitor.</td><td>Everything the job needs is now defined.</td><td><a href="26-delphix-algorithms-and-masking-jobs.html">Algorithms and jobs</a>, <a href="27-delphix-file-masking.html">File masking</a></td></tr>
-</tbody></table></div>
+<p>Where each step is taught: step 1 and the roles are in this chapter; steps 2 to 4 in <a href="23-delphix-connectors-and-vdb.html">the connectors and VDB chapter</a>; step 5 in <a href="24-delphix-rule-sets-and-keys.html">the rule sets and keys chapter</a>; steps 6 and 7 in <a href="25-delphix-profiling.html">the profiling chapter</a>; step 8 in <a href="26-delphix-algorithms-and-masking-jobs.html">the algorithms and jobs chapter</a> and, for files, <a href="27-delphix-file-masking.html">the file masking chapter</a>. Profiling only <em>proposes</em> domains and algorithms; a human, usually the data steward, confirms them.</p>
 <div class="callout real"><strong class="ctitle">How a TDM team splits this</strong>
 <p>The "best practices for defining masking roles" page gives a sample RACI (who is Responsible, Accountable, Consulted, Informed). It makes IT Security accountable for deciding which data types are sensitive, the application owner accountable for inventory management, data masking and masked-data validation, and the data masking admin team responsible for masking administration (domains, classifiers, roles, users). In ShopSphere terms: the compliance officer decides that SSN, email and phone are sensitive, the data steward reviews the inventory, and the TDM engineer builds and runs the jobs. This is a sample from the vendor, not a rule. <span class="badge doc">From docs</span></p></div>
 
@@ -61,30 +52,6 @@
 <tr><td>Free Text Redaction</td><td>Finds and removes sensitive material in free-text columns such as Notes, using profile sets and pattern matching; can use a deny list or an allow list.</td><td>A support-notes column, if ShopSphere had one.</td></tr>
 </tbody></table></div>
 <p>Two documented warnings you should hold onto now, because <a href="24-delphix-rule-sets-and-keys.html">the keys chapter</a> relies on them. First, Secure Lookup is deterministic on its input (same hash, same output), and Segment Mapping and Mapping are the collision-free choices, so these are the ones used on unique and key columns. Second, the terminology page's wording for Segment Mapping explicitly lists "Social Security Numbers, primary key columns, or foreign key columns" as its use.</p>
-<h3 id="c22-job-terms">22.7.3 Profiling-job and masking-job fields</h3>
-<p>Both job types appear on the terminology page as lists of options. You will meet them on real screens in <a href="25-delphix-profiling.html">the profiling chapter</a> and <a href="26-delphix-algorithms-and-masking-jobs.html">the algorithms and jobs chapter</a>; reading the list now makes those screens predictable.</p>
-<div class="compare">
-<div><h4>Profiling job options</h4>
-<ul>
-<li><strong>Job Name</strong>: free-form, unique.</li>
-<li><strong>Multi-Tenant</strong>: reuse a rule set on identical schemas through different connectors, chosen at execution time.</li>
-<li><strong>Rule Set</strong>: what to profile.</li>
-<li><strong>No. of Streams</strong>: parallel streams (for example two tables at once).</li>
-<li><strong>Min/Max Memory (MB)</strong>, <strong>Feedback Size</strong> (rows between log messages) and <strong>Profile Sets</strong>: optional.</li>
-<li><strong>Comments</strong> and <strong>Email</strong> (comma-separated addresses): optional.</li>
-</ul></div>
-<div><h4>Masking job options</h4>
-<ul>
-<li><strong>Job Name</strong>: unique across the whole application.</li>
-<li><strong>Masking Method</strong>: In-Place or On-The-Fly.</li>
-<li><strong>Multi-Tenant</strong>, <strong>Rule Set</strong>, <strong>Min/Max Memory</strong>.</li>
-<li><strong>Update Threads</strong>: parallel updates to the target. With T-SQL databases several threads can deadlock; reduce them if so.</li>
-<li><strong>Commit Size</strong>, <strong>Feedback Size</strong>.</li>
-<li><strong>Disable Trigger</strong>, <strong>Drop Index</strong>: both clear by default.</li>
-<li><strong>Prescript</strong> and <strong>Postscript</strong>: SQL files run before and after the job.</li>
-<li><strong>Comments</strong>, <strong>Email</strong>.</li>
-</ul></div>
-</div>
-<p>The job-creation page, which I also read, has more detail than the terminology list and adds options such as Selective Data Distribution, Batch Update, Truncate, Disable Constraints and a Checklist action. Those belong to the jobs chapter. One thing to notice now is that "Disable Trigger" and "Drop Index" being off by default means the job will not touch indexes or triggers unless someone turns the options on. Turn them on deliberately, and read what they do first; the keys chapter returns to this for primary-key columns.</p>
-<div class="callout note"><strong class="ctitle">Docs and screens do not always use the same label</strong>
-<p>The terminology page says "Disable Trigger" and "Drop Index" (singular). The job screens documented elsewhere say "Drop Indexes", "Disable Triggers" and "Disable Constraints", and for connectors with a driver support plugin they appear as <em>Enable Tasks</em>. Search for the idea, not the exact label.</p></div>
+<h3 id="c22-job-terms">22.7.3 Job options, in one look</h3>
+<p>The terminology page lists the options of both job types, and you will meet them on real screens in <a href="25-delphix-profiling.html">the profiling chapter</a> and <a href="26-delphix-algorithms-and-masking-jobs.html">the algorithms and jobs chapter</a>. A <em>profiling job</em> has a unique Job Name, a Rule Set, No. of Streams (tables processed in parallel), optional memory limits, Feedback Size, Profile Sets and Email. A <em>masking job</em> adds the Masking Method (In-Place or On-The-Fly), Update Threads (too many can deadlock T-SQL databases), Commit Size, Disable Trigger and Drop Index (both clear by default, so the job leaves indexes and triggers alone unless you turn them on), and Prescript and Postscript SQL files. Both have a Multi-Tenant option that lets one rule set serve identical schemas through different connectors chosen at run time.</p>
+

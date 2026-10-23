@@ -32,17 +32,6 @@
 <div class="callout warn"><strong class="ctitle">Heap space and special characters</strong>
 <p>If a "Java heap space" exception occurs while setting an ad hoc rule, ask the administrator to increase the heap size (p.198). Remember also that special characters in table or column names make the generation workflow fail (p.190); the plan setting "Enable special characters in metadata" defaults to No (p.289).</p></div>
 
-<h3 id="c15-trace">15.12.3 What happens behind the button</h3>
-<p>Clicking Generate and Execute does two jobs (User Guide 10.5.10, pp.275, 308). First the <strong>Generate Workflow</strong> job: the PowerCenter Repository Service turns your plan into <em>mappings</em> (PowerCenter's name for a data-flow design) and wraps them in a workflow. Then the <strong>Execute Workflow</strong> job: the PowerCenter Integration Service runs those mappings, and each run is recorded as sessions you can inspect. This is the same split as in <a href="09-etl-and-tdm.html">the ETL and TDM chapter</a>: design first, run second. The difference with generation is that the "extract" step has nothing to read, so the data is born inside the mapping.</p>
-<pre class="ascii">plan                 generate workflow           execute workflow
--------------        ---------------------       ------------------------
-entity+rules   --->  mappings in PowerCenter --> Integration Service runs
-50 records           (no source rows)            sessions, writes rows to
-connections                                      SHOPSPHERE_TEST
-        \_______ Monitor view shows both jobs ________/</pre>
-<div class="callout tip"><strong class="ctitle">Test small first</strong>
-<p>The guide lets you generate with only some of the rules instead of all of them, and lets you enter the record count in the plan criteria (p.293). Use it. Run 5 records, inspect them, then raise the count to 50 or 50,000. Fixing a pattern on five rows costs seconds; fixing it after loading half a million rows costs a truncate and a rerun.</p></div>
-
 <h2 id="c15-restriction">15.13 Why a generation plan stands alone</h2>
 <p>The guide is firm: when you add data generation components to a plan, you <strong>cannot</strong> add data masking or data subset components, and the reverse holds too (User Guide 10.5.10, pp.274-276, 305). It repeats the rule in the plan overview, the task list, the component table and the creation steps. A Hadoop plan likewise cannot do subset or generation (p.306).</p>
 <p>The guide states the restriction but does not explain it. My explanation, as a concept and not a quote: masking and subsetting both <em>read existing rows</em> from a source, then change or filter them. Generation has no source rows; it builds new rows from rules. A plan that tried to do both would have to decide what the masking rule should act on. Keeping them apart avoids that.</p>
@@ -59,9 +48,6 @@ connections                                      SHOPSPHERE_TEST
 </ul>
 <div class="callout why"><strong class="ctitle">Why it matters</strong>
 <p>This restriction is a favourite interview and review question, and it shapes how you design a data pipeline: generation is its own track, not a masking option.</p></div>
-
-<h2 id="c15-xsd">15.14 XML targets in brief</h2>
-<p>Generation also works on XSD (XML schema) sources: you import the XML definition from PowerCenter, open the XSD file under Discover | Files, select elements or attributes and assign rules in the Details pane. You can set a minimum and maximum number of child records on a link between elements; that setting wins over the plan-level ratio (pp.206-207). Standard and custom rules work, reference lookup and effective dates do not. ShopSphere's databases do not need this, so I stop here.</p>
 
 <div class="exercise"><h4>Lab A: generate 50 ShopSphere customers with valid orders</h4>
 <p>Goal: end with 50 rows in <code>CUSTOMERS</code> plus linked <code>ORDERS</code> and <code>ORDER_ITEMS</code> in an empty test schema, then prove the keys are valid. The steps follow the guide's task flow (pp.192, 195-205, 305); table names, rule names and values are my ShopSphere illustration. You need an installed TDM with a PowerCenter service, an empty test schema <code>SHOPSPHERE_TEST</code> with the four tables created, and a <code>PRODUCTS</code> table that already holds a few products (say P-100, P-200, P-300).</p>
@@ -88,35 +74,6 @@ connections                                      SHOPSPHERE_TEST
 <p>What to notice: ids ascend from 1001, names look real but do not match any real person (they are not copied from production), one phone is null because of the 10 percent null setting, and zip codes repeat from a short list. Phone and SSN have the right shape, but the SSN is not guaranteed valid (p.224).</p></details>
 </div>
 
-<div class="exercise"><h4>Lab B: design on paper, then plan around the restriction</h4>
-<p>Goal: practise choosing techniques without needing a TDM server.</p>
-<ol class="steps">
-<li><strong>Write the rule table for ORDER_ITEMS.</strong><p>List each of the five columns, the technique, and the two or three key parameters, as in <a href="#c15-pick">the ShopSphere rule table</a> but from memory.</p><p class="expect">Five rows, each with a technique from the list of eleven.</p></li>
-<li><strong>Add an exception rule.</strong><p>Decide on a column where 2 percent invalid values would help a negative test and say which rule supplies them.</p><p class="expect">One column, a percentage, a second rule for the Invalid Values setting.</p></li>
-<li><strong>Answer: ShopSphere wants 1,000 new customers and a masked copy of 5,000 real ones in the same test schema. How many plans, in what order?</strong><p>Think about what each plan reads.</p><p class="expect">Two plans, because generation cannot share a plan with masking.</p></li>
-</ol>
-<details class="sol"><summary>Show a worked answer</summary>
-<p>1. item_id: Sequence, start 9001, increment 1. order_id: entity relationship (parent ORDERS). product_code: Reference Lookup on PRODUCTS (or Set of Values). quantity: Random numeric 1 to 5. unit_price: Random numeric 5 to 2000.</p>
-<p>2. For example <code>quantity</code>: a Random rule 1 to 5 with Invalid Values pointing at a saved rule that makes 0 or negative numbers, at 2 percent. Check the guide's rule: invalid means breaking the rule's own range (p.223).</p>
-<p>3. Two plans. A subset plus masking plan reading <code>SHOPSPHERE_PROD</code> (subset first, then masking on the subset rows, p.275) and a generation plan for the 1,000 customers. Run masking first, then generate with sequences starting above the highest masked id, or "Start Sequence from Last Value".</p></details>
-</div>
-
-<h2 id="c15-troubleshoot">15.15 When a generation job fails or looks wrong</h2>
-<p>These are the failure causes the guide names for generation, collected in one table. The first column is what you see, the second is the cause the guide gives, the third is where to look. Reading logs is explained in <a href="16-informatica-plans-workflows-and-warehouse.html">the plans, workflows and warehouse chapter</a>.</p>
-<div class="tablewrap"><table>
-<caption>Generation problems and their documented causes</caption>
-<thead><tr><th>Symptom</th><th>Documented cause</th><th>Fix</th></tr></thead>
-<tbody>
-<tr><td>Workflow fails at once</td><td>A table or column name contains special characters (p.190)</td><td>Rename, or check the plan setting that allows special characters in metadata (p.289)</td></tr>
-<tr><td>Workflow generation fails for a card column</td><td>Issuer identification number not valid for the chosen network (p.227)</td><td>Use a valid starting number or leave it blank</td></tr>
-<tr><td>Java heap space exception while creating a rule</td><td>Not enough memory for the rule (p.198)</td><td>Ask the administrator to raise the heap size</td></tr>
-<tr><td>Nulls where you expected dictionary values</td><td>Lookup column and table column are both double data type (p.216)</td><td>Do not match on double columns</td></tr>
-<tr><td>Rows break your conditional constraint</td><td>The rule's range conflicts with the constraint, so the rule wins and a warning is logged (p.202)</td><td>Widen the rule range, read the warnings</td></tr>
-<tr><td>Changed rule has no effect</td><td>The plan was not generated and run again (p.196)</td><td>Regenerate the workflow, rerun</td></tr>
-<tr><td>Rule list is empty for a column</td><td>The project has no global rule for that data type (p.203)</td><td>Add rules to the project</td></tr>
-<tr><td>Generation with an entity is refused</td><td>The entity's primary key column is a computed column (p.191)</td><td>Use a real key column</td></tr>
-<tr><td>Auto rule cannot be used on a key</td><td>A primary key cannot hold nulls (pp.194, 205)</td><td>Use a sequence for keys</td></tr>
-</tbody></table></div>
 <h2 id="c15-mistakes">15.16 Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Things that go wrong</strong>
 <ul>

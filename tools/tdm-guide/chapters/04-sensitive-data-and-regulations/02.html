@@ -77,29 +77,3 @@
 
 <div class="callout real"><strong class="ctitle">Free text is the other hiding place</strong>
 <p>Informatica's data domain page notes that a Social Security number might sit in an <code>SSN</code> column, in a column called <code>SOCIAL_SECURITY</code> in another table, and also inside a <code>COMMENTS</code> column (User Guide 10.5.10, p.73). <span class="badge doc">From docs</span> A support agent typing "customer 123-45-6789 called about refund" into a notes field has just put an SSN where no column name will ever warn you. Delphix's Free Text Redaction algorithm exists for exactly this problem (<a href="06-masking-concepts.html">the masking concepts chapter</a> explains it).</p></div>
-<div class="exercise"><h4>Lab: how unique are your customers?</h4>
-<p>Goal: feel the re-identification problem with your own eyes. You will count how many rows share the same combination of indirect identifiers. A row that shares its combination with nobody is a row that an outsider can pick out. (This is an illustration of the idea behind a measure called <dfn>k-anonymity</dfn>: the size of the smallest group of rows that look alike. <span class="badge concept">General concept</span>)</p>
-<div class="tablewrap"><table class="sample"><caption>Ten fictional ShopSphere customers, names removed (the gender column is added for this lab only)</caption>
-<thead><tr><th>row</th><th>birth_year</th><th>zip_code</th><th>gender</th></tr></thead>
-<tbody>
-<tr><td>1</td><td>1990</td><td>560001</td><td>F</td></tr>
-<tr><td>2</td><td>1990</td><td>560001</td><td>F</td></tr>
-<tr><td>3</td><td>1985</td><td>600017</td><td>M</td></tr>
-<tr><td>4</td><td>1985</td><td>600017</td><td>M</td></tr>
-<tr><td>5</td><td>1985</td><td>600017</td><td>M</td></tr>
-<tr><td>6</td><td>1999</td><td>682001</td><td>F</td></tr>
-<tr><td>7</td><td>1990</td><td>560034</td><td>F</td></tr>
-<tr><td>8</td><td>1999</td><td>682044</td><td>F</td></tr>
-<tr><td>9</td><td>1988</td><td>600017</td><td>M</td></tr>
-<tr><td>10</td><td>1990</td><td>560001</td><td>F</td></tr>
-</tbody></table></div>
-<ol class="steps">
-<li><strong>Group the rows by all three columns together.</strong><p>Rows with the same birth_year, zip_code and gender go in one group. Count each group.</p></li>
-<li><strong>Count how many rows are alone in their group.</strong><p>Those are the rows an outsider with the right outside list could identify.</p></li>
-<li><strong>Make the data fuzzier.</strong><p>Replace each birth year with its decade (1990 becomes "1990s") and each zip code with its first three digits. Group again and compare.</p><p class="expect">The smallest group should get larger. Generalising trades detail for privacy.</p></li>
-</ol>
-<details class="sol"><summary>Show a worked answer</summary>
-<p>Step 1: the groups are (1990, 560001, F) with rows 1, 2, 10; (1985, 600017, M) with rows 3, 4, 5; and four single-row groups: row 6, row 7, row 8 and row 9.</p>
-<p>Step 2: four rows out of ten (6, 7, 8, 9) are alone, so the smallest group has size 1.</p>
-<p>Step 3: after generalising, (1990s, 560, F) holds rows 1, 2, 7 and 10; (1980s, 600, M) holds rows 3, 4, 5 and 9; (1990s, 682, F) holds rows 6 and 8. The smallest group is now 2, and nobody is alone.</p>
-<p>Lesson: the same idea appears in TDM tools as date shifting, number blurring and replacing exact values with ranges (see <a href="06-masking-concepts.html">the masking concepts chapter</a>). It also explains why a tiny sample is a poor test of privacy: with ten rows, nearly everything is rare.</p></details></div>

@@ -1,0 +1,78 @@
+<h2 id="c29-deploy">29.11 The deployment plan</h2>
+<p>A deployment plan turns a successful POC into a repeatable service. It names phases, the condition for entering and leaving each one, and who owns it. <span class="badge concept">General concept</span></p>
+<div class="tablewrap"><table>
+<thead><tr><th>Phase</th><th>Main activities</th><th>Exit condition</th></tr></thead>
+<tbody>
+<tr><td>P0 Mobilise</td><td>Approve scope and success criteria; accounts and approvals; baseline KPIs measured</td><td>Signed charter and baseline</td></tr>
+<tr><td>P1 Prepare</td><td>Size and install the tool; network routes; masking database users with only needed rights; backup and restore tested</td><td>Smoke test: connect, profile one table</td></tr>
+<tr><td>P2 Configure</td><td>Connectors, rule sets, profiling, inventory review, algorithms, keys or seeds, roles; for Informatica, policies, projects and plans</td><td>Inventory approved by the data steward</td></tr>
+<tr><td>P3 Pilot the LOB</td><td>Run the full LOB in one environment; verify with the POC criteria</td><td>Evidence pack accepted</td></tr>
+<tr><td>P4 Roll out</td><td>Remaining environments and files; schedule jobs; connect to the refresh process; train users</td><td>Sign-off checklist complete</td></tr>
+<tr><td>P5 Operate</td><td>Monitor jobs, re-profile on releases, report KPIs, review risks</td><td>Quarterly review</td></tr>
+</tbody></table></div>
+<p>Some tool features support promotion. Delphix lets you export an environment, with its connectors, rule sets and jobs, and import it into another masking engine; the docs say moving environments between engines is the main reason (<a href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Managing environments</a>). It also offers an inventory approval workflow that makes an approver sign off a database inventory before any masking job can run. Informatica generates a workflow from a plan and runs it (User Guide 10.5.10, p.32). Use these to move work from the pilot to production setups without re-typing it.</p>
+<h3 id="c29-runbook">The refresh runbook</h3>
+<p>The safest ordering is: copy into a closed area, mask, verify, and only then open the copy to testers. Nobody sees unmasked data at any point. <span class="badge concept">General concept</span> Delphix's masked provisioning enforces a version of this for supported databases by masking during VDB provisioning (see <a href="https://help.delphix.com/cc/current/content/provision_masked_vdbs.htm" target="_blank" rel="noopener">Provision masked VDBs</a>).</p>
+<div class="flow">
+<div class="node"><b>Request</b>tester asks for a refresh</div>
+<div class="arrow">→</div>
+<div class="node"><b>Copy</b>into a closed area</div>
+<div class="arrow">→</div>
+<div class="node"><b>Mask</b>run the approved job</div>
+<div class="arrow">→</div>
+<div class="node"><b>Verify</b>queries and warnings</div>
+<div class="arrow">→</div>
+<div class="node"><b>Release</b>open to testers</div>
+</div>
+<h3 id="c29-tdg-deploy">The generation (TDG) deployment plan</h3>
+<p>For Day 48 the same phases apply with different content. GenRocket describes a hybrid design: modelling and design happen in the cloud component, and the data itself is generated locally in the on-premises component (<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-architecture" target="_blank" rel="noopener">GenRocket architecture</a>). Its five components are domain, attribute, generator, receiver and scenario (<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-five-key-components" target="_blank" rel="noopener">five key components</a>).</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Step</th><th>For ShopSphere</th></tr></thead>
+<tbody>
+<tr><td>Model</td><td>Domains for CUSTOMERS, ORDERS, ORDER_ITEMS, PRODUCTS; attributes per column; parent-child links</td></tr>
+<tr><td>Design</td><td>A generator per attribute, scenarios for UC3 to UC5, volumes (5 million orders), boundary and null cases (see <a href="20-genrocket-data-patterns.html">the data patterns chapter</a>)</td></tr>
+<tr><td>Deploy</td><td>Runtime on the generation machine, a receiver that loads the QA database or writes files, access to the target</td></tr>
+<tr><td>Manage</td><td>Version the scenarios, rerun on schema change, track generation time and test coverage gained</td></tr>
+</tbody></table></div>
+<h2 id="c29-signoff">29.12 Sign-off</h2>
+<p>Sign-off is a decision with names attached. Each line of the checklist below needs evidence a reviewer can open; the evidence kinds are the same as in the lab pack in <a href="28-delphix-hands-on-labs.html">the Delphix labs</a>.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>#</th><th>Check</th><th>Evidence</th><th>Signer</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Scope equals the use-case register and landscape inventory</td><td>Register and inventory, with changes listed</td><td>Project manager</td></tr>
+<tr><td>2</td><td>Every in-scope sensitive column has an approved, verified treatment</td><td>Exported inventory; Informatica Data Masking Report (p.322) or Delphix inventory CSV</td><td>Data steward</td></tr>
+<tr><td>3</td><td>Keys intact, formats kept, same value masked the same across systems</td><td>Queries S2 to S4 and their output</td><td>DBA, QA lead</td></tr>
+<tr><td>4</td><td>No unexplained warnings and no real value left</td><td>Job summaries; leak search S6</td><td>TDM engineer, compliance officer</td></tr>
+<tr><td>5</td><td>Rollback and restore tested</td><td>Test record</td><td>DBA</td></tr>
+<tr><td>6</td><td>Access limited to named roles; audit logging on</td><td>Role list; audit log extract</td><td>Security</td></tr>
+<tr><td>7</td><td>Runbook and rules owned by named people</td><td>Runbook, RACI</td><td>QA lead</td></tr>
+<tr><td>8</td><td>KPI baseline captured and targets agreed</td><td>KPI table</td><td>Sponsor</td></tr>
+<tr><td>9</td><td>Business acceptance of the masked data's usefulness</td><td>Tester sample review</td><td>BU SME</td></tr>
+</tbody></table></div>
+<p>A written decision, signed and dated, with one of three outcomes: accepted, accepted with listed conditions and due dates, or rejected with reasons. Informatica's guide notes that its Data Validation Option can give test data "verifiable proof" that no sensitive values were left (User Guide 10.5.10, p.24). Plan audit reports are intended for auditors (p.322). Both are examples of tool-made evidence you can attach.</p>
+<h2 id="c29-governance">29.13 Governance and audit</h2>
+<p>Governance is what keeps the masked data trustworthy after the project team leaves. The practical controls are below; the tool behaviour is from the sources, the rest is general practice.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Control</th><th>What the sources say</th><th>Practice to adopt</th></tr></thead>
+<tbody>
+<tr><td>Who can change rules</td><td>Delphix roles such as IT Security Analyst, DBA, SME, Operator and Environment Owner (<a href="https://help.delphix.com/cc/current/content/users_and_roles.htm" target="_blank" rel="noopener">Users and roles</a>); Informatica roles and privileges decide allowed tasks (p.23)</td><td>Least privilege; separate who edits rules from who runs jobs</td></tr>
+<tr><td>Keys and seeds</td><td>Most Delphix algorithms include a key, and changing it changes the output (<a href="https://help.delphix.com/cc/current/content/algorithms.htm" target="_blank" rel="noopener">Algorithms</a>); Informatica key masking is repeatable for the same seed (1 to 1,000 for strings, p.168)</td><td>Treat keys and seeds as controlled configuration; change only through change control, because a change breaks cross-system consistency</td></tr>
+<tr><td>Change control</td><td>Delphix has an inventory approval workflow (database rule sets)</td><td>Review every rule change; re-profile on each release</td></tr>
+<tr><td>Audit trail</td><td>Delphix logs user actions and keeps the last one million entries by default, recommending periodic API export (<a href="https://help.delphix.com/cc/current/content/audit_logs.htm" target="_blank" rel="noopener">Audit logs</a>); Informatica's Audit Trail Report lists recent activity as a CSV (p.322)</td><td>Export on a schedule and retain per policy</td></tr>
+<tr><td>Evidence retention</td><td>Plan audit and row count reports (Informatica p.322, 324); job reports (Delphix)</td><td>Keep the pack with the release it protects</td></tr>
+</tbody></table></div>
+<h2 id="c29-raci">29.14 Roles and RACI</h2>
+<p>R = does the work, A = answers for it (one per row), C = consulted, I = informed. <span class="badge concept">General concept</span></p>
+<div class="tablewrap"><table>
+<thead><tr><th>Activity</th><th>TDM eng.</th><th>DBA</th><th>Data steward</th><th>Compliance</th><th>QA lead</th><th>Proj. mgr</th></tr></thead>
+<tbody>
+<tr><td>Use-case discovery</td><td>R</td><td>C</td><td>C</td><td>C</td><td>R</td><td>A</td></tr>
+<tr><td>Landscape inventory</td><td>R</td><td>R</td><td>C</td><td>I</td><td>C</td><td>A</td></tr>
+<tr><td>Sensitivity decisions</td><td>C</td><td>I</td><td>R</td><td>A</td><td>C</td><td>I</td></tr>
+<tr><td>Tool selection and POC</td><td>A/R</td><td>C</td><td>C</td><td>C</td><td>C</td><td>I</td></tr>
+<tr><td>Masking rules and keys</td><td>R</td><td>C</td><td>A</td><td>C</td><td>I</td><td>I</td></tr>
+<tr><td>Copy, restore and rights</td><td>C</td><td>A/R</td><td>I</td><td>I</td><td>I</td><td>I</td></tr>
+<tr><td>Run and verify refresh</td><td>A/R</td><td>C</td><td>C</td><td>I</td><td>C</td><td>I</td></tr>
+<tr><td>Sign-off</td><td>R</td><td>C</td><td>C</td><td>A</td><td>C</td><td>R</td></tr>
+<tr><td>KPI reporting</td><td>R</td><td>I</td><td>I</td><td>I</td><td>C</td><td>A</td></tr>
+</tbody></table></div>
