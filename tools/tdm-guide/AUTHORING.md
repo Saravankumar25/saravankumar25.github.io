@@ -43,7 +43,7 @@ The reader is an **absolute beginner**: no knowledge of TDM, ETL, databases beyo
   <figcaption><strong>Official screenshot:</strong> what it shows and why it matters here. <a class="badge-link" href="PAGE_URL" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
   ```
 - Visual reference with no image URL (Informatica PDF figures, or any place you cannot embed): `<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.38, Figure "Test Data Manager" (a screenshot of the Overview view). What to look for: ...</div>`
-- Evidence badges: `<span class="badge doc">From docs</span>` (taken from the official source you read), `<span class="badge concept">General concept</span>`, `<span class="badge unverified">Unverified</span>`.
+- Evidence badges: `<span class="badge video">From video</span>` (taken from one of the three videos, whose transcripts the learner supplied), `<span class="badge doc">From docs</span>` (taken from the official source you read), `<span class="badge concept">General concept</span>`, `<span class="badge unverified">Unverified</span>`.
 - Hands-on lab: `<div class="exercise"><h4>Lab: ...</h4><p>Goal...</p><ol class="steps">...</ol><details class="sol"><summary>Show a worked answer</summary>...</details></div>`
 - Side-by-side: `<div class="compare"><div><h4>A</h4>...</div><div><h4>B</h4>...</div></div>`
 - Code: `<pre><code>...</code></pre>` (escape `<` `>` `&`). Do not add language classes.

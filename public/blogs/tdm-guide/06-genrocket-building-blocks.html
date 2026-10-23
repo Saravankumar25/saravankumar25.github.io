@@ -1,33 +1,11 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 6: GenRocket (1): the building blocks | TDM Guide</title><meta name="description" content="What GenRocket is, then its core pieces in order: domains, attributes, generators, receivers and scenarios."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/06-genrocket-building-blocks.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 6: GenRocket (1): the building blocks | TDM Guide"><meta property="og:description" content="What GenRocket is, then its core pieces in order: domains, attributes, generators, receivers and scenarios."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}try{var s=localStorage.getItem('tdm-sidebar');if(!s&&matchMedia('(max-width:860px)').matches)s='hidden';if(s==='hidden')document.documentElement.setAttribute('data-sidebar','hidden')}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="true" title="Hide or show the sidebar ([)">☰ <span>Contents</span></button><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" id="sidebar" aria-label="Chapter navigation"><div class="sbtop"><a class="allchap" href="index.html">← All 10 chapters</a><button type="button" class="sbhide" data-sidebar-hide title="Hide the sidebar ([)">« Hide</button></div><h3>Chapters</h3><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a><a class="" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a><a class="current" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a><a class="" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, the capstone and the glossary</a></div><h3>In this chapter</h3><div class="section-list"><details class="grpbox" open data-grp="c6-s1"><summary>GenRocket: what it is and how it works</summary><div class="secs"><a href="#c17-words">6.1 Words to know first</a><a href="#c17-what-is">6.2 What GenRocket is and why synthetic data</a><a href="#c17-five">6.3 The five key components</a><a href="#c17-tda">6.4 Test Data Automation and &quot;Model, Design, Deploy, Manage&quot;</a><a href="#c17-architecture">6.5 Architecture: a cloud for design, your machine for generation</a><a href="#c17-runtime">6.6 The GenRocket Runtime</a><a href="#c17-web">6.7 The web platform and the Project Dashboard</a><a href="#c17-projects">6.8 Projects, project versions and categories</a><a href="#c17-users">6.9 Users, roles and licensing basics</a><a href="#c17-shopsphere">6.10 ShopSphere plan: what we will build in the next chapters</a><a href="#c17-mistakes">6.11 Common mistakes and gotchas</a><a href="#c17-recap">6.12 Recap</a></div></details><details class="grpbox" data-grp="c6-s2"><summary>GenRocket: domains, attributes and generators</summary><div class="secs"><a href="#c18-words">6.13 Words to know first</a><a href="#c18-domains">6.14 Domains: the tables of your design</a><a href="#c18-relationships">6.15 Relationships: parent, child and sibling</a><a href="#c18-vars">6.16 Domain variables, loopCount and categories</a><a href="#c18-attributes">6.17 Attributes: the columns</a><a href="#c18-generators">6.18 Generators: the recipe for each value</a><a href="#c18-shopsphere">6.19 ShopSphere design: generators for every column</a><a href="#c18-mistakes">6.20 Common mistakes and gotchas</a><a href="#c18-recap">6.21 Recap</a></div></details><details class="grpbox" data-grp="c6-s3"><summary>GenRocket: receivers and scenarios</summary><div class="secs"><a href="#c19-words">6.22 Words to know first</a><a href="#c19-receivers">6.23 Receivers</a><a href="#c19-common">6.24 The common receivers in detail</a><a href="#c19-scenarios">6.25 Scenarios</a><a href="#c19-walk">6.26 ShopSphere end to end: CUSTOMERS to CSV and ORDERS to SQL inserts</a><a href="#c19-trouble">6.27 Troubleshooting</a><a href="#c19-mistakes">6.28 Common mistakes and gotchas</a><a href="#c19-recap">6.29 Recap</a></div></details></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">CHAPTER 06</p><h1>GenRocket (1): the building blocks</h1><p class="chapter-summary">What GenRocket is, then its core pieces in order: domains, attributes, generators, receivers and scenarios.</p></div><details class="pagetoc"><summary>Contents of this chapter</summary><details class="grpbox" open data-grp="c6-s1"><summary>GenRocket: what it is and how it works</summary><div class="secs"><a href="#c17-words">6.1 Words to know first</a><a href="#c17-what-is">6.2 What GenRocket is and why synthetic data</a><a href="#c17-five">6.3 The five key components</a><a href="#c17-tda">6.4 Test Data Automation and &quot;Model, Design, Deploy, Manage&quot;</a><a href="#c17-architecture">6.5 Architecture: a cloud for design, your machine for generation</a><a href="#c17-runtime">6.6 The GenRocket Runtime</a><a href="#c17-web">6.7 The web platform and the Project Dashboard</a><a href="#c17-projects">6.8 Projects, project versions and categories</a><a href="#c17-users">6.9 Users, roles and licensing basics</a><a href="#c17-shopsphere">6.10 ShopSphere plan: what we will build in the next chapters</a><a href="#c17-mistakes">6.11 Common mistakes and gotchas</a><a href="#c17-recap">6.12 Recap</a></div></details><details class="grpbox" data-grp="c6-s2"><summary>GenRocket: domains, attributes and generators</summary><div class="secs"><a href="#c18-words">6.13 Words to know first</a><a href="#c18-domains">6.14 Domains: the tables of your design</a><a href="#c18-relationships">6.15 Relationships: parent, child and sibling</a><a href="#c18-vars">6.16 Domain variables, loopCount and categories</a><a href="#c18-attributes">6.17 Attributes: the columns</a><a href="#c18-generators">6.18 Generators: the recipe for each value</a><a href="#c18-shopsphere">6.19 ShopSphere design: generators for every column</a><a href="#c18-mistakes">6.20 Common mistakes and gotchas</a><a href="#c18-recap">6.21 Recap</a></div></details><details class="grpbox" data-grp="c6-s3"><summary>GenRocket: receivers and scenarios</summary><div class="secs"><a href="#c19-words">6.22 Words to know first</a><a href="#c19-receivers">6.23 Receivers</a><a href="#c19-common">6.24 The common receivers in detail</a><a href="#c19-scenarios">6.25 Scenarios</a><a href="#c19-walk">6.26 ShopSphere end to end: CUSTOMERS to CSV and ORDERS to SQL inserts</a><a href="#c19-trouble">6.27 Troubleshooting</a><a href="#c19-mistakes">6.28 Common mistakes and gotchas</a><a href="#c19-recap">6.29 Recap</a></div></details></details><div class="grp" id="c6-s1"><span class="grplabel">GenRocket: what it is and how it works</span></div>
-<p>The earlier part of this guide explained why teams need test data and how to make it safely: copy a slice of production (<a href="02-privacy-discovery-subsetting-masking.html#c2-s2">subsetting</a>), hide the sensitive parts (<a href="02-privacy-discovery-subsetting-masking.html#c2-s3">masking</a>), or build data from nothing (<a href="03-generation-etl-and-tdm.html#c3-s1">generation</a>). The Informatica part showed one commercial tool for all three. This part turns to a tool that is built around the third way: <strong>GenRocket</strong>. It does not copy your production data at all. You describe the shape of the data you want, and it manufactures as many rows as you ask for, already consistent with each other.</p>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 6: GenRocket (1): the building blocks | TDM Guide</title><meta name="description" content="What GenRocket is, then its core pieces in order: domains, attributes, generators, receivers and scenarios."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/06-genrocket-building-blocks.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 6: GenRocket (1): the building blocks | TDM Guide"><meta property="og:description" content="What GenRocket is, then its core pieces in order: domains, attributes, generators, receivers and scenarios."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}try{var s=localStorage.getItem('tdm-sidebar');if(!s&&matchMedia('(max-width:860px)').matches)s='hidden';if(s==='hidden')document.documentElement.setAttribute('data-sidebar','hidden')}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="true" title="Hide or show the sidebar ([)">☰ <span>Contents</span></button><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" id="sidebar" aria-label="Chapter navigation"><div class="sbtop"><a class="allchap" href="index.html">← All 10 chapters</a><button type="button" class="sbhide" data-sidebar-hide title="Hide the sidebar ([)">« Hide</button></div><h3>Chapters</h3><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a><a class="" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a><a class="current" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a><a class="" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, a worked project and the glossary</a></div><h3>In this chapter</h3><div class="section-list"><details class="grpbox" open data-grp="c6-s1"><summary>GenRocket: what it is and how it works</summary><div class="secs"><a href="#c17-words">6.1 Words to know first</a><a href="#c17-what-is">6.2 What GenRocket is and why synthetic data</a><a href="#c17-five">6.3 The five key components</a><a href="#c17-tda">6.4 Test Data Automation and &quot;Model, Design, Deploy, Manage&quot;</a><a href="#c17-architecture">6.5 Architecture: a cloud for design, your machine for generation</a><a href="#c17-runtime">6.6 The GenRocket Runtime</a><a href="#c17-web">6.7 The web platform and the Project Dashboard</a><a href="#c17-projects">6.8 Projects, project versions and categories</a><a href="#c17-users">6.9 Users, roles and licensing basics</a><a href="#c17-shopsphere">6.10 ShopSphere plan in GenRocket vocabulary</a><a href="#c17-mistakes">6.11 Common mistakes and gotchas</a><a href="#c17-recap">6.12 Recap</a></div></details><details class="grpbox" data-grp="c6-s2"><summary>GenRocket: domains, attributes and generators</summary><div class="secs"><a href="#c18-words">6.13 Words to know first</a><a href="#c18-domains">6.14 Domains: the tables of your design</a><a href="#c18-relationships">6.15 Relationships: parent, child and sibling</a><a href="#c18-vars">6.16 Domain variables, loopCount and categories</a><a href="#c18-attributes">6.17 Attributes: the columns</a><a href="#c18-generators">6.18 Generators: the recipe for each value</a><a href="#c18-shopsphere">6.19 ShopSphere design: generators for every column</a><a href="#c18-mistakes">6.20 Common mistakes and gotchas</a><a href="#c18-recap">6.21 Recap</a></div></details><details class="grpbox" data-grp="c6-s3"><summary>GenRocket: receivers and scenarios</summary><div class="secs"><a href="#c19-words">6.22 Words to know first</a><a href="#c19-receivers">6.23 Receivers</a><a href="#c19-common">6.24 The common receivers in detail</a><a href="#c19-scenarios">6.25 Scenarios</a><a href="#c19-walk">6.26 ShopSphere end to end: CUSTOMERS to CSV and ORDERS to SQL inserts</a><a href="#c19-trouble">6.27 Troubleshooting</a><a href="#c19-mistakes">6.28 Common mistakes and gotchas</a><a href="#c19-recap">6.29 Recap</a></div></details></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">CHAPTER 06</p><h1>GenRocket (1): the building blocks</h1><p class="chapter-summary">What GenRocket is, then its core pieces in order: domains, attributes, generators, receivers and scenarios.</p></div><details class="pagetoc"><summary>Contents of this chapter</summary><details class="grpbox" open data-grp="c6-s1"><summary>GenRocket: what it is and how it works</summary><div class="secs"><a href="#c17-words">6.1 Words to know first</a><a href="#c17-what-is">6.2 What GenRocket is and why synthetic data</a><a href="#c17-five">6.3 The five key components</a><a href="#c17-tda">6.4 Test Data Automation and &quot;Model, Design, Deploy, Manage&quot;</a><a href="#c17-architecture">6.5 Architecture: a cloud for design, your machine for generation</a><a href="#c17-runtime">6.6 The GenRocket Runtime</a><a href="#c17-web">6.7 The web platform and the Project Dashboard</a><a href="#c17-projects">6.8 Projects, project versions and categories</a><a href="#c17-users">6.9 Users, roles and licensing basics</a><a href="#c17-shopsphere">6.10 ShopSphere plan in GenRocket vocabulary</a><a href="#c17-mistakes">6.11 Common mistakes and gotchas</a><a href="#c17-recap">6.12 Recap</a></div></details><details class="grpbox" data-grp="c6-s2"><summary>GenRocket: domains, attributes and generators</summary><div class="secs"><a href="#c18-words">6.13 Words to know first</a><a href="#c18-domains">6.14 Domains: the tables of your design</a><a href="#c18-relationships">6.15 Relationships: parent, child and sibling</a><a href="#c18-vars">6.16 Domain variables, loopCount and categories</a><a href="#c18-attributes">6.17 Attributes: the columns</a><a href="#c18-generators">6.18 Generators: the recipe for each value</a><a href="#c18-shopsphere">6.19 ShopSphere design: generators for every column</a><a href="#c18-mistakes">6.20 Common mistakes and gotchas</a><a href="#c18-recap">6.21 Recap</a></div></details><details class="grpbox" data-grp="c6-s3"><summary>GenRocket: receivers and scenarios</summary><div class="secs"><a href="#c19-words">6.22 Words to know first</a><a href="#c19-receivers">6.23 Receivers</a><a href="#c19-common">6.24 The common receivers in detail</a><a href="#c19-scenarios">6.25 Scenarios</a><a href="#c19-walk">6.26 ShopSphere end to end: CUSTOMERS to CSV and ORDERS to SQL inserts</a><a href="#c19-trouble">6.27 Troubleshooting</a><a href="#c19-mistakes">6.28 Common mistakes and gotchas</a><a href="#c19-recap">6.29 Recap</a></div></details></details><div class="grp" id="c6-s1"><span class="grplabel">GenRocket: what it is and how it works</span></div>
+<p><strong>GenRocket</strong> is built around the third way of making test data: <a href="03-generation-etl-and-tdm.html#c3-s1">generation</a>. It does not copy production data at all. You describe the shape of the data you want, and it manufactures as many rows as you ask for, already consistent with each other.</p>
 
-<p>This first GenRocket chapter is the map. You will learn the five building blocks the whole product is made of, where each piece runs (some in a cloud web site, some on your own machine), what a "project" is, and how the syllabus phrase <em>Model, Design, Deploy, Manage</em> (Day 46) lines up with real screens. The two chapters after this one go deep on the building blocks: <a href="06-genrocket-building-blocks.html#c6-s2">domains, attributes and generators</a>, then <a href="06-genrocket-building-blocks.html#c6-s3">receivers and scenarios</a>. Nothing here needs a licence to understand; you only need to know what a table and a column are.</p>
+<p>The product is made of five building blocks. Some pieces run in a cloud web site and some on your own machine, and GenRocket's own method is <em>Model, Design, Deploy, Manage</em>. The building blocks are covered in detail in <a href="06-genrocket-building-blocks.html#c6-s2">domains, attributes and generators</a>, then <a href="06-genrocket-building-blocks.html#c6-s3">receivers and scenarios</a>.</p>
 
-<div class="callout recap">
-<strong class="ctitle">What you will learn</strong>
-<ul>
-<li>What "synthetic test data" means and why GenRocket's own pages argue it improves test coverage.</li>
-<li>The five key components (domain, attribute, generator, receiver, scenario) with an everyday analogy, and how they map to the ShopSphere tables.</li>
-<li>What "Test Data Automation" and the Model, Design, Deploy, Manage cycle mean in GenRocket's documentation.</li>
-<li>The hybrid architecture: design in the cloud web platform, generate on your own machine with the GenRocket Runtime.</li>
-<li>What the runtime is made of, the requirements the docs list, and the shape of the setup, including Docker and Jenkins at overview level.</li>
-<li>Projects, project versions, project types, project categorization and the Project Dashboard.</li>
-<li>Who can do what: users, roles and the licensing idea in the documentation.</li>
-</ul>
-</div>
 
-<div class="callout note">
-<strong class="ctitle">What this section is based on</strong>
-<p>Everything tool-specific below comes from pages of the official GenRocket help centre (genrocket.helpjuice.com) that I read in full for this section. Screenshots are the vendor's own, embedded from the page named in each caption, and I looked at each one before describing it. The help centre is a living site, so button names and counts (for example, how many generators exist) may differ in your version.</p>
-<ul>
-<li>"<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-overview" target="_blank" rel="noopener">GenRocket Overview</a>", "<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/why-synthetic-test-data" target="_blank" rel="noopener">Why Synthetic Test Data?</a>", "<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/the-genrocket-methodology" target="_blank" rel="noopener">The GenRocket Methodology</a>", "<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/test-data-workflow" target="_blank" rel="noopener">Test Data Workflow</a>", "<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-architecture" target="_blank" rel="noopener">GenRocket Architecture</a>", "<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-five-key-components" target="_blank" rel="noopener">GenRocket Five Key Components</a>" and "<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/components-and-ports-configuration-guide" target="_blank" rel="noopener">Components and Ports Configuration Guide</a>".</li>
-<li>"<a href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">Automating Data Generation using CI/CD Pipeline</a>" (the page that spells out the four steps).</li>
-<li>Runtime: "<a href="https://genrocket.helpjuice.com/en_US/genrocket-runtime/genrocket-runtime-overview" target="_blank" rel="noopener">GenRocket Runtime Overview</a>", "<a href="https://genrocket.helpjuice.com/en_US/genrocket-runtime/how-to-verify-port-443-is-open-for-genrocket-runtime" target="_blank" rel="noopener">How to Verify Port 443 is Open</a>", "<a href="https://genrocket.helpjuice.com/en_US/genrocket-runtime/using-an-offline-certificate-for-corporate-environments" target="_blank" rel="noopener">Using an Offline Certificate</a>", the Windows setup page, the Docker page, and the Jenkins page.</li>
-<li>Projects and dashboards: Web Platform Overview, Project Dashboard, Test Data Projects Overview, Project Types, How to create a Test Data Project, Project Versions, Project Categorization, User Management Overview, User Roles and Permissions and the General FAQ.</li>
-</ul>
-<p>The help centre's "GenRocket Glossary" page is auto-generated, and its list of definitions was empty when I fetched it (the page and its glossary data file both came back with no entries). So the glossary below is built from the pages above, not copied from that page.</p>
-<p>Related videos (transcripts were not available, so they are <em>not used as a source</em> and I describe nothing from them): <a href="https://www.youtube.com/watch?v=Z89qnX5B1xE" target="_blank" rel="noopener">"GenRocket Overview Video 2022"</a> (GenRocketINC) and <a href="https://www.youtube.com/watch?v=iJdUoxupDqA" target="_blank" rel="noopener">"Test Data Automation-Webinar by Kualitatem and GenRocket"</a> (Kualitatem Official). Related video, transcript unavailable, not used as a source.</p>
-</div>
+
+
 
 <h2 id="c17-words">6.1 Words to know first</h2>
 
@@ -60,24 +38,49 @@
 
 <p> GenRocket's welcome pages are short and to the point. They define synthetic test data as data "manufactured or generated by an algorithm rather than real-world events", and argue that companies can maximise test coverage by using it to test all permutations and combinations. The CI/CD page describes the product as a component-based platform for defining and provisioning test data for high-volume, automated testing.</p>
 
-<p>Think of a bakery that has to supply cupcakes for a hundred different tasting events. One approach is to buy finished cakes from a rival shop, scrape off the logos and send them out (that is masked production data). The GenRocket approach is to own the recipe and the oven. You write down "chocolate, 12 per tray, nut-free, one tray with a deliberately burnt top" and the oven makes exactly that on demand. The analogy stops being accurate in one respect: a recipe produces cakes that taste alike, while a GenRocket recipe can be told to vary values, include edge cases and keep related trays consistent with each other.</p>
+<p>Think of a bakery supplying cupcakes for a hundred tasting events. One approach is to buy finished cakes from a rival shop and scrape off the logos (masked production data). The GenRocket approach is to own the recipe and the oven: "chocolate, 12 per tray, one tray with a deliberately burnt top", made on demand. The analogy breaks in one place: a recipe makes cakes that taste alike, while a GenRocket recipe can vary values, include edge cases and keep related trays consistent.</p>
 
 <div class="callout why">
 <strong class="ctitle">Why it matters</strong>
 <p>A tester for ShopSphere's "Customer Orders" app needs a customer with 0 orders, one with 1, one with 200, one whose email is missing and one whose surname is 60 letters long. Production rarely contains all of these, and copying production brings real names along (<a href="01-welcome-why-tdm-and-data-basics.html#c1-s2">see why TDM exists</a>). Because GenRocket's data is manufactured to a rule, you can ask for the odd cases directly and rebuild the same set tomorrow.</p>
 </div>
 
-<p> The documentation is also frank about the work involved. The FAQ says the harder data-design tasks are assigned to a small group of trained "Test Data Engineers", while testers and developers mainly search for the data they need, deploy it into their test environment and tweak it. That is the "TDM engineer" role this guide is aimed at. The Test Data Workflow page starts from the same person: it says the workflow begins with a Power User, a Test Data Engineer.</p>
+<p> The documentation is also frank about the work involved. The FAQ says the harder data-design tasks are assigned to a small group of trained "Test Data Engineers", while testers and developers mainly search for the data they need, deploy it into their test environment and tweak it. The Test Data Workflow page starts from the same person: it says the workflow begins with a Power User, a Test Data Engineer.</p>
 
 <p> One more design choice matters for privacy. The Test Data Projects page says a project <em>contains no customer data</em>. It holds your data model and the five components that describe how to generate data. The architecture diagram (below) labels the cloud part "No Customer Data Stored".</p>
 
+<h3 id="c17-problem">6.2.1 The problem the vendor says it solves</h3>
+
+<p> GenRocket's 2020 webinar (the CEO and CTO, with a partner company) opens with the market problem: test automation is spreading fast, but test data is not keeping up. Citing an industry quality report that he names as the World Quality Report, the CEO gives two figures: 69% of organisations use spreadsheets to generate test data, and 59% still create it manually. He adds stories from unnamed customers: a large financial firm with a TDM tool finds the data it needs in production only about a third of the time, and a healthcare insurer's fastest delivery of test data is 34 days. The complaints he hears each week are that data is too slow, does not match the test cases, and is too manual.</p>
+
+<p>These are the vendor's claims: the report, the two percentages (which the talk does not reconcile) and the customer stories are unverified. The 2022 overview video promises the matching fix, cutting days to minutes by replacing spreadsheets and manual methods. Its examples (25 hours of data preparation down to five to ten minutes per cycle, 16 days down to two hours, over 1,200 hours saved in nine months) are also vendor claims, with no method shown.</p>
+
+<h3 id="c17-vs-tdm">6.2.2 Traditional TDM versus synthetic test data automation</h3>
+
+<p> Both videos describe the contrast; the 2022 video draws it most clearly. The CEO does not call traditional test data management (TDM) wrong. He says it helps with privacy law and faster provisioning, and that GenRocket adds to it. The differences are in the starting point and in what each can produce.</p>
+
+<div class="compare">
+<div>
+<h4 id="c6-traditional-tdm-copy-mask-subset-refresh">Traditional TDM: copy, mask, subset, refresh</h4>
+<p>Start from a production database or application. Copy the data, run a masking algorithm to make a secure copy in a lower (non-production) environment, and refresh it from time to time. Testers then search the copy for data that fits their test case. The data is realistic and keeps referential integrity.</p>
+<p>The gaps the vendor says its enterprise customers report: no unique data, no negative data (deliberately invalid values), not every permutation and combination, not enough volume, nothing in a required condition, and no dynamic data spanning many applications.</p>
+</div>
+<div>
+<h4 id="c6-synthetic-test-data-automation">Synthetic test data automation</h4>
+<p>Start from the <em>metadata</em> (table and column definitions), not the data. The metadata becomes a test data project that acts as the template. It is versioned (version 1, version 2) and lifecycle-managed so it follows the application. Against the project you build test data cases for unit, integration, load and performance tests, and negative cases. Each gives realistic data with referential integrity plus the variety that copies lack.</p>
+<p>The 2020 webinar adds that "query generators" can still blend a few real production values, such as an account number, into generated rows.</p>
+</div>
+</div>
+
+<p>"Stateful" data, one of the gaps, is data in a particular condition that a workflow needs; for ShopSphere, an order already shipped whose payment has settled. On masking, the CTO said in the 2020 Q&amp;A that when GenRocket moves production data to staging it replaces sensitive columns with synthetic values instead of obfuscating them. The help centre also lists masking receivers and an in-place masking project type (sections 6.8.2 and 19.3.9), so check the current product. The concepts are in the chapters on <a href="02-privacy-discovery-subsetting-masking.html#c2-s2">subsetting</a>, <a href="02-privacy-discovery-subsetting-masking.html#c2-s3">masking</a> and <a href="03-generation-etl-and-tdm.html#c3-s1">generation</a>.</p>
+
 <h2 id="c17-five">6.3 The five key components</h2>
 
-<p>The help centre says the whole platform is built on five key components, and every other feature is a derivative of them. Learn these five words and the rest of GenRocket becomes vocabulary. Here is the official reference table in my words, with the ShopSphere example added.</p>
+<p>The help centre says the whole platform is built on five key components, and every other feature is a derivative of them. Learn these five words and the rest of GenRocket becomes vocabulary. The table gives the reference with ShopSphere examples.</p>
 
 <div class="tablewrap">
 <table class="sample">
-<caption>The five key components, with ShopSphere examples (the examples in the last column are mine)</caption>
+<caption>The five key components, with ShopSphere examples</caption>
 <thead><tr><th>Component</th><th>Think of it like</th><th>Official examples</th><th>ShopSphere example</th></tr></thead>
 <tbody>
 <tr><td>Domain</td><td>A noun: a person, place or thing</td><td>Database table, file, image, message, JSON, XML</td><td><code>CUSTOMERS</code>, <code>ORDERS</code>, <code>ORDER_ITEMS</code></td></tr>
@@ -118,7 +121,7 @@
 <line x1="105" y1="140" x2="105" y2="198" stroke="currentColor" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#c17a)"/>
 <line x1="710" y1="140" x2="710" y2="198" stroke="currentColor" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#c17a)"/>
 </svg>
-<figcaption>Original diagram: how the five components relate. A domain has attributes, each attribute has a generator, a receiver packages the values, and a scenario (dashed arrows) draws on the domains and receivers to tell the engine what to produce.</figcaption>
+<figcaption>How the five components relate. A domain has attributes, each attribute has a generator, a receiver packages the values, and a scenario (dashed arrows) draws on the domains and receivers to tell the engine what to produce.</figcaption>
 </figure>
 
 <p> One rule to remember from the Generators Overview: generators only <em>generate</em> values; receivers <em>format</em> them. The split is deliberate. You can change CSV to JSON by swapping the receiver, without touching any generator.</p>
@@ -129,6 +132,10 @@
 <strong class="ctitle">Worked example: one customer row</strong>
 <p>Take the ShopSphere row <code>1001 | Asha | Menon | asha.menon@example.com | 9876543210 | 123-45-6789 | 1990-04-12 | 560001</code> from the earlier chapters. In GenRocket terms: the <strong>domain</strong> is CUSTOMERS. The <strong>attributes</strong> are <code>customer_id</code>, <code>first_name</code>, <code>last_name</code>, <code>email</code> and so on. A <strong>generator</strong> on <code>first_name</code> produces "Asha" (then a different name for the next row), a generator on <code>customer_id</code> counts 1001, 1002, 1003. A <strong>receiver</strong> writes the lines into a file. A <strong>scenario</strong> says "make 3 of these". Every value is fake, so the row can go to any test environment.</p>
 </div>
+
+<h3 id="c17-five-video">6.3.1 The five components in plain words</h3>
+
+<p> The 2020 webinar explains the same five pieces before any demo, and its wording is a good way to remember them. A <strong>domain</strong> is a noun: a person, place or thing, such as organisation, department, user or address, with no limit on how many or how they are arranged. Its <strong>attributes</strong> are its characteristics (name, password, phone number, date of birth, card number). Each attribute gets a <strong>generator</strong>, and a generator has <em>parameters</em> that control exactly what comes out; a name generator, for example, can be told to give first, last, male or female names, and the CTO says its lists allow around 40 million combinations. A generator's output is raw, unformatted data, and the <strong>receiver</strong> formats it. The <strong>scenario</strong> is the instruction set that runs and produces the data. His rule of thumb is one scenario per domain, linked into a chain with a loop count each; <a href="06-genrocket-building-blocks.html#c19-loop-math">section 6.25.7</a> works through his example with the arithmetic.</p>
 
 <h2 id="c17-tda">6.4 Test Data Automation and "Model, Design, Deploy, Manage"</h2>
 
@@ -152,7 +159,7 @@
 
 <h3 id="c17-four-steps">6.4.1 The four steps</h3>
 
-<p>The course syllabus for Day 46 says "Data generation: model, design, deploy, manage". GenRocket's Methodology page says the product uses exactly this "Model, Design, Deploy, Manage" methodology, and the CI/CD page gives each step a plain meaning.</p>
+<p>GenRocket's own name for its method is "Model, Design, Deploy, Manage". The Methodology page uses exactly these words, the CEO states it as "the GenRocket methodology" in the 2022 overview video, and the CI/CD page gives each step a plain meaning.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280852430/1tZBhQ3jEFMfbEvEmfYjekf9iBFxY-1XRQ%20(1).png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280852430/1tZBhQ3jEFMfbEvEmfYjekf9iBFxY-1XRQ%20(1).png" alt="A circular arrow diagram titled Synthetic Data Lifecycle with four segments in order: Model, Design, Deploy, Manage" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The vendor's "Synthetic Data Lifecycle" ring: Model, Design, Deploy and Manage chase each other in a circle. The circle matters: after Manage, the next release of your application sends you back to Model. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -170,9 +177,9 @@
 </table>
 </div>
 
-<p>The Deploy row says "more than 100 receivers", while the receivers overview page says "120+" and the architecture is described in terms of a growing list. Treat all such counts as <em>approximate and growing</em>; I quote them only to show scale.</p>
+<p>Counts differ by source and date, so treat them as approximate and growing. The Deploy row says "more than 100" receivers and the receivers overview says "120+". The 2020 webinar spoke of about 258 generators and 61 to 63 receivers (the company started with 13 and 4), and the 2022 video of 680+ generators and 91 receivers. The current help centre is the reference.</p>
 
-<p>The same page also lists the self-service vocabulary used in the Design step, in a table from the vendor's screenshot below. These names matter later (<a href="07-genrocket-patterns-and-hands-on.html#c7-s1">data patterns chapter</a>), so recognise them now.</p>
+<p>The same page also lists the self-service vocabulary used in the Design step, in a table from the vendor's screenshot below. These names are used in the <a href="07-genrocket-patterns-and-hands-on.html#c7-s1">data patterns chapter</a>.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280956208/6kkMc7lls1qoiSbQ_0Fm0PZkwo-7f9reqQ%20(2).png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280956208/6kkMc7lls1qoiSbQ_0Fm0PZkwo-7f9reqQ%20(2).png" alt="A table of five GenRocket terms: Test Data Case, Test Data Rule, Test Data Query, Test Data Stories and Test Data Epics, each with a think-of-it-like description and an example" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The vendor's table of design-time terms. A Test Data Case specifies the exact data one test needs (for example 100 customers), a Rule filters the data to what you want, a Query pulls specific production values to blend with generated data, Stories combine cases, and Epics combine stories. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -182,6 +189,24 @@
 <strong class="ctitle">Do not confuse the stages with the five components</strong>
 <p>Model, Design, Deploy and Manage are <em>phases of work</em>. Domain, attribute, generator, receiver and scenario are <em>things in the product</em>. Several components appear in more than one phase: generators are chosen while designing, but a generator's output is only produced while deploying.</p>
 </div>
+
+<h3 id="c17-demo-steps">6.4.2 The four steps in the 2022 demo</h3>
+
+<p> The 2022 overview video, spoken by GenRocket's CEO, sketches the method like this: a customer uploads a data model to the GenRocket cloud (Model), a test data engineer designs the data each test needs (Design), and a developer or tester wires the data into a CI/CD pipeline or test case and generates it on demand (Deploy). For Manage it names versioning and lifecycle management of the project template. Its short live demo then touches the steps:</p>
+
+<div class="tablewrap">
+<table>
+<thead><tr><th>Step</th><th>What the demo shows</th></tr></thead>
+<tbody>
+<tr><td>Model</td><td>A new project is created with the XTS wizard (extract table schema), which reads the <em>metadata</em>, not the data. A domain referencing wizard then sets the parent and child relationships, and a generator tuning wizard adjusts the generators behind each attribute.</td></tr>
+<tr><td>Design</td><td>A self-service module builds a test data case suite. The examples are unit, negative, load and integration cases, with the volume set per domain (the demo names a branch and an account domain), small and large setups, and rules that control the output.</td></tr>
+<tr><td>Deploy</td><td>Generation is launched from Jenkins, a batch file or a shell script. In the demo the rows go into a SQL database, including a rule-controlled value such as an account balance.</td></tr>
+<tr><td>Manage</td><td>A navigation view lets users move between projects, project versions, domains, attributes and individual generators. The video shows less of this step than the others.</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>The same wizards appear among the Project Versions icons in <a href="#c17-versions">section 6.8.4</a>. The 2020 webinar adds that there are nine ways to set up a project, XTS among them, and that XTS connects to a database over JDBC.</p>
 
 <h2 id="c17-architecture">6.5 Architecture: a cloud for design, your machine for generation</h2>
 
@@ -202,7 +227,17 @@
 <p>For a bank or hospital, the question "does our data leave the building?" decides whether a tool may be used at all. In this design, the cloud holds only the <em>design</em> (a data model and rules, not data). The only place rows are created is on a machine you control. Compare this with a masking tool (<a href="05-informatica-masking-generation-workflows.html#c5-s1">Informatica masking chapter</a>), where real data is read and transformed.</p>
 </div>
 
-<p>The Architecture page links onward to security, team permissions, the runtime overview and "G-Repository", the component that keeps scenarios and configuration files synchronised across a company's machines. There is also a downloadable PDF, "Components and Ports Configuration Guide", which the docs call a vital resource for core components, diagrams, port configurations and deployment advice. I did not open that PDF; if your organisation deploys GenRocket, that is the document to ask for.</p>
+<p>The Architecture page links onward to security, team permissions, the runtime overview and "G-Repository", the component that keeps scenarios and configuration files synchronised across a company's machines. It also offers a downloadable PDF, "Components and Ports Configuration Guide", for deployments.</p>
+
+<h3 id="c17-arch-video">6.5.1 What the 2020 webinar adds to the architecture</h3>
+
+<p> In the webinar the CTO and CEO describe the same hybrid design in plain terms. The CEO lists the hosting choices as on-premises, a dedicated private cloud, and a virtual private cloud (VPC), and says about 90% of customers use the VPC; the current docs name the VPC and the dedicated private cloud. In the live demo the CTO builds a project, a domain and a receiver in the cloud, then downloads the result as an <em>encrypted scenario</em>. The file stays the same size (22 KB in his demo) whether it generates one row or a billion, because it holds instructions, not data. He runs it with the runtime, a set of Java programs, so it works on any machine with Java: Windows, Linux, Mac and even some mainframes. The CEO's conclusion is that all generation can happen on a test automation server inside the corporate network, which is what the "No Customer Data Stored" label in the diagram above means.</p>
+
+<div class="callout note">
+<strong class="ctitle">Speed, scale and patent: the vendor's claims</strong>
+<p> The 2020 webinar claims that a typical automated test case gets its data in about 100 milliseconds, that a run reaches thousands of rows per second, and that parallel runs produce millions or billions of rows in minutes. The CTO adds that importing metadata for 10,000 tables of 100 attributes takes around eight minutes. For contrast, the help centre says JDBC inserts average about 4,000 records per second (<a href="06-genrocket-building-blocks.html#c19-more-receiver">section 6.23.5</a>). Real speed depends on the receiver, the database and the machine.</p>
+<p>Both videos say GenRocket holds the only patent for synthetic test data generation (the 2020 webinar dates it to 2017). That is the vendor's statement.</p>
+</div>
 
 <h2 id="c17-runtime">6.6 The GenRocket Runtime</h2>
 
@@ -247,7 +282,7 @@
 </table>
 </div>
 
-<p>The runtime needs a few environment variables (settings your operating system hands to programs). The overview page names <code>GENROCKET_HOME</code>, <code>PATH</code>, <code>JAVA_HOME</code> and <code>JAVA_OPTS</code>. A small warning from my own reading: the overview table writes the first one as <code>GENROCKET_HOME</code>, while the Windows setup and troubleshooting pages use <code>GEN_ROCKET_HOME</code>. I cannot tell which is correct for your version. Follow the setup article for your operating system and copy the spelling it uses.</p>
+<p>The runtime needs a few environment variables (settings your operating system hands to programs): <code>GENROCKET_HOME</code>, <code>PATH</code>, <code>JAVA_HOME</code> and <code>JAVA_OPTS</code> on the overview page. The Windows setup and troubleshooting pages spell the first one <code>GEN_ROCKET_HOME</code>. The right spelling depends on the version, so copy the spelling from the setup article for your operating system.</p>
 
 <h3 id="c17-profiles">6.6.3 Profiles: how the runtime knows who you are</h3>
 
@@ -278,61 +313,36 @@
 
 <h3 id="c17-setup">6.6.5 Setting it up: the shape of the steps</h3>
 
-<p>You will not install the runtime in this guide's labs (the hands-on chapter assumes a trainer or lab machine has done it), but you should know what the steps look like. The three operating-system articles are long and similar. Here is the Windows article's skeleton, in my words. Details such as folder paths and the exact variable names belong to the vendor page for your system.</p>
+<p>The outline of the Windows setup follows; folder paths and exact variable names belong to the vendor page for your system.</p>
 
 <ol class="steps">
 <li><strong>Check the prerequisites.</strong>
-<p>An active GenRocket user account and access to the cloud address from your network, port 443 open, admin rights on the machine, and Java installed.</p>
-<p class="expect">What you should see: <code>java -version</code> prints one of the supported versions.</p>
+<p>An active user account, the cloud address reachable on port 443, admin rights, and Java installed.</p>
+<p class="expect">What you should see: <code>java -version</code> prints a supported version.</p>
 </li>
-<li><strong>Download the runtime zip from the web platform.</strong>
-<p>Log in, open the <em>Options</em> menu, and choose the download for the current runtime version. The docs also show a <code>curl</code> or <code>wget</code> way to fetch it.</p>
-<p class="expect">What you should see: a zip file named with the runtime version number.</p>
-</li>
-<li><strong>Extract it into your home directory and name the folder <code>genrocket</code>.</strong>
-<p>The page warns that you must not end up with a nested folder such as <code>genrocket\genrocket-3.5.x</code>, and that the user name in the path must not itself be "genrocket".</p>
+<li><strong>Download the runtime zip from the web platform (Options menu) and extract it into your home directory as a folder named <code>genrocket</code>.</strong>
+<p>The page warns against a nested folder such as <code>genrocket\genrocket-3.5.x</code>.</p>
 <p class="expect">What you should see: a <code>genrocket</code> folder with <code>bin</code> and <code>lib</code> inside.</p>
 </li>
-<li><strong>Set the environment variables.</strong>
-<p>Point the home variable at the folder, add its <code>bin</code> directory to <code>PATH</code>, check <code>JAVA_HOME</code>, and for Java 11 or later add the documented <code>JAVA_OPTS</code> value.</p>
-<p class="expect">What you should see: after opening a <em>new</em> terminal window, the word <code>genrocket</code> is recognised.</p>
+<li><strong>Set the environment variables, open a <em>new</em> terminal and run <code>genrocket</code> once.</strong>
+<p>The first run downloads the other jars into <code>lib</code> and creates the hidden <code>.genrocket</code> folder.</p>
+<p class="expect">What you should see: no error. "genrocket is not a recognized command" means the folder name, home variable or <code>PATH</code> is wrong.</p>
 </li>
-<li><strong>Run <code>genrocket</code> once.</strong>
-<p>This downloads the other jars into <code>lib</code> and creates the hidden <code>.genrocket</code> folder.</p>
-<p class="expect">What you should see: no error. If you see "genrocket is not a recognized command", the troubleshooting page says to check the folder name, the home variable and <code>PATH</code>.</p>
-</li>
-<li><strong>Download the helper libraries and your user profile.</strong>
-<p>The page uses <code>genrocket -lib</code> for libraries. The profile comes from the <em>Download</em> menu in the Resources pane and goes into <code>.genrocket</code>.</p>
-<p class="expect">What you should see: a <code>.grp</code> profile file inside <code>.genrocket</code>.</p>
-</li>
-<li><strong>Fill in your organisation resources.</strong>
-<p>Three default resources hold folder paths for you (home directory, JDBC config directory and output directory; the screenshots in the next section show them). Set them to real folders, and enter <code>N/A</code> for the JDBC one if you do not connect to a database.</p>
-<p class="expect">What you should see: your own paths in the Resources pane of the web platform.</p>
+<li><strong>Download your user profile into <code>.genrocket</code> and fill in your organisation resources.</strong>
+<p>Resources hold folder paths for home, JDBC configuration and output (enter <code>N/A</code> for JDBC if you connect to no database).</p>
+<p class="expect">What you should see: a <code>.grp</code> profile file in <code>.genrocket</code> and your own paths in the Resources pane.</p>
 </li>
 </ol>
 
-<p> Typing <code>genrocket</code> alone, or <code>genrocket -h</code>, prints the list of runtime command-line options. That is the quickest way to see what your installed version supports.</p>
+<p> Typing <code>genrocket</code> alone, or <code>genrocket -h</code>, prints the runtime's command-line options for your version.</p>
 
 <h3 id="c17-update">6.6.6 Updates, Docker and Jenkins at overview level</h3>
 
-<p><strong>Updates.</strong> The docs distinguish a full runtime update (replace the whole <code>genrocket</code> folder) from a jar-only update (done from the command line, and sometimes without re-downloading the runtime). Release notes say which is needed, and users see a pop-up after login when a new release arrives.</p>
+<p><strong>Updates.</strong> A full runtime update replaces the whole <code>genrocket</code> folder; a jar-only update is done from the command line. Release notes say which is needed.</p>
 
-<p><strong>Docker.</strong> For teams that run containers, GenRocket provides a Docker image you download from the web platform (or with <code>curl</code>) and load with <code>docker load</code>. The page's basic idea is that a container forgets everything when it stops, so you <em>mount</em> folders from the host for the runtime, the scenarios, the configuration files, the <code>.genrocket</code> profile folder and the output. The page also notes that the runtime must be set up when using a container, and describes a custom-image option.</p>
+<p><strong>Docker.</strong> GenRocket provides a Docker image you download from the web platform and load with <code>docker load</code>. A container forgets everything when it stops, so you <em>mount</em> host folders for the runtime, scenarios, configuration files, the <code>.genrocket</code> profile folder and the output.</p>
 
-<p><strong>Jenkins (continuous integration).</strong> Jenkins is a popular tool that runs build and test jobs automatically. The Windows and Mac/Linux Jenkins pages walk through running a scenario as a Jenkins build step. The outline is the same as a normal setup, applied to the Jenkins server:</p>
-
-<ol class="steps">
-<li><strong>Install the runtime on the Jenkins server and set the variables in Jenkins's own configuration screen.</strong>
-<p>Jenkins builds do not see your personal environment, so the home variable and <code>PATH</code> must be set where Jenkins reads them.</p>
-</li>
-<li><strong>Register the Jenkins server in the web platform and download its Server Profile into the server's <code>.genrocket</code> folder.</strong>
-<p>No person is logged in on a build server, so it uses a server profile, not a user profile.</p>
-</li>
-<li><strong>Create a Freestyle job and add a build step that runs the scenario.</strong>
-<p>First the page has you run the bare <code>genrocket</code> command to prove Jenkins can find it, then replace it with <code>genrocket -d -r SCENARIO_NAME.grs</code>.</p>
-<p class="expect">What you should see: a SUCCESS message in the console output, and your generated files in the output folder.</p>
-</li>
-</ol>
+<p><strong>Jenkins (continuous integration).</strong> Jenkins is a popular tool that runs build and test jobs automatically. The Windows and Mac/Linux Jenkins pages run a scenario as a build step. The outline: install the runtime on the Jenkins server and set the variables where Jenkins reads them (builds do not see your personal environment); register the server in the web platform and download its Server Profile into the server's <code>.genrocket</code> folder (no person is logged in on a build server); then create a Freestyle job whose build step first runs bare <code>genrocket</code> to prove Jenkins can find it, and then <code>genrocket -d -r SCENARIO_NAME.grs</code>. You should see a SUCCESS message in the console and your files in the output folder. <a href="06-genrocket-building-blocks.html#c19-pipeline">Section 6.25.10</a> shows how the 2020 webinar combines this with Selenium tests.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776789009863/6Hm3u7dzMermg_YO4EKddCbjoT4WjimzpQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776789009863/6Hm3u7dzMermg_YO4EKddCbjoT4WjimzpQ.png" alt="The Jenkins job configuration Build tab with an Execute Windows batch command box containing the word genrocket and a note saying to run this command to verify it is executed" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The vendor's Jenkins example: the build step first runs plain <code>genrocket</code> to check that Jenkins can find the runtime. Later in the same article the command is replaced by one that runs a named scenario file. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/scenarios-/windows-how-do-i-run-genrocket-scenarios-via-jenkins" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -342,12 +352,12 @@
 
 <div class="callout note">
 <strong class="ctitle">Not covered here</strong>
-<p>Linux and Mac setup, the multi-user server, G-Repository administration and API method details are separate topics in the help centre. I read only the overview-level material for them, so I do not describe them further.</p>
+<p>Linux and Mac setup, the multi-user server, G-Repository administration and API method details are separate topics in the help centre and are not described here.</p>
 </div>
 
 <h2 id="c17-web">6.7 The web platform and the Project Dashboard</h2>
 
-<p> You reach the web platform with a link, a user name and a temporary password from a welcome email. The first-login page lists password rules (8 characters, at least one number, one capital letter and one special character from a stated set, and not one of your previous six passwords). After accepting the licence agreement you may be asked to change the temporary password. Organisations that use single sign-on or multi-factor authentication may log in differently; ask your administrator.</p>
+<p> You reach the web platform with a link, a user name and a temporary password from a welcome email. The first-login page lists password rules and, after you accept the licence agreement, may ask you to change the temporary password. Organisations that use single sign-on or multi-factor authentication may log in differently; ask your administrator.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776353923865/869ItwN10srrWJa53giiOh6SuSLIof_2vA.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776353923865/869ItwN10srrWJa53giiOh6SuSLIof_2vA.png" alt="The GenRocket Project Dashboard right after first login, with a top menu bar (Project Dashboard, Options, Management, Presets, Help) and three panes: Projects, Queue Status and Resources listing resource.home.directory, resource.jdbc.directory and resource.output.directory" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The first screen a new user sees: a menu bar and only three panes (Projects, Queue Status and Resources). The Resources pane already lists three default resources for home, JDBC and output directories. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/navigation-overview/genrocket-web-platform-overview" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -355,7 +365,7 @@
 
 <p>The docs describe those three panes this way: <strong>Projects</strong> lists and manages the organisation's test data projects; <strong>Queue Status</strong> shows tasks waiting to run, such as a project deletion or a data import (a Refresh button updates it); <strong>Resources</strong> holds organisation resources, which are named variables whose value differs per user (typically a folder path), so one scenario works on everyone's computer.</p>
 
-<p>Select a project and more panes appear. This one screen is where you will spend most of your time, so the Project Dashboard page is worth studying. Here is the complete screen with a small demo project loaded.</p>
+<p>Select a project and more panes appear. This one screen is where most work happens. The complete screen, with a small demo project loaded, is below.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776354316089/111.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776354316089/111.png" alt="The full GenRocket Project Dashboard for a demo project with panes for Projects, Queue Status, Resources, Project Versions, Domains (Department, Organization, Address, User), Scenarios (four scenarios), Scenario Chains, Scenario Chain Sets and Management with tabs for Project Version Variable, Configuration Management, Migration Management and Generator Tags" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The complete dashboard for a demo project. Top row: Projects, Queue Status, Resources. Below: Project Versions, Domains, Scenarios, Scenario Chains, Scenario Chain Sets, and a Management pane with four tabs. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/navigation-overview/project-dashboard" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -377,13 +387,11 @@
 </table>
 </div>
 
-<p>The page also lists common icons: an open padlock locks an item (locked items cannot be deleted, and a lock stops changes made higher up from flowing down); a pencil edits; a trash can removes; an "i" shows more information. You will meet locks again in the receivers and scenarios chapter.</p>
-
-<p>The main menu bar offers Options (downloads such as the runtime), Management, Presets and Help; the Organization menu (visible to administrators) includes "My Organization" for managing users.</p>
+<p>The page also lists common icons. An open padlock locks an item: locked items cannot be deleted, and the lock stops changes made higher up from flowing down (you will meet locks again in the receivers and scenarios chapter). The main menu bar offers Options (downloads such as the runtime), Management, Presets and Help.</p>
 
 <div class="callout tip">
 <strong class="ctitle">Reading order for the Project Dashboard</strong>
-<p>Work left to right, top to bottom: pick a <em>project</em>, pick a <em>version</em>, look at its <em>domains</em>, look at its <em>scenarios</em>. That is also the order in which you build things. If you can say which pane you are in, you will rarely feel lost in the product.</p>
+<p>Work left to right, top to bottom: pick a <em>project</em>, pick a <em>version</em>, look at its <em>domains</em>, look at its <em>scenarios</em>. That is also the order in which you build things.</p>
 </div>
 
 <h2 id="c17-projects">6.8 Projects, project versions and categories</h2>
@@ -396,7 +404,7 @@
 <figcaption><strong>Official screenshot:</strong> The vendor's simplest rule of thumb: one application with one underlying database is typically one project. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/test-data-projects/test-data-projects-overview" target="_blank" rel="noopener">Source page ↗</a></figcaption>
 </figure>
 
-<p>The page gives a way to count. Start with what you are testing, find the applications and their databases, and count them. It then lists factors that may split one thing into several projects: database size, complexity of related tables, whether functions are related, and special message formats.</p>
+<p>The page's way to count: list the applications and databases you are testing. Database size, complexity of related tables, unrelated functions and special message formats may split one into several projects.</p>
 
 <div class="tablewrap">
 <table>
@@ -483,7 +491,7 @@
 <figcaption><strong>Official screenshot:</strong> A Project Versions pane with several versions. Each row has a set of icons for tools such as the wizards and reports mentioned earlier. The green Manage button opens the New Version and Copy Version menu. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/navigation-overview/project-dashboard" target="_blank" rel="noopener">Source page ↗</a></figcaption>
 </figure>
 
-<p>The Project Dashboard page lists some of those icons: generator search, the Domain Referencing Wizard, a project-version status report (which flags attributes with no generator, id attributes without a range generator, and foreign keys without the proxy reference generator), a global seed assigner and a generator tuning wizard. Terms like proxy reference generator are explained in the generators chapter.</p>
+<p>The Project Dashboard page lists some of those icons: generator search, the Domain Referencing Wizard, a project-version status report (it flags attributes with no generator, among other gaps), a global seed assigner and a generator tuning wizard.</p>
 
 <h3 id="c17-categories">6.8.5 Project categorization</h3>
 
@@ -503,13 +511,12 @@
 
 <h2 id="c17-users">6.9 Users, roles and licensing basics</h2>
 
-<p> The licensing facts I found stated are these, and nothing more (prices and contract terms are not in the help centre):</p>
+<p> Licensing facts stated in the docs (prices and contract terms are not in the help centre):</p>
 
 <ul>
 <li>Licence is counted in <em>test data projects</em> (see above).</li>
 <li>Users are <em>named users</em>: a real, registered person whose email address is their unique ID. The number of users per organisation is unlimited.</li>
-<li>A named user may have a desktop and a laptop, but should run scenarios on only one at a time.</li>
-<li>When a scenario runs, the runtime checks that the user has a valid, enabled profile. An administrator can disable users.</li>
+<li>A named user may have a desktop and a laptop, but should run scenarios on only one at a time. The runtime checks for a valid, enabled profile on each run.</li>
 </ul>
 
 <div class="tablewrap">
@@ -524,15 +531,15 @@
 </table>
 </div>
 
-<p>A <em>team</em> is how an organisation restricts who sees which projects: if a project is placed in a team, members get exactly the permissions they were given, and a user without permission to manage, for example, receivers sees them read-only. Further administration topics exist (multi-factor login, restricting log-in by IP address, SCIM user provisioning); the help centre's User Management section covers them and I have not summarised them.</p>
+<p>A <em>team</em> is how an organisation restricts who sees which projects: if a project is placed in a team, members get exactly the permissions they were given, and a user without permission to manage, for example, receivers sees them read-only. Other administration topics (multi-factor login, IP restrictions, SCIM provisioning) are in the help centre's User Management section.</p>
 
-<h2 id="c17-shopsphere">6.10 ShopSphere plan: what we will build in the next chapters</h2>
+<h2 id="c17-shopsphere">6.10 ShopSphere plan in GenRocket vocabulary</h2>
 
-<p>Before touching any screen, write the plan in the vocabulary you just learned. This is the Model and Design thinking for our running example. Everything in the table is my illustrative design (the product does not prescribe it), and it is built out in the following two chapters.</p>
+<p>The Model and Design thinking for the running example, before touching any screen. The product does not prescribe this design; it is built out in the following two chapters.</p>
 
 <div class="tablewrap">
 <table class="sample">
-<caption>ShopSphere plan in GenRocket vocabulary (illustrative)</caption>
+<caption>ShopSphere plan in GenRocket vocabulary (example data)</caption>
 <thead><tr><th>Item</th><th>Decision</th></tr></thead>
 <tbody>
 <tr><td>Project</td><td>One project, "ShopSphere Orders", one default version 1.0</td></tr>
@@ -551,14 +558,14 @@
 <h2 id="c17-mistakes">6.11 Common mistakes and gotchas</h2>
 
 <div class="callout warn">
-<strong class="ctitle">Things that trip up beginners</strong>
+<strong class="ctitle">Common gotchas</strong>
 <ul>
 <li><strong>Expecting data to appear in the web platform.</strong> The cloud holds designs, not data. Rows are created only when a downloaded scenario runs under the runtime on your machine. The "Preview" you see in the web platform is a sample for checking configuration.</li>
 <li><strong>Forgetting the profile.</strong> Without a valid <code>.grp</code> profile (or offline certificate) in <code>.genrocket</code>, the runtime refuses to run. Download a fresh profile whenever a resource value changes.</li>
-<li><strong>Environment variables set but not picked up.</strong> A terminal opened <em>before</em> you changed variables keeps the old values. Close it and open a new one.</li>
+<li><strong>Environment variables set but not picked up.</strong> A terminal opened <em>before</em> the change keeps the old values; open a new one.</li>
 <li><strong>Port 443 blocked.</strong> The runtime cannot validate the licence. Use the browser or <code>curl</code> test, then ask the network team or use the offline certificate.</li>
-<li><strong>Treating the number of generators or receivers as fixed.</strong> The docs give changing counts ("765+", "120+", "more than 100"). Look the name up in your version rather than relying on a number.</li>
-<li><strong>Creating a new project for every release.</strong> A new <em>version</em> is the documented tool for that, and project count is a licensing unit.</li>
+<li><strong>Treating the number of generators or receivers as fixed.</strong> Docs and videos give different, dated counts. Look the name up in your version.</li>
+<li><strong>Creating a new project for every release.</strong> Use a new <em>version</em>; project count is a licensing unit.</li>
 <li><strong>Confusing the five components with the four phases.</strong> See the warning in <a href="#c17-four-steps">the four-steps section</a>.</li>
 </ul>
 </div>
@@ -570,7 +577,8 @@
 <ul>
 <li>GenRocket makes synthetic data from a model: no production rows are copied, and projects contain no customer data.</li>
 <li>Five components do the work: domain (table or file), attribute (column), generator (value recipe), receiver (output format), scenario (instruction sheet).</li>
-<li>"Model, Design, Deploy, Manage" is GenRocket's own methodology and the Test Data Automation four-step process.</li>
+<li>"Model, Design, Deploy, Manage" is GenRocket's own methodology and the Test Data Automation four-step process; the vendor's videos present it as a demo and their statistics and speeds as claims.</li>
+<li>Traditional TDM copies, masks, subsets and refreshes production data; synthetic test data automation starts from metadata and adds unique, negative, high-volume and stateful data.</li>
 <li>Design happens in the cloud web platform; generation happens on your machine with the GenRocket Runtime, which needs Java, a profile, and usually port 443.</li>
 <li>Docker and Jenkins are two ways to run the same runtime in automated environments.</li>
 <li>A project is one data model and a licensing unit; a version is one release of it; categories help find projects.</li>
@@ -581,39 +589,18 @@
 <section class="sources">
 
 <div class="grp" id="c6-s2"><span class="grplabel">GenRocket: domains, attributes and generators</span></div>
-<p>The <a href="06-genrocket-building-blocks.html#c6-s1">GenRocket overview chapter</a> gave you the five building blocks and the map of the product. This section works on the first three: <strong>domains</strong> (the tables), <strong>attributes</strong> (the columns) and <strong>generators</strong> (the recipes that decide each value). Together they are the Model and part of the Design phase. By the end you will be able to describe the ShopSphere CUSTOMERS, ORDERS and ORDER_ITEMS tables to GenRocket, link them so every foreign key is valid, and choose a generator for every column.</p>
+<p>The first three of the <a href="06-genrocket-building-blocks.html#c6-s1">five building blocks</a> are <strong>domains</strong> (the tables), <strong>attributes</strong> (the columns) and <strong>generators</strong> (the recipes that decide each value). Together they are the Model and part of the Design phase. The worked example describes the ShopSphere CUSTOMERS, ORDERS and ORDER_ITEMS tables to GenRocket, links them so every foreign key is valid, and chooses a generator for every column.</p>
 
-<p>The output side, receivers and scenarios, is in <a href="06-genrocket-building-blocks.html#c6-s3">the receivers and scenarios chapter</a>. The patterns you can build with generators (boundary, sequential, random, edge cases, null) get their own treatment in <a href="07-genrocket-patterns-and-hands-on.html#c7-s1">the data patterns chapter</a>.</p>
+<p>The output side, receivers and scenarios, is in <a href="06-genrocket-building-blocks.html#c6-s3">the receivers and scenarios chapter</a>. Patterns built with generators (boundary, sequential, random, edge cases, null) are in <a href="07-genrocket-patterns-and-hands-on.html#c7-s1">the data patterns chapter</a>.</p>
 
-<div class="callout recap">
-<strong class="ctitle">What you will learn</strong>
-<ul>
-<li>What a domain is, the dashboard where you work on it, and four ways to create one (new, scratch pad, DDL import, database schema extract).</li>
-<li>The three default domain variables (<code>id</code>, <code>loopCount</code>, <code>seed</code>) and what they control.</li>
-<li>Parent, child and sibling relationships, why GenRocket allows one parent only, and how this gives valid foreign keys.</li>
-<li>How to add attributes, reorder them, reference one from another and copy them.</li>
-<li>How GenRocket picks a generator automatically, how to replace one, how to assign one to many attributes, and how generator tags override the default.</li>
-<li>The generator families the docs name: list, string, date, conditional (business logic), query, UUID, name and identification generators.</li>
-<li>ProxyReferenceGen versus ReferenceGen, Enforce Type/Limit, seeding, linked generators and starting a primary key after the current maximum.</li>
-<li>A complete generator-per-column design for the ShopSphere tables.</li>
-</ul>
-</div>
 
-<div class="callout note">
-<strong class="ctitle">What this section is based on</strong>
-<p>Official GenRocket help-centre pages, read in full, with the vendor's screenshots embedded and each one viewed before I described it. The main pages:</p>
-<ul>
-<li>Domains: "<a href="https://genrocket.helpjuice.com/en_US/domains-overview/domains-overview" target="_blank" rel="noopener">Domains Overview</a>", "<a href="https://genrocket.helpjuice.com/en_US/domains-overview/domain-dashboard" target="_blank" rel="noopener">Domain Dashboard</a>", "<a href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-create-a-new-domain" target="_blank" rel="noopener">How do I create a New Domain?</a>", "<a href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-import-my-data-model-into-genrocket" target="_blank" rel="noopener">How do I import my data model into GenRocket?</a>", the single and multiple DDL pages, the XTS file and XTS Import Wizard pages, "<a href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-use-scratch-pad-to-quickly-create-a-domain" target="_blank" rel="noopener">Scratch Pad</a>", the relationship pages, the Domain Referencing Wizard, "<a href="https://genrocket.helpjuice.com/en_US/domains-overview/what-are-domain-variables" target="_blank" rel="noopener">What are Domain Variables?</a>", "<a href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-change-the-loopcount-for-a-domain" target="_blank" rel="noopener">How to update Domain loopCounts</a>" and "<a href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-create-a-domain-category" target="_blank" rel="noopener">How do I create a Domain Category?</a>".</li>
-<li>Attributes: the Attributes Overview, Attribute Dashboard, adding, referencing, hierarchy and copying pages, and the database-changes page.</li>
-<li>Generators: Generators Overview, How are Generators Assigned to Domain Attributes?, assign to one and many attributes, copy (simple), Generator Tags, What is Seeding?, ProxyReferenceGen versus ReferenceGen, Enforce Data Type and Size, Primary Keys after the Max Value, Linked Generators Overview, the list, string, conditional logic, query and UUID overview pages, and the individual pages for RangeGen, NameGen, FullNameGen, EmailGen, PhoneNumberGen, SSNGen, FlexibleDateRangeGen, ListGen, RandomGen, ReferenceGen and ProxyReferenceGen.</li>
-</ul>
-<p>The ShopSphere design at the end is my own illustration built from those documented generators. The generator parameters I name come from each generator's page; where I did not read a generator's own page, I say so.</p>
-</div>
+
+
 
 <h2 id="c18-words">6.13 Words to know first</h2>
 
 <dl class="defs">
-<div><dt>Template domain</dt><dd>A domain as defined in a project version. Think of it as the master copy. When you build a scenario, GenRocket makes a copy of it called a <em>scenario domain</em>.</dd>
+<div><dt>Template domain</dt><dd>A domain as defined in a project version. Think of it as the master copy; a scenario gets a copy called a <em>scenario domain</em>.</dd>
 </div>
 <div><dt>Scenario domain</dt><dd>The per-scenario copy of a template domain. Changes to the template flow down to it unless it is locked.</dd>
 </div>
@@ -643,13 +630,13 @@
 
 <p> A domain "defines real-world objects", a noun such as a person, place or thing. When you model a database, a domain is a table and its attributes are the columns. The docs' own example has four tables, Company, Department, User and Address, each becoming a domain with its columns as attributes. At least one domain must exist in a project to generate any data.</p>
 
-<p>A domain inside a project version is a <em>template</em>: it holds the attributes, generators and relationships. When you create a scenario, GenRocket copies the template into a <em>scenario domain</em>. Changes you make to the template cascade down to every scenario unless the scenario (or the scenario domain) is locked. This is similar to a document template and the letters printed from it, with one difference: you can pin a printed letter so that later edits to the template leave it alone.</p>
+<p>A domain inside a project version is a <em>template</em>: it holds the attributes, generators and relationships. When you create a scenario, GenRocket copies the template into a <em>scenario domain</em>. Changes you make to the template cascade down to every scenario unless the scenario (or the scenario domain) is locked. It is like a letter template, except that you can pin a printed letter so later edits leave it alone.</p>
 
-<p>The docs also state a rule that surprises beginners: a template domain works independently and cannot really reference another domain's attributes. Relationships at the domain level are "just probable". The real references are made at the scenario level, where related domains are put together. You will see this again with ProxyReferenceGen below.</p>
+<p>The docs also state a rule: a template domain works independently and cannot really reference another domain's attributes. Relationships at the domain level are "just probable". The real references are made at the scenario level, where related domains are put together. You will see this again with ProxyReferenceGen below.</p>
 
 <p>Each time a domain is created or imported, it gets three default variables, all initially 1 (<a href="#c18-vars">details below</a>): <code>id</code>, <code>loopCount</code> and <code>seed</code>.</p>
 
-<p>Names have a small rule. The "New Domain" page notes that a domain name should contain only letters and numbers (spaces are now also allowed), so for the ShopSphere table ORDER_ITEMS I would name the domain <code>OrderItems</code> and put the real table name <code>ORDER_ITEMS</code> in the <em>Table Name</em> field you can see on the dashboard. The page does not say what happens with an underscore, so I avoid it.</p>
+<p>The "New Domain" page says a domain name should contain only letters and numbers (spaces are now also allowed), so ORDER_ITEMS becomes a domain named <code>OrderItems</code> with <code>ORDER_ITEMS</code> in the <em>Table Name</em> field. The page does not say what happens with an underscore.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776676772282/5PeAO68g2A-SaP41e2H95EtWLyNgR3_xvg.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776676772282/5PeAO68g2A-SaP41e2H95EtWLyNgR3_xvg.png" alt="The GenRocket Project Dashboard for DemoProject1 version 1.0 with the Domains pane listing Address, Department, Organization and User, plus Scenarios, Scenario Chains, Scenario Chain Sets and the Management pane" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Where domains live: the Domains pane of the Project Dashboard lists the domains (here Address, Department, Organization and User) of the selected project version. Clicking a domain name opens its Domain Dashboard. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/domains-overview/domains-overview" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -657,7 +644,7 @@
 
 <h3 id="c18-domain-dash">6.14.2 The Domain Dashboard</h3>
 
-<p>Click a domain's name and the Domain Dashboard opens. It is the screen where you will work most. Study the screenshot first and then the table that explains the areas.</p>
+<p>Click a domain's name and the Domain Dashboard opens. It is the main working screen; the table below explains its areas.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776676994828/55pOWf-vsbEIzKTz-BT85vBfh81iOGtCyA%20(1).png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776676994828/55pOWf-vsbEIzKTz-BT85vBfh81iOGtCyA%20(1).png" alt="The Domain Dashboard for domain User in SimpleProject version 1.2 with buttons Variables, Global Editing, Domain Search, Scenario Search, Chain Search, Value Search, New Domain, Manage; fields Name, Table Name, Description, Definition and Enforce Type/Limit; buttons Save, Copy, Group Edit, Categorize, Delete, Global Seed; tabs Main, Relationship, Template; an attribute list on the left (id, firstName, middleInitial, lastName, ssn); Domain Variables (global.User.id 1, loopCount 1000, seed 1), Domain Receivers (DelimitedFileReceiver), Domain Scenarios (UserScenario, AddressScenario) and a Preview Data grid with sample rows" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Domain Dashboard. Left: the attributes (a key icon marks the primary attribute). Centre: three panes for domain variables, receivers and scenarios. Bottom: a Preview Data grid that shows sample generated rows (the "15" box sets how many). <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/domains-overview/domain-dashboard" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -680,7 +667,7 @@
 
 <h3 id="c18-domain-create">6.14.3 Four ways to create domains</h3>
 
-<p>The page "How do I import my data model into GenRocket?" counts <strong>seventeen primary methods</strong>: DDL (single or multiple), XTS, CSV, CSV for fixed file, JSON, GenRocket JSON schema, standard JSON schema, XSD, YAML, presets, Spark schema, Avro JSON schema, CopyBook, Salesforce, Scratch Pad, Quick Pattern and New Domain. (A related FAQ answer says sixteen; the count changes between pages, so do not memorise it.) All are reached from the green <em>New Domain</em> button in the Domains pane.</p>
+<p>The page "How do I import my data model into GenRocket?" counts <strong>seventeen primary methods</strong>: DDL (single or multiple), XTS, CSV, CSV for fixed file, JSON, GenRocket JSON schema, standard JSON schema, XSD, YAML, presets, Spark schema, Avro JSON schema, CopyBook, Salesforce, Scratch Pad, Quick Pattern and New Domain. The count changes between pages, so do not memorise it. All are reached from the green <em>New Domain</em> button in the Domains pane.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776686612494/1Rb4vjjedD0gJbbE9SVdf-Egs6M7uj7OOQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776686612494/1Rb4vjjedD0gJbbE9SVdf-Egs6M7uj7OOQ.png" alt="The New Domain menu expanded showing buttons Scratch Pad, New Domain, Quick Pattern, Import From CSV, Import from DDL (marked with an arrow), Import from GenRocket JSON Schema, Import from JSON, Import from CopyBook, Import from Presets, Import from Salesforce, Import from Spark Schema, Import from XSD, Import from XTS, Import from YAML, Import from Avro JSON Schema and Import from CSV for Fixed File" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The New Domain menu: every way of creating domains in one list. The arrow in the vendor's picture points at Import from DDL, the method used below. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-create-multiple-domains-from-a-ddl" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -700,7 +687,7 @@
 </table>
 </div>
 
-<h3 id="c18-new-domain">6.14.4 Lab-style walk: a new domain by hand</h3>
+<h3 id="c18-new-domain">6.14.4 Creating a domain by hand</h3>
 
 <ol class="steps">
 <li><strong>Select your project in the Projects pane.</strong>
@@ -774,12 +761,20 @@
 <figcaption><strong>Official screenshot:</strong> The XTS wizard hub: six numbered steps (import, referencing, generator tuning, receiver assignment, scenario assignment, domain families) with a completion checklist, plus edit and delete wizards for later changes. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/xts-wizard/how-do-i-use-the-xts-import-wizard" target="_blank" rel="noopener">Source page ↗</a></figcaption>
 </figure>
 
-<p>Why use a wizard hub? Because after importing hundreds of tables, the remaining setup is also repetitive. Each step has its own wizard that works on a filtered set of domains at once, and you tick each step as complete so that the next unlocks.</p>
+<p>Each step has its own wizard that works on many domains at once, because the setup after importing hundreds of tables is also repetitive; you tick each step as complete so that the next unlocks.</p>
 
 <div class="callout example">
 <strong class="ctitle">ShopSphere: which method?</strong>
-<p>ShopSphere has three tables to generate. If the team gives you <code>CREATE TABLE</code> scripts, a DDL import takes minutes and keeps the primary key and sizes. If the QA lead can reach a dev copy of the database with a read-only account, an XTS extract avoids typing anything. For this section's walk-through, either works. The docs describe DDL and XTS imports as importing a schema, not rows.</p>
+<p>ShopSphere has three tables. If the team gives you <code>CREATE TABLE</code> scripts, a DDL import takes minutes and keeps the primary key and sizes. If you can reach a dev copy of the database with a read-only account, an XTS extract avoids typing anything. Either imports a schema, not rows.</p>
 </div>
+
+<h3 id="c18-demo-scratch">6.14.7 A live Scratch Pad demo from the 2020 webinar</h3>
+
+<p> In the 2020 webinar, GenRocket's CTO builds a domain on screen in a few minutes, which shows what the Scratch Pad method feels like. He creates a project called "live demo", opens the domain page and chooses Scratch Pad. He types attributes that nearly every application has (first name, last name, middle initial, password, username), then adds social security number, card number and phone number. GenRocket looks each name up in what he calls its data warehouse, a store of the generators most used for common attribute names, and attaches a likely generator to each. It even matched "middle" after he misspelled it. A preview of sample rows appears at once.</p>
+
+<p>The docs describe the same behaviour: <em>Create with Generators</em> assigns generators, guessing from the attribute name, domain name, industry type and what other users chose (<a href="#c18-assign">section 6.18.1</a>). They say nothing about tolerating misspellings, so type names carefully. They also say an attribute with "password" in its name is given the EncryptGen generator automatically.</p>
+
+<p>Two details from the same session. He says there were nine ways to set up a project in 2020; the docs now count seventeen (<a href="#c18-domain-create">section 6.14.3</a>). And in the Q&amp;A he describes the schema extract (XTS, <a href="#c18-xts">section 6.14.6</a>) as reading metadata only (table and attribute names, types, foreign keys), after which a wizard lets you mark each domain's one parent and the rest become siblings. The docs match. His claim of 10,000 tables of 100 attributes loaded in about eight minutes is a 2020 vendor figure that the docs do not repeat.</p>
 
 <h2 id="c18-relationships">6.15 Relationships: parent, child and sibling</h2>
 
@@ -806,7 +801,7 @@
 
 <div class="callout why">
 <strong class="ctitle">Why it matters</strong>
-<p>Valid foreign keys are the reason a test can load generated data into a real database and not see constraint errors. The same guarantee is what <a href="03-generation-etl-and-tdm.html#c3-s1">the generation concepts chapter</a> asked for in principle (parents before children); GenRocket builds it into the domain model.</p>
+<p>Valid foreign keys are the reason a test can load generated data into a real database and not see constraint errors. The principle (parents before children) is in <a href="03-generation-etl-and-tdm.html#c3-s1">the generation concepts chapter</a>; GenRocket builds it into the domain model.</p>
 </div>
 
 <h3 id="c18-rel-manual">6.15.1 Setting a parent or sibling by hand</h3>
@@ -832,7 +827,7 @@
 
 <h3 id="c18-rel-wizard">6.15.2 The Domain Referencing Wizard</h3>
 
-<p>After importing many tables, setting parents one by one is tedious. The wizard shows every domain with radio buttons for parent and checkboxes for siblings, and a diagram that updates as you click. It opens from the Project Versions pane or from step 2 of the XTS wizard.</p>
+<p>Setting parents one by one is tedious after a big import. The wizard shows every domain with parent radio buttons, sibling checkboxes and a diagram that updates as you click. It opens from the Project Versions pane or step 2 of the XTS wizard.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776679411672/9i5TPN2izvupObn1cy4tCvz-tFdzv9h5kA.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776679411672/9i5TPN2izvupObn1cy4tCvz-tFdzv9h5kA.png" alt="The Domain Referencing Wizard with a list of ten bank domains (Account, AccountLevel, AccountType, Branch, CardProduct, CardType, Customer, CustomerAccount, Transaction, TransactionType) with a Reviewed column, a panel titled References for Account with AccountLevel selected as Parent, a Mark as Reviewed button, a progress pie showing 0 of 10 reviewed and a Domain Relationship Diagram" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Domain Referencing Wizard. Left: domains and a Reviewed checkbox. Middle: for the selected domain (Account), the parent radio buttons and sibling checkboxes, and a progress pie. Right: a relationship diagram that redraws as you choose. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-use-the-domain-referencing-wizard" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -870,7 +865,7 @@
 
 <h3 id="c18-loop">6.16.1 Changing how many rows</h3>
 
-<p>The docs describe three levels at which the row count can be set, from broad to narrow: the domain (template) level, which applies everywhere; the <em>test data case</em> level, which they recommend as the most flexible because different tests can have different counts; and the scenario level, for special cases. This section changes it at the domain level.</p>
+<p>The docs describe three levels at which the row count can be set, from broad to narrow: the domain (template) level, which applies everywhere; the <em>test data case</em> level, which they recommend as the most flexible because different tests can have different counts; and the scenario level, for special cases. The steps below change it at the domain level.</p>
 
 <ol class="steps">
 <li><strong>Open the domain and find the <code>loopCount</code> variable in Domain Variables.</strong>
@@ -885,11 +880,17 @@
 <figcaption><strong>Official screenshot:</strong> Editing <code>loopCount</code>: the name is fixed, the value is the number of rows. The vendor example changes it to 25. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-change-the-loopcount-for-a-domain" target="_blank" rel="noopener">Source page ↗</a></figcaption>
 </figure>
 
-<p>For many domains at once, the <em>Global Editing</em> menu has an "Edit Domains LoopCount" screen with checkboxes. One quirk: if a domain's first generator is a ListGen with <code>setLoop</code> set to true, the list length overrides the loop count and you cannot edit it from the scenario.</p>
+<p>For many domains at once, the <em>Global Editing</em> menu has an "Edit Domains LoopCount" screen. One quirk: if a domain's first generator is a ListGen with <code>setLoop</code> true, the list length overrides the loop count.</p>
 
 <h3 id="c18-cat">6.16.2 Domain categories</h3>
 
-<p>When a version has dozens of domains, group them: open a domain, click <em>Categorize</em>, create a category and save. Then filter the Domains pane by category or use Advanced Search. The same categorising works for scenarios, scenario chains and chain sets.</p>
+<p>When a version has dozens of domains, open a domain, click <em>Categorize</em>, create a category and save; then filter the Domains pane by category or use Advanced Search. Scenarios, chains and chain sets can be categorised too.</p>
+
+<h3 id="c18-vars-demo">6.16.3 The id variable and loopCount, as shown in the 2020 demo</h3>
+
+<p> In the same demo, the CTO notes that a new domain already has three variables and starts with <code>id</code>. He calls it the starting point from which GenRocket guarantees referential integrity. The <code>id</code> attribute reads it, and so does the <code>username</code> generator, which builds its value from the id; when he types 1,000 into the variable, both change together. He adds that the <code>id</code> attribute can be made invisible so receivers do not output it while it keeps working; the docs' <em>Visible</em> setting (<a href="#c18-attributes">section 6.17</a>) is that switch.</p>
+
+<p>The docs agree on the mechanics: the variable is the start of the <code>id</code> range, every parameter that refers to it follows a change, and integrity comes from children referring to the parent's primary attribute (<a href="#c18-vars">section 6.16</a>). They differ on one point. The demo scenario generated 10,000 users, with the loop count described as the first thing a scenario reads, but the docs say a new domain's <code>loopCount</code> starts at 1. The demo does not show where 10,000 was entered.</p>
 
 <h2 id="c18-attributes">6.17 Attributes: the columns</h2>
 
@@ -918,7 +919,7 @@
 
 <div class="callout note">
 <strong class="ctitle">Name versus original name</strong>
-<p>For ShopSphere's <code>customer_id</code> column the attribute would be named <code>customerId</code> (GenRocket's camel-case convention), while its Original Name stays <code>customer_id</code>. Receivers such as the SQL-insert one use a separate <em>columnName</em> property key to write the real column name in the output.</p>
+<p>ShopSphere's <code>customer_id</code> column becomes the attribute <code>customerId</code> (camel case), while its Original Name stays <code>customer_id</code>. Receivers such as the SQL-insert one use a <em>columnName</em> property key to write the real column name.</p>
 </div>
 
 <h3 id="c18-attr-add">6.17.1 Adding an attribute</h3>
@@ -1038,9 +1039,9 @@
 
 <p>To see which generators GenRocket thinks fit an attribute, click the small icon beside it in the attribute list. A ranked list appears (in the vendor's example NameGen 84%, AustraliaNameGen 5%, and so on); the top one is the default, and a tag icon lets you promote another.</p>
 
-<h3 id="c18-families">6.18.5 The families you will use</h3>
+<h3 id="c18-families">6.18.5 Generator families</h3>
 
-<p>The generator overview pages group generators into families. You need only the ideas below; each generator has a "How do I use..." page with parameters.</p>
+<p>The generator overview pages group generators into families; each generator has a "How do I use..." page with parameters.</p>
 
 <div class="tablewrap">
 <table>
@@ -1063,7 +1064,7 @@
 
 <h3 id="c18-seed">6.18.6 Seeding: repeatable randomness</h3>
 
-<p>If two runs of a "random" generator give different numbers, test failures cannot be reproduced. A <em>seed</em> fixes this: the docs show a RandomGen for numbers 1 to 25 giving a new set every run when the seed is empty, but the <em>same</em> set whenever the seed is 1; a different seed (2) gives a different, but also repeatable, set. A seed can be set on an attribute's generator or through the domain's <code>seed</code> variable (button <em>Global Seed</em> applies it to the whole domain).</p>
+<p>If two runs of a "random" generator give different numbers, test failures cannot be reproduced. A <em>seed</em> fixes this: with the same seed, a generator gives the same set every run. A seed can be set on an attribute's generator or through the domain's <code>seed</code> variable (button <em>Global Seed</em> applies it to the whole domain). <a href="07-genrocket-patterns-and-hands-on.html#c20-seeding">The data patterns chapter</a> shows the docs' example.</p>
 
 <h3 id="c18-linked">6.18.7 Linked generators</h3>
 
@@ -1094,7 +1095,7 @@
 <figcaption><strong>Official screenshot:</strong> How a manual proxy is set up: the attribute has Type = Reference and Table Reference = User (the parent domain), then the ProxyReferenceGen generator is assigned. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/misc-generators/how-do-i-use-the-proxyreferencegen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption>
 </figure>
 
-<p>It explains why the project version status report asks for "foreign key attributes that do not have the ProxyReferenceGen". If the proxy is missing, the child will not find its parent when a scenario is made, and the <code>reference</code> value will not be filled in. The referenced attribute is the parent's <em>primary</em> attribute; if another column should be the target, tick its Primary checkbox.</p>
+<p>This is why the project version status report flags "foreign key attributes that do not have the ProxyReferenceGen": without the proxy, the child will not find its parent when a scenario is made. The referenced attribute is the parent's <em>primary</em> attribute; to target another column, tick its Primary checkbox.</p>
 
 <h3 id="c18-enforce">6.18.9 Enforcing data type and size</h3>
 
@@ -1121,15 +1122,31 @@
 <figcaption><strong>Official screenshot:</strong> The finished setup: <code>gen2</code> (RangeGen) starts at <code>gen1</code> (QueryOnceGen) and the preview begins at 5001. In a real run the start value comes from the database. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-primary-key-values-after-the-max-value-from-a-database-table" target="_blank" rel="noopener">Source page ↗</a></figcaption>
 </figure>
 
-<p>The General FAQ adds a second pattern for the parent side: write the parent's ids to a delimited file as you insert, then read them back with ListCSVGen at scenario level (the FAQ says "in the Parent Domain"), so the keys match.</p>
+<p>The General FAQ adds a second pattern: write the parent's ids to a delimited file as you insert, then read them back with ListCSVGen at scenario level so the keys match.</p>
+
+<h3 id="c18-demo-generators">6.18.11 Inside a few generators, as shown in the 2020 demo</h3>
+
+<p> The CTO opens individual attributes to show that every generator works the same way: parameters decide its behaviour. Each example below is followed by what the docs say.</p>
+
+<ul>
+<li><strong>A counter (RangeGen).</strong> The <code>id</code> uses a range generator with a start, an end and a "jump". Starting at 1,000 it counts 1000, 1001, ...; setting the jump to 3 makes the preview step by 3. The RangeGen page confirms <code>startRange</code>, <code>endRange</code> and <code>jumpAmount</code>, and that with no end it runs to the largest long number.</li>
+<li><strong>Names (NameGen).</strong> He says the name generator draws on lists of first, last, male and female names for about 40 million combinations. The <a href="https://genrocket.helpjuice.com/en_US/name-generators/how-do-i-use-the-namegen-generator" target="_blank" rel="noopener">NameGen page</a> confirms this and gives the list sizes (1,000 male, 3,000 female, 10,000 last names).</li>
+<li><strong>A constant plus the id (ConcatGen).</strong> He replaces the <code>username</code> generator with a concatenation generator, types the constant "user" and picks the <code>id</code> attribute as the second part. The <a href="https://genrocket.helpjuice.com/en_US/string-manipulation-generators/how-do-i-use-the-concatgen-generator" target="_blank" rel="noopener">ConcatGen page</a> builds <code>BR01-1000</code> the same way, from a constant and a RangeGen value.</li>
+<li><strong>A hashed value.</strong> He passes the id through an MD5 setting and the hash appears at the end of each output row. A <dfn>hash</dfn> is a one-way scramble: the same input always gives the same output, but the output cannot be turned back into the input. The <a href="https://genrocket.helpjuice.com/en_US/string-manipulation-generators/how-do-i-use-the-encryptgen-generator" target="_blank" rel="noopener">EncryptGen page</a> lists MD5, SHA-1, SHA-256, SHA-384 and SHA-512.</li>
+<li><strong>SSN and card numbers.</strong> He says the SSN generator avoids numbers that are never issued, such as area number 666 The SSNGen page does not mention such a rule, so check the preview. For cards he picks Discover, MasterCard and Visa and says the numbers pass the <dfn>Luhn check</dfn>, the checksum formula payment forms use to catch mistyped numbers. The <a href="https://genrocket.helpjuice.com/en_US/credit-card-generators/how-do-i-use-the-creditcardgen-generator" target="_blank" rel="noopener">CreditCardGen page</a> confirms Luhn-valid output and one on/off parameter per card brand. Luhn-valid does not mean real: no person owns these numbers.</li>
+</ul>
+
+<h3 id="c18-demo-patterns">6.18.12 Linked generators and "patterns, not randomness" in the 2020 Q&amp;A</h3>
+
+<p> Asked how to generate values defined by a regular expression, the CTO answers in three parts. A regular-expression generator exists for that. More broadly, he says most generators do not produce random data, because random data is not good for testing; they produce patterns, and because linked generators can talk to each other, simple patterns combine into complex data. His examples are if/then/else, case, switch and a multi-way generator that works in percentages. For very complex rules there is a separate feature, test data rules, which takes if/then/else conditions. The docs name matching generators (IfThenElseGen, EvalCaseGen, SwitchGen, MultiWeightGen, StringRegexGen; see <a href="#c18-families">section 6.18.5</a>) and describe test data rules (G-Rules) as the condition-based alternative. <a href="07-genrocket-patterns-and-hands-on.html#c20-why-patterns">The data patterns chapter</a> builds these patterns one by one.</p>
 
 <h2 id="c18-shopsphere">6.19 ShopSphere design: generators for every column</h2>
 
-<p>This is my illustrative design, built from generators whose pages I read, except <code>StringRegexGen</code> (only its description was read). Domain names avoid underscores; the table name keeps them. "Domain variable" shows the setting that gives a sensible start.</p>
+<p>The design below uses the documented generators; for <code>StringRegexGen</code> only the overview description is available. Domain names avoid underscores; the table name keeps them. "Domain variable" shows the setting that gives a sensible start.</p>
 
 <div class="tablewrap">
 <table class="sample">
-<caption>Domain Customers (table CUSTOMERS): <code>global.Customers.id</code> = 1001, <code>loopCount</code> = 50</caption>
+<caption>Domain Customers (table CUSTOMERS): <code>global.Customers.id</code> = 1001, <code>loopCount</code> = 50 (example data)</caption>
 <thead><tr><th>Attribute (original name)</th><th>Generator</th><th>Key settings</th><th>Why</th></tr></thead>
 <tbody>
 <tr><td>customerId (customer_id), primary</td><td>RangeGen</td><td><code>startRange</code> = the id variable (1001)</td><td>Unique, increasing, matches the sample row 1001</td></tr>
@@ -1167,7 +1184,7 @@
 
 <div class="callout example">
 <strong class="ctitle">Lab: model ShopSphere in a practice project</strong>
-<p><strong>Goal:</strong> Build the three domains with relationships and a preview of each. (Needs a GenRocket account; do it in a trainer's sandbox project.)</p>
+<p><strong>Goal:</strong> Build the three domains with relationships and a preview of each. (Needs a GenRocket account and a practice project.)</p>
 <ol class="steps">
 <li><strong>Create the domains by DDL import or by hand.</strong>
 <p>Use the sample DDL of your team, or create <code>Customers</code>, <code>Orders</code> and <code>OrderItems</code> by hand with attributes from the tables above.</p>
@@ -1219,32 +1236,13 @@
 <section class="sources">
 
 <div class="grp" id="c6-s3"><span class="grplabel">GenRocket: receivers and scenarios</span></div>
-<p>You have described the data (<a href="06-genrocket-building-blocks.html#c6-s2">domains, attributes and generators</a>). Two jobs remain: say <em>what format</em> the rows must arrive in, and say <em>how many of what, in which order</em>. The first job belongs to <strong>receivers</strong>, the second to <strong>scenarios</strong>. Once both exist, you download the scenario, run it with the <a href="06-genrocket-building-blocks.html#c6-s1">GenRocket Runtime</a>, and files or database rows appear.</p>
+<p>Besides describing the data (<a href="06-genrocket-building-blocks.html#c6-s2">domains, attributes and generators</a>), two jobs remain: say <em>what format</em> the rows must arrive in, and say <em>how many of what, in which order</em>. The first job belongs to <strong>receivers</strong>, the second to <strong>scenarios</strong>. Once both exist, you download the scenario, run it with the <a href="06-genrocket-building-blocks.html#c6-s1">GenRocket Runtime</a>, and files or database rows appear.</p>
 
-<p>This section explains receivers (the common ones in detail, the rest by family), then scenarios, scenario chains and related controls, and finishes with an end-to-end ShopSphere build and a troubleshooting table. Patterns and the 50-record hands-on exercise follow in <a href="07-genrocket-patterns-and-hands-on.html#c7-s1">the data patterns chapter</a> and <a href="07-genrocket-patterns-and-hands-on.html#c7-s2">the GenRocket hands-on chapter</a>.</p>
+<p>Receivers come first (the common ones in detail, the rest by family), then scenarios, scenario chains and related controls, an end-to-end ShopSphere build and a troubleshooting table. Patterns and the 50-record exercise are in <a href="07-genrocket-patterns-and-hands-on.html#c7-s1">the data patterns chapter</a> and <a href="07-genrocket-patterns-and-hands-on.html#c7-s2">the GenRocket hands-on chapter</a>.</p>
 
-<div class="callout recap">
-<strong class="ctitle">What you will learn</strong>
-<ul>
-<li>What a receiver is, the categories and output formats the vendor lists, and how to add a receiver to one domain or many.</li>
-<li>The receiver dashboard, property keys, file configuration, V2 receivers, resources and bulk-load receivers.</li>
-<li>The documented parameters of DelimitedFileReceiver, FixedFileReceiver, JSONFileReceiver, XMLFileReceiver, ExcelFileReceiver, SQLFileInsertReceiver and the SQL insert and update receivers.</li>
-<li>What segment-and-merge receivers (nested data) and masking receivers are, at overview level.</li>
-<li>What a scenario is, how to create, download and run one, and what the scenario dashboard, variables, state, chains, thread engine and locks do.</li>
-<li>A full walk: ShopSphere CUSTOMERS to CSV and ORDERS to SQL insert statements.</li>
-<li>A troubleshooting table built from the vendor's error pages.</li>
-</ul>
-</div>
 
-<div class="callout note">
-<strong class="ctitle">What this section is based on</strong>
-<p>Official GenRocket help-centre pages read in full, with the vendor's screenshots embedded after I viewed them.</p>
-<ul>
-<li>Receivers: <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/receivers-overview" target="_blank" rel="noopener">Receivers Overview</a>, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/genrocket-supported-output-formats" target="_blank" rel="noopener">Supported Output Formats</a>, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/receiver-dashboard" target="_blank" rel="noopener">Receiver Dashboard</a>, adding a receiver to one or many domains, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/what-is-a-configuration-file" target="_blank" rel="noopener">What is a Configuration File?</a>, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/what-are-v2-receivers" target="_blank" rel="noopener">V2 Receivers</a>, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/what-are-bulk-load-receivers" target="_blank" rel="noopener">Bulk Load Receivers</a>, the seven pages under "Common Receivers" (I used six), the JDBC receiver pages and the segment-and-merge and file-masking overviews. The category list comes from the vendor's receiver browser page (<a href="https://app.genrocket.com/browse/receivers" target="_blank" rel="noopener">app.genrocket.com/browse/receivers</a>), which I read.</li>
-<li>Scenarios: Scenarios Overview, How do I create a Scenario?, Scenario Dashboard, How do I run a GenRocket Scenario?, Scenario Variables, Managing Scenario State, the three scenario-chain pages, the Scenario Thread Engine, Scenario Level Locks, scenario-level relationships, the Jenkins page, and the error pages used in the troubleshooting table.</li>
-</ul>
-<p>The ShopSphere build is my own illustration made from documented parameters. Where a page and its screenshots disagree, I say so.</p>
-</div>
+
+
 
 <h2 id="c19-words">6.22 Words to know first</h2>
 
@@ -1296,6 +1294,8 @@
 </div>
 
 <p>The "Supported Output Formats" page is a large checklist rather than prose. For each format it marks whether GenRocket supports it, whether the vendor validated it, whether a bulk-load receiver exists, and for databases whether a JDBC driver exists. It also notes that a missing format can be requested from the vendor. Use it when a project asks "can you produce X?".</p>
+
+<p> Counts depend on the date and the source. The 2020 webinar spoke of about 61 to 63 receivers (the company started with four), the 2022 overview video of 91, and the current overview page of 120+; the help centre is the reference. On how new ones appear, the 2020 webinar's CTO said that for a proprietary format or endpoint GenRocket could not yet reach, it would add a receiver in two to three weeks, while the CEO put new generators at one to three business days. That is the vendor's 2020 statement, not a promise for today; the supported-formats page is the current way to ask for a missing format.</p>
 
 <div class="callout why">
 <strong class="ctitle">Why it matters</strong>
@@ -1371,7 +1371,7 @@
 
 <h2 id="c19-common">6.24 The common receivers in detail</h2>
 
-<p>These are the ones a beginner meets first. Parameters below are those the vendor pages list; a star means the page marks it required. Defaults and exact spellings can differ between product versions, so check the Parameters tab in your own project.</p>
+<p>These are the common receivers. Parameters below are those the vendor pages list; a star means the page marks it required. Defaults and exact spellings can differ between product versions, so check the Parameters tab in your own project.</p>
 
 <h3 id="c19-delimited">6.24.1 DelimitedFileReceiver (CSV and other delimited files)</h3>
 
@@ -1423,7 +1423,7 @@
 
 <h3 id="c19-sqlfile">6.24.6 SQLFileInsertReceiver (SQL statements in a file)</h3>
 
-<p>Creates a file of standard SQL insert statements, ready to run in any SQL client. Nothing touches a database while generating, which makes it a safe first choice for learning.</p>
+<p>Creates a file of standard SQL insert statements, ready to run in any SQL client. Nothing touches a database while generating, which makes it a safe first choice.</p>
 
 <div class="tablewrap">
 <table>
@@ -1476,7 +1476,7 @@
 </li>
 </ol>
 
-<p>The JSON merge page lists parameters such as <code>outputPath</code>, <code>configName</code>, <code>segmentPath</code> and <code>recordsPerFile</code>. If the root domain's loop count is 50 and <code>recordsPerFile</code> is 8, seven files are made (six with 8 records, one with 2). I do not walk through a full nested build here; the vendor pages do it with many screenshots.</p>
+<p>The JSON merge page lists parameters such as <code>outputPath</code>, <code>configName</code>, <code>segmentPath</code> and <code>recordsPerFile</code>. If the root domain's loop count is 50 and <code>recordsPerFile</code> is 8, seven files are made (six with 8 records, one with 2). The vendor pages walk through a full nested build.</p>
 
 <h3 id="c19-masking">6.24.9 Masking receivers (overview)</h3>
 
@@ -1532,18 +1532,15 @@
 <tr><td>Variable Set drop-down</td><td>Chooses a project-version variable set for the downloaded scenario</td></tr>
 <tr><td>Scenario Domains</td><td>Name, loop count, summary, which domain is primary and which is root. Add a template domain, remove a domain, randomise or change the loop count, choose the primary domain, <em>Optimize</em>, or <em>Disable Non-Primary Receivers</em></td></tr>
 <tr><td>Scenario Domain Receivers</td><td>Enable or disable each receiver for this scenario, and add references to its parameters</td></tr>
-<tr><td>Scenario Domain Generators</td><td>All generators in use; click one to see which attributes use it</td></tr>
-<tr><td>Scenario Variables</td><td>Create variables that exist only in this scenario</td></tr>
-<tr><td>Relationship tab</td><td>The parent, child and sibling diagram of this scenario</td></tr>
 </tbody>
 </table>
 </div>
 
-<p>The loop count of a child domain is counted <em>per parent row</em>. In the vendor's chain example, Department generates 2 rows, User generates 10 per department (20 in total) and Address generates 1 per user (20 in total). So to get 100 orders for 50 customers, you set the Orders loop count to 2.</p>
+<p>The loop count of a child domain is counted <em>per parent row</em>. So to get 100 orders for 50 customers, you set the Orders loop count to 2. Section 6.25.7 works through a three-level example with larger numbers.</p>
 
 <div class="callout note">
 <strong class="ctitle">A reminder about where to change the number of rows</strong>
-<p>The domain page recommends test data cases for varying row counts. For this section, edit the loop count in the Scenario Domains table or on the domain. One quirk from the docs: if the first generator of an attribute is ListGen with <code>setLoop</code> true, the list length decides the count and the pencil icon is absent.</p>
+<p>The domain page recommends test data cases for varying row counts. Here the loop count is edited in the Scenario Domains table or on the domain. One quirk from the docs: if the first generator of an attribute is ListGen with <code>setLoop</code> true, the list length decides the count and the pencil icon is absent.</p>
 </div>
 
 <h3 id="c19-scenario-domain">6.25.4 Scenario domains, relationships and locks</h3>
@@ -1581,7 +1578,27 @@
 </li>
 </ol>
 
-<h3 id="c19-run">6.25.7 Running a scenario with the runtime</h3>
+<h3 id="c19-loop-math">6.25.7 Worked example: how loop counts multiply along a chain</h3>
+
+<p> In its 2020 webinar, GenRocket's CEO explains chains with a three-level example: Organization, Department and User, with one scenario per domain, linked so that every user belongs to a real department and every department to a real organization (referential integrity). Each scenario has a loop count, and a child's count applies to every parent row, so the numbers multiply down the chain.</p>
+
+<div class="tablewrap">
+<table class="sample">
+<caption>The webinar's chain, with an arithmetic check in the last column</caption>
+<thead><tr><th>Scenario (one per domain)</th><th>Loop count</th><th>Counted</th><th>Rows made</th><th>Check</th></tr></thead>
+<tbody>
+<tr><td>Organization</td><td>3</td><td>once</td><td>3</td><td>3</td></tr>
+<tr><td>Department</td><td>3</td><td>per organization</td><td>9</td><td>3 x 3 = 9</td></tr>
+<tr><td>User</td><td>3,000</td><td>per department</td><td>27,000</td><td>9 x 3,000 = 27,000</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>A second route gives the same answer: each organization has 3 departments of 3,000 users, so 9,000 users per organization, and 3 organizations make 27,000. That matches the total the CEO states.</p>
+
+<p>The ShopSphere lab in section 6.26 is the same idea one level shorter: 50 customers x 2 orders = 100 orders. One difference to remember: the webinar describes each scenario as producing its own domain, while the help centre says a child's scenario also pulls in its parents as helper domains (section 6.25.1), which is why non-primary receivers are disabled (section 6.28). Follow the help centre, and compare each file's row count with your calculation.</p>
+
+<h3 id="c19-run">6.25.8 Running a scenario with the runtime</h3>
 
 <p>The scenario file is run from a command window on a machine that has the runtime and your profile.</p>
 
@@ -1611,15 +1628,75 @@
 
 <p>When data is inserted into a database and loading fails, the runtime throws an exception to the command line (or to the testing framework when it runs in an automated pipeline), so no error means success. The vendor's note on stopping a run: press <kbd>Ctrl+C</kbd>, and on Windows answer the "Terminate batch job (Y/N)?" prompt with Y to abort.</p>
 
-<p>In automated environments the same command is placed in a build step (see the Jenkins section in <a href="06-genrocket-building-blocks.html#c6-s1">the overview chapter</a>). Scenarios can also be run through a repository server or an API, which this guide does not cover.</p>
+<p> The 2020 webinar's live demo shows a simple way to check a run. The CTO builds a user domain with an XML receiver, downloads the scenario (about 22 KB, and he points out it would stay that size whether it generates one row or a billion, because it holds instructions, not data), and runs it from a command line with the Java-based runtime. He then opens the XML output and checks that the ids start at 1,000 and rise by one, as the id generator was set to do, that the other values follow their generators' patterns, and that scrolling to the end shows 10,000 rows, the loop count he had set.</p>
 
-<h3 id="c19-thread">6.25.8 The Scenario Thread Engine (overview)</h3>
+<p>Scenarios can also be run through a repository server or an API, which are not covered here. Section 6.25.10 shows the command inside a pipeline.</p>
 
-<p>The thread engine speeds up chains and chain sets by running several of their scenarios at the same time: <code>genrocket -r Chain.grs -threaded 10</code>. The docs caution that threads may run in any order, so use it only where order does not matter, for example many segment files that a merge receiver combines later (the engine waits for every segment before merging). Do <em>not</em> use it where SQL inserts depend on parent rows already being present, because the order matters for referential integrity. Their example generated 10,000 EDI documents in 23 minutes 50 seconds with 20 threads against 53 minutes 20 seconds with one (on the vendor's test machine).</p>
+<h3 id="c19-thread">6.25.9 The Scenario Thread Engine (overview)</h3>
+
+<p>The thread engine speeds up chains and chain sets by running several of their scenarios at the same time: <code>genrocket -r Chain.grs -threaded 10</code>. The docs caution that threads may run in any order, so use it only where order does not matter, for example many segment files that a merge receiver combines later (the engine waits for every segment before merging). Do <em>not</em> use it where SQL inserts depend on parent rows already being present, because the order matters for referential integrity.</p>
+
+<h3 id="c19-pipeline">6.25.10 Scenarios inside an automated test pipeline</h3>
+
+<p> Later in the 2020 webinar, the CEO plays a short vendor video about combining GenRocket with Jenkins (a tool that runs jobs automatically) and Selenium (a tool that drives a web browser to run functional tests). The point is that data is created at the moment a test needs it, not prepared days earlier. In plain steps:</p>
+
+<ol class="steps">
+<li><strong>A Jenkins job starts.</strong>
+<p>A trigger such as a build normally starts it; the video starts it by hand.</p>
+</li>
+<li><strong>The job opens a shell and runs GenRocket against a test plan.</strong>
+<p>A test plan here is a set of scenarios to work through, so one command covers the whole run.</p>
+<p class="expect">What you should see: the Jenkins console showing the test plan loading and executing.</p>
+</li>
+<li><strong>When a test needs data, GenRocket generates it.</strong>
+<p>Each test gets fresh data shaped for it, not a shared set that earlier tests may have changed.</p>
+</li>
+<li><strong>GenRocket then calls a Selenium step that performs the functional test.</strong>
+<p>The test consumes the data it was just given.</p>
+</li>
+<li><strong>The data can be cleared, and the next test gets fresh data.</strong>
+<p>The CEO says it need not sit around; in the 2022 overview video he adds that the transaction can be rolled back before the next test case runs.</p>
+</li>
+</ol>
+
+<figure class="diagram">
+<svg viewBox="0 0 800 250" role="img" aria-label="Flow: a Jenkins job runs GenRocket on a test plan, GenRocket generates data when a test needs it, Selenium runs the functional test, the data is cleared, and the loop returns to generating data for the next test">
+<defs><marker id="c19p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+<rect x="15" y="50" width="150" height="90" rx="10" fill="var(--surface)" stroke="var(--line)"/>
+<text x="90" y="85" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">Jenkins job</text>
+<text x="90" y="108" text-anchor="middle" font-size="12" fill="currentColor">opens a shell, runs</text>
+<text x="90" y="125" text-anchor="middle" font-size="12" fill="currentColor">GenRocket on a test plan</text>
+<rect x="215" y="50" width="170" height="90" rx="10" fill="var(--surface)" stroke="var(--line)"/>
+<text x="300" y="85" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">Generate data</text>
+<text x="300" y="108" text-anchor="middle" font-size="12" fill="currentColor">scenario runs when a</text>
+<text x="300" y="125" text-anchor="middle" font-size="12" fill="currentColor">test needs its data</text>
+<rect x="435" y="50" width="170" height="90" rx="10" fill="var(--surface)" stroke="var(--line)"/>
+<text x="520" y="85" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">Selenium test</text>
+<text x="520" y="108" text-anchor="middle" font-size="12" fill="currentColor">functional test uses</text>
+<text x="520" y="125" text-anchor="middle" font-size="12" fill="currentColor">the fresh data</text>
+<rect x="640" y="50" width="145" height="90" rx="10" fill="var(--surface)" stroke="var(--line)"/>
+<text x="712" y="85" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">Clear data</text>
+<text x="712" y="108" text-anchor="middle" font-size="12" fill="currentColor">or roll back,</text>
+<text x="712" y="125" text-anchor="middle" font-size="12" fill="currentColor">then next test</text>
+<line x1="165" y1="95" x2="213" y2="95" stroke="currentColor" stroke-width="2" marker-end="url(#c19p)"/>
+<line x1="385" y1="95" x2="433" y2="95" stroke="currentColor" stroke-width="2" marker-end="url(#c19p)"/>
+<line x1="605" y1="95" x2="638" y2="95" stroke="currentColor" stroke-width="2" marker-end="url(#c19p)"/>
+<path d="M712 140 L712 200 L300 200 L300 142" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#c19p)"/>
+<text x="506" y="224" text-anchor="middle" font-size="13" fill="currentColor">repeat for every test in the plan</text>
+</svg>
+<figcaption>The Jenkins, GenRocket and Selenium flow described in the 2020 webinar's video. The dashed loop is the repeat for each test.</figcaption>
+</figure>
+
+<p>The Jenkins page in the help centre (see <a href="06-genrocket-building-blocks.html#c6-s1">the overview chapter</a>) runs one named scenario per build step; the test-plan runner in the video is not documented on those pages, so check the current documentation before copying this layout.</p>
+
+<div class="callout tip">
+<strong class="ctitle">Where should the runtime run when the test servers are in the cloud?</strong>
+<p> A viewer asked about cloud-hosted applications in the 2020 webinar's Q&amp;A. The CTO's answer: for a quick data set on your own computer, download the scenario and run it with the local runtime (two or three minutes, he said, against an hour of hand-written Python or Groovy). For a full regression suite on a cloud test server, such as one on Amazon or Azure, install Java and the GenRocket jars on that server and generate the data there. Do not generate it elsewhere and carry it up, because that is slow and moves a lot of data into the cloud. The rule of thumb is: run the runtime where the tests run.</p>
+</div>
 
 <h2 id="c19-walk">6.26 ShopSphere end to end: CUSTOMERS to CSV and ORDERS to SQL inserts</h2>
 
-<p>Everything below uses the design from <a href="06-genrocket-building-blocks.html#c6-s2">the domains, attributes and generators chapter</a>. It is a practice build, not copied from a vendor page, so each step says which documented feature it uses. I chose SQLFileInsertReceiver for orders because it needs no database connection.</p>
+<p>The build below uses the design from <a href="06-genrocket-building-blocks.html#c6-s2">the domains, attributes and generators chapter</a>. SQLFileInsertReceiver is used for orders because it needs no database connection.</p>
 
 <div class="exercise">
 <h4 id="c6-lab-one-chain-two-outputs">Lab: one chain, two outputs</h4>
@@ -1664,7 +1741,7 @@
 
 <div class="callout example">
 <strong class="ctitle">Variation: insert straight into a database</strong>
-<p>Replace the SQLFileInsertReceiver with GenericSQLInsertV2Receiver. Create a <code>config.properties</code> file with <code>driver</code>, <code>user</code>, <code>password</code>, <code>url</code> and <code>batchCount</code>, place it in the JDBC resource folder, set <code>resourceName</code>, <code>databaseName</code> and <code>tableName</code>, leave <code>truncate</code> on "notApplicable", and put the JDBC driver jar in the runtime's <code>lib</code> folder. Test the connection with <code>--test-jdbc</code>, then run the chain. This needs a database and credentials from the trainer or DBA, so it is optional here.</p>
+<p>Replace the SQLFileInsertReceiver with GenericSQLInsertV2Receiver. Create a <code>config.properties</code> file with the connection settings (<code>driver</code>, <code>user</code>, <code>password</code>, <code>url</code>, <code>batchCount</code>) in the JDBC resource folder, set the receiver's table settings, leave <code>truncate</code> on "notApplicable", and put the JDBC driver jar in the runtime's <code>lib</code> folder. Test with <code>--test-jdbc</code>, then run the chain. This needs a database and credentials from the DBA.</p>
 </div>
 
 <h2 id="c19-trouble">6.27 Troubleshooting</h2>
@@ -1684,8 +1761,6 @@
 <tr><td><code>UnsupportedClassVersionError</code>, "JAVA_HOME is set to invalid directory"</td><td>Java too old, or the variable points to the wrong place</td><td>Check <code>java -version</code>, set <code>JAVA_OPTS</code> for Java above 1.8, correct <code>JAVA_HOME</code> or install the JDK</td></tr>
 <tr><td>"Could not find or load main class ..."</td><td>The dependent jars did not download</td><td>Run <code>genrocket -a</code>, or download the jars manually into <code>lib</code></td></tr>
 <tr><td>"Unable to Download Users Profile"</td><td>A resource has no value</td><td>Give every resource a valid path, then download again</td></tr>
-<tr><td>Excel generation: "Permission denied"</td><td>The temporary <code>profiles</code> folder under <code>/tmp</code> is not accessible</td><td>Fix folder permissions</td></tr>
-<tr><td>"Exhausted attempts to find the next valid random value"</td><td>RandomGen unique limit cannot supply that many rows</td><td>Widen the range, raise the limit or lower the row count</td></tr>
 </tbody>
 </table>
 </div>
@@ -1699,9 +1774,7 @@
 <li><strong>Wrong chain order.</strong> Children before parents means keys do not exist when you load the data.</li>
 <li><strong>Column names that do not match the database.</strong> In SQL receivers, <code>columnName</code> must be the real column.</li>
 <li><strong>Parent data written twice.</strong> A child scenario brings its parents in; disable the non-primary receivers if you only want the child's file.</li>
-<li><strong>Using the thread engine with SQL inserts.</strong> Order matters there.</li>
 <li><strong>Truncating a table by accident.</strong> Leave <code>truncate</code> on "notApplicable".</li>
-<li><strong>Expecting the profile to refresh itself.</strong> After resource changes, download it again.</li>
 </ul>
 </div>
 
@@ -1712,10 +1785,12 @@
 <ul>
 <li>A receiver turns generator output into a format. Sixteen categories, 120+ receivers; more than one can sit on a domain.</li>
 <li>Receivers use organisation resources for folders. Download your profile again whenever a resource changes.</li>
-<li>Delimited, fixed, JSON, XML, Excel and SQL-file receivers cover most beginner needs; segment-and-merge receivers make nested output; masking receivers replace values in existing files.</li>
+<li>Delimited, fixed, JSON, XML, Excel and SQL-file receivers cover most needs; segment-and-merge receivers make nested output; masking receivers replace values in existing files.</li>
 <li>JDBC receivers insert directly and need a JDBC config file; V2 adds resource path settings; bulk-load receivers are for very large volumes.</li>
 <li>A scenario is built for a primary domain and pulls in its parents. A child's loop count is per parent row.</li>
 <li>Download, then run with <code>genrocket -r</code>. Chains run several scenarios in order. Locks, state and variables control behaviour between runs.</li>
+<li>Loop counts multiply down a chain (3 organizations x 3 departments x 3,000 users = 27,000 in the 2020 webinar), so work out the expected row count before you run, then compare it with the output.</li>
+<li>In a pipeline, run the runtime where the tests run, generate data when a test needs it, and clear it afterwards.</li>
 <li>When something fails, the commonest causes are a missing profile, wrong paths or variables, relationship or ordering mistakes, and Java memory settings.</li>
 </ul>
 </div>

@@ -1,4 +1,4 @@
-<h2 id="c28-lab5">28.5 Lab 5: create a rule set and profile the VDB (TDM_Handson5)</h2>
+<h2 id="c28-lab5">28.5 Lab 5: create a rule set and profile the VDB</h2>
 <h3 id="c28-lab5-goal">Goal</h3>
 <p>Turn the connector from Lab 4 into a rule set that lists the four ShopSphere tables, run a profiling job over it, read what the profiler found, and correct anything it got wrong. At the end you have an inventory: a table that says which column gets which domain and algorithm.</p>
 <h3 id="c28-lab5-prereq">Prerequisites and setup data</h3>
@@ -57,21 +57,21 @@
 </ol>
 <div class="callout note">
 <strong class="ctitle">Screenshots in this part come from other data sources</strong>
-<p>The official Edit dialog images I opened show a file field, not a database column. The docs call the same dialog Edit Field/Column and say it is used for both kinds; I have not seen an official screenshot of the database version of that dialog, so expect small differences. The File Format drop-down in the inventory appears only for file rule sets. The next lab uses the file versions.</p>
+<p>The official Edit dialog images show a file field, not a database column. The docs call the same dialog Edit Field/Column and say it is used for both kinds, so expect small differences in the database version. The File Format drop-down in the inventory appears only for file rule sets. The next lab uses the file versions.</p>
 </div>
 <h3 id="c28-lab5-expected">Expected results for ShopSphere</h3>
-<p>The table below is <strong>my prediction</strong>, made by reading the published classifier patterns in the ASDD standard profile set (<a href="https://help.delphix.com/cc/current/content/asdd_standard_profile_set.htm" target="_blank" rel="noopener">ASDD standard profile set</a>) against the ShopSphere column names. Confidence values depend on your engine's settings, so the real result can differ. Where it differs, that is a finding to record, not a failure of the lab.</p>
+<p>The table below is a <strong>prediction</strong>, made by reading the published classifier patterns in the ASDD standard profile set (<a href="https://help.delphix.com/cc/current/content/asdd_standard_profile_set.htm" target="_blank" rel="noopener">ASDD standard profile set</a>) against the ShopSphere column names. Confidence values depend on your engine's settings, so the real result can differ. Where it differs, that is a finding to record, not a failure of the lab.</p>
 <div class="tablewrap"><table>
-<thead><tr><th>Column</th><th>Domain I expect</th><th>Why (pattern or type rule)</th><th>Default algorithm</th></tr></thead>
+<thead><tr><th>Column</th><th>Expected domain</th><th>Why (pattern or type rule)</th><th>Default algorithm</th></tr></thead>
 <tbody>
 <tr><td>first_name</td><td>FIRST_NAME</td><td>name pattern, plus a first-name value list in ASDD</td><td>dlpx-core:FirstName (seen in an official screenshot)</td></tr>
 <tr><td>last_name</td><td>LAST_NAME</td><td>name pattern</td><td>dlpx-core:LastName (seen in an official screenshot)</td></tr>
 <tr><td>email</td><td>EMAIL</td><td>"email" path and an email data pattern</td><td>dlpx-core:Email Unique appears in an official profile screenshot</td></tr>
 <tr><td>phone</td><td>TELEPHONE_NO</td><td>"phone" path</td><td>dlpx-core:Phone Unique appears in an official profile screenshot</td></tr>
-<tr><td>ssn</td><td>SSN</td><td>"ssn" path; string or number of 9 or more characters; a US-style data pattern</td><td>Not stated in the pages I read; check Settings, Domains</td></tr>
+<tr><td>ssn</td><td>SSN</td><td>"ssn" path; string or number of 9 or more characters; a US-style data pattern</td><td>Not stated in the documentation; check Settings, Domains</td></tr>
 <tr><td>date_of_birth</td><td>DOB</td><td>birth-date path</td><td>An official docs example shows DOB with DateShiftDiscrete; confirm on your engine</td></tr>
 <tr><td>zip_code</td><td>ZIP</td><td>"zip" path; type length of 4 or more. The data pattern covers 5-digit and ZIP+4 US codes, so 6-digit codes like 560001 should be found by name, not by value</td><td>Not stated; check Settings, Domains</td></tr>
-<tr><td>tax_id</td><td>TAX_ID</td><td>"tax id" path; string or number of 6 or more characters (no data pattern in the ASDD set I read)</td><td>Not stated; check Settings, Domains</td></tr>
+<tr><td>tax_id</td><td>TAX_ID</td><td>"tax id" path; string or number of 6 or more characters (no data pattern in the ASDD set)</td><td>Not stated; check Settings, Domains</td></tr>
 <tr><td>customer_id, order_id, total_amount, product_code</td><td>none expected</td><td>no matching pattern; keys must not be masked in this lab</td><td>none</td></tr>
 </tbody></table></div>
 <h3 id="c28-lab5-verify">Verification checks</h3>
@@ -88,13 +88,8 @@
 <tr><td>Add Tables lists nothing</td><td>Schema Name on the connector is wrong, or the user cannot see the schema</td><td>Edit the connector and fix the schema; retest</td></tr>
 <tr><td>Rule set Checklist fails</td><td>A table has no primary key, indexed identity column or logical key</td><td>Add a logical key in the rule set's Data Tables step</td></tr>
 <tr><td>Profiling job is rejected with an ASDD error</td><td>The connector type is not supported by ASDD</td><td>Pick a supported type or choose another profile set; ASDD supports databases and several file types (<a href="https://help.delphix.com/cc/current/content/asdd_features_and_support.htm" target="_blank" rel="noopener">ASDD features and support</a>)</td></tr>
-<tr><td>Job stays QUEUED</td><td>Memory or simultaneous-job limit reached on a shared engine</td><td>Check the queue on the Monitor screen; wait or ask the trainer</td></tr>
+<tr><td>Job stays QUEUED</td><td>Memory or simultaneous-job limit reached on a shared engine</td><td>Check the queue on the Monitor screen; wait or ask the engine administrator</td></tr>
 <tr><td>A column you expected is missing in the results</td><td>Name and type rules did not match; for tax_id or zip_code the value rule may not apply</td><td>Assign the domain and algorithm by hand in the inventory</td></tr>
 <tr><td>Your manual choice is replaced after a re-profile</td><td>Enable Automatic Updates was left ticked</td><td>Untick it before assigning, or accept the profiler's choice</td></tr>
 <tr><td>A new table added to the VDB is not profiled</td><td>Profiling covers only tables in the rule set (docs)</td><td>Add the table to the rule set, then run again</td></tr>
 </tbody></table></div>
-<div class="callout real">
-<strong class="ctitle">What to say in the walkthrough</strong>
-<p>"I built a database rule set with the four ShopSphere tables on the VDB connector and ran the identity-column checklist. I ran an ASDD Standard profiling job. It flagged first name, last name, email, phone, SSN, date of birth, zip and tax id by their column names and types. I did not mask any key column. Where the default algorithm was not what the data needs, I switched off automatic updates and set my own, and I exported the inventory as a CSV for the sign-off."</p>
-<p>If asked "does profiling look at the data?": "ASDD has both name-based and data-based classifiers. For a column like a six-digit postal code, the name rule does the finding, because the data rule I read targets US formats."</p>
-</div>

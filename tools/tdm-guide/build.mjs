@@ -71,7 +71,7 @@ const noDay = (t) => t.replace(/^\s*Days? \d+(?:\s*[-–]\s*\d+)?\s*:\s*/i, "").
 function stripMeta(h) {
   return dropSections(h, stripMeta.unit)
     .replace(/<section class="sources">[\s\S]*?<\/section>/g, "")
-    .replace(/<div class="callout [a-z]+"><strong class="ctitle">(?:What this (?:section|chapter) is based on|What you will learn|What to say in the walkthrough)<\/strong>[\s\S]*?<\/div>/g, "")
+    .replace(/<div class="callout [a-z]+">\s*<strong class="ctitle">(?:What this (?:section|chapter) is based on|What you will learn|What to say in the walkthrough)<\/strong>[\s\S]*?<\/div>/g, "")
     .replace(/<span class="badge [a-z]+">[\s\S]*?<\/span>/g, "")
     .replace(/<span class="day">[\s\S]*?<\/span>/g, "")
     .replace(/<a href="99-sources-and-limitations\.html[^"]*">([\s\S]*?)<\/a>/g, "$1");

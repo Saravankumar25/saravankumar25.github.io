@@ -1,7 +1,7 @@
 <h2 id="c12-entity-discovery">12.6 Entity (foreign key) discovery</h2>
 <p>An <dfn>entity</dfn> is a parent table plus its related child tables. An <strong>entity profile</strong> finds possible entities by <em>comparing column names</em> in the source tables, and returns a list you choose from. The entities you define for a subset determine the structure and content of the subset database (User Guide 10.5.10, p.93).</p>
 <p>The guide's example: Employee, Employee_Detail and Employee_Address all contain an EmpID column, so the profile suggests Employee as an entity with two direct relationships and two child tables. You select Employee as the entity. Later, a subset filter on EmpID (for example EmpID less than 2000) filters each table in the entity relationship (p.93).</p>
-<p><strong>ShopSphere reading</strong> (illustrative): <code>customer_id</code> appears in <code>CUSTOMERS</code> and <code>ORDERS</code>; <code>order_id</code> appears in <code>ORDERS</code> and <code>ORDER_ITEMS</code>; <code>product_code</code> appears in <code>ORDER_ITEMS</code> and <code>PRODUCTS</code>. The profile can therefore suggest CUSTOMERS to ORDERS to ORDER_ITEMS as a chain, and ORDER_ITEMS to PRODUCTS as another link.</p>
+<p><strong>ShopSphere reading:</strong><code>customer_id</code> appears in <code>CUSTOMERS</code> and <code>ORDERS</code>; <code>order_id</code> appears in <code>ORDERS</code> and <code>ORDER_ITEMS</code>; <code>product_code</code> appears in <code>ORDER_ITEMS</code> and <code>PRODUCTS</code>. The profile can therefore suggest CUSTOMERS to ORDERS to ORDER_ITEMS as a chain, and ORDER_ITEMS to PRODUCTS as another link.</p>
 
 <div class="callout warn"><strong class="ctitle">Needs keys, or run both together</strong>
 <p>If you choose the Entity type and the physical database has <strong>no primary keys</strong>, the profile returns <strong>no results</strong>. If you run it as a <em>primary key and entity</em> profile, it discovers possible primary and foreign keys and returns results even without physical keys (p.93). The creation steps repeat the advice: select primary key and entity profile if the database has no primary keys (p.99).</p></div>
@@ -19,7 +19,7 @@
 Informatica TDM 10.5.10 User Guide, p.104, Figure "results of an entity discovery profile". What to look for: a list of profiled relationships, an Actions menu (Approve, Reject, Clear status, Verify checked items) and a Constraints tab with parent and child key columns.
 </div>
 
-<p>ShopSphere (illustrative): you would approve <code>CUSTOMERS.customer_id</code> to <code>ORDERS.customer_id</code>, <code>ORDERS.order_id</code> to <code>ORDER_ITEMS.order_id</code> and <code>PRODUCTS.product_code</code> to <code>ORDER_ITEMS.product_code</code>. Approved relationships become <strong>logical constraints</strong>: TDM stores them in its repository and does not apply them to the source tables; a subset plan uses them to keep referential integrity (p.86).</p>
+<p>ShopSphere: approve <code>CUSTOMERS.customer_id</code> to <code>ORDERS.customer_id</code>, <code>ORDERS.order_id</code> to <code>ORDER_ITEMS.order_id</code> and <code>PRODUCTS.product_code</code> to <code>ORDER_ITEMS.product_code</code>. Approved relationships become <strong>logical constraints</strong>: TDM stores them in its repository and does not apply them to the source tables; a subset plan uses them to keep referential integrity (p.86).</p>
 
 <h2 id="c12-domain-discovery">12.7 Data domain discovery</h2>
 <p>A data domain profile finds the source columns that hold similar data and assigns each the same data domain name, so you can apply the same masking rules to all of them at once (User Guide 10.5.10, p.94). Domains are defined with regular expressions on data and on column names (see <a href="11-informatica-tdm-tour.html#c11-data-domains">the data domains section of the Test Data Manager tour</a>). A project must contain <strong>policies</strong> before you create a data domain profile, because policies hold the domains the profile can search for (p.100).</p>
@@ -66,7 +66,7 @@ Informatica TDM 10.5.10 User Guide, p.104, Figure "results of an entity discover
 <tr><td>Status</td><td>Whether the assignment is verified or approved.</td></tr></tbody></table></div>
 
 <div class="tablewrap"><table class="sample">
-<caption>Illustrative data domain results for <code>CUSTOMERS</code> (invented numbers)</caption>
+<caption>Data domain results for <code>CUSTOMERS</code> (example data)</caption>
 <thead><tr><th>Source</th><th>% Data Conformance</th><th>% Null</th><th>Patterns</th><th>Column Name Match</th><th>Profiled domain</th><th>Decision</th></tr></thead>
 <tbody>
 <tr><td>first_name</td><td>100</td><td>0</td><td>1</td><td>Yes</td><td>First Name</td><td>Approve</td></tr>
@@ -75,7 +75,7 @@ Informatica TDM 10.5.10 User Guide, p.104, Figure "results of an entity discover
 <tr><td>ssn</td><td>100</td><td>0</td><td>2</td><td>Yes</td><td>Social Security Number</td><td>Approve</td></tr>
 <tr><td>tax_id</td><td>0</td><td>0</td><td>0</td><td>No</td><td>none</td><td>Assign by hand (or add a domain)</td></tr>
 <tr><td>zip_code</td><td>100</td><td>0</td><td>1</td><td>Yes</td><td>ZIP</td><td>Approve</td></tr></tbody></table></div>
-<p>The made-up <code>tax_id</code> row shows a realistic situation: nothing matched, because no domain describes it. The fix is on you: either create a domain (see <a href="11-informatica-tdm-tour.html#c11-create-domain">the create-a-data-domain steps</a>) or assign one manually below.</p>
+<p>In the <code>tax_id</code> row nothing matched, because no domain describes it. Either create a domain (see <a href="11-informatica-tdm-tour.html#c11-create-domain">the create-a-data-domain steps</a>) or assign one manually below.</p>
 
 <ul>
 <li><strong>Data Preview tab:</strong> select a column and click Data Preview to see its source values. The data viewer shows the <strong>first 200 records</strong> of columns returned in the profile (p.105). Use it to sanity-check before approving.</li>

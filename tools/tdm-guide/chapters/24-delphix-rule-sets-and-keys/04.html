@@ -1,14 +1,14 @@
 
 <h2 id="c24-lab">24.10 Hands-on lab: a rule set for the SHOPSPHERE tables</h2>
 <div class="exercise"><h4>Lab: create a rule set, run the checklist, add a logical key</h4>
-<p>Goal: a rule set <code>SHOPSPHERE_RS</code> over the ShopSphere tables, a passing Identity Column Check, and a logical key on a table that has no primary key. Prerequisite: the environment and tested connector from <a href="23-delphix-connectors-and-vdb.html">the connectors and VDB chapter</a>. The steps and screens are <span class="badge doc">From docs</span>. The table <code>CUSTOMER_STAGING</code> is <strong>my illustrative addition</strong>, because the four core tables all have primary keys and you need a keyless table to practise the logical key. Ask your DBA to create it in the lab database, or read steps 6 and 7 without running them:</p>
+<p>Goal: a rule set <code>SHOPSPHERE_RS</code> over the ShopSphere tables, a passing Identity Column Check, and a logical key on a table that has no primary key. Prerequisite: the environment and tested connector from <a href="23-delphix-connectors-and-vdb.html">the connectors and VDB chapter</a>. The table <code>CUSTOMER_STAGING</code> is an added example, because the four core tables all have primary keys and a keyless table is needed to practise the logical key. Ask your DBA to create it in the lab database, or read steps 6 and 7 without running them:</p>
 <pre><code>CREATE TABLE CUSTOMER_STAGING (
   staging_row_id INTEGER NOT NULL,
   email          VARCHAR(100),
   first_name     VARCHAR(50),
   last_name      VARCHAR(50),
   ssn            VARCHAR(11)
-);  -- no PRIMARY KEY declared (illustrative)</code></pre>
+);  -- no PRIMARY KEY declared (example)</code></pre>
 <ol class="steps">
 <li><strong>Start the wizard.</strong> Open <code>SHOPSPHERE_DEV</code>, click the Rule Sets tab, then <strong>+ Rule Set</strong>, choose <em>Database</em> and click Continue.<p class="expect">The "Add a Rule Set for a Database" wizard opens on the Details step.</p></li>
 <li><strong>Details.</strong> Name it <code>SHOPSPHERE_RS</code> and select the connector <code>SHOPSPHERE_VDB_CONN</code>. Check the connector details shown below the dropdown, then Next.<p>Confirming the database name and host now saves a confusing failure later.</p></li>
@@ -20,15 +20,15 @@
 <li><strong>Check again.</strong> Run Checklist again.<p class="expect">The check passes (the job version of the dialog reads "Identity Column Check PASSED").</p></li>
 <li><strong>Read the keys in the inventory.</strong> Click the rule set name to open the inventory and look under the key columns.<p class="expect">Key columns carry the words "Primary Key" (and "Index" if indexed); a foreign key column such as ORDERS.customer_id is marked "Foreign Key" if the database declares it; the staging table is labelled "Logical Key".</p></li>
 </ol>
-<details class="sol"><summary>Show a worked answer: the integrity plan for the next chapters</summary>
-<p>Keys are not masked in this lab, but plan them now. In the later algorithm and job chapters you will assign algorithms in this inventory. Write this plan down first.</p>
-<div class="tablewrap"><table class="sample"><caption>Key columns and what to do (illustrative plan)</caption><thead><tr><th>Parent column</th><th>Child column</th><th>Plan</th></tr></thead><tbody>
+<details class="sol"><summary>Show a worked answer: the integrity plan</summary>
+<p>Keys are not masked in this lab. The plan below applies to the algorithm assignments in later chapters.</p>
+<div class="tablewrap"><table class="sample"><caption>Key columns and what to do (example plan)</caption><thead><tr><th>Parent column</th><th>Child column</th><th>Plan</th></tr></thead><tbody>
 <tr><td>CUSTOMERS.customer_id</td><td>ORDERS.customer_id</td><td>Leave unmasked, or give both the same deterministic, unique algorithm (for example a Character Mapping based numeric one).</td></tr>
 <tr><td>ORDERS.order_id</td><td>ORDER_ITEMS.order_id</td><td>Same rule. Include both tables in the rule set.</td></tr>
 <tr><td>PRODUCTS.product_code</td><td>ORDER_ITEMS.product_code</td><td>Not sensitive; leave unmasked.</td></tr>
 <tr><td>CUSTOMER_STAGING.staging_row_id</td><td>(none)</td><td>It is only the logical key, so do not mask it.</td></tr>
 </tbody></table></div>
-<p>If you do mask a key, the job must enable Disable Constraints and Drop Indexes. The two table-level steps (Checklist and logical key) are documented; the plan is my application of the integrity rules in the section above.</p></details></div>
+<p>If you do mask a key, the job must enable Disable Constraints and Drop Indexes.</p></details></div>
 
 <h2 id="c24-mistakes">24.11 Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Key and rule set pitfalls</strong>

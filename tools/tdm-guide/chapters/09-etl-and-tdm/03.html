@@ -12,7 +12,7 @@
 <div class="arrow">→</div>
 <div class="node"><b>Run</b>PowerCenter Integration Service</div>
 </div>
-<p>Where each pipeline stage lives, from the pages I read:</p>
+<p>Where each pipeline stage lives:</p>
 <ul>
 <li><strong>Extract subset.</strong> An <em>entity</em> has a driving table, and TDM adds the tables related to it through constraints; you attach filter parameters to columns. The workflow loads the matching subset into a target database (pp.112 to 114). Three data integrity options decide how whole the subset is: <em>Transactional Integrity for Major Relation Type</em> (a selected child pulls in its parents, the parents pull in all their children, and this repeats until no more related rows are found), <em>Referential Integrity Only</em> (the least rows needed to keep keys valid, so some children of a parent may be missing) and <em>Two-way</em> (criteria propagate down and then up until every table has some data). Recursive evaluation and Two-way need a staging connection (pp.121 to 122). <span class="badge doc">From docs</span></li>
 <li><strong>Staging.</strong> A plan lets you choose source, target, staging, lookup, storage and dictionary connections (p.276). A staging connection is a database used for staging data, and cyclic tables in an entity require one (p.114). <span class="badge doc">From docs</span></li>
@@ -49,6 +49,7 @@
 <li><strong>Where it runs.</strong> The Runtime executes scenarios on premises, behind your firewall (General FAQ). <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">General FAQ ↗</a> This is the ETL engine; the cloud part is where you model and design (Architecture page). <span class="badge doc">From docs</span></li>
 <li><strong>Synthetic replacement as a masking transform.</strong> "Synthetic Data Replacement" replaces sensitive values with generated ones and is used in G-Subset and file masking. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/what-is-synthetic-data-replacement-sdr" target="_blank" rel="noopener">What is SDR? ↗</a></li>
 </ul>
+<p><strong>Generated data for testing ETL itself.</strong> GenRocket's 2020 webinar and 2022 overview video both list ETL testing among its uses. In the 2020 webinar GenRocket's CEO said customers use it to test data warehouses, data lakes and ETL, and mentioned an ETL-testing webinar given with another vendor. The 2022 overview lists data for ETL testing among its use cases. These are vendor statements, but the idea is easy to apply: generate source-system data that contains known edge cases (a null in a required field, a duplicate customer, a date on 29 February, the largest allowed amount), run the ETL job, and compare the target with the result you worked out by hand for each transformation. Because you chose the input, a difference points at one transformation.</p>
 <p><strong>G-Subset as an ETL job.</strong> G-Subset is GenRocket's subsetting and masking feature for databases. Its description reads like our reference architecture. <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-overview-formerly-g-migration" target="_blank" rel="noopener">G-Subset Overview ↗</a> <span class="badge doc">From docs</span></p>
 <ol class="steps">
 <li><strong>Import the schema.</strong><p>You upload only the source database's metadata, not customer data. This is the "model" step and the source profile.</p></li>
@@ -66,12 +67,12 @@
 <tr><td>Profile</td><td>Data discovery profiles; data domains</td><td>Profiling jobs update the inventory</td><td>Metadata import; column-name profiling for PII in G-Subset (it checks column headers against defined names)</td></tr>
 <tr><td>Define what to move</td><td>Entity with driving table; group; criteria</td><td>Rule set: tables or files, filter, logical key</td><td>G-Subset configuration; scenario with domains</td></tr>
 <tr><td>Source of rows</td><td>Relational, flat file, XSD sources</td><td>Connector to a database or files</td><td>Source database via JDBC, or generators</td></tr>
-<tr><td>Staging</td><td>Staging connection (database)</td><td>Not described on the pages I read</td><td>Temporary dump files</td></tr>
+<tr><td>Staging</td><td>Staging connection (database)</td><td>Not documented</td><td>Temporary dump files</td></tr>
 <tr><td>Transform</td><td>Masking rules and policies; mapplets; generation rules</td><td>Inventory algorithms (secure lookup, mapping, segment mapping and others)</td><td>Generators; Synthetic Data Replacement</td></tr>
 <tr><td>Engine</td><td>PowerCenter Integration Service</td><td>Masking engine job with streams and threads</td><td>GenRocket Runtime on premises</td></tr>
 <tr><td>Load</td><td>Target connection; test data warehouse</td><td>In-place or on-the-fly job; optional truncate</td><td>Receivers; JDBC or bulk files</td></tr>
 <tr><td>Specification</td><td>Plan, generated into a workflow</td><td>Job saved in the engine</td><td>Scenario (and G-Cases)</td></tr>
-<tr><td>Monitor</td><td>Monitor view; session details</td><td>Job executions, logs, states</td><td>Not covered on the pages I read</td></tr>
+<tr><td>Monitor</td><td>Monitor view; session details</td><td>Job executions, logs, states</td><td>Not documented</td></tr>
 </tbody></table></div>
 <div class="callout note"><strong class="ctitle">What "not described" means</strong>
-<p>An entry that says "not described on the pages I read" means the documentation excerpt I had does not state it. It does not mean the tool lacks the feature. Check your product version.</p></div>
+<p>An entry that says "Not documented" means the documentation does not state it. It does not mean the tool lacks the feature. Check your product version.</p></div>

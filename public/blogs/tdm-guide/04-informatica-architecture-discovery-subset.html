@@ -1,6 +1,6 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 4: Informatica TDM (1): architecture, the tool tour, discovery and subsetting | TDM Guide</title><meta name="description" content="How Informatica TDM is built, a guided tour of Test Data Manager, then discovering sensitive data and keys and carving out a data subset."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/04-informatica-architecture-discovery-subset.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 4: Informatica TDM (1): architecture, the tool tour, discovery and subsetting | TDM Guide"><meta property="og:description" content="How Informatica TDM is built, a guided tour of Test Data Manager, then discovering sensitive data and keys and carving out a data subset."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}try{var s=localStorage.getItem('tdm-sidebar');if(!s&&matchMedia('(max-width:860px)').matches)s='hidden';if(s==='hidden')document.documentElement.setAttribute('data-sidebar','hidden')}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="true" title="Hide or show the sidebar ([)">☰ <span>Contents</span></button><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" id="sidebar" aria-label="Chapter navigation"><div class="sbtop"><a class="allchap" href="index.html">← All 10 chapters</a><button type="button" class="sbhide" data-sidebar-hide title="Hide the sidebar ([)">« Hide</button></div><h3>Chapters</h3><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a><a class="current" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a><a class="" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a><a class="" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, the capstone and the glossary</a></div><h3>In this chapter</h3><div class="section-list"><details class="grpbox" open data-grp="c4-s1"><summary>Informatica TDM: what it is and how it is built</summary><div class="secs"><a href="#c10-words">4.1 Words to know first</a><a href="#c10-purpose">4.2 What Informatica TDM is for</a><a href="#c10-use-cases">4.3 Use cases: performance, security, and verified data</a><a href="#c10-architecture">4.4 The architecture: what runs behind the web page</a><a href="#c10-process">4.5 The TDM process, end to end</a><a href="#c10-example">4.6 The guide's TDM example, retold with ShopSphere</a><a href="#c10-parameters">4.7 Advanced parameterization at a glance</a><a href="#c10-mistakes">4.8 Common mistakes and gotchas</a><a href="#c10-recap">4.9 Recap</a></div></details><details class="grpbox" data-grp="c4-s2"><summary>A guided tour of Test Data Manager</summary><div class="secs"><a href="#c11-words">4.10 Words to know first</a><a href="#c11-who">4.11 Who uses which view</a><a href="#c11-login">4.12 Logging in to Test Data Manager</a><a href="#c11-layout">4.13 The views</a><a href="#c11-helpers">4.14 Helpers on every screen</a><a href="#c11-overview">4.15 The Overview view</a><a href="#c11-other-views">4.16 Data Sets, Monitor, Parameters and Administrator</a><a href="#c11-expression-builder">4.17 The Expression Builder</a><a href="#c11-projects">4.18 Projects</a><a href="#c11-project-management">4.19 Managing projects</a><a href="#c11-data-sources">4.20 Data sources</a><a href="#c11-permissions">4.21 Project permissions and security</a><a href="#c11-policies">4.22 Policies</a><a href="#c11-mistakes">4.23 Common mistakes and gotchas</a><a href="#c11-recap">4.24 Recap</a></div></details><details class="grpbox" data-grp="c4-s3"><summary>Informatica: discovering and profiling your data</summary><div class="secs"><a href="#c12-words">4.25 Words to know first</a><a href="#c12-overview">4.26 What data discovery is for</a><a href="#c12-discover-view">4.27 The Discover view</a><a href="#c12-task-flow">4.28 The discovery task flow</a><a href="#c12-primary-keys">4.29 Primary keys: the basics, then discovery</a><a href="#c12-entity-discovery">4.30 Entity (foreign key) discovery</a><a href="#c12-domain-discovery">4.31 Data domain discovery</a><a href="#c12-column-profile">4.32 Column profile (for data generation)</a><a href="#c12-profile-mgmt">4.33 Managing profiles</a><a href="#c12-constraints">4.34 Constraints and relationships</a><a href="#c12-performance">4.35 Performance and accuracy tips from the guide</a><a href="#c12-labs">4.36 Hands-on labs: profiling, masking and subset on ShopSphere</a><a href="#c12-mistakes">4.37 Common mistakes and gotchas</a><a href="#c12-recap">4.38 Recap</a></div></details><details class="grpbox" data-grp="c4-s4"><summary>Informatica: creating a data subset</summary><div class="secs"><a href="#c13-words">4.39 Words to know first</a><a href="#c13-overview">4.40 What a data subset is, and what TDM can subset</a><a href="#c13-process-flow">4.41 The big picture: process flow and components</a><a href="#c13-entities">4.42 Entities and the driving table</a><a href="#c13-groups">4.43 Groups, residual tables and templates</a><a href="#c13-related-rows">4.44 How related rows are pulled</a><a href="#c13-choosing-rows">4.45 Choosing rows: criteria, operators, parameters and limits</a><a href="#c13-xsd">4.46 Subsetting XML: XSD sources in brief</a><a href="#c13-manage">4.47 Managing subset components</a><a href="#c13-workflow">4.48 The whole workflow, start to finish</a><a href="#c13-shopsphere">4.49 Worked example: ShopSphere down to 10 percent</a><a href="#c13-lab">4.50 Lab: TDM_Handson3 (profiling and subset), ShopSphere version</a><a href="#c13-mistakes">4.51 Common mistakes and gotchas</a><a href="#c13-recap">4.52 Recap</a></div></details></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">CHAPTER 04</p><h1>Informatica TDM (1): architecture, the tool tour, discovery and subsetting</h1><p class="chapter-summary">How Informatica TDM is built, a guided tour of Test Data Manager, then discovering sensitive data and keys and carving out a data subset.</p></div><details class="pagetoc"><summary>Contents of this chapter</summary><details class="grpbox" open data-grp="c4-s1"><summary>Informatica TDM: what it is and how it is built</summary><div class="secs"><a href="#c10-words">4.1 Words to know first</a><a href="#c10-purpose">4.2 What Informatica TDM is for</a><a href="#c10-use-cases">4.3 Use cases: performance, security, and verified data</a><a href="#c10-architecture">4.4 The architecture: what runs behind the web page</a><a href="#c10-process">4.5 The TDM process, end to end</a><a href="#c10-example">4.6 The guide's TDM example, retold with ShopSphere</a><a href="#c10-parameters">4.7 Advanced parameterization at a glance</a><a href="#c10-mistakes">4.8 Common mistakes and gotchas</a><a href="#c10-recap">4.9 Recap</a></div></details><details class="grpbox" data-grp="c4-s2"><summary>A guided tour of Test Data Manager</summary><div class="secs"><a href="#c11-words">4.10 Words to know first</a><a href="#c11-who">4.11 Who uses which view</a><a href="#c11-login">4.12 Logging in to Test Data Manager</a><a href="#c11-layout">4.13 The views</a><a href="#c11-helpers">4.14 Helpers on every screen</a><a href="#c11-overview">4.15 The Overview view</a><a href="#c11-other-views">4.16 Data Sets, Monitor, Parameters and Administrator</a><a href="#c11-expression-builder">4.17 The Expression Builder</a><a href="#c11-projects">4.18 Projects</a><a href="#c11-project-management">4.19 Managing projects</a><a href="#c11-data-sources">4.20 Data sources</a><a href="#c11-permissions">4.21 Project permissions and security</a><a href="#c11-policies">4.22 Policies</a><a href="#c11-mistakes">4.23 Common mistakes and gotchas</a><a href="#c11-recap">4.24 Recap</a></div></details><details class="grpbox" data-grp="c4-s3"><summary>Informatica: discovering and profiling your data</summary><div class="secs"><a href="#c12-words">4.25 Words to know first</a><a href="#c12-overview">4.26 What data discovery is for</a><a href="#c12-discover-view">4.27 The Discover view</a><a href="#c12-task-flow">4.28 The discovery task flow</a><a href="#c12-primary-keys">4.29 Primary keys: the basics, then discovery</a><a href="#c12-entity-discovery">4.30 Entity (foreign key) discovery</a><a href="#c12-domain-discovery">4.31 Data domain discovery</a><a href="#c12-column-profile">4.32 Column profile (for data generation)</a><a href="#c12-profile-mgmt">4.33 Managing profiles</a><a href="#c12-constraints">4.34 Constraints and relationships</a><a href="#c12-performance">4.35 Performance and accuracy tips from the guide</a><a href="#c12-labs">4.36 Hands-on labs: profiling, masking and subset on ShopSphere</a><a href="#c12-mistakes">4.37 Common mistakes and gotchas</a><a href="#c12-recap">4.38 Recap</a></div></details><details class="grpbox" data-grp="c4-s4"><summary>Informatica: creating a data subset</summary><div class="secs"><a href="#c13-words">4.39 Words to know first</a><a href="#c13-overview">4.40 What a data subset is, and what TDM can subset</a><a href="#c13-process-flow">4.41 The big picture: process flow and components</a><a href="#c13-entities">4.42 Entities and the driving table</a><a href="#c13-groups">4.43 Groups, residual tables and templates</a><a href="#c13-related-rows">4.44 How related rows are pulled</a><a href="#c13-choosing-rows">4.45 Choosing rows: criteria, operators, parameters and limits</a><a href="#c13-xsd">4.46 Subsetting XML: XSD sources in brief</a><a href="#c13-manage">4.47 Managing subset components</a><a href="#c13-workflow">4.48 The whole workflow, start to finish</a><a href="#c13-shopsphere">4.49 Worked example: ShopSphere down to 10 percent</a><a href="#c13-lab">4.50 Lab: TDM_Handson3 (profiling and subset), ShopSphere version</a><a href="#c13-mistakes">4.51 Common mistakes and gotchas</a><a href="#c13-recap">4.52 Recap</a></div></details></details><div class="grp" id="c4-s1"><span class="grplabel">Informatica TDM: what it is and how it is built</span></div>
-<p>Part I (<a href="01-welcome-why-tdm-and-data-basics.html#c1-s1">the start-here chapter</a> through <a href="03-generation-etl-and-tdm.html#c3-s3">the ETL and TDM chapter</a>) explained <em>why</em> test teams need safe, small, realistic data and which techniques produce it. From here on we look at tools. This section opens Part II with Informatica Test Data Management, usually shortened to <dfn>TDM</dfn>. Before you click anything in it, you need a mental map: what the product is for, which pieces run behind the web page, where each kind of information is stored, and what order of work the product expects.</p>
-<p>That map matters because almost every error message and permission problem you meet later is really a "this piece cannot reach that piece" problem. If you know the pieces, you can guess where to look. The next chapter, <a href="04-informatica-architecture-discovery-subset.html#c4-s2">A guided tour of Test Data Manager</a>, walks through the screens. <a href="04-informatica-architecture-discovery-subset.html#c4-s3">The Informatica discovery and profiling chapter</a> goes deep on discovery and profiling.</p>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 4: Informatica TDM (1): architecture, the tool tour, discovery and subsetting | TDM Guide</title><meta name="description" content="How Informatica TDM is built, a guided tour of Test Data Manager, then discovering sensitive data and keys and carving out a data subset."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/04-informatica-architecture-discovery-subset.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 4: Informatica TDM (1): architecture, the tool tour, discovery and subsetting | TDM Guide"><meta property="og:description" content="How Informatica TDM is built, a guided tour of Test Data Manager, then discovering sensitive data and keys and carving out a data subset."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}try{var s=localStorage.getItem('tdm-sidebar');if(!s&&matchMedia('(max-width:860px)').matches)s='hidden';if(s==='hidden')document.documentElement.setAttribute('data-sidebar','hidden')}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="true" title="Hide or show the sidebar ([)">☰ <span>Contents</span></button><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" id="sidebar" aria-label="Chapter navigation"><div class="sbtop"><a class="allchap" href="index.html">← All 10 chapters</a><button type="button" class="sbhide" data-sidebar-hide title="Hide the sidebar ([)">« Hide</button></div><h3>Chapters</h3><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a><a class="current" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a><a class="" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a><a class="" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, a worked project and the glossary</a></div><h3>In this chapter</h3><div class="section-list"><details class="grpbox" open data-grp="c4-s1"><summary>Informatica TDM: what it is and how it is built</summary><div class="secs"><a href="#c10-words">4.1 Words to know first</a><a href="#c10-purpose">4.2 What Informatica TDM is for</a><a href="#c10-use-cases">4.3 Use cases: performance, security, and verified data</a><a href="#c10-architecture">4.4 The architecture: what runs behind the web page</a><a href="#c10-process">4.5 The TDM process, end to end</a><a href="#c10-example">4.6 The guide's TDM example, retold with ShopSphere</a><a href="#c10-parameters">4.7 Advanced parameterization at a glance</a><a href="#c10-mistakes">4.8 Common mistakes and gotchas</a><a href="#c10-recap">4.9 Recap</a></div></details><details class="grpbox" data-grp="c4-s2"><summary>A guided tour of Test Data Manager</summary><div class="secs"><a href="#c11-words">4.10 Words to know first</a><a href="#c11-who">4.11 Who uses which view</a><a href="#c11-login">4.12 Logging in to Test Data Manager</a><a href="#c11-layout">4.13 The views</a><a href="#c11-helpers">4.14 Helpers on every screen</a><a href="#c11-overview">4.15 The Overview view</a><a href="#c11-other-views">4.16 Data Sets, Monitor, Parameters and Administrator</a><a href="#c11-expression-builder">4.17 The Expression Builder</a><a href="#c11-projects">4.18 Projects</a><a href="#c11-project-management">4.19 Managing projects</a><a href="#c11-data-sources">4.20 Data sources</a><a href="#c11-permissions">4.21 Project permissions and security</a><a href="#c11-policies">4.22 Policies</a><a href="#c11-mistakes">4.23 Common mistakes and gotchas</a><a href="#c11-recap">4.24 Recap</a></div></details><details class="grpbox" data-grp="c4-s3"><summary>Informatica: discovering and profiling your data</summary><div class="secs"><a href="#c12-words">4.25 Words to know first</a><a href="#c12-overview">4.26 What data discovery is for</a><a href="#c12-discover-view">4.27 The Discover view</a><a href="#c12-task-flow">4.28 The discovery task flow</a><a href="#c12-primary-keys">4.29 Primary keys: the basics, then discovery</a><a href="#c12-entity-discovery">4.30 Entity (foreign key) discovery</a><a href="#c12-domain-discovery">4.31 Data domain discovery</a><a href="#c12-column-profile">4.32 Column profile (for data generation)</a><a href="#c12-profile-mgmt">4.33 Managing profiles</a><a href="#c12-constraints">4.34 Constraints and relationships</a><a href="#c12-performance">4.35 Performance and accuracy tips from the guide</a><a href="#c12-labs">4.36 Hands-on labs: profiling, masking and subset on ShopSphere</a><a href="#c12-mistakes">4.37 Common mistakes and gotchas</a><a href="#c12-recap">4.38 Recap</a></div></details><details class="grpbox" data-grp="c4-s4"><summary>Informatica: creating a data subset</summary><div class="secs"><a href="#c13-words">4.39 Words to know first</a><a href="#c13-overview">4.40 What a data subset is, and what TDM can subset</a><a href="#c13-process-flow">4.41 The big picture: process flow and components</a><a href="#c13-entities">4.42 Entities and the driving table</a><a href="#c13-groups">4.43 Groups, residual tables and templates</a><a href="#c13-related-rows">4.44 How related rows are pulled</a><a href="#c13-choosing-rows">4.45 Choosing rows: criteria, operators, parameters and limits</a><a href="#c13-xsd">4.46 Subsetting XML: XSD sources in brief</a><a href="#c13-manage">4.47 Managing subset components</a><a href="#c13-workflow">4.48 The whole workflow, start to finish</a><a href="#c13-shopsphere">4.49 Worked example: ShopSphere down to 10 percent</a><a href="#c13-lab">4.50 Lab: subsetting ShopSphere</a><a href="#c13-mistakes">4.51 Common mistakes and gotchas</a><a href="#c13-recap">4.52 Recap</a></div></details></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">CHAPTER 04</p><h1>Informatica TDM (1): architecture, the tool tour, discovery and subsetting</h1><p class="chapter-summary">How Informatica TDM is built, a guided tour of Test Data Manager, then discovering sensitive data and keys and carving out a data subset.</p></div><details class="pagetoc"><summary>Contents of this chapter</summary><details class="grpbox" open data-grp="c4-s1"><summary>Informatica TDM: what it is and how it is built</summary><div class="secs"><a href="#c10-words">4.1 Words to know first</a><a href="#c10-purpose">4.2 What Informatica TDM is for</a><a href="#c10-use-cases">4.3 Use cases: performance, security, and verified data</a><a href="#c10-architecture">4.4 The architecture: what runs behind the web page</a><a href="#c10-process">4.5 The TDM process, end to end</a><a href="#c10-example">4.6 The guide's TDM example, retold with ShopSphere</a><a href="#c10-parameters">4.7 Advanced parameterization at a glance</a><a href="#c10-mistakes">4.8 Common mistakes and gotchas</a><a href="#c10-recap">4.9 Recap</a></div></details><details class="grpbox" data-grp="c4-s2"><summary>A guided tour of Test Data Manager</summary><div class="secs"><a href="#c11-words">4.10 Words to know first</a><a href="#c11-who">4.11 Who uses which view</a><a href="#c11-login">4.12 Logging in to Test Data Manager</a><a href="#c11-layout">4.13 The views</a><a href="#c11-helpers">4.14 Helpers on every screen</a><a href="#c11-overview">4.15 The Overview view</a><a href="#c11-other-views">4.16 Data Sets, Monitor, Parameters and Administrator</a><a href="#c11-expression-builder">4.17 The Expression Builder</a><a href="#c11-projects">4.18 Projects</a><a href="#c11-project-management">4.19 Managing projects</a><a href="#c11-data-sources">4.20 Data sources</a><a href="#c11-permissions">4.21 Project permissions and security</a><a href="#c11-policies">4.22 Policies</a><a href="#c11-mistakes">4.23 Common mistakes and gotchas</a><a href="#c11-recap">4.24 Recap</a></div></details><details class="grpbox" data-grp="c4-s3"><summary>Informatica: discovering and profiling your data</summary><div class="secs"><a href="#c12-words">4.25 Words to know first</a><a href="#c12-overview">4.26 What data discovery is for</a><a href="#c12-discover-view">4.27 The Discover view</a><a href="#c12-task-flow">4.28 The discovery task flow</a><a href="#c12-primary-keys">4.29 Primary keys: the basics, then discovery</a><a href="#c12-entity-discovery">4.30 Entity (foreign key) discovery</a><a href="#c12-domain-discovery">4.31 Data domain discovery</a><a href="#c12-column-profile">4.32 Column profile (for data generation)</a><a href="#c12-profile-mgmt">4.33 Managing profiles</a><a href="#c12-constraints">4.34 Constraints and relationships</a><a href="#c12-performance">4.35 Performance and accuracy tips from the guide</a><a href="#c12-labs">4.36 Hands-on labs: profiling, masking and subset on ShopSphere</a><a href="#c12-mistakes">4.37 Common mistakes and gotchas</a><a href="#c12-recap">4.38 Recap</a></div></details><details class="grpbox" data-grp="c4-s4"><summary>Informatica: creating a data subset</summary><div class="secs"><a href="#c13-words">4.39 Words to know first</a><a href="#c13-overview">4.40 What a data subset is, and what TDM can subset</a><a href="#c13-process-flow">4.41 The big picture: process flow and components</a><a href="#c13-entities">4.42 Entities and the driving table</a><a href="#c13-groups">4.43 Groups, residual tables and templates</a><a href="#c13-related-rows">4.44 How related rows are pulled</a><a href="#c13-choosing-rows">4.45 Choosing rows: criteria, operators, parameters and limits</a><a href="#c13-xsd">4.46 Subsetting XML: XSD sources in brief</a><a href="#c13-manage">4.47 Managing subset components</a><a href="#c13-workflow">4.48 The whole workflow, start to finish</a><a href="#c13-shopsphere">4.49 Worked example: ShopSphere down to 10 percent</a><a href="#c13-lab">4.50 Lab: subsetting ShopSphere</a><a href="#c13-mistakes">4.51 Common mistakes and gotchas</a><a href="#c13-recap">4.52 Recap</a></div></details></details><div class="grp" id="c4-s1"><span class="grplabel">Informatica TDM: what it is and how it is built</span></div>
+<p>Informatica Test Data Management, usually shortened to <dfn>TDM</dfn>, is easiest to work with once the map is clear: what the product is for, which pieces run behind the web page, where each kind of information is stored, and what order of work the product expects.</p>
+<p>Almost every error message and permission problem is really a "this piece cannot reach that piece" problem, so knowing the pieces tells you where to look. For the screens, see <a href="04-informatica-architecture-discovery-subset.html#c4-s2">A guided tour of Test Data Manager</a>.</p>
 
 
 
@@ -8,7 +8,7 @@
 
 <h2 id="c10-words">4.1 Words to know first</h2>
 
-<dl class="defs"><div><dt>Test Data Manager (TDM)</dt><dd>The web page you work in. The same name is also used for the whole product, which is confusing. In this guide, "Test Data Manager" with spaces means the web client, and "TDM" means the whole product.</dd></div>
+<dl class="defs"><div><dt>Test Data Manager (TDM)</dt><dd>The web page you work in. The same name is also used for the whole product, which is confusing. Here, "Test Data Manager" with spaces means the web client, and "TDM" means the whole product.</dd></div>
 <div><dt>Policy</dt><dd>A named bundle that says "these kinds of data must be protected, and this is how". It holds data domains and holds no actual data.</dd></div>
 <div><dt>Data domain</dt><dd>A group of columns that mean the same thing, for example "all columns that hold a Social Security number", found by looking at column names or at the values.</dd></div>
 <div><dt>Project</dt><dd>The workspace for one job: it holds your imported source tables, profiles, masking assignments, subset definitions and plans.</dd></div>
@@ -35,7 +35,7 @@
 <tr><td>Self-service portal</td><td>A simpler screen for users who only use stored data and do not create it.</td><td>A tester who only needs to reset data, not design masking.</td></tr>
 <tr><td>Data coverage analysis</td><td>Check, across pairs of columns, whether the data set has enough variety for the test cases.</td><td>Check that there are customers in every zip-code band with orders of every size band.</td></tr></tbody></table></div>
 <p>Two more things are worth knowing now. TDM also includes a command-line program, <code>ilmcmd</code>, which can do a subset of the Test Data Manager tasks without the web page (User Guide 10.5.10, p.23). And users have <dfn>roles and privileges</dfn> (rules about who may do what) that an administrator manages in the Informatica Administrator, so two people can log in to the same Test Data Manager and see different things.</p>
-<p>Other items in the guide's overview, which we only name here: exporting flat-file results to an HP ALM test-management server, and masking or moving data on Hadoop clusters (User Guide 10.5.10, pp.22-23). They are real features of the 10.5.10 guide but not part of the ShopSphere path in this book.</p>
+<p>Other items in the guide's overview, which we only name here: exporting flat-file results to an HP ALM test-management server, and masking or moving data on Hadoop clusters (User Guide 10.5.10, pp.22-23). </p>
 
 <div class="callout why"><strong class="ctitle">Why it matters</strong>
 <p>The guide's own motivation (p.21) is blunt: organisations guard production tightly but protect test copies far less. TDM exists to close that gap without making developers rewrite code to create test data. When someone asks you "what does TDM do?", the short honest answer is: <em>find the sensitive data, shrink the data, mask it, or generate it instead, and keep versions of the result</em>.</p></div>
@@ -68,7 +68,7 @@
 
 <h3 id="c10-uc-dvo">4.3.3 Verified test data with Data Validation Option</h3>
 <p><dfn>Data Validation Option</dfn> (DVO) is a separate Informatica solution used with PowerCenter to check that target data is accurate and that the transformation did not introduce errors (p.24). Used with TDM, it can compare production and development data. The guide's example is a team that must send compliance reports for test data made from production, and needs "verifiable proof" that the test data holds no sensitive values.</p>
-<p>The documentation excerpt I used mentions DVO only at this level. It does not describe how DVO is configured, so this book does not either. If your project uses it, ask your trainer or read the DVO guide.</p>
+<p>The User Guide describes DVO only at this level; configuration is covered in the DVO guide.</p>
 
 <div class="compare">
 <div><h4 id="c4-goal-performance">Goal: performance</h4><p>"Give testers the right data quickly, and let them get it back."</p><p>Features: subset, flat-file copy to test tool, data generation, test data warehouse, restore.</p></div>
@@ -109,7 +109,7 @@
 </g>
 <g fill="none"><path d="M200 63H280M530 63H620M200 131H280M530 131H620M200 199H280M530 199H620M200 267H280M530 267H620M200 335H280M200 403H280M530 403H620"/></g>
 </g></svg>
-<figcaption>Original diagram, simplified from the component list in the User Guide 10.5.10, p.25-30. Lines show "talks to", not every real connection. The Test Data Manager web client is drawn twice (rows 1 and 4) only to keep the lines straight.</figcaption></figure>
+<figcaption>Simplified from the component list in the User Guide 10.5.10, p.25-30. Lines show "talks to", not every real connection. The Test Data Manager web client is drawn twice (rows 1 and 4) only to keep the lines straight.</figcaption></figure>
 
 <div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.25, Figure "components of TDM". What to look for: tool boxes down the left (Developer Tool, PowerCenter Client, Test Data Manager Web Client, Analyst Tool, Informatica Administrator), a Test Data Manager Service with its own TDM Repository next to the web client, application services in the middle (grouped Model Repository and Data Integration services, grouped PowerCenter services, Test Data Warehouse Service, Content Management Service, Analyst Service, Service Manager), and cylinders on the right for the Model repository, Profiling warehouse, PowerCenter repository, Test data warehouse repository, Test data warehouse and Domain configuration repository.</div>
 
@@ -123,10 +123,10 @@
 <tr><td>Informatica Developer</td><td>Client application ("thick client", installed on a computer)</td><td>Create and export profiles for data discovery, and run them.</td></tr>
 <tr><td>Informatica Administrator</td><td>Web-based client for a domain administrator</td><td>Manage application services; create users and user groups.</td></tr>
 <tr><td>PowerCenter Client</td><td>Client application</td><td>Manage the repository and design mappings, mapplets and sessions; set permissions on folders and on connection objects of the PowerCenter repository.</td></tr></tbody></table></div>
-<p>A <dfn>mapplet</dfn> is a small reusable piece of transformation logic built in PowerCenter. In TDM you can create a data masking rule from a mapplet that has been imported (p.31). Later chapters return to this.</p>
+<p>A <dfn>mapplet</dfn> is a small reusable piece of transformation logic built in PowerCenter. In TDM you can create a data masking rule from a mapplet that has been imported (p.31). A step-by-step build is in <a href="05-informatica-masking-generation-workflows.html#c14-mapplet-build">the mapplet walkthrough in the Informatica masking chapter</a>.</p>
 
 <h3 id="c10-server">4.4.2 The TDM Server</h3>
-<p>One sentence in the guide: the TDM Server is the interface between Test Data Manager and the application services (p.27). Elsewhere the guide says "the TDM Server sends a request to the Data Integration Service" when you run a profile, and that the Test Data Manager Service "creates and manages the TDM repository" (pp.27-29). The guide does not say in one place how the "Server" and the "Service" relate. In the figure on p.25 only the Test Data Manager Service appears. I treat them as the same hub, and you should read "TDM Server" as "the part that takes your click and calls the right service". That is my reading, so check it with your administrator.</p>
+<p>One sentence in the guide: the TDM Server is the interface between Test Data Manager and the application services (p.27). Elsewhere the guide says "the TDM Server sends a request to the Data Integration Service" when you run a profile, and that the Test Data Manager Service "creates and manages the TDM repository" (pp.27-29). The guide does not say in one place how the "Server" and the "Service" relate. In the figure on p.25 only the Test Data Manager Service appears. Read "TDM Server" as "the part that takes your click and calls the right service"; how the two names relate is not documented.</p>
 
 <h3 id="c10-services">4.4.3 The application services</h3>
 <p>The guide says TDM uses Informatica services that you create in the Administrator tool (User Guide 10.5.10, p.27). Here is the list with the plain-English job of each.</p>
@@ -160,7 +160,7 @@
 <tr><td>Test data warehouse</td><td>The source data of stored data sets (p.28).</td><td>The masked customer rows themselves.</td></tr></tbody></table></div>
 
 <div class="callout warn"><strong class="ctitle">Do not confuse these with SHOPSPHERE_PROD</strong>
-<p>Your business database (the source <code>SHOPSPHERE_PROD</code> and any test target) is <em>not</em> on the list above. TDM needs a connection to it, but it is not one of TDM's own repositories. Beginners often mix this up and look for "their data" inside the TDM repository. The guide says that importing copies source <em>metadata</em> into the TDM repository (p.31), and that constraints you add in a project are stored in the TDM repository while the TDM server does not update the data sources (p.32).</p></div>
+<p>Your business database (the source <code>SHOPSPHERE_PROD</code> and any test target) is <em>not</em> on the list above. TDM needs a connection to it, but it is not one of TDM's own repositories. The guide says that importing copies source <em>metadata</em> into the TDM repository (p.31), and that constraints you add in a project are stored in the TDM repository while the TDM server does not update the data sources (p.32).</p></div>
 
 <h3 id="c10-connections">4.4.5 TDM connections</h3>
 <p>TDM needs connections to databases, repositories and services, and what it needs depends on what you run (User Guide 10.5.10, p.28):</p>
@@ -181,7 +181,7 @@
 <tr><td>Database connections</td><td>A database source for discovery, a database target for generation, relational sources and targets for subset and masking, and a source plus the test data warehouse for storing data sets. You configure them in the Administrator view of Test Data Manager and do not need a separate driver. You pick them when creating a plan; TDM tests them when it generates the workflow, and the Integration Service uses them when it runs it.</td></tr></tbody></table></div>
 
 <h3 id="c10-checklist">4.4.6 A readiness checklist before your first job</h3>
-<p>Putting the connection rules together gives a practical checklist. Most items belong to an administrator, but as a TDM engineer you should know to ask for them. Each item is drawn from the guide pages cited; the order is mine.</p>
+<p>Most items belong to an administrator, but a TDM engineer needs to know to ask for them.</p>
 
 <ol class="steps">
 <li><strong>A user in the Informatica domain with the right roles and privileges.</strong>
@@ -199,7 +199,6 @@
 <li><strong>Folder and connection permissions in the PowerCenter repository.</strong>
 <p>Configured with the PowerCenter Client (p.27).</p></li>
 </ol>
-<p class="expect">What you should be able to say afterwards: for each job I plan to run, which service runs it and which connections it needs.</p>
 
 <h3 id="c10-requests">4.4.7 Following a click through the pieces</h3>
 <p>The guide describes three journeys in words. Putting them side by side shows how the pieces cooperate (pp.29-32).</p>
@@ -228,7 +227,7 @@
 <div class="node"><b>PowerCenter Integration Service</b>runs it using the chosen connections</div><div class="arrow">→</div>
 <div class="node"><b>Target database</b>receives masked or generated data</div>
 </div>
-<p> The practical lesson (my reasoning from the three journeys, not a quote): a failed profile points at the Data Integration Service, its connection, or the profiling warehouse. A failed workflow points at the PowerCenter Integration Service or the connections you picked in the plan. A missing table in a project usually means the metadata import did not finish or was rejected.</p>
+<p> Practical lesson: a failed profile points at the Data Integration Service, its connection, or the profiling warehouse. A failed workflow points at the PowerCenter Integration Service or the connections you picked in the plan. A missing table in a project usually means the metadata import did not finish or was rejected.</p>
 
 <h2 id="c10-process">4.5 The TDM process, end to end</h2>
 <p>The guide gives a ten-step outline: run a profile against source data, create a subset, mask it (User Guide 10.5.10, pp.30-31). Steps 1 to 3 prepare, steps 4 to 8 define, steps 9 and 10 run. Not every project does every step. Step 3 is explicitly optional, and data generation is a separate path from subset and masking.</p>
@@ -254,11 +253,11 @@
 <div class="node"><b>Plan</b>connections and options</div><div class="arrow">→</div>
 <div class="node"><b>Run and monitor</b>workflow</div>
 </div>
-<p>Notice the split of roles in this order. The <em>policy</em> is design work (the guide's example gives it to a compliance officer). Everything from the project onward is build work (a project developer). <em>Reviewing</em> profile results and validating the output goes back to compliance. Keep that hand-off in mind for the example in <a href="#c10-example">the example section</a>.</p>
+<p>Notice the split of roles in this order. The <em>policy</em> is design work (the guide's example gives it to a compliance officer). Everything from the project onward is build work (a project developer). <em>Reviewing</em> profile results and validating the output goes back to compliance.</p>
 
 <h3 id="c10-p-policy">4.5.1 Create a data masking policy</h3>
 <p>A policy contains <strong>data domains</strong> that describe what you want to mask. It has no data source, so one policy can serve many projects (p.31). A data domain groups sensitive fields by column name or by the data inside, using patterns written as <dfn>regular expressions</dfn> (a compact way to describe text shapes; <a href="04-informatica-architecture-discovery-subset.html#c4-s2">the guided tour of Test Data Manager</a> has a short primer). A domain also holds masking rules. A <dfn>rule</dfn> is a built-in masking technique plus specific settings; rules can also be built from imported mapplets.</p>
-<p><strong>ShopSphere:</strong> a policy named for customer personal data, with domains for SSN, email, phone, first name and last name.  (the policy name and domain list are ours).</p>
+<p><strong>ShopSphere:</strong> a policy named for customer personal data, with domains for SSN, email, phone, first name and last name.</p>
 
 <h3 id="c10-p-project">4.5.2 Create a project and import metadata</h3>
 <p>A project organises everything for discovery, masking, subset and generation. You import metadata for the sources you want to subset or mask, and target metadata if you want to generate data. You can import from a PowerCenter folder, from the Model repository, or from an external database. You also create a target schema, and the guide warns that TDM overwrites any data that already exists in the target schema (p.31).</p>
@@ -283,7 +282,7 @@
 <thead><tr><th>Block</th><th>Meaning in the guide</th><th>ShopSphere reading</th></tr></thead>
 <tbody>
 <tr><td>Entity</td><td>A set of tables related by physical or logical constraints.</td><td><code>CUSTOMERS</code> with its <code>ORDERS</code> and <code>ORDER_ITEMS</code>.</td></tr>
-<tr><td>Group</td><td>A set of <em>unrelated</em> tables.</td><td><code>PRODUCTS</code>, copied whole as reference data (our design choice).</td></tr>
+<tr><td>Group</td><td>A set of <em>unrelated</em> tables.</td><td><code>PRODUCTS</code>, copied whole as reference data.</td></tr>
 <tr><td>Template</td><td>Optional container holding entities and groups.</td><td>"Customer Orders subset kit".</td></tr></tbody></table></div>
 <p>You also assign masking rules to source columns, create a subset plan from entities, groups and templates (with optional filters on parent-table columns), and create a masking plan that carries the policies and rules. Rules outside policies are allowed too. TDM stores projects, entities, groups, templates and plans in the TDM repository (p.32). <a href="04-informatica-architecture-discovery-subset.html#c4-s4">The Informatica data subset chapter</a> and <a href="05-informatica-masking-generation-workflows.html#c5-s1">14</a> teach these in detail.</p>
 
@@ -304,11 +303,11 @@
 
 <h2 id="c10-example">4.6 The guide's TDM example, retold with ShopSphere</h2>
 <p>The guide's example (User Guide 10.5.10, pp.33-34) is about an organisation that wants to mask sensitive employee stock data for a new employee stock plan. Its test database needs data from several applications: personal data, salary, stock purchases and job information. Several teams must share it and be able to put the original test data back. The company builds a policy and keeps the result in the test data warehouse.</p>
-<p>The table maps each of the guide's 13 steps onto ShopSphere. The first column is the guide. The second column is our retelling, and it is illustrative (the guide never mentions ShopSphere).</p>
+<p>The table maps each of the guide's 13 steps onto ShopSphere. The ShopSphere column is example data.</p>
 
 <div class="tablewrap"><table>
 <caption>The guide's 13 steps and a ShopSphere version</caption>
-<thead><tr><th>#</th><th>Guide (employee stock)</th><th>Who</th><th>ShopSphere version (illustrative)</th></tr></thead>
+<thead><tr><th>#</th><th>Guide (employee stock)</th><th>Who</th><th>ShopSphere version</th></tr></thead>
 <tbody>
 <tr><td>1</td><td>Create an <code>Employee_Stock</code> policy.</td><td>Compliance officer</td><td>Create a customer-data policy listing what must be masked.</td></tr>
 <tr><td>2</td><td>Define data domains; columns named like Employee_Salary, Yearly_Salary, Salary_History share a "Salary" domain.</td><td>Compliance officer</td><td>An "SSN" domain for <code>ssn</code>, <code>tax_id</code>; a "Phone" domain for <code>phone</code>.</td></tr>
@@ -328,7 +327,7 @@
 <p>Two things. First, the <em>order</em>: design (policy, domains, rules) before build (project, profile, entities, plan) before run (workflow, data set). Second, the <em>hand-offs</em>: the same person does not do everything. The people who understand the regulations choose and approve; the people who understand the tables build. In a real engagement (<a href="10-engagements-capstone-and-glossary.html#c10-s1">the chapter on planning real engagements</a>) the same split shows up as roles on your team.</p></div>
 
 <h2 id="c10-parameters">4.7 Advanced parameterization at a glance</h2>
-<p>Here is a problem you will meet within a week of working on a real project. ShopSphere's QA team needs test data for <em>sprint 14 regression</em> (orders from this month, in schema <code>QA1</code>), then for <em>performance tests</em> (orders from last year, in schema <code>PERF</code>, on a different server). Making a new plan for each request is slow. Editing one plan every time is error-prone.</p>
+<p>ShopSphere's QA team needs test data for <em>sprint 14 regression</em> (orders from this month, in schema <code>QA1</code>), then for <em>performance tests</em> (orders from last year, in schema <code>PERF</code>, on a different server). Making a new plan for each request is slow. Editing one plan every time is error-prone.</p>
 <p>The guide's answer is <dfn>parameters</dfn>: placeholders in the plan that point to a value, and the value is read when the workflow runs (User Guide 10.5.10, pp.35, 51). You change the value and run the same plan again to get different test data.</p>
 
 <h3 id="c10-param-types">4.7.1 Three kinds of parameter</h3>
@@ -357,12 +356,12 @@
 <p class="expect">What you should see: the same plan, different data each time you change values. The guide's two examples: change owner and criteria values to get data in the same connection but a different schema, or change connection parameters and include different criteria to get data between different connections (p.36).</p>
 
 <div class="callout example"><strong class="ctitle">ShopSphere example</strong>
-<p>Plan "Customer Orders masked subset" uses an owner parameter for the target schema and a criteria parameter for the order date. Sprint run: owner value <code>QA1</code>, criteria "this month". Performance run: owner value <code>PERF</code>, criteria "last year". One plan, two results. The names and values are ours; the mechanism is the guide's.</p></div>
+<p>Plan "Customer Orders masked subset" uses an owner parameter for the target schema and a criteria parameter for the order date. Sprint run: owner value <code>QA1</code>, criteria "this month". Performance run: owner value <code>PERF</code>, criteria "last year". One plan, two results.</p></div>
 <p>Details such as parameter naming prefixes, rules, and editing steps are in <a href="04-informatica-architecture-discovery-subset.html#c4-s2">the guided tour of Test Data Manager</a>. Using parameters inside plans is covered again in <a href="05-informatica-masking-generation-workflows.html#c5-s3">the Informatica plans, workflows and warehouse chapter</a>.</p>
 
 <div class="exercise">
 <h4 id="c4-lab-trace-three-shopsphere-problems-to-the-right-piece">Lab: trace three ShopSphere problems to the right piece</h4>
-<p>Goal: practise using the architecture map. This is a paper exercise, no software needed. The failures are invented by us; the pieces and their jobs come from the guide (User Guide 10.5.10, pp.25-30).</p>
+<p>Goal: use the architecture map (User Guide 10.5.10, pp.25-30) to trace three failures to the right piece. Paper exercise, no software needed.</p>
 
 <ol class="steps">
 <li><strong>Problem A.</strong><p>A data domain profile on <code>CUSTOMERS</code> finishes, but no results appear in Test Data Manager. Which service ran it, and where should the results be stored?</p></li>
@@ -406,22 +405,11 @@
 
 <section class="sources">
 <div class="grp" id="c4-s2"><span class="grplabel">A guided tour of Test Data Manager</span></div>
-<p><a href="04-informatica-architecture-discovery-subset.html#c4-s1">The Informatica overview and architecture chapter</a> gave you the map. This section tours the part you touch: the <dfn>Test Data Manager</dfn> web page, then the three areas where beginners spend their first week, namely <strong>projects</strong> (your workspace), <strong>data sources</strong> (the tables you bring in) and <strong>policies</strong> (what to protect, and how). The aim is to know where things live, why each task exists and what you should see afterwards. <a href="04-informatica-architecture-discovery-subset.html#c4-s3">The discovery and profiling chapter</a> then uses all of it.</p>
+<p>The <dfn>Test Data Manager</dfn> web page has three main working areas: <strong>projects</strong> (the workspace), <strong>data sources</strong> (the tables brought in) and <strong>policies</strong> (what to protect, and how). This section covers where things live, why each task exists and what to expect afterwards.</p>
 
-<div class="callout note">
-<strong class="ctitle">What this section is based on</strong>
-<p>The <strong>Informatica Test Data Management 10.5.10 User Guide, PDF, February 2026, 455 pages</strong>: chapter 2 "Test Data Manager" (pp.37-48), chapter 3 "Projects" (pp.49-70) and chapter 4 "Policies" (pp.71-85), read in full, with the figures on pp.38, 41, 43, 45, 47 and 49 viewed. The guide's screenshots have no image address, so I use <strong>visual reference</strong> boxes and one schematic sketch I drew. Menu names are quoted from the guide; if your version differs, trust your screen.</p>
-</div>
 
-<div class="callout recap">
-<strong class="ctitle">What you will learn</strong>
 
-<ul>
-<li>How to log in, what each view does, and the helpers on every screen (search, filter, Actions menu, Expression Builder).</li>
-<li>What a project holds, and how to create, copy, export and import one, set permissions and import source tables.</li>
-<li>What policies, rules and data domains are, how patterns find columns, and how to create and manage each.</li>
-</ul>
-</div>
+
 
 <h2 id="c11-words">4.10 Words to know first</h2>
 
@@ -472,7 +460,7 @@ Informatica TDM 10.5.10 User Guide, p.38, Figure "Test Data Manager" (the Polici
 <tr><td>Administrator</td><td>Connections, pass phrases, dictionaries, test tool integration, test data warehouse, workflow options, sensitivity levels, log levels.</td></tr>
 </tbody></table></div>
 
-<p><strong>One catch:</strong> the guide's list on p.38 names six views and omits Parameters, but p.45 describes a Parameters view with its own screenshot. I list seven because both statements are in the same guide.</p>
+<p>The guide's list on p.38 names six views and omits Parameters, but p.45 describes a Parameters view with its own screenshot.</p>
 
 <h2 id="c11-helpers">4.14 Helpers on every screen</h2>
 
@@ -518,7 +506,7 @@ Informatica TDM 10.5.10 User Guide, p.47, Figure "Expression Builder". What to l
 <p>An advanced masking rule has two variable ports holding the masked first and last names. The output port joins them with a space:</p>
 
 <pre><code>CONCAT( CONCAT( VAR1, ' ' ), VAR2 )</code></pre>
-<p><code>VAR1</code> would hold a masked <code>first_name</code> and <code>VAR2</code> a masked <code>last_name</code>, giving a full name such as "Priya Das". The expression is the guide's; the names are ours. Function syntax is in the Informatica Transformation Language Reference, which I did not read.</p>
+<p><code>VAR1</code> would hold a masked <code>first_name</code> and <code>VAR2</code> a masked <code>last_name</code>, giving a full name such as "Priya Das". Function syntax is in the Informatica Transformation Language Reference.</p>
 </div>
 
 <h2 id="c11-projects">4.18 Projects</h2>
@@ -555,7 +543,7 @@ Informatica TDM 10.5.10 User Guide, p.49, Figure "a project in Test Data Manager
 </ul>
 
 <h3 id="c11-parameters">4.18.3 Parameters in a project</h3>
-<p><a href="04-informatica-architecture-discovery-subset.html#c10-parameters">The Informatica overview chapter</a> explained why parameters exist. Details (pp.51-52, 57-58): the tool adds the name prefix for you: <strong>connection</strong> parameters begin <code>$DBConnection</code>, <strong>owner</strong> parameters <code>$Param</code>, <strong>criteria</strong> parameters <code>$$</code>.</p>
+<p>Parameters are introduced in <a href="04-informatica-architecture-discovery-subset.html#c10-parameters">the Informatica overview chapter</a>. Details (pp.51-52, 57-58): the tool adds the name prefix for you: <strong>connection</strong> parameters begin <code>$DBConnection</code>, <strong>owner</strong> parameters <code>$Param</code>, <strong>criteria</strong> parameters <code>$$</code>.</p>
 
 <ul>
 <li>With a connection parameter on an <strong>Oracle</strong> source, you cannot enable the Oracle Rowid property.</li>
@@ -588,7 +576,7 @@ Informatica TDM 10.5.10 User Guide, p.49, Figure "a project in Test Data Manager
 
 <div class="exercise">
 <h4 id="c4-task-create-the-customer-orders-project">Task: create the "Customer Orders" project</h4>
-<p>Goal: make an empty workspace for the ShopSphere work. The steps and field list are from the guide (pp.53-54). The project name and values we choose are illustrative.</p>
+<p>Goal: make an empty workspace for the ShopSphere work. (pp.53-54)</p>
 
 <ol class="steps">
 <li><strong>Click Projects.</strong>
@@ -668,7 +656,7 @@ Informatica TDM 10.5.10 User Guide, p.49, Figure "a project in Test Data Manager
 
 <div class="exercise">
 <h4 id="c4-task-import-the-shopsphere-tables-into-the-project">Task: import the ShopSphere tables into the project</h4>
-<p>Goal: have the four tables visible in the project's Data Sources view. The steps are the guide's (pp.66-67). The choice of "Datasource Connection" and of the schema is our illustration; it assumes an administrator already created a connection to the ShopSphere database.</p>
+<p>Goal: have the four tables visible in the project's Data Sources view. (pp.66-67). Assumes an administrator already created a connection to the ShopSphere database.</p>
 
 <ol class="steps">
 <li><strong>Click Projects, then click your project to open it.</strong>
@@ -689,11 +677,11 @@ Informatica TDM 10.5.10 User Guide, p.49, Figure "a project in Test Data Manager
 </ol>
 
 <details class="sol"><summary>Show what ShopSphere should look like afterwards</summary>
-<p>Illustrative, not from the guide: four tables in the project's data source, <code>CUSTOMERS</code>, <code>ORDERS</code>, <code>ORDER_ITEMS</code> and <code>PRODUCTS</code>, all under the schema you picked. A job for the import is listed in the project's Monitor view while it runs. If a table is missing, check the table selection step and the Monitor view for a failed import job.</p></details>
+<p>Four tables in the project's data source, <code>CUSTOMERS</code>, <code>ORDERS</code>, <code>ORDER_ITEMS</code> and <code>PRODUCTS</code>, all under the schema you picked. A job for the import is listed in the project's Monitor view while it runs. If a table is missing, check the table selection step and the Monitor view for a failed import job.</p></details>
 </div>
 
 <h3 id="c11-other-sources">4.20.3 Special source types in the guide</h3>
-<p>The guide spends several pages on source types that a ShopSphere beginner will not meet on day one. Know that they exist and what the headline rules are.</p>
+<p>Headline rules for the less common source types:</p>
 
 <div class="tablewrap"><table>
 <thead><tr><th>Source type</th><th>Headline facts (pp.60-66)</th></tr></thead><tbody>
@@ -768,7 +756,7 @@ Informatica TDM 10.5.10 User Guide, p.49, Figure "a project in Test Data Manager
 <p>Rules you attach to a domain are called <strong>preferred rules</strong>. If there are several, you mark one as the <strong>default</strong>, which applies to every column in the domain. You may change an individual column to another preferred rule, and you can even apply more than one rule to a column (p.73).</p>
 
 <div class="callout example"><strong class="ctitle">Guide example, with a ShopSphere twist</strong>
-<p>The guide's Last_Name domain has a shuffle rule as default and a substitution rule as another preferred rule: shuffle for customer last names in one table, substitution in another (p.73). In ShopSphere: <code>last_name</code> in <code>CUSTOMERS</code> uses the default, while a hypothetical <code>shipping_contact_last_name</code> in another table uses the second preferred rule. Generation rules work the same way: in the guide, Date_of_Birth defaults to date random generation and also offers date sequence generation (p.74). The ShopSphere column is ours.</p></div>
+<p>The guide's Last_Name domain has a shuffle rule as default and a substitution rule as another preferred rule: shuffle for customer last names in one table, substitution in another (p.73). In ShopSphere: <code>last_name</code> in <code>CUSTOMERS</code> uses the default, while a hypothetical <code>shipping_contact_last_name</code> in another table uses the second preferred rule. Generation rules work the same way: in the guide, Date_of_Birth defaults to date random generation and also offers date sequence generation (p.74).</p></div>
 
 <h3 id="c11-patterns">4.22.3 Data patterns and metadata patterns</h3>
 <p>A <dfn>regular expression</dfn> (regex) is a text string that describes a search pattern; it matches strings of characters in the source data (p.74). TDM uses regexes in two ways, and a domain may hold several of each. A column belongs to the domain if <strong>any</strong> expression matches (pp.74-75).</p>
@@ -783,7 +771,7 @@ Informatica TDM 10.5.10 User Guide, p.49, Figure "a project in Test Data Manager
 </div>
 
 <h4 id="c11-regex-primer">A regex primer, using only what the guide lists</h4>
-<p>Regexes are <strong>case sensitive</strong>. The guide lists these building blocks (pp.74-75), and gives a tutorial site for more. I added the ShopSphere reading.</p>
+<p>Regexes are <strong>case sensitive</strong>. The guide lists these building blocks (pp.74-75), and gives a tutorial site for more.</p>
 
 <div class="tablewrap"><table>
 <thead><tr><th>Piece</th><th>Guide's meaning</th><th>Reading</th></tr></thead><tbody>
@@ -795,7 +783,7 @@ Informatica TDM 10.5.10 User Guide, p.49, Figure "a project in Test Data Manager
 <tr><td><code>{n}</code></td><td>Repeats the previous item n times (n is 1 or more).</td><td><code>[0-9]{4}</code> is four digits.</td></tr></tbody></table></div>
 
 <div class="callout warn"><strong class="ctitle">Case and shape traps</strong>
-<p>Because regexes are case sensitive, a pattern in capitals may not match a lower-case column name such as <code>ssn</code>. Whether TDM treats metadata expressions case-insensitively is not stated in the part of the guide I read, so test it on your own data. And a 10-digit phone pattern also matches any other 10-digit column. This is why you review profile results rather than approving everything blindly.</p></div>
+<p>Because regexes are case sensitive, a pattern in capitals may not match a lower-case column name such as <code>ssn</code>. Whether TDM treats metadata expressions case-insensitively is not stated in the guide, so test it on your own data. And a 10-digit phone pattern also matches any other 10-digit column. This is why you review profile results rather than approving everything blindly.</p></div>
 
 <h3 id="c11-domain-options">4.22.4 Data domain options</h3>
 <p>A data domain has four options (p.75): <strong>Name</strong>; <strong>Sensitivity level</strong>, applied to every column in the domain and chosen from the levels the administrator defines (the Overview dashboards use it); <strong>Description</strong>; and <strong>Status</strong>, enabled or disabled, where an enabled domain is included in discovery profiles (default enabled).</p>
@@ -804,7 +792,7 @@ Informatica TDM 10.5.10 User Guide, p.49, Figure "a project in Test Data Manager
 
 <div class="exercise">
 <h4 id="c4-task-create-a-customer-ssn-data-domain">Task: create a "Customer SSN" data domain</h4>
-<p>Goal: a domain that finds SSN-like data and SSN-like column names in ShopSphere. Steps are from the guide (p.76); the name, pattern and rule choice are our illustration. Assume a Social Security masking rule already exists (see the <a href="05-informatica-masking-generation-workflows.html#c5-s1">Informatica masking chapter</a>).</p>
+<p>Goal: a domain that finds SSN-like data and SSN-like column names in ShopSphere. (p.76) Assume a Social Security masking rule already exists (see the <a href="05-informatica-masking-generation-workflows.html#c5-s1">Informatica masking chapter</a>).</p>
 
 <ol class="steps">
 <li><strong>Click Policies.</strong>
@@ -824,7 +812,7 @@ Informatica TDM 10.5.10 User Guide, p.49, Figure "a project in Test Data Manager
 </ol>
 
 <details class="sol"><summary>Show a worked answer</summary>
-<p>Result (illustrative): domain <code>Customer_SSN</code>, status Enabled, one data pattern, two metadata patterns, one preferred masking rule marked default. When you later run a data domain profile on <code>CUSTOMERS</code>, <code>ssn</code> should appear as a candidate for this domain, with both the column name and values matching. <code>tax_id</code> may or may not match depending on its format, which is the kind of question you review in the <a href="04-informatica-architecture-discovery-subset.html#c4-s3">discovery and profiling chapter</a>.</p></details>
+<p>Result: domain <code>Customer_SSN</code>, status Enabled, one data pattern, two metadata patterns, one preferred masking rule marked default. When you later run a data domain profile on <code>CUSTOMERS</code>, <code>ssn</code> should appear as a candidate for this domain, with both the column name and values matching. <code>tax_id</code> may or may not match depending on its format, which is the kind of question you review in the <a href="04-informatica-architecture-discovery-subset.html#c4-s3">discovery and profiling chapter</a>.</p></details>
 </div>
 
 <h3 id="c11-domain-manage">4.22.6 Copying, editing and deleting a domain</h3>
@@ -845,7 +833,7 @@ Informatica TDM 10.5.10 User Guide, p.49, Figure "a project in Test Data Manager
 <tr><td>PII</td><td>Personal information</td><td>Age; Birth Date; Birth Place; Country; Credit Card; Drivers License Number; Email Address; First Name; Full Address UPPER; Full Name; Gender; Grades; IP Address; Job Position; Last Name; Organization Name; Passport; Phone; Salary; School Name; Social Security Number; State; Street Name; UK National Identifier; Vehicle Registration Number; ZIP</td></tr>
 <tr><td>PHI</td><td>Healthcare and pharmaceutical</td><td>Account Number; Birth Date; Certificate License Number; Device Identifier Serial Number; Email Address; First Name; Health Plan Beneficiary Number; IP Address; Last Name; Medical Record Number; Phone; Primary Account Number; Social Security Number; State; Unique Identifier; Web URL; ZIP</td></tr>
 <tr><td>PCI</td><td>Banking and finance</td><td>Account Number; Birth Date; Credit Card; Expiration Date; First Name; Last Name</td></tr></tbody></table></div>
-<p>Look at how this fits ShopSphere. The PII pack already has First Name, Last Name, Email Address, Phone, Social Security Number, Birth Date and ZIP, which cover almost every personal column in <code>CUSTOMERS</code> (<code>first_name</code>, <code>last_name</code>, <code>email</code>, <code>phone</code>, <code>ssn</code>, <code>date_of_birth</code>, <code>zip_code</code>). Nothing in the packs obviously covers <code>tax_id</code>: that is a case where you would add your own domain or assign one manually. The guide's pack tables do not list a "tax ID" domain.</p>
+<p>In ShopSphere, the PII pack already has First Name, Last Name, Email Address, Phone, Social Security Number, Birth Date and ZIP, which cover almost every personal column in <code>CUSTOMERS</code> (<code>first_name</code>, <code>last_name</code>, <code>email</code>, <code>phone</code>, <code>ssn</code>, <code>date_of_birth</code>, <code>zip_code</code>). Nothing in the packs obviously covers <code>tax_id</code>: that is a case where you would add your own domain or assign one manually. The guide's pack tables do not list a "tax ID" domain.</p>
 
 <h3 id="c11-import-export">4.22.8 Importing and exporting policy components</h3>
 <p>You can export policies, domains and rules to XML files and import them into another TDM repository (pp.80-81). The details matter:</p>
@@ -890,7 +878,7 @@ Informatica TDM 10.5.10 User Guide, p.49, Figure "a project in Test Data Manager
 
 <div class="exercise">
 <h4 id="c4-task-create-the-shopsphere-customer-data-policy">Task: create the ShopSphere customer-data policy</h4>
-<p>Goal: one policy holding the domains your project will mask. Steps are from the guide (p.83); the policy and domain choices are ours.</p>
+<p>Goal: one policy holding the domains your project will mask. (p.83)</p>
 
 <ol class="steps">
 <li><strong>In the Policies view, click Actions &gt; New &gt; Policy.</strong>
@@ -904,7 +892,7 @@ Informatica TDM 10.5.10 User Guide, p.49, Figure "a project in Test Data Manager
 </ol>
 
 <details class="sol"><summary>Show a worked answer</summary>
-<p>You should see one policy with about eight domains. If you add the same pack domain and your own custom SSN domain, both will compete for <code>ssn</code>; decide which one you want and remove the other, or mark clear default rules. That judgement call is yours (not covered by the guide).</p></details>
+<p>You should see one policy with about eight domains. If you add the same pack domain and your own custom SSN domain, both will compete for <code>ssn</code>; decide which one you want and remove the other, or mark clear default rules.</p></details>
 </div>
 
 <ul>
@@ -944,24 +932,9 @@ Informatica TDM 10.5.10 User Guide, p.49, Figure "a project in Test Data Manager
 <div class="grp" id="c4-s3"><span class="grplabel">Informatica: discovering and profiling your data</span></div>
 <p>Before you can protect data you have to know where it is. ShopSphere's <code>CUSTOMERS</code> table has nine columns, so it is easy to see that <code>ssn</code> is sensitive. A real production database has hundreds of tables, and a Social Security number can hide in a column called <code>NOTES</code>. <dfn>Data discovery</dfn> is Informatica's name for the automatic search that finds sensitive columns and table relationships.</p>
 
-<p>This section covers the discovery and profiling material of the guide: the profile types, how to run them, how to review and approve results, primary keys and logical relationships, and three labs matching the syllabus items TDM_Handson1, 2 and 3. It builds on <a href="02-privacy-discovery-subsetting-masking.html#c2-s2">the discovery and subsetting concepts chapter</a>, <a href="01-welcome-why-tdm-and-data-basics.html#c1-s3">the data basics chapter</a> (for keys) and <a href="04-informatica-architecture-discovery-subset.html#c4-s2">the guided tour of Test Data Manager</a>.</p>
 
-<div class="callout note">
-<strong class="ctitle">What this section is based on</strong>
-<p>The <strong>Informatica Test Data Management 10.5.10 User Guide, PDF, February 2026, 455 pages</strong>, chapter 5 "Data Discovery" (PDF pages 86 to 111), read in full, with supporting facts from chapters 1, 3 and 4; the figures on pp.88 and 103 to 106 were viewed. Figures have no image address, so I use <strong>visual reference</strong> boxes. <strong>All ShopSphere numbers and results are illustrative.</strong> The syllabus gives only the titles of the three hands-on items, so the labs are my reconstruction, with guide steps cited by page.</p>
-</div>
 
-<div class="callout recap">
-<strong class="ctitle">What you will learn</strong>
 
-<ul>
-<li>The four profile types: primary key, entity (foreign key), data domain and column.</li>
-<li>What a primary key is and how to discover, review and approve keys.</li>
-<li>How data domain discovery finds sensitive columns and how to curate its results.</li>
-<li>Constraints, major and minor severity, and cascades.</li>
-<li>Three labs: profiling, profiling plus masking, profiling plus subset.</li>
-</ul>
-</div>
 
 <h2 id="c12-words">4.25 Words to know first</h2>
 
@@ -1062,7 +1035,7 @@ Informatica TDM 10.5.10 User Guide, p.88, Figure "Discover view in a Project". W
 </ol>
 
 <h2 id="c12-primary-keys">4.29 Primary keys: the basics, then discovery</h2>
-<p>The syllabus calls out primary key basics and "data integrity maintained in primary and foreign key columns" (Days 43 and 51). Nearly every later task, subset above all, depends on keys, so spend time here.</p>
+<p>Nearly every later task, subset above all, depends on keys.</p>
 
 <h3 id="c12-pk-basics">4.29.1 Primary and foreign keys in plain words</h3>
 <p>A library gives each member a card number. No two members share one, and no member is without one. That number is a <dfn>primary key</dfn>: a column (or combination of columns) that uniquely identifies each row. The guide's rule for keys you add by hand: a primary key column cannot contain null (empty) or duplicate values, and a table has only one primary key constraint (User Guide 10.5.10, p.109).</p>
@@ -1121,8 +1094,8 @@ PRODUCTS  (product_code PK)  (ORDER_ITEMS.product_code refers to it)
 <tr><td>Status</td><td>Whether a user verified, approved or rejected the candidate.</td></tr></tbody></table></div>
 
 <div class="tablewrap"><table class="sample">
-<caption>Illustrative primary key results for ShopSphere (invented numbers, shaped like the guide's fields)</caption>
-<thead><tr><th>Table</th><th>Column</th><th>Uniqueness</th><th>Existing constraints</th><th>My decision</th></tr></thead>
+<caption>Primary key results for ShopSphere (example data)</caption>
+<thead><tr><th>Table</th><th>Column</th><th>Uniqueness</th><th>Existing constraints</th><th>Decision</th></tr></thead>
 <tbody>
 <tr><td>CUSTOMERS</td><td>customer_id</td><td>100</td><td>none</td><td>Approve. It is the identifier and ORDERS points to it.</td></tr>
 <tr><td>CUSTOMERS</td><td>email</td><td>100</td><td>none</td><td>Reject as key. Unique today, but a customer can change email, and it is sensitive.</td></tr>
@@ -1133,7 +1106,7 @@ PRODUCTS  (product_code PK)  (ORDER_ITEMS.product_code refers to it)
 <tr><td>PRODUCTS</td><td>product_code</td><td>100</td><td>none</td><td>Approve.</td></tr></tbody></table></div>
 
 <div class="callout warn"><strong class="ctitle">Unique is not the same as a key</strong>
-<p>A profile only tests uniqueness within the sample. <code>email</code> and <code>ssn</code> may score 100 on a small sample and still be unsuitable keys. Pick the column that is the business identifier and is what child tables refer to. That judgement comes from you, not the tool. (My reasoning, not a guide quote; the guide's decision aid is the uniqueness percentage plus your own knowledge of the data.)</p></div>
+<p>A profile only tests uniqueness within the sample. <code>email</code> and <code>ssn</code> may score 100 on a small sample and still be unsuitable keys. Pick the column that is the business identifier and is what child tables refer to. The guide's decision aid is the uniqueness percentage plus knowledge of the data.</p></div>
 
 <h4 id="c12-pk-apply">Applying the primary key results</h4>
 <p>Select a row and choose <strong>Verify, Approve or Reject</strong> from the Actions menu (p.104).</p>
@@ -1143,13 +1116,13 @@ PRODUCTS  (product_code PK)  (ORDER_ITEMS.product_code refers to it)
 <li><strong>Reject:</strong> does not affect the subset operation.</li>
 <li><strong>Verified</strong> column: only for tracking your review; it does not affect subset operations.</li>
 </ul>
-<p class="expect">Expected result: approved keys appear on the table in Discover &gt; Tables, under Constraints as primary key constraints. The source database is unchanged. (The location under Constraints follows from the constraint steps on pp.109-110 and the statement that TDM does not add keys to the source tables, p.87.)</p>
+<p class="expect">Expected result: approved keys appear on the table in Discover &gt; Tables, under Constraints as primary key constraints. The source database is unchanged (p.87).</p>
 <p>You can skip discovery and add keys by hand. The guide says when you manually add keys, you do not need a primary key discovery profile, and you define constraints for subset, masking and generation without updating the source database (p.109). The step list is in <a href="#c12-manual-keys">the manual keys section</a> below.</p>
 
 <h2 id="c12-entity-discovery">4.30 Entity (foreign key) discovery</h2>
 <p>An <dfn>entity</dfn> is a parent table plus its related child tables. An <strong>entity profile</strong> finds possible entities by <em>comparing column names</em> in the source tables, and returns a list you choose from. The entities you define for a subset determine the structure and content of the subset database (User Guide 10.5.10, p.93).</p>
 <p>The guide's example: Employee, Employee_Detail and Employee_Address all contain an EmpID column, so the profile suggests Employee as an entity with two direct relationships and two child tables. You select Employee as the entity. Later, a subset filter on EmpID (for example EmpID less than 2000) filters each table in the entity relationship (p.93).</p>
-<p><strong>ShopSphere reading</strong> (illustrative): <code>customer_id</code> appears in <code>CUSTOMERS</code> and <code>ORDERS</code>; <code>order_id</code> appears in <code>ORDERS</code> and <code>ORDER_ITEMS</code>; <code>product_code</code> appears in <code>ORDER_ITEMS</code> and <code>PRODUCTS</code>. The profile can therefore suggest CUSTOMERS to ORDERS to ORDER_ITEMS as a chain, and ORDER_ITEMS to PRODUCTS as another link.</p>
+<p><strong>ShopSphere reading:</strong><code>customer_id</code> appears in <code>CUSTOMERS</code> and <code>ORDERS</code>; <code>order_id</code> appears in <code>ORDERS</code> and <code>ORDER_ITEMS</code>; <code>product_code</code> appears in <code>ORDER_ITEMS</code> and <code>PRODUCTS</code>. The profile can therefore suggest CUSTOMERS to ORDERS to ORDER_ITEMS as a chain, and ORDER_ITEMS to PRODUCTS as another link.</p>
 
 <div class="callout warn"><strong class="ctitle">Needs keys, or run both together</strong>
 <p>If you choose the Entity type and the physical database has <strong>no primary keys</strong>, the profile returns <strong>no results</strong>. If you run it as a <em>primary key and entity</em> profile, it discovers possible primary and foreign keys and returns results even without physical keys (p.93). The creation steps repeat the advice: select primary key and entity profile if the database has no primary keys (p.99).</p></div>
@@ -1167,7 +1140,7 @@ PRODUCTS  (product_code PK)  (ORDER_ITEMS.product_code refers to it)
 Informatica TDM 10.5.10 User Guide, p.104, Figure "results of an entity discovery profile". What to look for: a list of profiled relationships, an Actions menu (Approve, Reject, Clear status, Verify checked items) and a Constraints tab with parent and child key columns.
 </div>
 
-<p>ShopSphere (illustrative): you would approve <code>CUSTOMERS.customer_id</code> to <code>ORDERS.customer_id</code>, <code>ORDERS.order_id</code> to <code>ORDER_ITEMS.order_id</code> and <code>PRODUCTS.product_code</code> to <code>ORDER_ITEMS.product_code</code>. Approved relationships become <strong>logical constraints</strong>: TDM stores them in its repository and does not apply them to the source tables; a subset plan uses them to keep referential integrity (p.86).</p>
+<p>ShopSphere: approve <code>CUSTOMERS.customer_id</code> to <code>ORDERS.customer_id</code>, <code>ORDERS.order_id</code> to <code>ORDER_ITEMS.order_id</code> and <code>PRODUCTS.product_code</code> to <code>ORDER_ITEMS.product_code</code>. Approved relationships become <strong>logical constraints</strong>: TDM stores them in its repository and does not apply them to the source tables; a subset plan uses them to keep referential integrity (p.86).</p>
 
 <h2 id="c12-domain-discovery">4.31 Data domain discovery</h2>
 <p>A data domain profile finds the source columns that hold similar data and assigns each the same data domain name, so you can apply the same masking rules to all of them at once (User Guide 10.5.10, p.94). Domains are defined with regular expressions on data and on column names (see <a href="04-informatica-architecture-discovery-subset.html#c11-data-domains">the data domains section of the Test Data Manager tour</a>). A project must contain <strong>policies</strong> before you create a data domain profile, because policies hold the domains the profile can search for (p.100).</p>
@@ -1214,7 +1187,7 @@ Informatica TDM 10.5.10 User Guide, p.104, Figure "results of an entity discover
 <tr><td>Status</td><td>Whether the assignment is verified or approved.</td></tr></tbody></table></div>
 
 <div class="tablewrap"><table class="sample">
-<caption>Illustrative data domain results for <code>CUSTOMERS</code> (invented numbers)</caption>
+<caption>Data domain results for <code>CUSTOMERS</code> (example data)</caption>
 <thead><tr><th>Source</th><th>% Data Conformance</th><th>% Null</th><th>Patterns</th><th>Column Name Match</th><th>Profiled domain</th><th>Decision</th></tr></thead>
 <tbody>
 <tr><td>first_name</td><td>100</td><td>0</td><td>1</td><td>Yes</td><td>First Name</td><td>Approve</td></tr>
@@ -1223,7 +1196,7 @@ Informatica TDM 10.5.10 User Guide, p.104, Figure "results of an entity discover
 <tr><td>ssn</td><td>100</td><td>0</td><td>2</td><td>Yes</td><td>Social Security Number</td><td>Approve</td></tr>
 <tr><td>tax_id</td><td>0</td><td>0</td><td>0</td><td>No</td><td>none</td><td>Assign by hand (or add a domain)</td></tr>
 <tr><td>zip_code</td><td>100</td><td>0</td><td>1</td><td>Yes</td><td>ZIP</td><td>Approve</td></tr></tbody></table></div>
-<p>The made-up <code>tax_id</code> row shows a realistic situation: nothing matched, because no domain describes it. The fix is on you: either create a domain (see <a href="04-informatica-architecture-discovery-subset.html#c11-create-domain">the create-a-data-domain steps</a>) or assign one manually below.</p>
+<p>In the <code>tax_id</code> row nothing matched, because no domain describes it. Either create a domain (see <a href="04-informatica-architecture-discovery-subset.html#c11-create-domain">the create-a-data-domain steps</a>) or assign one manually below.</p>
 
 <ul>
 <li><strong>Data Preview tab:</strong> select a column and click Data Preview to see its source values. The data viewer shows the <strong>first 200 records</strong> of columns returned in the profile (p.105). Use it to sanity-check before approving.</li>
@@ -1267,7 +1240,7 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 <p>Discovery suggests; constraints are what TDM actually uses. Foreign key constraints define parent-child relationships between source tables, and TDM uses them to decide which tables go into a subset and to limit the values in subset columns (User Guide 10.5.10, p.107). When you create an entity you pick one table as the <strong>driving table</strong>, and TDM adds other tables based on the constraints of that table (p.107). The <a href="04-informatica-architecture-discovery-subset.html#c4-s4">Informatica data subset chapter</a> builds on this.</p>
 
 <h3 id="c12-table-class">4.34.1 Table classification</h3>
-<p>In Discover &gt; Tables you can classify tables as <em>Temporary, Master, Configuration, Transactional, Log</em> or <em>Seed</em>. It does not affect profiles, but you can filter tables by it when creating entities or plans. The guide's reason: knowing which tables are master helps you decide driving tables, and transaction and log tables are candidates for extra filter criteria (p.107). ShopSphere reading: <code>CUSTOMERS</code> and <code>PRODUCTS</code> look like master tables; <code>ORDERS</code> and <code>ORDER_ITEMS</code> look transactional (our classification).</p>
+<p>In Discover &gt; Tables you can classify tables as <em>Temporary, Master, Configuration, Transactional, Log</em> or <em>Seed</em>. It does not affect profiles, but you can filter tables by it when creating entities or plans. The guide's reason: knowing which tables are master helps you decide driving tables, and transaction and log tables are candidates for extra filter criteria (p.107). ShopSphere reading: <code>CUSTOMERS</code> and <code>PRODUCTS</code> look like master tables; <code>ORDERS</code> and <code>ORDER_ITEMS</code> look transactional.</p>
 
 <h3 id="c12-constraint-types">4.34.2 Constraint types</h3>
 
@@ -1290,7 +1263,7 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 <p>One direction only, child to parent. The parent row is included, but <strong>not all its other children</strong>.</p></div>
 </div>
 <p><strong>The guide's example:</strong> Customer is the parent of Leads. You filter Leads to high-quality leads. With a major constraint the subset includes the customer for each high-quality lead and all that customer's leads. With a minor constraint it includes the high-quality leads and their customers only (pp.108-109).</p>
-<p><strong>ShopSphere version (illustrative):</strong> you filter <code>ORDERS</code> to <code>total_amount &gt; 500</code>. Major: you get those orders, their customers, and <em>all other orders</em> of those customers. Minor: you get those orders and their customers only.</p>
+<p><strong>ShopSphere version:</strong> you filter <code>ORDERS</code> to <code>total_amount &gt; 500</code>. Major: you get those orders, their customers, and <em>all other orders</em> of those customers. Minor: you get those orders and their customers only.</p>
 
 <ul>
 <li>Selecting more records in the child can pull in more parents, which pull in more children, and so on until no related records remain (p.108).</li>
@@ -1303,7 +1276,7 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 
 <div class="exercise">
 <h4 id="c4-task-add-a-logical-primary-key-and-a-logical-foreign-key-in-">Task: add a logical primary key and a logical foreign key in ShopSphere</h4>
-<p>Goal: tell TDM that <code>ORDERS.customer_id</code> refers to <code>CUSTOMERS.customer_id</code>. Steps from the guide (pp.109-110); table and column choices are ours.</p>
+<p>Goal: tell TDM that <code>ORDERS.customer_id</code> refers to <code>CUSTOMERS.customer_id</code>. (pp.109-110)</p>
 
 <ol class="steps">
 <li><strong>Primary key on CUSTOMERS.</strong><p>In the project click Discover &gt; Tables, click <code>CUSTOMERS</code>, click Constraints, then Create New Constraint. Select Primary Key, Next, click Add, choose <code>customer_id</code>, Finish.</p><p class="expect">The constraint appears in the table's Constraints list.</p></li>
@@ -1312,15 +1285,13 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 </ol>
 
 <details class="sol"><summary>Show a worked answer</summary>
-<p>Illustrative result: <code>CUSTOMERS</code> has primary key constraint on <code>customer_id</code>; <code>ORDERS</code> has a foreign key constraint to <code>CUSTOMERS</code> with severity Major if you want a customer's other orders to come with a filtered order. Repeat for <code>ORDER_ITEMS.order_id</code> to <code>ORDERS.order_id</code>. For the <code>ORDER_ITEMS.product_code</code> to <code>PRODUCTS</code> link, Minor is a reasonable choice because you do not want every item that uses a product. That severity choice is a design judgement of ours.</p></details>
+<p>Result: <code>CUSTOMERS</code> has primary key constraint on <code>customer_id</code>; <code>ORDERS</code> has a foreign key constraint to <code>CUSTOMERS</code> with severity Major if you want a customer's other orders to come with a filtered order. Repeat for <code>ORDER_ITEMS.order_id</code> to <code>ORDERS.order_id</code>. For the <code>ORDER_ITEMS.product_code</code> to <code>PRODUCTS</code> link, Minor is a reasonable choice because you do not want every item that uses a product.</p></details>
 </div>
 <p>For a <strong>unique key</strong>, choose Unique Key instead of Primary Key and add columns (pp.110-111). For a <strong>conditional constraint</strong>, enter a name, choose Conditional, click Next, build an expression in the Expression Builder (see <a href="04-informatica-architecture-discovery-subset.html#c11-expression-builder">the Expression Builder section</a>), and click Finish (p.111).</p>
 
 <h2 id="c12-performance">4.35 Performance and accuracy tips from the guide</h2>
-<p>The guide has no dedicated discovery performance section; these tips are scattered through it.</p>
-
 <ul>
-<li><strong>Cap the sample.</strong> Primary key and data domain profiles default to 1,000 rows; column profiles default to <em>All</em>, the heaviest setting (pp.93, 95, 98). A small sample is fast but can call a column "unique" or "an SSN" wrongly (my reasoning).</li>
+<li><strong>Cap the sample.</strong> Primary key and data domain profiles default to 1,000 rows; column profiles default to <em>All</em>, the heaviest setting (pp.93, 95, 98). A small sample is fast but can call a column "unique" or "an SSN" wrongly.</li>
 <li><strong>Limit key columns</strong> (default 3, p.93) and avoid case-sensitive entity comparisons, which can slow the profile (p.99).</li>
 <li><strong>Search names first, then data.</strong> You can run a domain profile on column metadata and then on the data (p.100).</li>
 <li><strong>Pick only the domains you need</strong>: disabled domains are skipped (p.75), and choosing a policy includes all its domains at once.</li>
@@ -1328,34 +1299,30 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 </ul>
 
 <h2 id="c12-labs">4.36 Hands-on labs: profiling, masking and subset on ShopSphere</h2>
-<p>The syllabus lists three hands-on items that start from profiling: <strong>TDM_Handson1</strong> (TDM and data profiling), <strong>TDM_Handson2</strong> (data profiling and masking) and <strong>TDM_Handson3</strong> (data profiling and subset). The syllabus gives only these titles. I do not know the exact tasks your trainer sets, so the three labs below are <em>my reconstruction</em>, built so they chain together on the shared ShopSphere example.</p>
-
-<div class="callout note"><strong class="ctitle">What is from the guide and what is illustrative</strong>
-<p>Every click path below (menu names, dialog names, option names) comes from the User Guide 10.5.10 and carries a page number. The <strong>ShopSphere choices</strong> (project name, profile names, which results you approve, and the expected result tables) are illustrative: they show what a sensible outcome looks like on our fictional data. Your own installation will show different numbers and may use different labels. If you have no TDM installation, do each lab on paper using the sample tables, then compare.</p></div>
 <p>Starting point for all three labs: a TDM environment where an administrator has already created the database connection to ShopSphere, the Data Integration Service and the Model Repository Service connections (p.92), and you have Write permission on the project (see <a href="04-informatica-architecture-discovery-subset.html#c11-permissions">the permissions section of the tour</a>). The sample rows are the shared ShopSphere rows: customers 1001 Asha Menon, 1002 Ravi Kumar, 1003 Meera Nair.</p>
 
 <div class="exercise">
-<h4 id="c4-lab-1-tdm-handson1-tdm-and-data-profiling">Lab 1 (TDM_Handson1): TDM and data profiling</h4>
-<p>Goal: bring ShopSphere into a project, discover sensitive columns, and approve the results. This lab uses the policy and domain you built in the <a href="04-informatica-architecture-discovery-subset.html#c4-s2">guided tour</a>; if you skipped it, use the PII policy pack that ships with TDM (p.77).</p>
+<h4 id="c4-lab-1-tdm-and-data-profiling">Lab 1: TDM and data profiling</h4>
+<p>Goal: bring ShopSphere into a project, discover sensitive columns, and approve the results. This lab uses the policy and domain built in the <a href="04-informatica-architecture-discovery-subset.html#c4-s2">guided tour</a>, or the PII policy pack that ships with TDM (p.77).</p>
 
 <ol class="steps">
-<li><strong>Create the project.</strong><p>Projects &gt; Actions &gt; New; Name <code>CustomerOrders</code>, then OK (pp.53-54). <em>Illustrative name.</em> A project is where profiles and results live.</p><p class="expect">The project opens in a new page.</p></li>
+<li><strong>Create the project.</strong><p>Projects &gt; Actions &gt; New; Name <code>CustomerOrders</code>, then OK (pp.53-54). A project is where profiles and results live.</p><p class="expect">The project opens in a new page.</p></li>
 <li><strong>Import the four tables.</strong><p>In the project click Actions &gt; Import Metadata, choose Datasource Connection, pick the ShopSphere schema, select <code>CUSTOMERS</code>, <code>ORDERS</code>, <code>ORDER_ITEMS</code>, <code>PRODUCTS</code>, choose Import Now (pp.66-67).</p><p class="expect">Import Progress finishes and the tables appear in the Data Sources view.</p></li>
 <li><strong>Add the policy to the project.</strong><p>Use the Policies tab on the project Overview (p.50) to add <code>ShopSphere_Customer_PII</code> or a PII pack policy. A data domain profile can only use domains from policies in the project (p.100).</p><p class="expect">The policy and its domains are listed in the project.</p></li>
-<li><strong>Create a data domain profile.</strong><p>Discover &gt; Profile &gt; Actions &gt; New Profile; name <code>dd_customers</code>; type data domain; select <code>CUSTOMERS</code>; choose the policy; sampling Data and Column Name; Maximum Rows 1,000; a Minimum Conformance Percent such as 80 (<em>illustrative value</em>); Save (p.100).</p><p>Why both data and name: a mismatch between them (an SSN-shaped value in an oddly named column) is exactly what profiling exists to catch.</p></li>
+<li><strong>Create a data domain profile.</strong><p>Discover &gt; Profile &gt; Actions &gt; New Profile; name <code>dd_customers</code>; type data domain; select <code>CUSTOMERS</code>; choose the policy; sampling Data and Column Name; Maximum Rows 1,000; a Minimum Conformance Percent such as 80; Save (p.100).</p><p>Why both data and name: a mismatch between them (an SSN-shaped value in an oddly named column) is exactly what profiling exists to catch.</p></li>
 <li><strong>Execute and monitor.</strong><p>Actions &gt; Execute. Open the project's Monitor view and wait for the job to finish (pp.92, 101).</p><p class="expect">The job shows a completed status.</p></li>
 <li><strong>Close and reopen the profile, then open Profile &gt; Data Domain.</strong><p>The guide says results appear only after reopening (p.103, 105).</p><p class="expect">Rows for <code>CUSTOMERS</code> columns with a Profiled data domain column and conformance percentages.</p></li>
 <li><strong>Preview, then approve.</strong><p>Select <code>ssn</code>, open Data Preview, and confirm the first values look like 123-45-6789. Approve the rows you agree with, and Reject or fix any wrong match (p.105). Then mark the classification completed.</p></li>
 </ol>
 
 <details class="sol"><summary>Show a worked answer</summary>
-<p><strong>Illustrative result:</strong> <code>first_name</code> to First Name, <code>last_name</code> to Last Name, <code>email</code> to Email Address, <code>phone</code> to Phone, <code>ssn</code> to Social Security Number, <code>date_of_birth</code> to Birth Date, <code>zip_code</code> to ZIP, all approved. <code>tax_id</code> has no match, so open Discover &gt; Columns and set its Domain by hand (p.95), or add a domain for it. After this lab, Discover &gt; Columns lists those columns as sensitive, because assigning a domain marks a column sensitive (p.89).</p>
+<p><strong>Result:</strong> <code>first_name</code> to First Name, <code>last_name</code> to Last Name, <code>email</code> to Email Address, <code>phone</code> to Phone, <code>ssn</code> to Social Security Number, <code>date_of_birth</code> to Birth Date, <code>zip_code</code> to ZIP, all approved. <code>tax_id</code> has no match, so open Discover &gt; Columns and set its Domain by hand (p.95), or add a domain for it. After this lab, Discover &gt; Columns lists those columns as sensitive, because assigning a domain marks a column sensitive (p.89).</p>
 <p><strong>What if it fails?</strong> No results after reopening usually means the job failed or did not finish: check Monitor and the TDM job log (p.33). A connection error at Execute points to the discovery connection setup (p.92). A column that you know is an SSN but does not match: check the pattern and conformance threshold on the domain, and remember patterns are case sensitive (p.74).</p></details>
 </div>
 
 <div class="exercise">
-<h4 id="c4-lab-2-tdm-handson2-data-profiling-and-masking">Lab 2 (TDM_Handson2): data profiling and masking</h4>
-<p>Goal: use the approved domains from Lab 1 to mask <code>CUSTOMERS</code> in a test schema. The profiling steps are from the guide. The masking steps are only outlined here, because the <a href="05-informatica-masking-generation-workflows.html#c5-s1">Informatica masking chapter</a> covers rule types and plan settings in detail.</p>
+<h4 id="c4-lab-2-data-profiling-and-masking">Lab 2: data profiling and masking</h4>
+<p>Goal: use the approved domains from Lab 1 to mask <code>CUSTOMERS</code> in a test schema. The masking steps are outlined here; the <a href="05-informatica-masking-generation-workflows.html#c5-s1">Informatica masking chapter</a> covers rule types and plan settings.</p>
 
 <ol class="steps">
 <li><strong>Check that the domains are approved.</strong><p>Open Discover &gt; Columns and confirm each personal column has a Domain and is marked sensitive (p.89). If not, finish Lab 1 step 7 first.</p><p class="expect">Columns such as <code>ssn</code> and <code>email</code> show a domain name.</p></li>
@@ -1367,10 +1334,10 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 </ol>
 
 <details class="sol"><summary>Show a worked answer</summary>
-<p><strong>Illustrative before and after</strong> for the three sample customers (the masked values are made up; real output depends on your rules and dictionaries, and the guide does not give these values):</p>
+<p><strong>Before and after</strong> for the three sample customers (masked values are examples; real output depends on rules and dictionaries):</p>
 
 <div class="tablewrap"><table class="sample">
-<caption>Illustrative masking outcome (invented)</caption>
+<caption>Masking outcome (example data)</caption>
 <thead><tr><th>customer_id</th><th>first_name</th><th>last_name</th><th>email</th><th>ssn</th></tr></thead>
 <tbody>
 <tr><td>1001</td><td>Priya</td><td>Das</td><td>priya.das@example.net</td><td>581-22-9044</td></tr>
@@ -1380,21 +1347,21 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 </div>
 
 <div class="exercise">
-<h4 id="c4-lab-3-tdm-handson3-data-profiling-and-subset">Lab 3 (TDM_Handson3): data profiling and subset</h4>
-<p>Goal: discover keys and relationships, approve them, and set up a subset of ShopSphere customers. Profiling steps are from the guide. The subset plan itself is outlined; the <a href="04-informatica-architecture-discovery-subset.html#c4-s4">Informatica data subset chapter</a> gives the details.</p>
+<h4 id="c4-lab-3-data-profiling-and-subset">Lab 3: data profiling and subset</h4>
+<p>Goal: discover keys and relationships, approve them, and set up a subset of ShopSphere customers. The subset plan itself is outlined; the <a href="04-informatica-architecture-discovery-subset.html#c4-s4">Informatica data subset chapter</a> gives the details.</p>
 
 <ol class="steps">
-<li><strong>Pretend the metadata has no declared keys.</strong><p>This matches the guide's example database (pp.33-34) and gives profiling something to find. If your imported tables already show keys under Discover &gt; Tables &gt; Constraints, you can disable the physical keys on the Columns tab to practise (p.88-89), or just read along.</p></li>
+<li><strong>Pretend the metadata has no declared keys.</strong><p>This matches the guide's example database (pp.33-34) and gives profiling something to find. If your imported tables already show keys under Discover &gt; Tables &gt; Constraints, you can disable the physical keys on the Columns tab (p.88-89).</p></li>
 <li><strong>Create a primary key and entity profile.</strong><p>Discover &gt; Profile &gt; Actions &gt; New Profile; name <code>pk_entity_shopsphere</code>; choose primary key and entity; select all four tables; Sampling Options: key columns maximum 3, Max Rows 1,000, conformance 99 (the guide's defaults, pp.93, 99); Save.</p><p>Why combined: an entity profile alone returns nothing when there are no physical keys (p.93).</p></li>
 <li><strong>Execute, monitor, close and reopen.</strong><p>Actions &gt; Execute; wait in Monitor; reopen the profile (p.103).</p><p class="expect">Primary Key and Entity views show candidates.</p></li>
 <li><strong>Approve primary keys.</strong><p>On Profile &gt; Primary Key, approve the true identifiers (<code>customer_id</code>, <code>order_id</code>, <code>item_id</code>, <code>product_code</code>) and reject unique-but-wrong candidates like <code>email</code> or <code>ssn</code> (p.104).</p><p class="expect">Approved rows show status Approved; the keys are on the tables in the TDM repository.</p></li>
 <li><strong>Approve entity constraints.</strong><p>On Profile &gt; Entity, select an entity, check the Constraints view for parent and child columns, and approve the constraints and the entity you want (p.104).</p><p class="expect">The logical relationships <code>CUSTOMERS</code> to <code>ORDERS</code> to <code>ORDER_ITEMS</code> exist.</p></li>
-<li><strong>Set the severity.</strong><p>On the constraints, choose Major for <code>ORDERS</code> to <code>CUSTOMERS</code> if you want a customer's other orders to follow a filtered order, Minor if not (pp.108-109). <em>Our design choice.</em></p></li>
-<li><strong>Define the subset structure.</strong><p>In Define, create an entity with <code>CUSTOMERS</code> as the driving table (p.107) so TDM adds <code>ORDERS</code> and <code>ORDER_ITEMS</code> by constraint, and a group for <code>PRODUCTS</code>, so the whole product list is copied as reference data (a group holds tables without tying them to the entity; p.32, p.51; that choice is ours). Create a subset plan with a filter on a parent-table column and run it as described in the subset chapter.</p></li>
+<li><strong>Set the severity.</strong><p>On the constraints, choose Major for <code>ORDERS</code> to <code>CUSTOMERS</code> if you want a customer's other orders to follow a filtered order, Minor if not (pp.108-109).</p></li>
+<li><strong>Define the subset structure.</strong><p>In Define, create an entity with <code>CUSTOMERS</code> as the driving table (p.107) so TDM adds <code>ORDERS</code> and <code>ORDER_ITEMS</code> by constraint, and a group for <code>PRODUCTS</code>, so the whole product list is copied as reference data (a group holds tables without tying them to the entity; p.32, p.51). Create a subset plan with a filter on a parent-table column and run it as described in the subset chapter.</p></li>
 </ol>
 
 <details class="sol"><summary>Show a worked answer</summary>
-<p><strong>Illustrative result.</strong> Filtering <code>CUSTOMERS</code> to <code>customer_id &lt; 1003</code> keeps customers 1001 and 1002, all their orders and all items of those orders, with no orphan rows, plus the <code>PRODUCTS</code> in the group. Customer 1003 and her orders are absent. Verify by counting rows per table in the target and joining child to parent: the join should drop no rows.</p>
+<p><strong>Result.</strong> Filtering <code>CUSTOMERS</code> to <code>customer_id &lt; 1003</code> keeps customers 1001 and 1002, all their orders and all items of those orders, with no orphan rows, plus the <code>PRODUCTS</code> in the group. Customer 1003 and her orders are absent. Verify by counting rows per table in the target and joining child to parent: the join should drop no rows.</p>
 <p>If the subset has orphans, look first for a missing or disabled constraint. If the subset is far larger than expected, a Major constraint is probably pulling in whole families of related rows (p.108). If cycles are involved, a staging connection is required (p.109).</p></details>
 </div>
 
@@ -1428,32 +1395,18 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 <li>Results are suggestions: preview, approve or reject, correct by hand or by CSV, and close and reopen the profile to see them.</li>
 <li>Constraints you approve or add (primary, foreign, logical, unique, conditional) live in the TDM repository. Major severity brings all siblings; minor does not.</li>
 <li>Auto cascade keeps parent and child keys masked the same way; value cascades do it for similar columns without keys.</li>
-<li>Labs 1 to 3 chain profiling into masking and subset on ShopSphere. Their menu paths are from the guide; the data and results are illustrative.</li>
+<li>Labs 1 to 3 chain profiling into masking and subset on ShopSphere.</li>
 </ul></div>
 
 <section class="sources">
 <div class="grp" id="c4-s4"><span class="grplabel">Informatica: creating a data subset</span></div>
-<p><a href="02-privacy-discovery-subsetting-masking.html#c2-s2">the discovery and subsetting concepts chapter</a> explained <em>why</em> a team would shrink a production database before using it for testing. Then <a href="04-informatica-architecture-discovery-subset.html#c4-s3">the Informatica discovery and profiling chapter</a> showed how to find the tables, keys and sensitive columns in a source. This section is where you actually build the smaller copy in Informatica Test Data Management (TDM). A <dfn>data subset</dfn> is a small slice of production data that still hangs together: if you keep a customer, you also keep that customer's orders and the order lines inside them.</p>
+<p>A <dfn>data subset</dfn> is a small slice of production data that still hangs together: if you keep a customer, you also keep that customer's orders and the order lines inside them.</p>
 
-<p>Why do you care? A full copy of production is slow to load, expensive to store and full of real people's data. A random sample of rows is cheap but useless, because a sampled order may point to a customer that was not sampled. A subset gives you the middle path: small <em>and</em> consistent. In the syllabus this is Day 44 ("types of subset, driver tables") and the subset half of the hands-on exercise TDM_Handson3 (data profiling and subset).</p>
+<p>A full copy of production is slow to load, expensive to store and full of real people's data. A random sample of rows is cheap but useless, because a sampled order may point to a customer that was not sampled. A subset gives you the middle path: small <em>and</em> consistent.</p>
 
-<div class="callout note">
-<strong class="ctitle">What this section is based on</strong>
-<p>Everything marked  comes from the <strong>Informatica Test Data Management 10.5.10 User Guide (PDF, February 2026, 455 pages)</strong>: User Guide chapter 6 "Creating a Data Subset" (pages 112 to 134) in full, plus the related parts of User Guide chapter 3 "Projects" (parameters, p.57), User Guide chapter 5 "Data Discovery" (constraints, p.107 to 109) and User Guide chapter 13 "Plans and Workflows" (plan settings, criteria and workflow generation, p.274 to 310). Page numbers are written as (User Guide 10.5.10, p.NN).</p>
-<p>The ShopSphere tables, the numbers and the 10 percent target are <strong>my own illustrative example</strong> ( or labelled "illustrative"), not from the guide. Where the guide does not say something I say so. Menu names can differ slightly between TDM versions, so confirm against your install.</p>
-</div>
 
-<div class="callout recap">
-<strong class="ctitle">What you will learn</strong>
-<ul>
-<li>What a data subset is and the three kinds of source TDM can subset (relational, flat file, XSD).</li>
-<li>What an entity, a driving table, a group and a template are, and when to use each.</li>
-<li>How filter criteria, operators, parameters and the plan-level Limit (percentage, absolute value, interval) decide which rows are picked.</li>
-<li>How TDM pulls related rows: major and minor constraints, and the four data integrity options.</li>
-<li>The full workflow from an empty project to a running subset plan, with the reason for every step.</li>
-<li>A worked ShopSphere example that cuts 20 customers down to 2 (10 percent) with their orders, items and products, and a lab you can repeat.</li>
-</ul>
-</div>
+
+
 
 <h2 id="c13-words">4.39 Words to know first</h2>
 
@@ -1461,7 +1414,7 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 <div><dt>Data subset</dt><dd>A small, targeted copy of production data that keeps related rows together, so it can be used in development, test or training.</dd></div>
 <div><dt>Referential integrity</dt><dd>The rule that every foreign key points at a row that exists. An order whose customer is missing breaks it.</dd></div>
 <div><dt>Entity</dt><dd>In TDM, a set of tables that are related by physical or logical constraints, built around one starting table. You filter the entity to say "which customers".</dd></div>
-<div><dt>Driving table</dt><dd>The one table you pick as the starting point of an entity. The guide says "driving table"; the syllabus says "driver table". They mean the same thing. People also say "root table", but the guide does not use that word.</dd></div>
+<div><dt>Driving table</dt><dd>The one table you pick as the starting point of an entity. Also called the "driver table".</dd></div>
 <div><dt>Group</dt><dd>A set of tables that are <em>not</em> related to each other (or that you want copied without filtering), added to a plan as they are.</dd></div>
 <div><dt>Template</dt><dd>An optional container that holds entities and groups. The guide mentions it but gives almost no detail (see 13.5).</dd></div>
 <div><dt>Constraint</dt><dd>A rule linking two tables, usually a foreign key from a child table to a parent table. It can be <em>physical</em> (declared in the database) or <em>logical</em> (added in TDM because the database does not declare it).</dd></div>
@@ -1474,7 +1427,7 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 
 <h3 id="c13-overview-idea">4.40.1 The idea in one example</h3>
 
-<p>Imagine ShopSphere's production database holds 2 million customers. Your QA team needs a test environment that holds about 10 percent of them, with every order and order line for those customers, and the products those lines refer to. Nothing else. If you did this by hand you would write SQL joins for each table and hope you did not miss a foreign key. TDM lets you describe the shape once (an entity) and the filter once (criteria), then repeats it on demand.</p>
+<p>ShopSphere's production database holds 2 million customers. The QA team needs a test environment that holds about 10 percent of them, with every order and order line for those customers, and the products those lines refer to. Nothing else. If you did this by hand you would write SQL joins for each table and hope you did not miss a foreign key. TDM lets you describe the shape once (an entity) and the filter once (criteria), then repeats it on demand.</p>
 
 <h3 id="c13-overview-docs">4.40.2 What the guide says </h3>
 
@@ -1520,7 +1473,7 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 
 <p>An entity is a <em>shape</em>: "start at this table, and include everything connected to it". The guide says an entity "consists of a driving table and related tables" (User Guide 10.5.10, p.114) . The driving table is the starting point. TDM works out the other tables from the constraints that involve the driving table and adds them by default. You then put a filter on columns of the tables in the entity to say which rows you want.</p>
 
-<p>Here is the same idea on ShopSphere. We choose <code>CUSTOMERS</code> as the driving table because the business question is "give me some customers and everything they did". <code>ORDERS</code> points at <code>CUSTOMERS</code> through <code>customer_id</code>, <code>ORDER_ITEMS</code> points at <code>ORDERS</code> through <code>order_id</code>, and <code>ORDER_ITEMS</code> points at <code>PRODUCTS</code> through <code>product_code</code>. (The first two links are in the shared ShopSphere model. The <code>product_code</code> link is my assumption for this example: in the source it is a column that names a product, so I treat it as a foreign key.)</p>
+<p>Here is the same idea on ShopSphere. We choose <code>CUSTOMERS</code> as the driving table because the business question is "give me some customers and everything they did". <code>ORDERS</code> points at <code>CUSTOMERS</code> through <code>customer_id</code>, <code>ORDER_ITEMS</code> points at <code>ORDERS</code> through <code>order_id</code>, and <code>ORDER_ITEMS</code> points at <code>PRODUCTS</code> through <code>product_code</code>. (The <code>product_code</code> link is assumed for this example: in the source it is a column that names a product, treated here as a foreign key.)</p>
 
 <figure class="diagram"><svg viewBox="0 0 800 250" role="img" aria-label="Entity map for ShopSphere: CUSTOMERS is the driving table, ORDERS and ORDER_ITEMS are children, PRODUCTS is a parent of ORDER_ITEMS">
 <defs><marker id="c13a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
@@ -1542,12 +1495,12 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 <line x1="545" y1="160" x2="545" y2="102" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#c13a)"/>
 <text x="219" y="58" text-anchor="middle" stroke="none" font-size="11">major</text>
 <text x="429" y="58" text-anchor="middle" stroke="none" font-size="11">major</text>
-<text x="640" y="135" stroke="none" font-size="11">minor (our choice, see 13.11)</text>
+<text x="640" y="135" stroke="none" font-size="11">minor (see 13.11)</text>
 <text x="20" y="140" stroke="none" font-size="12">Solid line: enabled relationship.</text>
 <text x="20" y="160" stroke="none" font-size="12">Dotted line here shows the relationship we will set to minor.</text>
 <text x="20" y="180" stroke="none" font-size="12">(In TDM's own map, a dotted line means a disabled relationship.)</text>
 </g></svg>
-<figcaption>Original diagram: the ShopSphere entity with CUSTOMERS as the driving table. The star marks the driving table, as the guide says TDM does in its own entity map. The dotted line is my drawing style for "minor"; in the real tool, dotted means disabled (p.120).</figcaption></figure>
+<figcaption>The ShopSphere entity with CUSTOMERS as the driving table. The star marks the driving table, as in TDM's own entity map. Here the dotted line marks "minor"; in the real tool, dotted means disabled (p.120).</figcaption></figure>
 
 <h3 id="c13-entity-views">4.42.2 The three views of an entity</h3>
 
@@ -1569,7 +1522,7 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 
 <h3 id="c13-create-entity">4.42.4 Creating an entity, step by step</h3>
 
-<p>This is the guide's procedure (User Guide 10.5.10, p.116 to 117) , with the reason for each step.</p>
+<p>Procedure (User Guide 10.5.10, p.116 to 117), with the reason for each step.</p>
 
 <ol class="steps">
 <li><strong>Open the project, then click Define > Data Subset.</strong>
@@ -1630,7 +1583,7 @@ Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What
 
 <h3 id="c13-templates">4.43.3 Templates: what the guide actually says</h3>
 
-<p>The guide mentions templates only in passing: "an optional component that contains the entities and groups" (User Guide 10.5.10, p.32 and p.293) . Chapter 6 has no section on creating a template and I found no steps elsewhere, so I give none. Ask your trainer if your course uses them.</p>
+<p>The guide mentions templates only in passing: "an optional component that contains the entities and groups" (User Guide 10.5.10, p.32 and p.293) . The guide gives no steps for creating a template.</p>
 
 <h2 id="c13-related-rows">4.44 How related rows are pulled</h2>
 
@@ -1660,7 +1613,7 @@ MAJOR (both ways)                     MINOR (child to parent only)
  ORDER 5003 (comes along)              ORDER 5002 (left out)
 </pre>
 
-<h3 id="c13-loop">4.44.2 The loop that surprises beginners</h3>
+<h3 id="c13-loop">4.44.2 The loop effect</h3>
 
 <p>With major relations the pulling can chain. The guide describes it (p.108, p.122): a selected child record pulls in its parents; each parent then selects all its related children; those children might point to <em>other</em> parents not yet in the subset, which pull in more children, "in a loop until there are no more related records to select". This is how a small filter can grow into a big subset. You will see exactly this in the ShopSphere example when <code>PRODUCTS</code> is related by a major constraint (13.11).</p>
 
@@ -1694,7 +1647,7 @@ MAJOR (both ways)                     MINOR (child to parent only)
 <li><strong>Criteria on both CUSTOMERS and ORDERS (for example zip code and order value):</strong> consider Two-way so that both tables end up with data, or edit the criteria to OR (see the table).</li>
 </ul>
 
-<p>These are my suggestions built on the guide's descriptions, . Always verify on a trial run.</p>
+<p>Verify the choice on a trial run.</p>
 
 <h3 id="c13-optimize">4.44.5 Optimizing relations</h3>
 
@@ -1732,10 +1685,10 @@ MAJOR (both ways)                     MINOR (child to parent only)
 
 <h3 id="c13-criteria-ops">4.45.1 Entity filter criteria and operators</h3>
 
-<p>You met entity criteria while creating an entity (13.4). A criterion is: a column, an <em>attribute</em> (Value or Parameter), an <em>operator</em>, and the value or parameter. The guide's examples use "greater than", "equals" and "IN" (p.118, p.119, p.127). The excerpt I had does not print the full list of operators in the drop-down, so do not assume more than those three; look at your own dialog.</p>
+<p>You met entity criteria while creating an entity (13.4). A criterion is: a column, an <em>attribute</em> (Value or Parameter), an <em>operator</em>, and the value or parameter. The guide's examples use "greater than", "equals" and "IN" (p.118, p.119, p.127). The full operator list is not documented, so do not assume more than those three.</p>
 
 <div class="callout example">
-<strong class="ctitle">ShopSphere examples (illustrative)</strong>
+<strong class="ctitle">ShopSphere examples</strong>
 <ul>
 <li><code>customer_id &lt;= 1002</code>: keeps the first two customers. Easy to predict, good for a lab.</li>
 <li><code>zip_code = '560001'</code>: keeps all customers in one postal area, a "region" subset like the guide's financial-data-for-one-region example.</li>
@@ -1784,7 +1737,7 @@ MAJOR (both ways)                     MINOR (child to parent only)
 
 <div class="callout note">
 <strong class="ctitle">What the guide does not tell you about Limit</strong>
-<p>The excerpt I had names the three limit types and nothing more. It does not say which table the percentage applies to, how rows are chosen (first N, random?), what the "interval" arithmetic is (every Nth row? a range?), or how a Limit interacts with parent-child pulling. So I describe the three types by their names only: percentage means a share of rows, absolute value means a fixed row count, interval means "a set of rows defined by an interval". Test on a small table and count the result before relying on it. The guide also says Two-way and One-way integrity are not available when a plan uses custom Advanced or Limit criteria (p.123).</p>
+<p>The guide names the three limit types and nothing more. It does not say which table the percentage applies to, how rows are chosen (first N, random?), what the "interval" arithmetic is (every Nth row? a range?), or how a Limit interacts with parent-child pulling. Test on a small table and count the result before relying on it. The guide also says Two-way and One-way integrity are not available when a plan uses custom Advanced or Limit criteria (p.123).</p>
 </div>
 
 <ul>
@@ -1793,7 +1746,7 @@ MAJOR (both ways)                     MINOR (child to parent only)
 <li><strong>Interval:</strong> a defined interval of rows. The guide gives no example.</li>
 </ul>
 
-<p>Syllabus link: Day 44 "types of subset". In practice, the guide supports these ways of choosing rows: by <em>condition</em> (entity criteria and plan Basic/Advanced criteria), by <em>parameterised condition</em>, and by <em>quantity</em> (Limit). I label this grouping as my own summary, , not a list taken from the guide.</p>
+<p>Ways of choosing rows: by <em>condition</em> (entity criteria and plan Basic/Advanced criteria), by <em>parameterised condition</em>, and by <em>quantity</em> (Limit).</p>
 
 <h3 id="c13-subset-plus-mask">4.45.5 Subset and masking in one plan</h3>
 
@@ -1812,7 +1765,7 @@ MAJOR (both ways)                     MINOR (child to parent only)
 <li><strong>Group B:</strong> delete the Skill criterion, then put a criterion on <code>City</code>: Equals, BLR, scope Department. The output has every department whose address city is BLR, with all child elements.</li>
 </ul>
 
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.127, Figure (Criteria tab of the file page). What I saw: a dialog titled "Edit - Skill" with tabs General, Data Masking, Data Generation and Criteria. Criteria is selected and shows three fields: Operator set to Equals, Value set to JAVA, Scope set to Departments/Department/Employee, with OK and Cancel buttons.</div>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.127, Figure (Criteria tab of the file page). Shows a dialog titled "Edit - Skill" with tabs General, Data Masking, Data Generation and Criteria. Criteria is selected and shows three fields: Operator set to Equals, Value set to JAVA, Scope set to Departments/Department/Employee, with OK and Cancel buttons.</div>
 
 <p>The lesson carries over to relational data: the level where you filter decides which ancestors and descendants appear. For the ShopSphere tables the equivalent of "scope" is your choice of driving table and relationship types.</p>
 
@@ -1832,7 +1785,7 @@ MAJOR (both ways)                     MINOR (child to parent only)
 
 <h2 id="c13-workflow">4.48 The whole workflow, start to finish</h2>
 
-<p>The guide's own summary of "Creating a Data Subset" is seven steps (User Guide 10.5.10, p.126) . Here they are with the reason and what you should see.</p>
+<p>The guide's own summary of "Creating a Data Subset" is seven steps (User Guide 10.5.10, p.126) .</p>
 
 <ol class="steps">
 <li><strong>Create a project and add the data sources.</strong>
@@ -1876,18 +1829,13 @@ MAJOR (both ways)                     MINOR (child to parent only)
 <div class="node"><b>7 Monitor</b></div>
 </div>
 
-<p>Plans and workflows get a full chapter of their own: see <a href="05-informatica-masking-generation-workflows.html#c5-s3">the Informatica plans and workflows chapter</a>. For connections and the profile that finds constraints, see <a href="04-informatica-architecture-discovery-subset.html#c4-s3">the Informatica discovery and profiling chapter</a>. The tour of the TDM screens is <a href="04-informatica-architecture-discovery-subset.html#c4-s2">the Informatica TDM tour</a>.</p>
+<p>Related: <a href="05-informatica-masking-generation-workflows.html#c5-s3">the Informatica plans and workflows chapter</a> (plans and workflows), <a href="04-informatica-architecture-discovery-subset.html#c4-s3">the Informatica discovery and profiling chapter</a> (connections and constraint discovery) and <a href="04-informatica-architecture-discovery-subset.html#c4-s2">the Informatica TDM tour</a> (screens).</p>
 
 <h2 id="c13-shopsphere">4.49 Worked example: ShopSphere down to 10 percent</h2>
 
-<div class="callout note">
-<strong class="ctitle">What is documented and what is illustrative</strong>
-<p>The steps and settings follow the guide as cited. The data, the counts and the names (<code>SHOPSPHERE_PROD</code>, <code>MAX_CUST_ID</code>, the products) are my fictional ShopSphere example. The exact row counts in "Option A versus a major relationship" are made up to show the <em>effect</em> the guide describes, not measured in a real run.</p>
-</div>
-
 <h3 id="c13-ss-goal">4.49.1 The goal</h3>
 
-<p>ShopSphere's QA team wants a test database with about 10 percent of customers, with all their orders and order lines, and the products on those lines. The source has 20 customers (1001 to 1020), 36 orders, 80 order lines and 12 products (illustrative). Target: 2 customers.</p>
+<p>ShopSphere's QA team wants a test database with about 10 percent of customers, with all their orders and order lines, and the products on those lines. The source has 20 customers (1001 to 1020), 36 orders, 80 order lines and 12 products. Target: 2 customers.</p>
 
 <h3 id="c13-ss-before">4.49.2 Before: the source rows we care about</h3>
 
@@ -1900,7 +1848,7 @@ MAJOR (both ways)                     MINOR (child to parent only)
 <tr><td>... 1004 to 1020</td><td colspan="4">17 more customers</td></tr>
 </tbody></table></div>
 
-<div class="tablewrap"><table class="sample"><caption>ORDERS and ORDER_ITEMS rows for customers 1001 and 1002 (illustrative)</caption>
+<div class="tablewrap"><table class="sample"><caption>ORDERS and ORDER_ITEMS rows for customers 1001 and 1002 (example data)</caption>
 <thead><tr><th>order_id</th><th>customer_id</th><th>item_id</th><th>product_code</th><th>quantity</th><th>unit_price</th></tr></thead>
 <tbody>
 <tr><td>5001</td><td>1001</td><td>9001</td><td>P-100</td><td>1</td><td>999.00</td></tr>
@@ -1962,7 +1910,7 @@ WHERE o.order_id IS NULL;</code></pre>
 
 <h3 id="c13-ss-after">4.49.4 After: what lands in the target</h3>
 
-<div class="tablewrap"><table class="sample"><caption>Row counts, source versus target (illustrative)</caption>
+<div class="tablewrap"><table class="sample"><caption>Row counts, source versus target (example data)</caption>
 <thead><tr><th>Table</th><th>Source</th><th>Target with minor PRODUCTS link</th><th>Target with major PRODUCTS link</th></tr></thead>
 <tbody>
 <tr><td>CUSTOMERS</td><td>20</td><td>2 (1001, 1002)</td><td>15</td></tr>
@@ -1975,7 +1923,7 @@ WHERE o.order_id IS NULL;</code></pre>
 
 <h3 id="c13-ss-loop">4.49.5 Option A versus a major relationship</h3>
 
-<p>Why did I insist on changing PRODUCTS to minor? With the default (all major), the loop from 13.6 applies: line 9001 pulls in its parent product P-100. As a major parent, P-100 then selects <em>all</em> order lines for P-100, from every customer. Those lines pull their orders, the orders pull their customers, and so on, until nothing new is added. A popular product like P-100 can connect nearly everyone, so "10 percent of customers" turns into most of the database (the right-hand column above, illustrative counts). Minor means: bring the product along, but do not let the product pull its other lines.</p>
+<p>Why change PRODUCTS to minor? With the default (all major), the loop from 13.6 applies: line 9001 pulls in its parent product P-100. As a major parent, P-100 then selects <em>all</em> order lines for P-100, from every customer. Those lines pull their orders, the orders pull their customers, and so on, until nothing new is added. A popular product like P-100 can connect nearly everyone, so "10 percent of customers" turns into most of the database (the right-hand column above). Minor means: bring the product along, but do not let the product pull its other lines.</p>
 
 <pre class="ascii">
 Major PRODUCTS link                  Minor PRODUCTS link
@@ -1991,13 +1939,13 @@ customer 1001                        customer 1001
 
 <p>PRODUCTS is small and looks like reference data. Another valid design: disable the ORDER_ITEMS to PRODUCTS relationship in the entity (p.120) so the entity is just customers, orders and lines, then create a <strong>group</strong> containing PRODUCTS (tick it from the residual tables, p.116) and add both the entity and the group to the plan. The target gets all 12 products (unfiltered) and still has no orphan lines. The trade-off: 8 unused products travel along, which is harmless here but would matter for a 2-million-row table. Pick Option A for big parent tables and Option B for small reference tables.</p>
 
-<p><a href="02-privacy-discovery-subsetting-masking.html#c2-s2">the discovery and subsetting concepts chapter</a> covers why test teams usually want reference data complete and transactional data small; <a href="05-informatica-masking-generation-workflows.html#c5-s1">the Informatica masking chapter</a> shows masking the customers you just selected, so the 2 customers in this subset do not carry real names or SSNs.</p>
+<p>To mask the customers just selected, see <a href="05-informatica-masking-generation-workflows.html#c5-s1">the Informatica masking chapter</a>.</p>
 
-<h2 id="c13-lab">4.50 Lab: TDM_Handson3 (profiling and subset), ShopSphere version</h2>
+<h2 id="c13-lab">4.50 Lab: subsetting ShopSphere</h2>
 
 <div class="exercise">
 <h4 id="c4-lab-subset-shopsphere-to-about-10-percent-of-customers">Lab: subset ShopSphere to about 10 percent of customers</h4>
-<p>Goal: after profiling the source for constraints (the profiling half of TDM_Handson3 is in <a href="04-informatica-architecture-discovery-subset.html#c4-s3">the Informatica discovery and profiling chapter</a>), build an entity with CUSTOMERS as the driving table, filter with a parameter and run a plan so the target has the first 10 percent of customers with their orders, order lines and products. Everything below on ShopSphere is illustrative; the screens are from the guide, so use your lab environment's real database and its real table names.</p>
+<p>Goal: after profiling the source for constraints (see <a href="04-informatica-architecture-discovery-subset.html#c4-s3">the Informatica discovery and profiling chapter</a>), build an entity with CUSTOMERS as the driving table, filter with a parameter and run a plan so the target has the first 10 percent of customers with their orders, order lines and products. Use the lab environment's real database and table names.</p>
 <ol class="steps">
 <li><strong>Check the source.</strong>
 <p>Query counts on the four tables and write them down. You need them for the before and after comparison.</p>

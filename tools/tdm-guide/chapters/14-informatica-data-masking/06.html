@@ -14,7 +14,7 @@
 <tr><td>customer_id (PK) and orders.customer_id (FK)</td><td>none</td><td>Left unmasked here. If you chose to mask them, rely on the auto cascade, or key masking with the same seed in both</td><td>A surrogate id is not personal data by itself; this is a project decision</td></tr>
 </tbody></table></div>
 
-<div class="tablewrap"><table class="sample"><caption>CUSTOMERS rows after masking (illustrative; real output will differ)</caption>
+<div class="tablewrap"><table class="sample"><caption>CUSTOMERS rows after masking (example output)</caption>
 <thead><tr><th>customer_id</th><th>first_name</th><th>last_name</th><th>email</th><th>phone</th><th>ssn</th><th>date_of_birth</th><th>zip_code</th></tr></thead>
 <tbody>
 <tr><td>1001</td><td>Divya</td><td>Nair</td><td>divya.nair@example.com</td><td>9876012345</td><td>612-73-4410</td><td>1991-03-30</td><td>560417</td></tr>
@@ -60,10 +60,8 @@
 
 <h2 id="c14-labs">14.11 Hands-on labs</h2>
 
-<p>The syllabus lists TDM_Handson2 (profiling and masking), Day 55 (mask FirstName) and Day 56 (alphanumeric text, SSN, telephone number). The curriculum also ties Days 55 and 56 to Delphix (<a href="26-delphix-algorithms-and-masking-jobs.html">algorithms and masking jobs</a>, <a href="28-delphix-hands-on-labs.html">the Delphix labs</a>); these are the Informatica versions. Screens come from the guide as cited; ShopSphere data, dictionary and seeds are my illustration.</p>
-
 <div class="exercise">
-<h4>Lab 1 (TDM_Handson2): profile ShopSphere and apply masking rules by domain</h4>
+<h4>Lab 1: profile ShopSphere and apply masking rules by domain</h4>
 <p>Goal: find the sensitive columns of <code>CUSTOMERS</code> with a data domain profile (see <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>), let the domains suggest rules, and mask them.</p>
 <ol class="steps">
 <li><strong>Create a project and import the ShopSphere source metadata.</strong>
@@ -99,7 +97,7 @@
 </div>
 
 <div class="exercise">
-<h4>Lab 2 (Day 55): mask FirstName with substitution</h4>
+<h4>Lab 2: mask FirstName with substitution</h4>
 <p>Goal: replace every <code>first_name</code> with a value from a dictionary, the same way every run.</p>
 <ol class="steps">
 <li><strong>Create the dictionary file <code>FIRSTNAMES.csv</code></strong> with a header row and 30 or more names, for example <code>SNO,FIRSTNAME</code> then <code>1,Divya</code>, <code>2,Arjun</code> and so on (the guide's sample dictionary also has COUNTRY and GENDER columns, p.178).<p>Substitution needs a list to pick from. For a unique substitution the list must have at least as many distinct names as the column has distinct values.</p>
@@ -112,7 +110,7 @@
 <p>(p.139, p.179).</p>
 </li>
 <li><strong>Choose Substitution. Set Repeatable Output and Seed 1. Fill Dictionary Information: Dictionary, Masked Value FIRSTNAME, Serial Number Column SNO and the lookup column if your version requires one.</strong>
-<p>The guide's example used a lookup column of GENDER; my dictionary has no gender column, so what is mandatory in your version is something to check (p.177, p.179).</p>
+<p>The guide's example used a lookup column of GENDER; this dictionary has no gender column, so check which lookup columns your version requires (p.177, p.179).</p>
 </li>
 <li><strong>Leave the exception handling at its defaults. Click Finish.</strong>
 <p>The defaults ignore nulls and continue on error (shown on p.154).</p>
@@ -138,7 +136,7 @@
 </div>
 
 <div class="exercise">
-<h4>Lab 3 (Day 56): mask alphanumeric text, SSN and telephone number</h4>
+<h4>Lab 3: mask alphanumeric text, SSN and telephone number</h4>
 <p>Goal: mask <code>tax_id</code> (letters and digits), <code>ssn</code> and <code>phone</code> so each keeps the shape the application expects.</p>
 <ol class="steps">
 <li><strong>Create a key masking rule for tax_id.</strong>
@@ -176,7 +174,7 @@ SELECT COUNT(*) FROM customers t JOIN src_customers s
 WHERE t.ssn = s.ssn OR t.phone = s.phone OR t.tax_id = s.tax_id;</code></pre>
 <details class="sol">
 <summary>Show a worked answer</summary>
-<p>Queries 1 to 3 return the full row count and query 4 returns 0 (rerun with another seed if a random collision appears). Example masked values (illustrative): tax_id ABCPM1234K to QWZRT5820M, ssn 123-45-6789 to 612-73-4410, phone 9876543210 to 9876012345. If results differ: a mask format shorter than the value leaves trailing characters unmasked (p.164); SSN masking cannot guarantee uniqueness (p.175); the guide does not say which phone digits are kept (p.169).</p></details>
+<p>Queries 1 to 3 return the full row count and query 4 returns 0 (rerun with another seed if a random collision appears). Example masked values: tax_id ABCPM1234K to QWZRT5820M, ssn 123-45-6789 to 612-73-4410, phone 9876543210 to 9876012345. If results differ: a mask format shorter than the value leaves trailing characters unmasked (p.164); SSN masking cannot guarantee uniqueness (p.175); the guide does not say which phone digits are kept (p.169).</p></details>
 </div>
 
 <h2 id="c14-mistakes">14.12 Common mistakes and gotchas</h2>
@@ -206,7 +204,7 @@ WHERE t.ssn = s.ssn OR t.phone = s.phone OR t.tax_id = s.tax_id;</code></pre>
 <li>Repeatable output and a seed make masking deterministic. Substitution and expression masking also need a storage table.</li>
 <li>Substitution gives realistic values from a dictionary; shuffle moves real values between rows; key masking keeps character types deterministically; random masking uses ranges and blurring; encryption can be reversible; nullification empties the column; SSN, SIN, phone, credit card, email, IP and URL are built-in formats.</li>
 <li>Choose by what the application needs: realism, format validity, joinability across tables, reversibility, or nothing at all.</li>
-<li>The guide covers importing and assigning mapplet rules but does not teach building the mapplet in PowerCenter.</li>
+<li>A mapplet is built and validated in PowerCenter (the video's example joins first and last name), exported to XML, then imported and assigned in TDM. The guide covers the TDM side only.</li>
 <li>Masking happens after subsetting when both are in one plan.</li>
 </ul>
 </div>
@@ -215,5 +213,6 @@ WHERE t.ssn = s.ssn OR t.phone = s.phone OR t.tax_id = s.tax_id;</code></pre>
 <ul>
 <li>Informatica Test Data Management 10.5.10 User Guide (PDF, February 2026, 455 pages): chapter 7 (p.135 to 150) and chapter 8 (p.151 to 189), read in full; figures on p.136, p.138, p.154 and p.174 rendered and read.</li>
 <li>Same guide: chapter 4 "Policies" (p.71 to 85), cascades in chapter 5 (p.90 to 91), chapter 3 (p.52 to 53, p.62), chapter 13 (p.275, p.281, p.284, p.286 to 287, p.295, p.304, p.308 to 312).</li>
-<li>Curriculum (Day 44, 54, 55, 56, TDM_Handson2). ShopSphere data, before and after values, the design table and labs are my illustrations. Related video "How to create mapplet in informatica" (LearningMart, linked in 14.9): title only, not used as a source.</li>
+<li>ShopSphere data, before and after values, the design table and labs are examples.</li>
+<li>Video "How to create mapplet in informatica" (LearningMart), used in 14.9 for the PowerCenter mapplet build steps. The video does not state the PowerCenter version, so confirm menu names on your install.</li>
 </ul></section>
