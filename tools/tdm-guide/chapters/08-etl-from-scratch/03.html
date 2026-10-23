@@ -37,9 +37,7 @@ WHERE total_amount NOT GLOB '*[^0-9.]*';   -- only rows whose amount is numeric<
 <tr><td>Before (text)</td><td>"5002"</td><td>"20/10/2026"</td><td>"250.50"</td></tr>
 <tr><td>After (typed)</td><td>5002</td><td>2026-10-20 (date)</td><td>250.5 (number)</td></tr>
 </tbody></table></div>
-<p>Oracle and PostgreSQL would use <code>TO_DATE(order_date, 'DD/MM/YYYY')</code>; I sliced the string because SQLite has no date parser with a format string.</p>
-<div class="callout warn"><strong class="ctitle">Dates written day-first and month-first</strong>
-<p>"03/04/2026" is 3 April in India and Europe but 4 March in the USA. Always confirm the source's format with its owner, and then <em>reject</em> dates that do not parse instead of guessing. A job that silently swaps day and month corrupts every row it touches.</p></div>
+<p>Oracle and PostgreSQL would use <code>TO_DATE(order_date, 'DD/MM/YYYY')</code>; I sliced the string because SQLite has no date parser with a format string. Confirm with the data owner whether dates are day-first or month-first, and reject dates that do not parse instead of guessing.</p>
 
 <h3 id="c8-t-mapping">8.7.3 Mapping and standardising</h3>
 <p>The word <strong>mapping</strong> has two meanings in ETL, and both matter. In the broad sense a <em>mapping</em> is the whole definition of how source columns become target columns (we meet this in 8.11). In the narrow sense, <em>value mapping</em> means translating codes: the order system stores <code>S</code>, <code>P</code> and <code>C</code>, and reports want the words.</p>
@@ -135,5 +133,3 @@ GROUP BY order_date;</code></pre>
 <tr><td>2026-10-21</td><td>1</td><td>1</td><td>75.0</td></tr>
 </tbody></table></div>
 <p>Hand check: on 20 October, 1 + 2 + 1 = 4 units and 1499 + 200 + 50.5 = 1749.5 revenue.</p>
-<div class="callout tip"><strong class="ctitle">Order of transformations matters</strong>
-<p>Clean before you compare, convert before you calculate, deduplicate before you join, and filter early to cut work. For example, if you deduplicate <em>after</em> joining items to orders, one duplicated order doubles its items and doubles the revenue.</p></div>

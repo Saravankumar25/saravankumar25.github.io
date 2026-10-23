@@ -17,7 +17,6 @@
 <li><strong>All-or-nothing.</strong> Load inside a transaction so a failure undoes everything.</li>
 <li><strong>Checkpoint and resume.</strong> Remember how far you got, and on restart continue from there.</li>
 <li><strong>Retry with a limit.</strong> Temporary glitches (a dropped connection) often pass on a second attempt.</li>
-<li><strong>Alert a human</strong> with the job name, batch id, error count and where to look.</li>
 </ul>
 <div class="callout real"><strong class="ctitle">Real settings in the Informatica TDM plan</strong>
 <p>Under "Error and Recovery Options" in a plan (User Guide 10.5.10, p.285) the guide lists these, which are a concrete menu of the strategies above. <span class="badge doc">From docs</span></p>
@@ -31,12 +30,7 @@
 </ul></div>
 <p>Delphix gives a second example of the same ideas for masking jobs. Data that does not fit what an algorithm expects (non-conformant data) can, at job level, make the job fail, leave the value unmasked, or set it to null (jobs page; terminology page). It also warns that when a masking job fails, the target database or files may be left in a partially masked or unmasked state (job monitoring page). <span class="badge doc">From docs</span> <a href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">Job monitoring ↗</a> That sentence is a good reminder: after a failed job, never assume the target is usable.</p>
 <h3 id="c8-reprocessing">8.13.3 Reprocessing rejected rows</h3>
-<p>Our run 1 rejected order 5004 (amount "abc") and 5005 (customer 9999). Nothing in the watermark approach will pick them up again, because the watermark moved past 5005. Rejected rows are parked and need their own path:</p>
-<ol class="steps">
-<li><strong>Look at the reject table.</strong><p>Group by reason to see if there is a pattern.</p><p class="expect">Two rows, two different reasons: a data format problem and a missing parent.</p></li>
-<li><strong>Fix the cause at its owner.</strong><p>Ask the order system's owners about "abc". Check whether customer 9999 arrives in tomorrow's customer file.</p></li>
-<li><strong>Re-feed the corrected rows.</strong><p>Insert the fixed rows into staging as a new batch (or delete the reject row and reset the watermark below it) and run the transform and load steps again.</p><p class="expect">The fact table gains the previously rejected orders; the reject table no longer needs them.</p></li>
-</ol>
+<p>Run 1 rejected orders 5004 and 5005, and the watermark moved past them, so nothing picks them up again. Rejected rows need their own path: group the reject table by reason, have the owner fix the cause (the "abc" amount; whether customer 9999 arrives tomorrow), then re-stage the corrected rows as a new batch and run transform and load again.</p>
 <div class="callout warn"><strong class="ctitle">Idempotence and restarts</strong>
 <p>A safe job can be run twice with no harm. Achieve this with upserts, with "delete the target rows of this batch, then insert them" loads, and with watermarks moved last. Without it, every failed run needs a careful human cleanup, and humans make mistakes at 2 a.m. In my SQL, the fact load used <code>INSERT OR REPLACE</code> keyed on <code>item_id</code> for this reason (other databases: <code>MERGE</code> or delete-then-insert).</p></div>
 
@@ -59,42 +53,24 @@ SELECT (SELECT COUNT(*) FROM feed_orders)                      AS read_total,
        (SELECT COUNT(DISTINCT order_id) FROM fact_order_line)  AS loaded_orders,
        (SELECT COUNT(DISTINCT order_id) FROM reject_orders)    AS rejected_orders;
 
--- Uniqueness: exactly one current row per customer (expect no rows returned)
-SELECT customer_id, COUNT(*)
-FROM   dim_customer
-WHERE  is_current = 1
-GROUP BY customer_id
-HAVING COUNT(*) &gt; 1;
-
--- Consistency: no fact row without a customer version (expect no rows returned)
+-- Consistency: no fact row without a customer version (expect no rows)
 SELECT DISTINCT f.customer_id
 FROM   fact_order_line f
 LEFT JOIN dim_customer d ON d.customer_id = f.customer_id
 WHERE  d.customer_id IS NULL;</code></pre>
-<p class="expect">Expected result from my run: the first query returned 7, 5 and 2 (7 = 5 + 2); the other two returned no rows. If the first query returned 7, 4, 2 you would know one order vanished and could go hunting.</p>
+<p class="expect">Expected result from my run: the first query returned 7, 5 and 2 (7 = 5 + 2); the second returned no rows.</p>
 <div class="callout tip"><strong class="ctitle">Keep the checks with the job</strong>
 <p>Write checks once and run them every time, with results stored in a table. Then the question "was last Tuesday's load complete?" has an answer. The Informatica guide shows the same idea at the product level: TDM can be used with the Data Validation Option so that target data can be validated and compared against production to show the transformation process did not introduce errors (User Guide 10.5.10, p.24). <span class="badge doc">From docs</span></p></div>
 
 <h2 id="c8-performance">8.15 Performance ideas</h2>
 <p>Performance tuning is its own craft, and the right fix depends on measurement. These are the ideas that help most often, in the order I would try them. <span class="badge concept">General concept</span></p>
 <ol class="steps">
-<li><strong>Move less data.</strong><p>Extract only needed columns and rows; use incremental extraction; filter as early as possible.</p></li>
 <li><strong>Think in sets, not rows.</strong><p>One SQL statement that updates a million rows is much faster than a program that updates them one by one. Many ETL tools give you a row-by-row feeling in their diagrams, but good ones process rows in streams and batches.</p></li>
 <li><strong>Use bulk loading for big loads.</strong><p>See 8.8.1 for the documented examples from GenRocket's FAQ.</p></li>
 <li><strong>Tune commit size.</strong><p>A commit after every row is slow; a commit after 50 million rows risks a huge rollback. Informatica's default of 10,000 rows is a hint at the ballpark, not a rule.</p></li>
 <li><strong>Handle indexes and constraints during the load.</strong><p>Maintaining an index for every inserted row costs time. Some loads drop indexes first and rebuild afterwards. Delphix exposes this as the "Drop Indexes" job option and warns that multiple update threads can cause deadlocks, advising fewer threads if that happens (jobs page). <span class="badge doc">From docs</span></p></li>
 <li><strong>Run in parallel.</strong><p>Independent tables can load at the same time. Delphix jobs have "Number of Streams", described as the number of parallel streams, so several tables are processed at once; some streams finish before others, so the number of active streams falls during the job (jobs page). <span class="badge doc">From docs</span> Informatica allows up to eight concurrent workflows (p.276).</p></li>
-<li><strong>Push work to where the data is.</strong><p>If the database can do a join faster than the ETL engine, let it (this is the idea behind ELT).</p></li>
-<li><strong>Measure before tuning.</strong><p>Look at the log: which step took the time? Tuning the wrong step is wasted effort.</p></li>
 </ol>
 
 <h2 id="c8-tools">8.16 Common ETL tools</h2>
-<p>You will meet many products. I name them so you recognise them; I did not read their documentation for this guide, so I make no claim about what any of them can do beyond the general idea of ETL. <span class="badge unverified">Unverified</span></p>
-<ul>
-<li><strong>Informatica PowerCenter:</strong> the ETL product under Informatica TDM. This guide documents how TDM uses it (see 8.10 and 8.11).</li>
-<li>Other commercial and open-source ETL suites exist, including Microsoft SQL Server Integration Services, Talend and Pentaho. Their ideas map onto the same layers: mappings (or "data flows"), workflows (or "packages", "jobs"), connections, a scheduler.</li>
-<li>Cloud services such as AWS Glue and Azure Data Factory provide ETL or ELT in the cloud.</li>
-<li>Workflow schedulers such as Apache Airflow run jobs in order but leave the transformation to other code.</li>
-<li>Plain SQL scripts plus a scheduler such as cron, as in this chapter, are a perfectly real way to do small ETL.</li>
-</ul>
-<p>TDM tools are not general ETL tools. They are ETL-style tools specialised for one job: producing safe test data. The <a href="09-etl-and-tdm.html">next chapter</a> compares the two in depth.</p>
+<p>Informatica PowerCenter is the ETL product under Informatica TDM, and this guide documents how TDM uses it (8.10 and 8.11). You will also meet Microsoft SQL Server Integration Services, Talend, cloud services such as AWS Glue and Azure Data Factory, and schedulers such as Apache Airflow. I did not read their documentation, so I make no claim about them beyond the general ideas of this chapter. <span class="badge unverified">Unverified</span> Plain SQL scripts plus a scheduler such as cron, as in this chapter, are a real way to do small ETL. TDM tools are ETL-style tools specialised for producing safe test data; the <a href="09-etl-and-tdm.html">next chapter</a> compares the two.</p>

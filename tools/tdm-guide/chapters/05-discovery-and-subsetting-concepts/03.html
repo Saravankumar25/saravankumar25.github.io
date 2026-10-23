@@ -2,16 +2,13 @@
 <p>Start with the problem. ShopSphere's production database holds eight years of history: tens of millions of customers, hundreds of millions of orders, terabytes in total. A tester working on the checkout screen does not need all of it. Copying everything to every test environment is slow, expensive and risky. <dfn>Data subsetting</dfn> means copying only a <em>slice</em> of the database, small enough to be cheap, and consistent enough to be useful.</p>
 <p><span class="badge doc">From docs</span> Informatica describes the goal as a "small, targeted, and referentially intact copy" of production data for use in a nonproduction environment such as development, test or training, and gives the example of financial data for a specific region or time period (User Guide 10.5.10, p.112). GenRocket frames it the same way: production data may contain sensitive data, "you also do not need all that data for application testing, only a subset" (GenRocket "Synthetic Data Masking (SDM) and Data Subsetting Overview").</p>
 <h3 id="c5-why-subset">Why teams subset</h3>
-<div class="tablewrap"><table><caption>Reasons to subset (general concept, with documentation support where I found it)</caption>
-<thead><tr><th>Reason</th><th>Plain explanation</th><th>ShopSphere illustration</th></tr></thead>
-<tbody>
-<tr><td>Size and storage cost</td><td>Smaller copies need less disk and less money. GenRocket lists storage saving as a benefit of grabbing only the needed information.</td><td>5 test environments x 4 TB is a big bill; x 80 GB is not.</td></tr>
-<tr><td>Speed of refresh</td><td>A 80 GB copy finishes overnight. A 4 TB copy may take days, so tests wait on stale data.</td><td>Nightly refreshed test data instead of a monthly one.</td></tr>
-<tr><td>Speed of tests</td><td>Queries and reports run faster on small tables, so feedback arrives sooner.</td><td>A regression run finishes in 20 minutes, not 3 hours.</td></tr>
-<tr><td>Privacy (minimum necessary)</td><td>Fewer real records copied means less exposure, and less to mask. This links to the legal idea in <a href="04-sensitive-data-and-regulations.html">the sensitive data chapter</a>.</td><td>2 percent of customers, not all.</td></tr>
-<tr><td>Focus</td><td>You can pick exactly the data a test needs, such as one region or one bug scenario.</td><td>All customers who bought in March and returned something.</td></tr>
-<tr><td>Cost of masking</td><td>Masking effort and runtime grow with row count.</td><td>Masking 2 million rows beats masking 200 million.</td></tr>
-</tbody></table></div>
+<ul>
+<li><strong>Size and storage cost:</strong> smaller copies need less disk and money (GenRocket lists saved storage as a benefit).</li>
+<li><strong>Speed:</strong> a small copy refreshes overnight instead of over days, and tests and reports run faster.</li>
+<li><strong>Privacy:</strong> fewer real records copied means less exposure and less to mask (the minimum necessary idea from <a href="04-sensitive-data-and-regulations.html">the sensitive data chapter</a>).</li>
+<li><strong>Focus:</strong> you can pick exactly what a test needs, such as one region or one scenario.</li>
+</ul>
+
 <h3 id="c5-subset-not-sample">A subset is not just "the first 1,000 rows"</h3>
 <p>Beginners sometimes subset by taking the first N rows of each table. That breaks the data: the first 1,000 orders belong to customers that may not be in the first 1,000 customers. The result is orphans: orders with no customer, items with no order. A real subset starts from a choice (a set of customers, a time window) and then follows the relationships so that every kept row has all the parents it points to. Everything in the next sections is about doing that correctly.</p>
 
@@ -30,8 +27,8 @@
 <tr><td><strong>Random sample</strong> <span class="badge concept">General concept</span></td><td>Rows picked by chance so the subset resembles the whole.</td><td>The documentation excerpt I had does not say whether a percentage limit picks rows at random.</td><td>Not described as random.</td></tr>
 <tr><td><strong>Targeted sample</strong> <span class="badge concept">General concept</span></td><td>Rows picked on purpose to cover a scenario.</td><td>Done with filters on entity criteria.</td><td>Done with the Where clause.</td></tr>
 </tbody></table></div>
-<div class="callout note"><strong class="ctitle">A percentage limit is not automatically a random sample</strong>
-<p>"Keep 25 percent of the rows" says <em>how many</em>, not <em>which</em>. Whether the tool takes every fourth row, the first quarter, or random rows depends on the tool and is not stated in the pages I read. If statistical representativeness matters (for example, performance testing that needs a realistic mix), check the product documentation and look at the result. GenRocket's own example uses a contiguous block: start at customer 251 and take 100 rows, with their related records, ending at customer 350.</p></div>
+<p><strong>A percentage limit is not automatically a random sample.</strong> "Keep 25 percent" says how many rows, not which; the pages I read do not say how rows are picked. GenRocket's own example takes a contiguous block (start at customer 251, take 100). Check the tool before relying on representativeness.</p>
+
 <p>In short: a random sample resembles the whole (realistic averages) but may miss rare cases; a targeted subset covers chosen scenarios but is unrepresentative statistically. <span class="badge concept">General concept</span> Most teams combine them. For cases production lacks entirely, generate data instead (<a href="07-test-data-classification-and-generation-concepts.html">the test data classification and generation chapter</a>).</p>
 
 <p><span class="badge doc">From docs</span> Informatica filters can use a <em>criteria parameter</em> instead of a fixed value, so one entity and workflow can produce different subsets by changing the parameter file (for example EMPID greater than 100, then 500) (User Guide 10.5.10, p.118).</p>
@@ -63,7 +60,7 @@
 </svg><figcaption>Original diagram: a subset driven from CUSTOMERS. Child rows follow downward; parent rows that kept rows depend on (the products) are pulled in as well.</figcaption></figure>
 <h3 id="c5-driver-in-informatica">Informatica: the entity and its driving table</h3>
 <p><span class="badge doc">From docs</span> In Informatica, an <strong>entity</strong> "consists of a driving table and related tables". The driving table is the starting point; TDM finds the tables related to it from physical (declared) and logical (discovered or added) constraints, and adds them to the entity by default. You then define filter criteria on columns of tables in the entity (User Guide 10.5.10, p.114). The guide's example: Employee as the driving table, with primary key EmpID, three child tables holding an EmpID foreign key, and a fourth table, BankAccounts, linked through an account number from one of the children (p.115). The Entity Map shows the star on the driving table.</p>
-<p>You can also look at the entity from different angles: all tables, all parents of a selected table, its immediate relationships, all its children, or all cyclic relationships (p.115). You can disable a relationship; a table that is then unrelated to anything else in the entity is excluded from the subset (p.115). Because discovery gives the relationships to start with, the guide advises performing data discovery to identify constraints before you create an entity (p.116).</p>
+<p>The Entity Map can show all tables, the parents or children of a selected table, or cyclic relationships, and you can disable a relationship; a table left unrelated is excluded (p.115). The guide advises running data discovery before creating an entity so the constraints exist (p.116).</p>
 <div class="callout example"><strong class="ctitle">The guide's own small example</strong>
 <p>An employee has ID 10 and you want everything about that employee. Employee is the driving table; Employee_History and Employee_Order are related to it by EmpID. Define the criteria "EmpID equals 10". After the plan runs, the target database holds one Employee row for EmpID 10, all of that employee's history rows and all of their orders (p.121). <span class="badge doc">From docs</span></p></div>
 <h3 id="c5-driver-in-genrocket">GenRocket: the subset table and the hierarchy</h3>

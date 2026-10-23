@@ -10,7 +10,6 @@
 <tr><td>Append (insert only)</td><td>Add new rows, never touch old ones</td><td>Event or fact data that never changes</td><td>Running twice duplicates rows</td></tr>
 <tr><td>Incremental</td><td>Load only the rows extracted incrementally</td><td>Large tables</td><td>Depends on a correct watermark</td></tr>
 <tr><td>Upsert (merge)</td><td>Update rows that exist, insert those that do not</td><td>Dimensions and master data</td><td>Needs a reliable key to match on</td></tr>
-<tr><td>Bulk load</td><td>Use the database's fast loading path, bypassing row-by-row inserts</td><td>Millions of rows</td><td>May skip triggers and constraint checks, so check afterwards</td></tr>
 <tr><td>History-keeping load (SCD)</td><td>Close the old version of a row and insert a new one</td><td>Dimensions where history matters</td><td>More complex; the table grows</td></tr>
 </tbody></table></div>
 <p>What the tools say about these ideas, all in their own terms:</p>
@@ -30,9 +29,7 @@ DO UPDATE SET full_name = excluded.full_name,
               email     = excluded.email,
               zip_code  = excluded.zip_code;
 
--- Oracle and SQL Server use MERGE instead:
--- MERGE INTO dim_customer_simple t USING (...) s ON (t.customer_id = s.customer_id)
--- WHEN MATCHED THEN UPDATE SET ... WHEN NOT MATCHED THEN INSERT ...</code></pre>
+-- Oracle and SQL Server use MERGE instead
 <div class="tablewrap"><table class="sample">
 <caption>Upsert effect on one row</caption>
 <thead><tr><th></th><th>customer_id</th><th>full_name</th><th>zip_code</th></tr></thead>
@@ -43,30 +40,7 @@ DO UPDATE SET full_name = excluded.full_name,
 <p>Notice the property that makes upserts valuable: <strong>running the same load twice gives the same result</strong>. A property like this is called <em>idempotence</em>, and it is what lets you safely re-run a failed job.</p>
 <h3 id="c8-scd">8.8.3 Keeping history: a slowly changing dimension</h3>
 <p>An upsert overwrites. After it, the warehouse says Asha always lived in 560002, so a report on October 20 sales would attribute them to the wrong zip. If history matters, keep both versions with validity dates. This pattern is commonly called a <strong>Type 2 slowly changing dimension</strong>. <span class="badge concept">General concept</span></p>
-<pre><code>CREATE TABLE dim_customer (
-  customer_key INTEGER PRIMARY KEY AUTOINCREMENT,   -- surrogate key
-  customer_id  INTEGER,                             -- business key
-  full_name    TEXT, email TEXT, zip_code TEXT,
-  valid_from   TEXT, valid_to TEXT, is_current INTEGER
-);
-
--- Step 1: close the current row of any customer whose data changed
-UPDATE dim_customer
-SET    valid_to = '2026-10-24', is_current = 0
-WHERE  is_current = 1
-  AND  EXISTS (SELECT 1 FROM clean_customers n
-               WHERE n.customer_id = dim_customer.customer_id
-                 AND (n.full_name &lt;&gt; dim_customer.full_name
-                   OR n.email     &lt;&gt; dim_customer.email
-                   OR n.zip_code  &lt;&gt; dim_customer.zip_code));
-
--- Step 2: insert a current row for anyone who has none (new or just closed)
-INSERT INTO dim_customer (customer_id, full_name, email, zip_code, valid_from, valid_to, is_current)
-SELECT n.customer_id, n.full_name, n.email, n.zip_code, '2026-10-24', '9999-12-31', 1
-FROM   clean_customers n
-WHERE  NOT EXISTS (SELECT 1 FROM dim_customer d
-                   WHERE d.customer_id = n.customer_id AND d.is_current = 1);</code></pre>
-<p>Here <code>clean_customers</code> is the cleaned and de-duplicated customer query from 8.7. The table gets a <em>surrogate key</em> (<code>customer_key</code>), an artificial id, because the business key <code>customer_id</code> now appears more than once.</p>
+<p>The pattern needs two statements, which you will run in Lab 2: first <em>close</em> the current row of any customer whose data changed (set <code>valid_to</code> and <code>is_current = 0</code>), then <em>insert</em> a new current row for every customer who has none. The table gets a <em>surrogate key</em> (<code>customer_key</code>), an artificial id, because the business key <code>customer_id</code> now appears more than once.</p>
 <div class="tablewrap"><table class="sample">
 <caption>dim_customer after run 2 (real output from my SQLite run, 1002 and 1003 omitted)</caption>
 <thead><tr><th>customer_key</th><th>customer_id</th><th>zip_code</th><th>valid_from</th><th>valid_to</th><th>is_current</th></tr></thead>
@@ -74,11 +48,10 @@ WHERE  NOT EXISTS (SELECT 1 FROM dim_customer d
 <tr><td>1</td><td>1001</td><td>560001</td><td>2026-10-23</td><td>2026-10-24</td><td>0</td></tr>
 <tr><td>4</td><td>1001</td><td>560002</td><td>2026-10-24</td><td>9999-12-31</td><td>1</td></tr>
 </tbody></table></div>
-<p>A fact row loaded on 20 October can now be joined to the version of the customer that was valid that day (<code>order_date</code> between <code>valid_from</code> and <code>valid_to</code>). The far-future date 9999-12-31 is a common convention for "still current".</p>
+<p>A fact row can then be joined to the customer version valid on the order date. The date 9999-12-31 is a common convention for "still current".</p>
 <h3 id="c8-load-safety">8.8.4 Making a load safe</h3>
 <ul>
 <li><strong>Transactions and commit size.</strong> Rows are written in groups; each group is committed. Informatica's plan lets you set a source-based or target-based commit (target-based is the default) and a commit interval whose default is 10,000 rows (User Guide 10.5.10, p.285). Delphix masking jobs have a <em>Commit Size</em> field with the same meaning. <span class="badge doc">From docs</span></li>
-<li><strong>Constraints.</strong> Load parents before children, or disable and re-enable constraints carefully. Delphix jobs have optional <em>Disable Constraints</em>, <em>Disable Triggers</em> and <em>Drop Indexes</em> checkboxes, all off by default, for exactly this reason. <span class="badge doc">From docs</span></li>
 <li><strong>Recovery.</strong> Decide in advance what a failed load does: roll back and stop, skip the bad row, or resume from a checkpoint (see 8.13).</li>
 </ul>
 
@@ -91,7 +64,6 @@ WHERE  NOT EXISTS (SELECT 1 FROM dim_customer d
 <thead><tr><th></th><th>ETL</th><th>ELT</th></tr></thead>
 <tbody>
 <tr><td>Where transforms run</td><td>Separate ETL engine</td><td>Inside the target database</td></tr>
-<tr><td>Raw data reaches target?</td><td>Usually no, only cleaned data</td><td>Yes, kept as a raw layer</td></tr>
 <tr><td>Strength</td><td>Sensitive data can be cleaned or masked before it lands in the target</td><td>Uses the target's power; raw data can be re-transformed later</td></tr>
 <tr><td>Weakness</td><td>The engine can become a bottleneck</td><td>Raw (maybe sensitive) data sits in the target</td></tr>
 </tbody></table></div>
@@ -116,9 +88,8 @@ WHERE  NOT EXISTS (SELECT 1 FROM dim_customer d
 <li>The <strong>PowerCenter Repository Service</strong> manages the PowerCenter repository, the metadata store. That repository holds "information required to extract, transform, and load data", along with permissions and privileges for users (p.26).</li>
 <li>The <strong>PowerCenter Client</strong> is where you "design mappings, mapplets, and sessions to load the data" (p.25).</li>
 <li>The <strong>Informatica Administrator</strong> is a web application to "manage, monitor, deploy, and undeploy data flows" (p.25).</li>
-<li>The <strong>Monitor view</strong> in Test Data Manager is where you watch workflow progress (plan task list, p.275).</li>
 </ul>
-<p>The product's guide treats PowerCenter, an ETL product, as the engine under TDM. That is the central link between this chapter and the next, so we pick it up properly in <a href="09-etl-and-tdm.html">ETL and TDM: how they relate</a>.</p>
+<p>PowerCenter, an ETL product, is the engine under TDM. The <a href="09-etl-and-tdm.html">next chapter</a> builds on that link.</p>
 
 <h2 id="c8-mappings-workflows">8.11 Mappings, sessions, workflows and jobs</h2>
 <p>Every ETL tool has a few layers of "thing you can define and run". Names vary, so learn the layers and then the names. <span class="badge concept">General concept</span></p>
@@ -134,7 +105,6 @@ WHERE  NOT EXISTS (SELECT 1 FROM dim_customer d
 <li>When you generate a workflow from a plan, "the PowerCenter Repository Service generates mappings for the workflow"; when you start it, the PowerCenter Integration Service does the subset, masking and generation tasks defined in the plan (p.308). <span class="badge doc">From docs</span></li>
 <li>You can view the sessions that run from each workflow, with statistics for affected rows, rejected rows and rows written to the target (p.275, "Session Details" tab). <span class="badge doc">From docs</span></li>
 <li>A plan can run a chosen workflow before ("pre workflow") and after ("post workflow") the main one: its example copies files from production to test area first, then masks, then runs statistics on the tables (p.277). <span class="badge doc">From docs</span></li>
-<li>Up to eight workflows run at one time; others queue (p.276). <span class="badge doc">From docs</span></li>
 <li>The guide also warns that if you edit components generated from Test Data Manager in the PowerCenter Client, "the session might generate unexpected results" (p.150). <span class="badge doc">From docs</span></li>
 </ul></div>
 
@@ -157,6 +127,4 @@ WHERE  NOT EXISTS (SELECT 1 FROM dim_customer d
 <li>The TDM repository stores the mapplet logic when imported, and you cannot change the mapplet inside Test Data Manager. The guide also says that if you change the name or type of a field of a custom masking rule, you must import the mapplet again (p.144). <span class="badge doc">From docs</span></li>
 <li>Data generation uses the same idea: a <em>custom generation rule</em> is based on PowerCenter mapplet logic, for example one that joins first and last name into a full name (pp.192 and 211). <span class="badge doc">From docs</span></li>
 </ul>
-<p>The syllabus mentions "mapplet creation" on Day 54, so the <a href="14-informatica-data-masking.html">Informatica data masking chapter</a> returns to this with the actual TDM steps. For the building of a mapplet in PowerCenter itself, this guide has no documentation excerpt, so I only link the related video above, whose content I could not check.</p>
-<div class="callout example"><strong class="ctitle">ShopSphere mapplet idea</strong>
-<p>Define one mapplet, <code>m_clean_name</code>: input <code>NAME_IN</code>, output <code>NAME_OUT</code>, doing trim, first-letter upper case and the rest lower case. Use it for <code>first_name</code> and for <code>last_name</code> in the customer mapping. If a rule later says "keep apostrophes and capitals inside names like O'Brien", you change one mapplet, not two mappings. The SQL equivalent is a view or a function.</p></div>
+<p>The syllabus mentions "mapplet creation" on Day 54; the <a href="14-informatica-data-masking.html">Informatica data masking chapter</a> returns to this. This guide has no documentation excerpt on building a mapplet in PowerCenter itself.</p>
