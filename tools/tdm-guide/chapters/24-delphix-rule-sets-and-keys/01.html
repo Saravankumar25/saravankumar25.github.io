@@ -1,0 +1,73 @@
+<p>You now have an environment and a connector (<a href="23-delphix-connectors-and-vdb.html">the connectors and VDB chapter</a>). The next object in the chain is the <strong>rule set</strong>: the list of tables, or files, that the engine will profile and mask. Building one is mostly point and click. The part that needs real understanding is <em>keys</em>. Delphix, like most masking engines, wants to know for every table which column or columns identify one row, and it expects masked values in related tables to stay matched. This chapter covers both, and it covers the syllabus's Day 51 topics: primary key basics and discovery, and data integrity in primary and foreign key columns.</p>
+<p>You will build a rule set for the ShopSphere tables, run the engine's checklist on it, and add a logical key. If you skipped the basics of keys, <a href="03-data-basics.html">the data basics chapter</a> is a good first stop; here they are explained again briefly, with the masking twist.</p>
+
+<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
+<p>Sources: <strong>Delphix Continuous Compliance documentation, version 2026.5, last published October 16, 2026</strong>. Read in full: <a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>, <a href="https://help.delphix.com/cc/current/content/create_databaseruleset.htm" target="_blank" rel="noopener">create DatabaseRuleset</a> (an API sample), <a href="https://help.delphix.com/cc/current/content/naming_requirements.htm" target="_blank" rel="noopener">Naming requirements</a>, <a href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Managing inventories</a> (key parts), the job-creation page's Checklist section, the four database preparation pages, <a href="https://help.delphix.com/cc/current/content/algorithm_syncability.htm" target="_blank" rel="noopener">Algorithm syncability</a>, and the framework pages that mention primary or foreign keys. I searched all pages for "logical key", "primary key" and "VDB" and read every hit.</p>
+<p><strong>Things the documentation does not settle</strong>, flagged where they matter: the exact order in which the engine picks a key differs between database pages; the rule set page calls the validation action both "Verify" and "Checklist"; the introduction says the engine scans metadata and data "to identify and preserve" primary/foreign key relationships, but the rule set pages I read describe no automatic foreign key handling, only the rule that you must use the same deterministic algorithm on both sides. I viewed the screenshots before writing captions.</p></div>
+
+<div class="callout recap"><strong class="ctitle">What you will learn</strong>
+<ul>
+<li>What primary and foreign keys are, and what breaks if only one side is masked.</li>
+<li>What a rule set is, its four types, and how to create, edit, refresh, copy and delete one.</li>
+<li>Why an in-place masking job needs a key per table, and what primary key, logical key and "indexed identity column" mean to the engine.</li>
+<li>How to add a logical key, a filter and custom SQL to a table in a rule set.</li>
+<li>How the Checklist works, and how consistent (deterministic) algorithms keep key columns matching.</li>
+<li>A hands-on lab on the ShopSphere tables.</li>
+</ul></div>
+
+<h2 id="c24-words">24.1 Words to know first</h2>
+<dl class="defs">
+<div><dt>Rule set</dt>
+<dd>A group of tables or flat files, within one data source, on which you may run profile, masking or tokenization jobs.</dd></div>
+<div><dt>Inventory</dt>
+<dd>The detailed list of every column or field in a rule set with its domain and algorithm. You open it by clicking the rule set's name.</dd></div>
+<div><dt>Primary key (PK)</dt>
+<dd>A column (or columns) that uniquely identifies each row of a table and is never empty.</dd></div>
+<div><dt>Foreign key (FK)</dt>
+<dd>A column in one table that holds the primary key value of a row in another table, linking them.</dd></div>
+<div><dt>Referential integrity</dt>
+<dd>The promise that every foreign key value matches a real row in the table it points to.</dd></div>
+<div><dt>Logical key</dt>
+<dd>A unique, non-null column (or comma-separated columns) <em>you tell Delphix to treat as the key</em>. It changes nothing in the database; it is only information for Delphix.</dd></div>
+<div><dt>Identity column</dt>
+<dd>A database column that numbers rows automatically. Delphix can use an existing one as the key, or create a temporary one when a table has no key.</dd></div>
+<div><dt>ROWID</dt>
+<dd>In Oracle, a built-in pseudocolumn holding each row's address. The Oracle preparation page recommends it as the logical key for speed.</dd></div>
+<div><dt>Deterministic (consistent) algorithm</dt>
+<dd>One that always turns the same input into the same output (for a given algorithm key). This is what keeps matching values matching.</dd></div>
+<div><dt>Checklist</dt>
+<dd>An action on a rule set (and on a job) that checks every table has a primary key, an indexed identity column or a logical key.</dd></div>
+</dl>
+
+<h2 id="c24-keys">24.2 Primary and foreign keys from zero, with ShopSphere</h2>
+<p>A database table is like a spreadsheet, but databases promise things a spreadsheet does not. One promise is that each row can be found unambiguously. Two customers may share a name, so the name cannot find a row. A <dfn>primary key</dfn> is the column designed to do it. In ShopSphere, <code>CUSTOMERS.customer_id</code> is the primary key: 1001 is Asha Menon, 1002 is Ravi Kumar, 1003 is Meera Nair, and there will never be two 1001s or an empty one.</p>
+<p>Tables connect through <dfn>foreign keys</dfn>. <code>ORDERS</code> has a column <code>customer_id</code> that stores which customer placed the order. Each value there must exist in <code>CUSTOMERS.customer_id</code>.</p>
+<div class="tablewrap"><table class="sample"><caption>Original data (fake). CUSTOMERS.customer_id is the primary key; ORDERS.customer_id is a foreign key to it.</caption><thead><tr><th>CUSTOMERS.customer_id</th><th>first_name</th><th>last_name</th><th>ssn</th></tr></thead><tbody>
+<tr><td>1001</td><td>Asha</td><td>Menon</td><td>123-45-6789</td></tr>
+<tr><td>1002</td><td>Ravi</td><td>Kumar</td><td>234-56-7890</td></tr>
+<tr><td>1003</td><td>Meera</td><td>Nair</td><td>345-67-8901</td></tr>
+</tbody></table></div>
+<div class="tablewrap"><table class="sample"><caption>ORDERS (fake). Which customer made each order?</caption><thead><tr><th>order_id (PK)</th><th>customer_id (FK)</th><th>order_date</th><th>total_amount</th></tr></thead><tbody>
+<tr><td>5001</td><td>1001</td><td>2026-03-02</td><td>1499.00</td></tr>
+<tr><td>5002</td><td>1001</td><td>2026-03-19</td><td>299.00</td></tr>
+<tr><td>5003</td><td>1003</td><td>2026-04-07</td><td>849.50</td></tr>
+</tbody></table></div>
+<p>The query "show every order with its customer's name" joins the two tables on <code>customer_id</code>. That join is what the application does all day. It is also what a careless masking job can break, as <a href="#c24-integrity">the integrity section below</a> shows.</p>
+<div class="callout note"><strong class="ctitle">"Primary key discovery" in Delphix</strong>
+<p>The syllabus lists "primary key discovery using Delphix". The documentation has no separate feature of that name. What it does show: the database inventory marks each column that is a Primary Key, Foreign Key or Index (written beneath the column name, as in the screenshot later in this chapter), and the Checklist reports tables that lack a usable key. So "discovery" here means <em>reading the key information from the database and checking it</em>. This is my reading of the pages; ask your trainer if the course expects something more.</p></div>
+
+<h2 id="c24-whykey">24.3 Why a masking engine needs a key on every table</h2>
+<p>In-place masking works in three moves: read a row, compute the masked values, write them back <em>to that same row</em>. To write to the right row, the engine must be able to name it. The preparation pages for SQL Server, Db2 and Sybase say so plainly: a key is a unique, non-null value that identifies a row, and for in-place masking "this key looks up the row to update the masked record". For speed the key should be indexed (a clustered index is best, the pages say).</p>
+<p>Analogy: a librarian who must correct the address on 100,000 library cards. If each card has a printed number, she can pull card 48213 directly. If cards have no numbers she must compare every card to find the right one, and with duplicate names she might correct the wrong person. The key is the card number. The analogy stops at speed: the engine updates in batches, not card by card.</p>
+<p>The pages then list what the engine does with a table, in this order of preference. <span class="badge doc">From docs</span></p>
+<div class="tablewrap"><table><thead><tr><th>Situation</th><th>What the engine uses</th></tr></thead><tbody>
+<tr><td>You defined a <strong>logical key</strong></td><td>That key. It "can override the key used". One or several columns, but always unique and never null.</td></tr>
+<tr><td>The table has a <strong>primary key</strong></td><td>The primary key.</td></tr>
+<tr><td>No primary key, but an <strong>identity column</strong></td><td>The identity column. If it is not indexed, the engine adds an index (named with <code>i_MASKING_GENERATED_IDENTITY_TMP</code> on SQL Server).</td></tr>
+<tr><td><strong>No key at all</strong></td><td>The engine adds a temporary identity column called <code>MASKING_GENERATED_IDENTITY_TMP</code> and removes it when the job ends. This needs a database user allowed to alter the table, and slows the job. If identity support is unavailable the job may fail.</td></tr>
+</tbody></table></div>
+<p>A detail the pages disagree on: the SQL Server page lists the order as logical key, primary key, identity column, none. The Db2 and Sybase pages list primary key, identity, logical key, none, but still describe the logical key as the override. The practical rule is the same: <strong>define a logical key when you want to control the choice</strong>. The documentation recommends on-the-fly masking as the alternative when a table has no key, since that method writes new rows rather than updating old ones.</p>
+<div class="callout why"><strong class="ctitle">Why the temporary column is not a free pass</strong>
+<p>The 2025.5 and 2025.6 release notes list known issues: failed jobs on heap tables (tables without a clustered index) may leave the generated temporary identity column and index behind. So "the engine will add one for me" is a fallback with a cost. Give the table a real key.</p></div>
+<h3 id="c24-rowid">24.3.1 Oracle and ROWID</h3>
+<p>Oracle tables have the built-in <code>ROWID</code>. The Oracle preparation page says that adding ROWID as the logical key on each table through the GUI is generally the fastest approach, because Oracle manages the updates by the row address. A fixed issue in the 2025.2 release notes confirms that ROWID could not be added as a logical key from the Edit Ruleset screen before that, which is one reason to check your version.</p>
