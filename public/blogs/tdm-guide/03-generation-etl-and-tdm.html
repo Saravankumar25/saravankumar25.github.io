@@ -1,5 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 3: Synthetic data, ETL from scratch, and how ETL meets TDM | TDM Guide</title><meta name="description" content="The fourth technique, making test data from nothing, then extract-transform-load step by step, and how ETL and TDM overlap, differ and work together."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/03-generation-etl-and-tdm.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 3: Synthetic data, ETL from scratch, and how ETL meets TDM | TDM Guide"><meta property="og:description" content="The fourth technique, making test data from nothing, then extract-transform-load step by step, and how ETL and TDM overlap, differ and work together."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" aria-label="Chapter navigation"><a class="allchap" href="index.html">← Guide home &amp; curriculum map</a><details class="partbox" open><summary>Foundations</summary><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="current" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a></div></details><details class="partbox"><summary>Informatica TDM</summary><div class="chapter-list"><a class="" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a></div></details><details class="partbox"><summary>GenRocket</summary><div class="chapter-list"><a class="" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a></div></details><details class="partbox"><summary>Delphix</summary><div class="chapter-list"><a class="" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a></div></details><details class="partbox"><summary>Capstone and reference</summary><div class="chapter-list"><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, the capstone and the glossary</a></div></details><a class="" href="sources-and-limitations.html" style="margin-top:10px">About the sources</a><h3>On this page</h3><div class="section-list"><a class="l2" href="#c3-s1">3.1 Test data classification and synthetic data generation</a><a class="l3" href="#c7-words">3.1.1 Words to know first</a><a class="l3" href="#c7-why-classify">3.1.2 Why classify test data at all?</a><a class="l3" href="#c7-three-axes">3.1.3 Three ways to classify test data</a><a class="l3" href="#c7-data-patterns">3.1.4 The syllabus &quot;data patterns&quot; on the map</a><a class="l3" href="#c7-what-is-synthetic">3.1.5 What synthetic data is</a><a class="l3" href="#c7-synthetic-vs-masked">3.1.6 Synthetic data versus masked production data</a><a class="l3" href="#c7-how-generation-works">3.1.7 How generation works: rules, generators, seeds and distributions</a><a class="l3" href="#c7-parent-child">3.1.8 Generating parent and child tables so every key is valid</a><a class="l3" href="#c7-model-design-deploy-manage">3.1.9 The lifecycle: Model, Design, Deploy, Manage</a><a class="l3" href="#c7-worked-example">3.1.10 Worked example: 50 ShopSphere customers and their orders</a><a class="l3" href="#c7-tdaas">3.1.11 Test data as a service</a><a class="l3" href="#c7-lab">3.1.12 Hands-on lab: design a smaller data set on paper</a><a class="l3" href="#c7-mistakes">3.1.13 Common mistakes and gotchas</a><a class="l3" href="#c7-recap">3.1.14 Recap</a><a class="l3" href="#c7-sources">Sources used in this section</a><a class="l2" href="#c3-s2">3.2 ETL from scratch: extract, transform, load</a><a class="l3" href="#c8-words">3.2.1 Words to know first</a><a class="l3" href="#c8-what-is-etl">3.2.2 What ETL is and why it exists</a><a class="l3" href="#c8-oltp-vs-dw">3.2.3 Operational database versus data warehouse</a><a class="l3" href="#c8-big-picture">3.2.4 The big picture</a><a class="l3" href="#c8-extract">3.2.5 Extract: getting data out</a><a class="l3" href="#c8-staging">3.2.6 The staging area</a><a class="l3" href="#c8-transform">3.2.7 Transform: cleaning and reshaping</a><a class="l3" href="#c8-load">3.2.8 Load: writing into the target</a><a class="l3" href="#c8-batch-streaming">3.2.9 Batch, streaming, and ETL versus ELT</a><a class="l3" href="#c8-architecture">3.2.10 ETL architecture</a><a class="l3" href="#c8-mappings-workflows">3.2.11 Mappings, sessions, workflows and jobs</a><a class="l3" href="#c8-reusable">3.2.12 Reusable components and the mapplet</a><a class="l3" href="#c8-errors">3.2.13 Error handling</a><a class="l3" href="#c8-data-quality">3.2.14 Data quality and reconciliation</a><a class="l3" href="#c8-performance">3.2.15 Performance ideas</a><a class="l3" href="#c8-tools">3.2.16 Common ETL tools</a><a class="l3" href="#c8-worked-example">3.2.17 The complete ShopSphere ETL job on one page</a><a class="l3" href="#c8-labs">3.2.18 Hands-on labs</a><a class="l3" href="#c8-mistakes">3.2.19 Common mistakes and gotchas</a><a class="l3" href="#c8-recap">3.2.20 Recap</a><a class="l3" href="#c8-sources-2">Sources used in this section</a><a class="l2" href="#c3-s3">3.3 ETL and TDM: how they relate</a><a class="l3" href="#c9-words">3.3.1 Words to know first</a><a class="l3" href="#c9-same-idea">3.3.2 The same underlying idea</a><a class="l3" href="#c9-differences">3.3.3 How they differ</a><a class="l3" href="#c9-overlap">3.3.4 Where they overlap</a><a class="l3" href="#c9-reference-architecture">3.3.5 A reference architecture for a TDM pipeline</a><a class="l3" href="#c9-three-tools">3.3.6 How the three tools sit on this picture</a><a class="l3" href="#c9-story">3.3.7 An end-to-end ShopSphere story: profile, subset, mask, load, test</a><a class="l3" href="#c9-pitfalls">3.3.8 Pitfalls: where ETL habits hurt TDM</a><a class="l3" href="#c9-recap">3.3.9 Recap</a><a class="l3" href="#c9-sources">Sources used in this section</a></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">TDM GUIDE / FOUNDATIONS / CHAPTER 3</p><h1>Synthetic data, ETL from scratch, and how ETL meets TDM</h1><div class="meta"><span>Saravan Kumar M K</span><span>3 sections</span></div><p class="chapter-summary">The fourth technique, making test data from nothing, then extract-transform-load step by step, and how ETL and TDM overlap, differ and work together.</p></div><h2 id="c3-s1">3.1 Test data classification and synthetic data generation</h2>
-<p><span class="day">Day 45, Day 46, Day 47</span></p>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 3: Synthetic data, ETL from scratch, and how ETL meets TDM | TDM Guide</title><meta name="description" content="The fourth technique, making test data from nothing, then extract-transform-load step by step, and how ETL and TDM overlap, differ and work together."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/03-generation-etl-and-tdm.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 3: Synthetic data, ETL from scratch, and how ETL meets TDM | TDM Guide"><meta property="og:description" content="The fourth technique, making test data from nothing, then extract-transform-load step by step, and how ETL and TDM overlap, differ and work together."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" aria-label="Chapter navigation"><a class="allchap" href="index.html">← All 10 chapters</a><h3>Chapters</h3><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="current" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a><a class="" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a><a class="" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a><a class="" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, the capstone and the glossary</a><a class="" href="sources-and-limitations.html"><span class="n">··</span> About the sources</a></div><h3>In this chapter</h3><div class="section-list"><details class="grpbox" open data-grp="c3-s1"><summary>Test data classification and synthetic data generation</summary><div class="secs"><a href="#c7-words">3.1 Words to know first</a><a href="#c7-why-classify">3.2 Why classify test data at all?</a><a href="#c7-three-axes">3.3 Three ways to classify test data</a><a href="#c7-data-patterns">3.4 The syllabus &quot;data patterns&quot; on the map</a><a href="#c7-what-is-synthetic">3.5 What synthetic data is</a><a href="#c7-synthetic-vs-masked">3.6 Synthetic data versus masked production data</a><a href="#c7-how-generation-works">3.7 How generation works: rules, generators, seeds and distributions</a><a href="#c7-parent-child">3.8 Generating parent and child tables so every key is valid</a><a href="#c7-model-design-deploy-manage">3.9 The lifecycle: Model, Design, Deploy, Manage</a><a href="#c7-worked-example">3.10 Worked example: 50 ShopSphere customers and their orders</a><a href="#c7-tdaas">3.11 Test data as a service</a><a href="#c7-lab">3.12 Hands-on lab: design a smaller data set on paper</a><a href="#c7-mistakes">3.13 Common mistakes and gotchas</a><a href="#c7-recap">3.14 Recap</a></div></details><details class="grpbox" data-grp="c3-s2"><summary>ETL from scratch: extract, transform, load</summary><div class="secs"><a href="#c8-words">3.15 Words to know first</a><a href="#c8-what-is-etl">3.16 What ETL is and why it exists</a><a href="#c8-oltp-vs-dw">3.17 Operational database versus data warehouse</a><a href="#c8-big-picture">3.18 The big picture</a><a href="#c8-extract">3.19 Extract: getting data out</a><a href="#c8-staging">3.20 The staging area</a><a href="#c8-transform">3.21 Transform: cleaning and reshaping</a><a href="#c8-load">3.22 Load: writing into the target</a><a href="#c8-batch-streaming">3.23 Batch, streaming, and ETL versus ELT</a><a href="#c8-architecture">3.24 ETL architecture</a><a href="#c8-mappings-workflows">3.25 Mappings, sessions, workflows and jobs</a><a href="#c8-reusable">3.26 Reusable components and the mapplet</a><a href="#c8-errors">3.27 Error handling</a><a href="#c8-data-quality">3.28 Data quality and reconciliation</a><a href="#c8-performance">3.29 Performance ideas</a><a href="#c8-tools">3.30 Common ETL tools</a><a href="#c8-worked-example">3.31 The complete ShopSphere ETL job on one page</a><a href="#c8-labs">3.32 Hands-on labs</a><a href="#c8-mistakes">3.33 Common mistakes and gotchas</a><a href="#c8-recap">3.34 Recap</a></div></details><details class="grpbox" data-grp="c3-s3"><summary>ETL and TDM: how they relate</summary><div class="secs"><a href="#c9-words">3.35 Words to know first</a><a href="#c9-same-idea">3.36 The same underlying idea</a><a href="#c9-differences">3.37 How they differ</a><a href="#c9-overlap">3.38 Where they overlap</a><a href="#c9-reference-architecture">3.39 A reference architecture for a TDM pipeline</a><a href="#c9-three-tools">3.40 How the three tools sit on this picture</a><a href="#c9-story">3.41 An end-to-end ShopSphere story: profile, subset, mask, load, test</a><a href="#c9-pitfalls">3.42 Pitfalls: where ETL habits hurt TDM</a><a href="#c9-recap">3.43 Recap</a></div></details></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">TDM GUIDE / FOUNDATIONS / CHAPTER 03 OF 10</p><h1>Synthetic data, ETL from scratch, and how ETL meets TDM</h1><div class="meta"><span>Saravan Kumar M K</span><span>Updated 2026-10-23</span><span>43 sections</span></div><p class="chapter-summary">The fourth technique, making test data from nothing, then extract-transform-load step by step, and how ETL and TDM overlap, differ and work together.</p></div><details class="pagetoc"><summary>Contents of this chapter</summary><details class="grpbox" open data-grp="c3-s1"><summary>Test data classification and synthetic data generation</summary><div class="secs"><a href="#c7-words">3.1 Words to know first</a><a href="#c7-why-classify">3.2 Why classify test data at all?</a><a href="#c7-three-axes">3.3 Three ways to classify test data</a><a href="#c7-data-patterns">3.4 The syllabus &quot;data patterns&quot; on the map</a><a href="#c7-what-is-synthetic">3.5 What synthetic data is</a><a href="#c7-synthetic-vs-masked">3.6 Synthetic data versus masked production data</a><a href="#c7-how-generation-works">3.7 How generation works: rules, generators, seeds and distributions</a><a href="#c7-parent-child">3.8 Generating parent and child tables so every key is valid</a><a href="#c7-model-design-deploy-manage">3.9 The lifecycle: Model, Design, Deploy, Manage</a><a href="#c7-worked-example">3.10 Worked example: 50 ShopSphere customers and their orders</a><a href="#c7-tdaas">3.11 Test data as a service</a><a href="#c7-lab">3.12 Hands-on lab: design a smaller data set on paper</a><a href="#c7-mistakes">3.13 Common mistakes and gotchas</a><a href="#c7-recap">3.14 Recap</a></div></details><details class="grpbox" data-grp="c3-s2"><summary>ETL from scratch: extract, transform, load</summary><div class="secs"><a href="#c8-words">3.15 Words to know first</a><a href="#c8-what-is-etl">3.16 What ETL is and why it exists</a><a href="#c8-oltp-vs-dw">3.17 Operational database versus data warehouse</a><a href="#c8-big-picture">3.18 The big picture</a><a href="#c8-extract">3.19 Extract: getting data out</a><a href="#c8-staging">3.20 The staging area</a><a href="#c8-transform">3.21 Transform: cleaning and reshaping</a><a href="#c8-load">3.22 Load: writing into the target</a><a href="#c8-batch-streaming">3.23 Batch, streaming, and ETL versus ELT</a><a href="#c8-architecture">3.24 ETL architecture</a><a href="#c8-mappings-workflows">3.25 Mappings, sessions, workflows and jobs</a><a href="#c8-reusable">3.26 Reusable components and the mapplet</a><a href="#c8-errors">3.27 Error handling</a><a href="#c8-data-quality">3.28 Data quality and reconciliation</a><a href="#c8-performance">3.29 Performance ideas</a><a href="#c8-tools">3.30 Common ETL tools</a><a href="#c8-worked-example">3.31 The complete ShopSphere ETL job on one page</a><a href="#c8-labs">3.32 Hands-on labs</a><a href="#c8-mistakes">3.33 Common mistakes and gotchas</a><a href="#c8-recap">3.34 Recap</a></div></details><details class="grpbox" data-grp="c3-s3"><summary>ETL and TDM: how they relate</summary><div class="secs"><a href="#c9-words">3.35 Words to know first</a><a href="#c9-same-idea">3.36 The same underlying idea</a><a href="#c9-differences">3.37 How they differ</a><a href="#c9-overlap">3.38 Where they overlap</a><a href="#c9-reference-architecture">3.39 A reference architecture for a TDM pipeline</a><a href="#c9-three-tools">3.40 How the three tools sit on this picture</a><a href="#c9-story">3.41 An end-to-end ShopSphere story: profile, subset, mask, load, test</a><a href="#c9-pitfalls">3.42 Pitfalls: where ETL habits hurt TDM</a><a href="#c9-recap">3.43 Recap</a></div></details></details><div class="grp" id="c3-s1"><span class="grplabel">Test data classification and synthetic data generation</span><span class="day">Day 45, Day 46, Day 47</span></div>
 <p>So far you have met two ways to get test data. You can copy and cut down real data (<a href="02-privacy-discovery-subsetting-masking.html#c2-s2">the discovery and subsetting concepts chapter</a>) and then hide the sensitive parts (<a href="02-privacy-discovery-subsetting-masking.html#c2-s3">the masking concepts chapter</a>). This section introduces the third way: <strong>make the data up</strong>, on purpose, from rules. Before we do that we need a better question than "where do I get data?". The better question is: <em>what is this data for?</em></p>
 <p>A tester checking the login screen does not need "a lot of customers". She needs one normal customer, one customer whose account is locked, one with a very long surname, one with no phone number, and one whose date of birth makes them exactly 18 today. Each of those rows has a different job. Naming the jobs is called <strong>classifying</strong> test data, and it is the starting point for designing any data set, whether you copy it, mask it or generate it.</p>
 <p>This section is also where the course syllabus phrase "Model, Design, Deploy, Manage" first appears, and where the five "data patterns" of the syllabus (boundary conditions, sequential, random, edge cases, null) are placed on a map. The tool chapters later (<a href="05-informatica-masking-generation-workflows.html#c5-s2">the Informatica data generation chapter</a> and the <a href="06-genrocket-building-blocks.html#c6-s1">GenRocket chapters</a>) assume you have read this one.</p>
@@ -24,7 +23,7 @@
 <p>The numbers in the ShopSphere design (50 customers, 75 orders) are my own illustrative choices, not from any vendor document. The Python snippet and the SQL checks were run by me before being printed here.</p>
 </div>
 
-<h3 id="c7-words">3.1.1 Words to know first</h3>
+<h2 id="c7-words">3.1 Words to know first</h2>
 <dl class="defs">
 <div>
 <dt>Test data</dt>
@@ -80,14 +79,14 @@
 </div>
 </dl>
 
-<h3 id="c7-why-classify">3.1.2 Why classify test data at all?</h3>
+<h2 id="c7-why-classify">3.2 Why classify test data at all?</h2>
 <p><span class="badge concept">General concept</span> Imagine a kitchen preparing for a cooking class. The chef does not just buy "food". She buys the exact ingredients each recipe needs, in the amounts each recipe needs, and she keeps the allergy-sensitive items (nuts) in a separate, labelled place. Test data works the same way. You prepare the exact rows each test needs, and you keep the dangerous ones (real personal data) away from places they must not be.</p>
 <p>The analogy stops being accurate in one place: a chef can taste the soup, but nobody can "see" whether a table of 5 million rows has the right mix. That is why we write the classification down, as a plan, before building anything.</p>
 <div class="callout why"><strong class="ctitle">Why it matters</strong>
 <p>Without classification, teams fall into two traps. Either they copy everything from production (huge, risky, and still missing the odd cases that have never happened yet), or they hand-type five "happy path" rows and discover the bugs in production. Classification gives you a short list of questions to ask for any data request: <em>where does it come from, how sensitive is it, and what must it prove?</em></p>
 </div>
 
-<h3 id="c7-three-axes">3.1.3 Three ways to classify test data</h3>
+<h2 id="c7-three-axes">3.3 Three ways to classify test data</h2>
 <p>You can sort the same piece of data along three independent lines. A single customer row can be "masked production" by source, "restricted until masked" by sensitivity, and "boundary" by purpose. Keep the three lines separate in your head and in your documents.</p>
 <div class="flow">
 <div class="node"><b>By source</b>where did it come from?
@@ -102,7 +101,7 @@
 </div>
 </div>
 
-<h4 id="c7-by-source">3.1.3.1 By source</h4>
+<h3 id="c7-by-source">3.3.1 By source</h3>
 <p>The source is how the data came to exist. The syllabus groups tool capabilities exactly along this line: subsetting and masking work on production-derived data, while generation makes new data.</p>
 <div class="tablewrap"><table><thead>
 <tr><th>Source class</th><th>How it is made</th><th>Typical risk</th><th>Where this guide covers it</th></tr>
@@ -113,13 +112,13 @@
 <tr><td>Masked production</td><td>Production (or a subset) with sensitive values replaced</td><td>Weak masking can leak; masking must stay consistent across tables</td><td><a href="02-privacy-discovery-subsetting-masking.html#c2-s3">the masking concepts chapter</a></td></tr>
 <tr><td>Synthetic (generated)</td><td>Created from rules, no real person behind any row</td><td>May not look like the messy real world unless the rules are good</td><td>This section</td></tr>
 <tr><td>Hand-crafted</td><td>A person types or edits specific rows</td><td>Slow, hard to repeat, tiny volume</td><td>This section</td></tr>
-<tr><td>Hybrid</td><td>Masked or queried production plus generated rows added</td><td>Needs a clear plan for which part comes from where</td><td>Section 3.1.6</td></tr>
+<tr><td>Hybrid</td><td>Masked or queried production plus generated rows added</td><td>Needs a clear plan for which part comes from where</td><td>Section 3.6</td></tr>
 </tbody>
 </table>
 </div>
 <p>Hybrid is more than a theory. GenRocket's FAQ says it can query existing production data and merge it with synthetically generated data, and its G-Subset overview lists "test data augmentation" (adding a richer set of data to the destination) as one of its usage options. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">GenRocket General FAQ ↗</a></p>
 
-<h4 id="c7-by-sensitivity">3.1.3.2 By sensitivity</h4>
+<h3 id="c7-by-sensitivity">3.3.2 By sensitivity</h3>
 <p>Sensitivity is how much harm follows if the data leaks. <a href="02-privacy-discovery-subsetting-masking.html#c2-s1">the sensitive data and regulations chapter</a> covers PII, PHI and the regulations in depth. For classification purposes you only need a simple ladder. The labels differ between companies; the ladder below is a common shape, not a standard.</p>
 <div class="tablewrap"><table><thead>
 <tr><th>Level</th><th>Meaning</th><th>ShopSphere example</th><th>Allowed in test?</th></tr>
@@ -134,7 +133,7 @@
 </div>
 <p>Informatica's own introduction frames the same idea: you identify sensitive information in large volumes of production data, and its profiles can compare data against compliance standards, naming PII, PCI and PHI as examples (User Guide 10.5.10, p.24). <span class="badge doc">From docs</span> The key point for classification is simple: <strong>sensitivity decides what you are allowed to do to the data; source and purpose decide what you do with it.</strong> Synthetic data has no real person behind it, which is why it needs no masking step.</p>
 
-<h4 id="c7-by-purpose">3.1.3.3 By purpose</h4>
+<h3 id="c7-by-purpose">3.3.3 By purpose</h3>
 <p>This is the line testers care about most. Each purpose answers "what must this row prove?". There are seven that cover almost every request.</p>
 <div class="tablewrap"><table><thead>
 <tr><th>Purpose</th><th>What it proves</th><th>ShopSphere example</th></tr>
@@ -155,7 +154,7 @@
 </div>
 
 
-<h3 id="c7-data-patterns">3.1.4 The syllabus "data patterns" on the map</h3>
+<h2 id="c7-data-patterns">3.4 The syllabus "data patterns" on the map</h2>
 <p>The course syllabus (Day 47) lists five data patterns: <strong>boundary conditions, sequential, random, edge cases and null</strong>. They are not a separate classification. They are <em>ways of shaping values</em>, and each one serves one or more of the purposes in 7.3.3. <a href="07-genrocket-patterns-and-hands-on.html#c7-s1">the GenRocket data patterns chapter</a> shows them in GenRocket; here we place them on the map.</p>
 <div class="tablewrap"><table><thead>
 <tr><th>Pattern</th><th>What the values look like</th><th>Mainly serves purpose</th><th>ShopSphere example</th></tr>
@@ -193,7 +192,7 @@
 </div>
 <p>Notice the boundary row. A boundary test needs <em>three</em> values per limit: just inside, on, and just outside. Many bugs are off-by-one mistakes (using "greater than" where "greater than or equal" was meant), and only the exact boundary value catches them. Random data hits the exact boundary almost never. That is the main reason boundary data must be <em>designed</em>, not left to chance.</p>
 
-<h3 id="c7-what-is-synthetic">3.1.5 What synthetic data is</h3>
+<h2 id="c7-what-is-synthetic">3.5 What synthetic data is</h2>
 <p><strong>Concept.</strong> Synthetic data is data created by a program following rules you set. No row in it was ever a real person's record.</p>
 <p><strong>Simple explanation.</strong> A film set looks like a street, but nobody lives in the houses. Synthetic data looks like customers, but no customer exists. It is built to be <em>good enough to exercise the application</em>, which is a different goal from being a copy of reality.</p>
 <p>The analogy stops being accurate in one place. A film set is built once and looks right from one angle. Synthetic data must stay correct from every angle the application looks at it: the foreign keys must join, the dates must be in order, and the totals must add up.</p>
@@ -207,7 +206,7 @@
 <p>The guide's own example is an airline that sells plane tickets. Rules load dictionary values such as names into the customer tables, create random number strings for ticket numbers, create a numeric sequence for identification numbers, and use a reference lookup for values such as airport codes (User Guide 10.5.10, p.191). <span class="badge doc">From docs</span> Map that to ShopSphere and you get: a name dictionary for <code>first_name</code>, a sequence for <code>customer_id</code>, random strings for order references, and a lookup of valid <code>product_code</code> values.</p>
 </div>
 
-<h3 id="c7-synthetic-vs-masked">3.1.6 Synthetic data versus masked production data</h3>
+<h2 id="c7-synthetic-vs-masked">3.6 Synthetic data versus masked production data</h2>
 <p>Neither is "better". They solve different problems, and mature teams use both. The table compares them on the dimensions that matter. The ratings are general experience, so each column heading carries the "General concept" badge rather than a product claim. <span class="badge concept">General concept</span></p>
 <div class="tablewrap"><table><thead>
 <tr><th>Question</th><th>Masked production data</th><th>Synthetic data</th></tr>
@@ -218,7 +217,7 @@
 <tr><td><strong>Privacy</strong></td><td>Depends on masking quality. Weak masking, or unmasked columns, can still identify people</td><td>No real person behind any row, so there is nothing to re-identify</td></tr>
 <tr><td><strong>Setup effort</strong></td><td>Discovery, masking rules, consistency checks</td><td>Modelling the tables, writing rules for each column and relationship</td></tr>
 <tr><td><strong>Cost to refresh</strong></td><td>Re-run extract and mask, which grows with production size</td><td>Re-run the generator; speed depends on the rows asked for, not on production size</td></tr>
-<tr><td><strong>Referential integrity</strong></td><td>Comes from the real data, but masking must keep keys matching across tables</td><td>Must be designed: parent rows first, children point at existing parents (section 3.1.8)</td></tr>
+<tr><td><strong>Referential integrity</strong></td><td>Comes from the real data, but masking must keep keys matching across tables</td><td>Must be designed: parent rows first, children point at existing parents (section 3.8)</td></tr>
 <tr><td><strong>Distributions</strong></td><td>Real distributions come free</td><td>You must state them (for example 20% of customers with no orders)</td></tr>
 <tr><td><strong>Repeatability</strong></td><td>Same snapshot until refreshed</td><td>Same output every run if you use a seed</td></tr>
 <tr><td><strong>Volume on demand</strong></td><td>Limited by what production holds</td><td>As many rows as the target can hold</td></tr>
@@ -227,7 +226,7 @@
 </table>
 </div>
 <p>GenRocket's SDR page makes one claim worth noticing, which I report as the vendor's view: synthetic data "can produce edge cases that do not currently exist in production" and "can yield more accurate data patterns than exist in production". <span class="badge doc">From docs</span> That is a statement about coverage, and it is true for any generator that supports designed edge cases. It does not mean synthetic data is automatically more realistic than production, which it is not.</p>
-<h4 id="c7-choosing">3.1.6.1 Which one should you choose?</h4>
+<h3 id="c7-choosing">3.6.1 Which one should you choose?</h3>
 <ol class="steps">
 <li><strong>Is a realistic mix of messy data essential, such as for a new analytics report or a migration rehearsal?</strong><p>Lean towards masked production, because the real mess is the thing being tested.</p><p class="expect">Result: use the subsetting and masking techniques from the <a href="02-privacy-discovery-subsetting-masking.html#c2-s2">subsetting</a> and <a href="02-privacy-discovery-subsetting-masking.html#c2-s3">masking</a> concept chapters.</p></li>
 <li><strong>Is the system new, so there is no production data yet, or are you testing a feature with no history?</strong><p>Generate. There is nothing to copy.</p><p class="expect">Result: use rules from this section.</p></li>
@@ -239,7 +238,7 @@
 </div>
 
 
-<h3 id="c7-how-generation-works">3.1.7 How generation works: rules, generators, seeds and distributions</h3>
+<h2 id="c7-how-generation-works">3.7 How generation works: rules, generators, seeds and distributions</h2>
 <p><strong>Concept.</strong> A generation job has three layers. The <em>target</em> says which tables and columns to fill. A <em>rule</em> (Informatica's word) or an assigned <em>generator</em> (GenRocket's word) says how to fill each column. A <em>run</em> says how many rows and where to put them.</p>
 <div class="flow">
 <div class="node"><b>1. Target shape</b>tables, columns, types, keys
@@ -257,7 +256,7 @@
 <div class="node"><b>4. Output</b>database, file, message
 </div>
 </div>
-<h4 id="c7-generator-kinds">3.1.7.1 The common kinds of generator</h4>
+<h3 id="c7-generator-kinds">3.7.1 The common kinds of generator</h3>
 <p>Almost every column in a business table can be filled by one of about eight ideas. The table shows each idea, then the names the two tools use for it. Names come from the pages I read; I list only what those pages state.</p>
 <div class="tablewrap"><table><thead>
 <tr><th>Idea</th><th>ShopSphere column</th><th>Informatica technique</th><th>GenRocket generator named in its docs</th></tr>
@@ -279,11 +278,11 @@
 <p>Informatica separates the <em>rule</em> (reusable, named, stored in the Policies area) from its <em>assignment</em> to a column (User Guide 10.5.10, pp.191 to 193). GenRocket attaches a <em>generator</em> directly to each attribute and picks a default for you from the attribute and domain name, the project's industry type and usage patterns (GenRocket "How are Generators Assigned to Domain Attributes?"). In both, you can replace what was picked. <span class="badge doc">From docs</span></p>
 </div>
 
-<h4 id="c7-seeds">3.1.7.2 Seeds: making "random" repeatable</h4>
+<h3 id="c7-seeds">3.7.2 Seeds: making "random" repeatable</h3>
 <p><strong>Concept.</strong> Computers do not produce truly random numbers. They run a formula that produces a long, random-looking list, starting from a number called the <dfn>seed</dfn>. Same seed, same list.</p>
 <p><strong>Why it matters.</strong> Suppose a test fails on Tuesday because customer 2003 had a zip code with a leading zero. If the data is regenerated on Wednesday with different random values, you may never see that customer again. With a fixed seed you can rebuild exactly Tuesday's data and debug it. The opposite is also useful: change the seed on purpose to get a fresh data set when you want fresh coverage.</p>
 <p>GenRocket describes this directly: seeding generates the same set of random data for the same seed value every time, a seed can be set on the domain (a global seed variable) or in an attribute's generator configuration, and two attributes using the same generator and same seed produce the same random series. It also notes that GenRocket can generate the same data as previous runs through a seed on a domain or generator (FAQ). <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/-what-is-seeding" target="_blank" rel="noopener">What is Seeding? ↗</a></p>
-<p>The snippet below is my own illustration of the principle in plain Python, not a vendor tool. It builds the 50 customers and orders designed in section 3.1.10. Run it twice with seed 42 and you get identical data; run it with seed 7 and you get different data.</p>
+<p>The snippet below is my own illustration of the principle in plain Python, not a vendor tool. It builds the 50 customers and orders designed in section 3.10. Run it twice with seed 42 and you get identical data; run it with seed 7 and you get different data.</p>
 <pre><code>import random
 
 def generate(seed):
@@ -312,7 +311,7 @@ print(len(c1), len(o1), sum(x[2] for x in o1))   # 50 75 179
 print(c1 == c2 and o1 == o2, c1 == c3)           # True False</code></pre>
 <p class="expect">Expected result when I ran it (Python 3.13): the first print shows <code>50 75 179</code> and the second shows <code>True False</code>. The first three customers with seed 42 were <code>(2001, 'Ravi', 'Menon', '560095')</code>, <code>(2002, 'Divya', 'Iyer', '560029')</code> and <code>(2003, 'Meera', 'Kumar', '560087')</code>. The item total 179 and these exact names depend on the random generator inside your Python version, so yours may differ. What must hold on your machine is <code>True False</code>.</p>
 
-<h4 id="c7-distributions">3.1.7.3 Distributions: how values are spread</h4>
+<h3 id="c7-distributions">3.7.3 Distributions: how values are spread</h3>
 <p>If every customer got exactly two orders, the data would be repeatable but unrealistic. Real shops have many customers with none, most with one or two, and a few with many. The snippet above states this on purpose: 10, 20, 15 and 5 customers get 0, 1, 2 and 5 orders. That is a <em>distribution</em>.</p>
 <p>Both tools let you state percentages rather than writing a loop:</p>
 <ul>
@@ -323,10 +322,10 @@ print(c1 == c2 and o1 == o2, c1 == c3)           # True False</code></pre>
 <p>With "10% of rows null", you can ask for roughly 10% (each row has a 10% chance) or exactly 10% (5 of 50). For small data sets such as 50 customers, always choose exact, otherwise a run can produce zero nulls and your null test silently tests nothing.</p>
 </div>
 
-<h4 id="c7-dependencies">3.1.7.4 Rules that link columns</h4>
+<h3 id="c7-dependencies">3.7.4 Rules that link columns</h3>
 <p>Some values only make sense in combination. A shipped date must come after the order date. A flight cannot leave and arrive at the same airport. Informatica's guide has both examples. It describes a <em>conditional constraint</em>: an expression such as <code>To_City != From_City</code> that restricts values in one column based on another (User Guide 10.5.10, pp.201 to 202). When the rule's own limits make the constraint impossible (for example a modified date that must be later than a created date of 31 July 2014, the last date the rule allows), the rule wins and the tool generates data with warning messages. <span class="badge doc">From docs</span> The lesson for your own designs: when two rules fight, decide which one is the boss, and expect warnings from the other.</p>
 
-<h3 id="c7-parent-child">3.1.8 Generating parent and child tables so every key is valid</h3>
+<h2 id="c7-parent-child">3.8 Generating parent and child tables so every key is valid</h2>
 <p><strong>Concept.</strong> A child row needs a parent that exists. If you generate ORDERS first and pick <code>customer_id</code> values at random, some will point at customers that do not exist, and the database (or the application's joins) will fail.</p>
 <p><strong>Simple explanation.</strong> You cannot write a library card for a member who has not been registered. So you register members first, then issue cards that carry a registered member's number.</p>
 <figure class="diagram"><svg viewBox="0 0 800 250" role="img" aria-label="Three boxes in a row: CUSTOMERS with 50 rows generated first, ORDERS with 75 rows generated second pointing back to a customer id, ORDER_ITEMS with about 179 rows generated third pointing back to an order id.">
@@ -350,9 +349,9 @@ print(c1 == c2 and o1 == o2, c1 == c3)           # True False</code></pre>
 <text x="538" y="105" text-anchor="middle" fill="currentColor" font-size="12">copies an existing id</text>
 <text x="400" y="215" text-anchor="middle" fill="currentColor" font-size="13">Generation order: left to right. Arrows show which table each foreign key points at.</text>
 </svg>
-<figcaption>Original diagram: parents are generated before children, and every foreign key copies an id that already exists. Row counts are from the design in section 3.1.10.</figcaption>
+<figcaption>Original diagram: parents are generated before children, and every foreign key copies an id that already exists. Row counts are from the design in section 3.10.</figcaption>
 </figure>
-<h4 id="c7-two-ways">3.1.8.1 Two common ways to keep keys valid</h4>
+<h3 id="c7-two-ways">3.8.1 Two common ways to keep keys valid</h3>
 <div class="compare">
 <div>
 <h4 id="c3-a-child-picks-from-existing-parents">A. Child picks from existing parents</h4>
@@ -368,14 +367,14 @@ print(c1 == c2 and o1 == o2, c1 == c3)           # True False</code></pre>
 </div>
 </div>
 <p>GenRocket's page also says every domain has an id or primary attribute that is used to guarantee referential integrity between domains, and its FAQ says it can generate synthetic data with full referential integrity. It introduces a "sibling" idea: a table that merely describes another (the page's example is a role table describing a user table) is marked as a sibling instead of a parent, to avoid generating unnecessary data. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/domains-overview/parent-child-and-sibling-relationships" target="_blank" rel="noopener">Parent, Child, and Sibling Relationships ↗</a></p>
-<h4 id="c7-children-per-parent">3.1.8.2 How many children per parent?</h4>
+<h3 id="c7-children-per-parent">3.8.2 How many children per parent?</h3>
 <p>Informatica's plan settings for data generation include a <strong>minimum and maximum number of child records for each parent record, each with a default of 1</strong>, and percentages for "parent records without children" and "child records without parent" for self-cyclic tables and reference lookup rules (User Guide 10.5.10, p.285). <span class="badge doc">From docs</span> Those last two settings exist because sometimes you <em>want</em> a customer with no orders (a null-style condition) or, rarely, a deliberately orphaned child (for a data-quality test). Do this only on purpose and label it, so nobody mistakes it for a bug.</p>
 <div class="callout warn"><strong class="ctitle">Self-referencing tables</strong>
 <p>A table whose foreign key points at itself (an employee table with a manager id) has no "parents first" order. The tool needs a special rule: the first rows have no parent, later rows point back at earlier ones. Informatica's setting names self-cyclic tables specifically (p.285). ShopSphere has none, so we do not build one here.</p>
 </div>
 
 
-<h3 id="c7-model-design-deploy-manage">3.1.9 The lifecycle: Model, Design, Deploy, Manage</h3>
+<h2 id="c7-model-design-deploy-manage">3.9 The lifecycle: Model, Design, Deploy, Manage</h2>
 <p>The syllabus for Day 46 says "Data generation: model, design, deploy, manage". That is GenRocket's own phrase: its help centre states that GenRocket uses a "Model, Design, Deploy, Manage" methodology and explains it in a video that I could not watch, so the page text is all I can report. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/the-genrocket-methodology" target="_blank" rel="noopener">The GenRocket Methodology ↗</a></p>
 <p>The four words describe a cycle that any generation effort goes through, in any tool. The table below is my teaching interpretation, built from the pieces I could ground. <span class="badge concept">General concept</span></p>
 <div class="tablewrap"><table><thead>
@@ -383,7 +382,7 @@ print(c1 == c2 and o1 == o2, c1 == c3)           # True False</code></pre>
 </thead>
 <tbody>
 <tr><td><strong>Model</strong></td><td>What does the data look like?</td><td>List the tables, columns, types, keys and relationships (CUSTOMERS, ORDERS, ORDER_ITEMS, PRODUCTS)</td><td>A data model the tool can read, often imported from an existing database definition</td></tr>
-<tr><td><strong>Design</strong></td><td>Which values, how many, and why?</td><td>Choose a rule per column, set the distributions, decide the boundary and null rows (section 3.1.10)</td><td>Rules, counts and a coverage matrix</td></tr>
+<tr><td><strong>Design</strong></td><td>Which values, how many, and why?</td><td>Choose a rule per column, set the distributions, decide the boundary and null rows (section 3.10)</td><td>Rules, counts and a coverage matrix</td></tr>
 <tr><td><strong>Deploy</strong></td><td>How do the rows reach the test system?</td><td>Run the generation, write to the QA database or to files, check keys and counts</td><td>Loaded, verified test data</td></tr>
 <tr><td><strong>Manage</strong></td><td>How do we keep it right and reusable?</td><td>Version the rules, record the seed, handle requests for changes, retire old data sets</td><td>A catalogue of data sets and a change history</td></tr>
 </tbody>
@@ -395,12 +394,12 @@ print(c1 == c2 and o1 == o2, c1 == c3)           # True False</code></pre>
 <p>Informatica's task flow has the same shape: import metadata into a project (model), create generation rules and assign them to columns (design), create a plan, generate a workflow and run it (deploy), then watch it in the Monitor view (User Guide 10.5.10, p.192). <span class="badge doc">From docs</span> The guide does not use the words Model, Design, Deploy, Manage; the mapping is mine.</p>
 </div>
 
-<h3 id="c7-worked-example">3.1.10 Worked example: 50 ShopSphere customers and their orders</h3>
+<h2 id="c7-worked-example">3.10 Worked example: 50 ShopSphere customers and their orders</h2>
 <p><strong>The request.</strong> The QA team testing ShopSphere's Customer Orders app asks the TDM engineer for a new data set in a QA database: 50 customers, with orders and items, covering the registration rules, the order history page and a customer-search feature. No production data may be used. We follow Model, Design and Deploy; Manage is covered by the lab at the end.</p>
-<h4 id="c7-model-step">3.1.10.1 Model</h4>
+<h3 id="c7-model-step">3.10.1 Model</h3>
 <p>The tables are the ShopSphere tables from the data basics chapter. The relationships are the only thing the generator needs to respect: <code>ORDERS.customer_id</code> points at <code>CUSTOMERS</code>, <code>ORDER_ITEMS.order_id</code> points at <code>ORDERS</code>, and <code>ORDER_ITEMS.product_code</code> points at <code>PRODUCTS</code>. PRODUCTS is a small reference table of four rows that we load by hand (P-100 Laptop Stand, P-200 USB Cable, P-300 Phone Case, P-400 Desk Lamp), because it is better to control the catalogue than to invent products.</p>
 <p>These business rules are invented for this example. They are what the test conditions will aim at: <em>customers must be 18 or older; first and last names are at most 30 characters; phone is 10 digits when present; zip code is 6 digits when present; email is optional; each order has between 1 and 4 items</em>.</p>
-<h4 id="c7-design-step">3.1.10.2 Design: a rule for every column</h4>
+<h3 id="c7-design-step">3.10.2 Design: a rule for every column</h3>
 <div class="tablewrap"><table class="sample">
 <caption>Generation rules for CUSTOMERS (my design; the 'ssn' prefix 900 and 'example.test' domain are my choices so values cannot be mistaken for real ones)</caption><thead>
 <tr><th>Column</th><th>Rule</th><th>Sensitivity</th></tr>
@@ -448,7 +447,7 @@ print(c1 == c2 and o1 == o2, c1 == c3)           # True False</code></pre>
 </table>
 </div>
 <p>Each order has 1 to 4 items picked at random, each item has a random product code from PRODUCTS, a quantity of 1 to 3, and a <code>unit_price</code> copied from that product's <code>price</code> (so prices always agree with the catalogue). With seed 42 in my run that gave 179 items. <code>total_amount</code> on each order is calculated as the sum of its items, so totals always match. Without that last rule the data would be internally contradictory, and tests of the order total report would fail for the wrong reason.</p>
-<h4 id="c7-coverage-matrix">3.1.10.3 The coverage matrix</h4>
+<h3 id="c7-coverage-matrix">3.10.3 The coverage matrix</h3>
 <p>The matrix shows which data group serves which test area. An empty column is a gap. A tick means a row exists that exercises that area.</p>
 <div class="tablewrap"><table class="sample">
 <caption>Coverage matrix: data groups against test areas (✓ = covered)</caption><thead>
@@ -466,7 +465,7 @@ print(c1 == c2 and o1 == o2, c1 == c3)           # True False</code></pre>
 </table>
 </div>
 <p>Look at the empty cells. Boundary customers have no tick for the order history page, because the design does not say whether they have orders. A good review catches that. Fix it by requiring that at least two boundary customers and two null-phone customers are among the 40 customers who have orders, so the order history page is also tried with them.</p>
-<h4 id="c7-deploy-step">3.1.10.4 Deploy and verify</h4>
+<h3 id="c7-deploy-step">3.10.4 Deploy and verify</h3>
 <p>After the run, check three things before you hand the data over. These SQL checks are what I ran against my generated rows in SQLite; the syntax works on most databases.</p>
 <pre><code>-- 1. No orphan orders (expected: 0)
 SELECT COUNT(*) FROM orders o
@@ -489,7 +488,7 @@ SELECT SUM(CASE WHEN phone IS NULL THEN 1 ELSE 0 END)    AS null_phone,
 FROM customers;</code></pre>
 <p class="expect">Expected result: check 1 returns 0. Check 2 returns four rows: (0, 10), (1, 20), (2, 15), (5, 5); I got exactly this from the snippet in 7.7.2. Check 3 returns 2, 1, 1, 1 once the null and empty overrides from the design table are applied. The snippet in 7.7.2 generates only the typical shape, so I did not run check 3 against it; it is a template for you to run on a real design.</p>
 
-<h3 id="c7-tdaas">3.1.11 Test data as a service</h3>
+<h2 id="c7-tdaas">3.11 Test data as a service</h2>
 <p><strong>Concept.</strong> "Test data as a service" means test data is something teams can <em>ask for and receive</em>, like a ticket to a service desk, instead of something each team builds in secret. A small group owns the know-how and the rules; many teams consume the results. <span class="badge concept">General concept</span> The phrase itself does not appear in the documentation pages I read, so I use it as a label for what the three tools describe in their own words.</p>
 <p><strong>Why it matters.</strong> Without it, every team writes its own scripts, nobody can reproduce another team's data and the same sensitive columns get masked ten different ways. With it, a request is a small form ("50 customers with orders, boundary included"), and the answer is a catalogued, repeatable data set.</p>
 <div class="tablewrap"><table><thead>
@@ -507,7 +506,7 @@ FROM customers;</code></pre>
 <p><strong>Requester:</strong> QA engineer. <strong>Need:</strong> customers with 0, 1, 2 and 5 orders; 5 null-phone customers. <strong>Environment:</strong> QA2. <strong>Refresh:</strong> weekly, same seed. <strong>Owner:</strong> TDM engineer. <strong>Delivered as:</strong> a named data set "SHOPSPHERE-CUST-50-v3" with the rule version and seed recorded. This record is the "Manage" phase of 7.9 in miniature.</p>
 </div>
 
-<h3 id="c7-lab">3.1.12 Hands-on lab: design a smaller data set on paper</h3>
+<h2 id="c7-lab">3.12 Hands-on lab: design a smaller data set on paper</h2>
 <div class="exercise">
 <h4 id="c3-lab-model-and-design-20-customers">Lab: model and design 20 customers</h4>
 <p>Goal: practise turning a request into a Model, a Design and a coverage matrix. You need pen and paper or a text editor; no tool is required.</p>
@@ -527,7 +526,7 @@ FROM customers;</code></pre>
 </details>
 </div>
 
-<h3 id="c7-mistakes">3.1.13 Common mistakes and gotchas</h3>
+<h2 id="c7-mistakes">3.13 Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Mistakes beginners make</strong>
 <ul>
 <li><strong>Generating children before parents.</strong> The foreign keys then point at nothing. Always parents first, or have the child rule read from the finished parent table.</li>
@@ -541,7 +540,7 @@ FROM customers;</code></pre>
 </ul>
 </div>
 
-<h3 id="c7-recap">3.1.14 Recap</h3>
+<h2 id="c7-recap">3.14 Recap</h2>
 <div class="callout recap"><strong class="ctitle">Recap</strong>
 <ul>
 <li>Classify test data along three lines: <strong>source</strong> (production-derived or synthetic), <strong>sensitivity</strong> (what harm a leak causes) and <strong>purpose</strong> (what the row must prove).</li>
@@ -555,7 +554,7 @@ FROM customers;</code></pre>
 </div>
 
 
-<section class="sources"><h3 id="c7-sources">Sources used in this section</h3>
+<section class="sources"><h4 id="c7-sources">Sources used in this section</h4>
 <ul>
 <li>Informatica TDM 10.5.10 User Guide (February 2026): User Guide chapter 9 "Data Generation" (pp.190 to 207: overview, components, task flow, rule types, conditional constraints pp.201 to 202); chapter 10 (pp.208 to 211, 220, 229: technique list, exception test data, random and reference lookup generation); chapter 13 p.285 (data generation plan settings for child records and error options); chapter 1 p.24 (compliance standards, test data warehouse).</li>
 <li>GenRocket: <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/why-synthetic-test-data" target="_blank" rel="noopener">Why Synthetic Test Data?</a> (definition); <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/the-genrocket-methodology" target="_blank" rel="noopener">The GenRocket Methodology</a> (the four-word phrase); <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-five-key-components" target="_blank" rel="noopener">Five Key Components</a>; <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-architecture" target="_blank" rel="noopener">Architecture</a>; <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">General FAQ</a> (roles, seeds, referential integrity, hybrid use); <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/generators-overview" target="_blank" rel="noopener">Generators Overview</a>; <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/-what-is-seeding" target="_blank" rel="noopener">What is Seeding?</a>; <a href="https://genrocket.helpjuice.com/en_US/domains-overview/parent-child-and-sibling-relationships" target="_blank" rel="noopener">Parent, Child, and Sibling Relationships</a>; <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-children-based-on-weights-percentages" target="_blank" rel="noopener">Generate Children based on Weights</a>; <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/what-is-synthetic-data-replacement-sdr" target="_blank" rel="noopener">What is SDR?</a>; <a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-edgecasegen-generator" target="_blank" rel="noopener">EdgeCaseGen</a>; <a href="https://genrocket.helpjuice.com/en_US/g-portal/g-portal-overview" target="_blank" rel="noopener">G-Portal Overview</a>; <a href="https://genrocket.helpjuice.com/en_US/test-data-cases-g-cases/test-data-cases-g-cases-overview" target="_blank" rel="noopener">G-Cases Overview</a>.</li>
@@ -565,8 +564,7 @@ FROM customers;</code></pre>
 <li>All ShopSphere numbers, rules and code are my own illustrations, run in SQLite 3.45 and Python 3.13 before printing.</li>
 </ul></section>
 
-<h2 id="c3-s2">3.2 ETL from scratch: extract, transform, load</h2>
-<p><span class="day">Day 43, Day 54</span></p>
+<div class="grp" id="c3-s2"><span class="grplabel">ETL from scratch: extract, transform, load</span><span class="day">Day 43, Day 54</span></div>
 <p>Every tool in this guide moves data. Informatica TDM copies a slice of a database, changes some values and writes it somewhere else. Delphix reads a source, masks it and delivers it to a target. GenRocket creates rows and writes them to a database or a file. Underneath, all three do the same three things: <strong>get data from somewhere, change it, put it somewhere else</strong>. The industry has had a name for that pattern for decades: <strong>ETL</strong>, which stands for Extract, Transform, Load.</p>
 <p>This section teaches ETL on its own, with no test data management in it, so that you can recognise the pattern wherever it appears. We will build a small but complete ETL job for ShopSphere using plain SQL, with real input and real output tables, then look at the machinery that real ETL tools wrap around those SQL steps: schedulers, logs, error handling and reusable components. The <a href="03-generation-etl-and-tdm.html#c3-s3">next chapter on ETL and TDM</a> lays the TDM tools on top of what you learn here.</p>
 <p>You need to know what a table, a primary key and a foreign key are; if not, read <a href="01-welcome-why-tdm-and-data-basics.html#c1-s3">the data basics chapter</a> first.</p>
@@ -588,7 +586,7 @@ FROM customers;</code></pre>
 <p>The SQL in this section is my own. I ran every statement in SQLite 3.45 and pasted the real results. The SQL is standard in spirit, but functions for text, dates and "insert or update" differ between databases (Oracle, SQL Server, PostgreSQL, MySQL), so expect to adjust a few function names on your system. I point out the main ones as they come up.</p>
 <p>Related videos (transcripts could not be retrieved, so they are not used as sources): <a href="https://www.youtube.com/watch?v=DVyJqMi7QtY" target="_blank" rel="noopener">"How to create mapplet in informatica", LearningMart</a>.</p></div>
 
-<h3 id="c8-words">3.2.1 Words to know first</h3>
+<h2 id="c8-words">3.15 Words to know first</h2>
 <dl class="defs">
 <div><dt>ETL</dt><dd>Extract, Transform, Load: copy data out of one or more sources, reshape and clean it, and write it into a target.</dd></div>
 <div><dt>Staging area</dt><dd>A temporary landing zone, usually a set of tables or files, where extracted data sits unchanged before it is transformed.</dd></div>
@@ -607,7 +605,7 @@ FROM customers;</code></pre>
 <div><dt>ELT</dt><dd>Extract, Load, Transform: load raw data into the target first and transform it there using the target database's own power.</dd></div>
 </dl>
 
-<h3 id="c8-what-is-etl">3.2.2 What ETL is and why it exists</h3>
+<h2 id="c8-what-is-etl">3.16 What ETL is and why it exists</h2>
 <p><strong>Concept.</strong> ETL is a repeatable process that moves data from where it is created to where it is needed, fixing it on the way.</p>
 <p><strong>Simple explanation.</strong> Think of a school canteen. Vegetables arrive muddy from several farms (<em>extract</em> brings them to the back door), staff wash, cut and combine them in the prep room (<em>transform</em>), and trays go to the serving counter (<em>load</em>). Each stage has its own place and rules.</p>
 <p>The analogy stops being accurate here: an ETL job runs many times and must give the same kind of result each time, even if interrupted and restarted. Cooks can improvise; ETL jobs must not.</p>
@@ -615,7 +613,7 @@ FROM customers;</code></pre>
 <p>Data in real companies lives in many places and many shapes. ShopSphere's orders sit in one database, product prices in a spreadsheet maintained by buyers, and a partner sends a daily file where dates are written day first. A manager who asks "how much did we sell last week, per product?" needs one clean answer. Someone has to collect, clean and combine. ETL is the name for doing that on purpose, automatically, and with a record of what happened.</p></div>
 <p>ETL appears in data warehouses and reports (the classic case), system migrations, keeping two systems in step, feeding analytics, and test data provisioning, the topic of the <a href="03-generation-etl-and-tdm.html#c3-s3">next chapter</a>.</p>
 
-<h3 id="c8-oltp-vs-dw">3.2.3 Operational database versus data warehouse</h3>
+<h2 id="c8-oltp-vs-dw">3.17 Operational database versus data warehouse</h2>
 <p>ETL usually connects those two kinds of database, so the difference is worth knowing. <span class="badge concept">General concept</span></p>
 <div class="tablewrap"><table>
 <thead><tr><th>Question</th><th>Operational database (OLTP)</th><th>Data warehouse</th></tr></thead>
@@ -628,7 +626,7 @@ FROM customers;</code></pre>
 </tbody></table></div>
 <p>A common warehouse shape is the <strong>star schema</strong>: a central <em>fact</em> table that records events or measurements (one row per order line, with quantity and amount), surrounded by <em>dimension</em> tables that describe the who, what and when (customer, product, date). A fact table is mostly numbers and keys; a dimension table is mostly descriptive text. We will build a tiny star for ShopSphere later in this section.</p>
 
-<h3 id="c8-big-picture">3.2.4 The big picture</h3>
+<h2 id="c8-big-picture">3.18 The big picture</h2>
 <p>Here is the whole pattern on one page. Read it left to right, then read the three boxes under the main flow, which sit around the flow and keep it running.</p>
 <figure class="diagram"><svg viewBox="0 0 900 380" role="img" aria-label="ETL flow. Sources on the left (database, files, API) feed an extract step into a staging area, then a transform step, then a load step into targets (warehouse, test database). Below the flow are the metadata repository, the scheduler and the monitoring and log store, all connected to the ETL engine.">
 <rect x="10" y="40" width="130" height="190" rx="10" fill="var(--surface)" stroke="currentColor"/>
@@ -678,10 +676,10 @@ FROM customers;</code></pre>
 </svg><figcaption>Original diagram: the ETL data path (top) and the supporting parts that control and observe it (bottom, dashed).</figcaption></figure>
 
 
-<h3 id="c8-extract">3.2.5 Extract: getting data out</h3>
+<h2 id="c8-extract">3.19 Extract: getting data out</h2>
 <p><strong>Concept.</strong> Extraction reads data from a source system and hands it to the ETL process, without changing the source.</p>
 <p><strong>Why it matters.</strong> Extraction is where ETL jobs first meet the real world: slow networks, locked tables, files that arrive late or half-written, and sources that must not be slowed down because customers are using them. A good extract takes only what it needs, takes it consistently, and leaves the source as it found it.</p>
-<h4 id="c8-sources">3.2.5.1 Kinds of source</h4>
+<h3 id="c8-sources">3.19.1 Kinds of source</h3>
 <div class="tablewrap"><table>
 <thead><tr><th>Source kind</th><th>How it is read</th><th>Watch out for</th></tr></thead>
 <tbody>
@@ -691,7 +689,7 @@ FROM customers;</code></pre>
 <tr><td>Web services (APIs)</td><td>HTTP requests, often in pages</td><td>Rate limits, authentication, changing response shapes</td></tr>
 </tbody></table></div>
 <p>The Informatica guide shows the same range in test data work: it mentions relational sources, flat files and XSD (XML) sources as things that data subset, masking and generation plans can run on (User Guide 10.5.10, pp.274 to 277). <span class="badge doc">From docs</span> GenRocket's FAQ describes its targets in the same vein (databases, flat files, mainframe formats, NoSQL). <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">GenRocket General FAQ ↗</a></p>
-<h4 id="c8-full-vs-incremental">3.2.5.2 Full versus incremental extraction</h4>
+<h3 id="c8-full-vs-incremental">3.19.2 Full versus incremental extraction</h3>
 <div class="compare">
 <div>
 <h4 id="c3-full-extract">Full extract</h4>
@@ -708,7 +706,7 @@ FROM customers;</code></pre>
 <p><strong>Use for:</strong> large, growing tables such as ORDERS.</p>
 </div>
 </div>
-<h4 id="c8-watermark">3.2.5.3 The watermark technique</h4>
+<h3 id="c8-watermark">3.19.3 The watermark technique</h3>
 <p>The simplest incremental method is a <strong>watermark</strong>: store the highest value you have processed, and next time ask only for rows beyond it. It needs a column whose value only ever grows, such as an increasing order number or a "last modified" timestamp.</p>
 <p>ShopSphere's order feed has an increasing <code>order_id</code>, so we keep a small control table with one row per job:</p>
 <pre><code>CREATE TABLE etl_control (
@@ -735,7 +733,7 @@ WHERE  job_name = 'orders_daily';</code></pre>
 <li><strong>A column that is not strictly increasing.</strong> If IDs can be assigned out of order by two servers, a late row with a smaller number is skipped forever. A "last modified" timestamp has the same trap when clocks differ.</li>
 <li><strong>Changes and deletes are invisible.</strong> A watermark on <code>order_id</code> sees new orders, not edits to old ones, and never sees a deleted row. For edits use a last-modified column; for deletes use CDC or a periodic full comparison.</li>
 </ul></div>
-<h4 id="c8-cdc">3.2.5.4 Change data capture at concept level</h4>
+<h3 id="c8-cdc">3.19.4 Change data capture at concept level</h3>
 <p>Change data capture (CDC) is the umbrella name for ways to learn <em>what</em> changed. <span class="badge concept">General concept</span> There are four common approaches. Each product implements them differently, so check your tool's documentation before relying on one.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Approach</th><th>How it works</th><th>Catches deletes?</th><th>Cost to the source</th></tr></thead>
@@ -745,13 +743,13 @@ WHERE  job_name = 'orders_daily';</code></pre>
 <tr><td>Log-based</td><td>Read the database's own transaction log to see inserts, updates and deletes in order</td><td>Yes</td><td>Low on the source, but needs special access and tooling</td></tr>
 <tr><td>Compare snapshots</td><td>Keep yesterday's copy; compare with today's; the difference is the change</td><td>Yes</td><td>High: reads and compares everything</td></tr>
 </tbody></table></div>
-<h4 id="c8-extract-rules">3.2.5.5 Good extraction habits</h4>
+<h3 id="c8-extract-rules">3.19.5 Good extraction habits</h3>
 <ol class="steps">
 <li><strong>Record the run.</strong><p>Give every run a batch id and a timestamp, and write both next to the extracted rows. When something looks wrong later, you can say exactly which run brought it in.</p></li>
 <li><strong>Read a consistent snapshot.</strong><p>If you extract CUSTOMERS and then ORDERS five minutes later, new orders may point at customers you did not capture. Extract related tables in one transaction or point in time, or cut the orders to a time you know customers cover.</p><p class="expect">What you should see: every order in staging has its customer in staging, or the job knows why not.</p></li>
 </ol>
 
-<h3 id="c8-staging">3.2.6 The staging area</h3>
+<h2 id="c8-staging">3.20 The staging area</h2>
 <p><strong>Concept.</strong> The staging area is a temporary landing zone between the source and the final target. Extracted data is stored there in nearly the same form as it was found.</p>
 <p><strong>Simple explanation.</strong> In the canteen, it is the delivery bay where crates are put down before anyone peels anything.</p>
 <p><strong>Why it matters.</strong> Staging gives you four things:</p>
@@ -761,7 +759,7 @@ WHERE  job_name = 'orders_daily';</code></pre>
 <li><strong>Safe restarts.</strong> A failure in the transform step does not need a new extract.</li>
 </ul>
 <p>Informatica's plans give you the same idea in their connection options. When you create a plan, you can choose a <em>staging connection</em>, "a connection to a database for staging data", and the default shown comes from the Preferences view (User Guide 10.5.10, p.276). <span class="badge doc">From docs</span> That is a documented example of a staging area as a configured part of a real tool.</p>
-<h4 id="c8-staging-design">3.2.6.1 How to design staging tables</h4>
+<h3 id="c8-staging-design">3.20.1 How to design staging tables</h3>
 <ul>
 <li><strong>Mirror the source, with all columns as text.</strong> A staged row should never fail because a date has a strange format. Conversion is the transform step's job.</li>
 <li><strong>Add audit columns.</strong> At least <code>batch_id</code>; often a load timestamp and the source file name.</li>
@@ -790,12 +788,12 @@ WHERE  job_name = 'orders_daily';</code></pre>
 <p>The order feed is staged the same way. Two of its rows are traps handled later: order 5004 has a total of "abc", and order 5005 belongs to customer 9999, who does not exist.</p>
 
 
-<h3 id="c8-transform">3.2.7 Transform: cleaning and reshaping</h3>
+<h2 id="c8-transform">3.21 Transform: cleaning and reshaping</h2>
 <p><strong>Concept.</strong> Transformation turns staged raw data into the clean, consistent, correctly typed shape the target needs.</p>
 <p><strong>Why it matters.</strong> This is where business rules live. If the transform is wrong, the data is wrong everywhere downstream, and nobody can tell from the target alone. Transformations are therefore the part of ETL most worth documenting and testing.</p>
 <p>There are nine everyday kinds of transformation: cleaning, type conversion, mapping, deduplication, lookups, filtering, joining, derived columns and aggregation. We cover each in turn using the ShopSphere staging rows from the previous section. Each subsection shows the idea, the SQL, and the before and after.</p>
 
-<h4 id="c8-t-cleaning">3.2.7.1 Cleaning</h4>
+<h3 id="c8-t-cleaning">3.21.1 Cleaning</h3>
 <p><strong>Idea.</strong> Make values consistent so that equal things look equal. "MENON", "Menon" and "menon " are the same surname to a person, but three different strings to a database.</p>
 <pre><code>SELECT
   UPPER(SUBSTR(TRIM(first_name),1,1)) || LOWER(SUBSTR(TRIM(first_name),2)) AS first_name,
@@ -813,7 +811,7 @@ FROM stg_customers;</code></pre>
 </tbody></table></div>
 <p>Function names differ by database (for example <code>SUBSTR</code> is <code>SUBSTRING</code> in SQL Server). Replacing a missing email with "not provided" is a business choice; some teams keep NULL.</p>
 
-<h4 id="c8-t-conversion">3.2.7.2 Type conversion</h4>
+<h3 id="c8-t-conversion">3.21.2 Type conversion</h3>
 <p><strong>Idea.</strong> Staging holds everything as text. The target needs real dates and numbers so that sorting, comparing and adding work properly. As text, "9" sorts after "10", and "20/10/2026" sorts before "21/09/2026" only by accident.</p>
 <pre><code>SELECT
   CAST(order_id AS INTEGER) AS order_id,
@@ -830,7 +828,7 @@ WHERE total_amount NOT GLOB '*[^0-9.]*';   -- only rows whose amount is numeric<
 </tbody></table></div>
 <p>Oracle and PostgreSQL would use <code>TO_DATE(order_date, 'DD/MM/YYYY')</code>; I sliced the string because SQLite has no date parser with a format string. Confirm with the data owner whether dates are day-first or month-first, and reject dates that do not parse instead of guessing.</p>
 
-<h4 id="c8-t-mapping">3.2.7.3 Mapping and standardising</h4>
+<h3 id="c8-t-mapping">3.21.3 Mapping and standardising</h3>
 <p>The word <strong>mapping</strong> has two meanings in ETL, and both matter. In the broad sense a <em>mapping</em> is the whole definition of how source columns become target columns (we meet this in 8.11). In the narrow sense, <em>value mapping</em> means translating codes: the order system stores <code>S</code>, <code>P</code> and <code>C</code>, and reports want the words.</p>
 <pre><code>CREATE TABLE status_map (status_code TEXT PRIMARY KEY, status_name TEXT);
 INSERT INTO status_map VALUES ('S','Shipped'),('P','Pending'),('C','Cancelled');
@@ -849,7 +847,7 @@ LEFT JOIN status_map m ON m.status_code = o.status_code;</code></pre>
 </tbody></table></div>
 <p>The unmatched code <code>Z</code> becomes "Unknown" because of the <code>LEFT JOIN</code> plus <code>COALESCE</code>. An inner join here would silently drop order 5007 altogether, which is one of the most common ETL bugs: <strong>a lookup that loses rows when it fails to match</strong>.</p>
 
-<h4 id="c8-t-dedup">3.2.7.4 Deduplication</h4>
+<h3 id="c8-t-dedup">3.21.4 Deduplication</h3>
 <p><strong>Idea.</strong> Keep one row for each real-world thing. Customer 1002 arrived twice in the staging data.</p>
 <pre><code>SELECT customer_id, first_name, last_name, email, zip_code
 FROM (
@@ -867,7 +865,7 @@ WHERE rn = 1;</code></pre>
 <tr><td>After</td><td>1</td><td>3</td></tr>
 </tbody></table></div>
 
-<h4 id="c8-t-lookup">3.2.7.5 Lookups</h4>
+<h3 id="c8-t-lookup">3.21.5 Lookups</h3>
 <p><strong>Idea.</strong> A <em>lookup</em> enriches a row by finding a related value in a reference table. Order items carry only <code>product_code</code>. A lookup in PRODUCTS adds the product name.</p>
 <pre><code>SELECT i.item_id, i.product_code,
        COALESCE(p.product_name, 'UNKNOWN PRODUCT') AS product_name
@@ -883,7 +881,7 @@ LEFT JOIN products p ON p.product_code = i.product_code;</code></pre>
 </tbody></table></div>
 <p>Choose deliberately what a miss does: use a default such as "UNKNOWN PRODUCT" and report it, or reject the row. Never let it vanish. Real ETL tools provide a ready-made <em>lookup transformation</em> for this and handle caching, because looking up a million rows one at a time would be slow. In the Informatica guide, lookup transformations appear among the restrictions on mapplets used for Hadoop masking (User Guide 10.5.10, p.137), which confirms that lookup is a standard kind of transformation in that product. <span class="badge doc">From docs</span></p>
 
-<h4 id="c8-t-filter">3.2.7.6 Filtering, validating and rejecting</h4>
+<h3 id="c8-t-filter">3.21.6 Filtering, validating and rejecting</h3>
 <p><strong>Idea.</strong> Some rows should not reach the target. <em>Filtering</em> removes rows that are valid but unwanted (for example, test orders). <em>Validating</em> checks rows against rules and <em>rejects</em> those that fail, keeping them aside with a reason so someone can fix them.</p>
 <pre><code>CREATE TABLE reject_orders (batch_id INTEGER, order_id TEXT, reason TEXT);
 
@@ -905,10 +903,10 @@ WHERE  o.total_amount = '' OR o.total_amount GLOB '*[^0-9.]*'
 </tbody></table></div>
 <p>The valid orders carry on. This is the key design choice: <strong>one bad row must not stop the whole run, and must not vanish</strong>. It goes to a reject table with a batch id and a human-readable reason.</p>
 
-<h4 id="c8-t-join">3.2.7.7 Joining and derived columns</h4>
+<h3 id="c8-t-join">3.21.7 Joining and derived columns</h3>
 <p><strong>Joining</strong> combines rows from different inputs. To build the sales fact table we join order items to their orders for date, customer and status. Ask of every join: "what happens to a row with no match?" An inner join drops it; a left join keeps it with empty columns. That is a business decision, not a technical one. <strong>Derived columns</strong> calculate values that do not exist in the source, such as <code>line_amount</code> as quantity times unit price (item 2: 2 &times; 100.00 = 200.0).</p>
 
-<h4 id="c8-t-aggregate">3.2.7.8 Aggregating</h4>
+<h3 id="c8-t-aggregate">3.21.8 Aggregating</h3>
 <p><strong>Idea.</strong> Summarise many rows into fewer, such as a daily sales table for dashboards.</p>
 <pre><code>SELECT order_date,
        COUNT(DISTINCT order_id) AS orders_count,
@@ -926,10 +924,10 @@ GROUP BY order_date;</code></pre>
 <p>Hand check: on 20 October, 1 + 2 + 1 = 4 units and 1499 + 200 + 50.5 = 1749.5 revenue.</p>
 
 
-<h3 id="c8-load">3.2.8 Load: writing into the target</h3>
+<h2 id="c8-load">3.22 Load: writing into the target</h2>
 <p><strong>Concept.</strong> Loading writes the transformed rows into the target tables, in a way that is correct, repeatable and fast enough.</p>
 <p><strong>Why it matters.</strong> A load that half-finishes leaves the target in a state nobody understands: some rows from tonight, some from yesterday. Loads must either complete or leave things as they were, and they must be safe to run again.</p>
-<h4 id="c8-load-strategies">3.2.8.1 Load strategies</h4>
+<h3 id="c8-load-strategies">3.22.1 Load strategies</h3>
 <div class="tablewrap"><table>
 <thead><tr><th>Strategy</th><th>What it does</th><th>Good for</th><th>Danger</th></tr></thead>
 <tbody>
@@ -946,7 +944,7 @@ GROUP BY order_date;</code></pre>
 <li>Delphix on-the-fly masking jobs have a <em>Truncate</em> option that sets whether target database tables are emptied before the masked data is loaded, and a <em>Batch Update</em> option for loading in batches sized by the commit size. <span class="badge doc">From docs</span> <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs ↗</a></li>
 <li>GenRocket's FAQ says that for very large volumes you do not want to connect through JDBC; you generate data in the database's native bulk load format using bulk load receivers. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">GenRocket General FAQ ↗</a></li>
 </ul>
-<h4 id="c8-load-upsert">3.2.8.2 Upsert in SQL</h4>
+<h3 id="c8-load-upsert">3.22.2 Upsert in SQL</h3>
 <p>Suppose Asha Menon's zip code changes in the next feed. A plain insert would collide with the existing row. An upsert updates it:</p>
 <pre><code>-- SQLite and PostgreSQL syntax
 INSERT INTO dim_customer_simple (customer_id, full_name, email, zip_code)
@@ -965,7 +963,7 @@ DO UPDATE SET full_name = excluded.full_name,
 <tr><td>After</td><td>1001</td><td>Asha Menon</td><td>560002</td></tr>
 </tbody></table></div>
 <p>Notice the property that makes upserts valuable: <strong>running the same load twice gives the same result</strong>. A property like this is called <em>idempotence</em>, and it is what lets you safely re-run a failed job.</p>
-<h4 id="c8-scd">3.2.8.3 Keeping history: a slowly changing dimension</h4>
+<h3 id="c8-scd">3.22.3 Keeping history: a slowly changing dimension</h3>
 <p>An upsert overwrites. After it, the warehouse says Asha always lived in 560002, so a report on October 20 sales would attribute them to the wrong zip. If history matters, keep both versions with validity dates. This pattern is commonly called a <strong>Type 2 slowly changing dimension</strong>. <span class="badge concept">General concept</span></p>
 <p>The pattern needs two statements, which you will run in Lab 2: first <em>close</em> the current row of any customer whose data changed (set <code>valid_to</code> and <code>is_current = 0</code>), then <em>insert</em> a new current row for every customer who has none. The table gets a <em>surrogate key</em> (<code>customer_key</code>), an artificial id, because the business key <code>customer_id</code> now appears more than once.</p>
 <div class="tablewrap"><table class="sample">
@@ -976,16 +974,16 @@ DO UPDATE SET full_name = excluded.full_name,
 <tr><td>4</td><td>1001</td><td>560002</td><td>2026-10-24</td><td>9999-12-31</td><td>1</td></tr>
 </tbody></table></div>
 <p>A fact row can then be joined to the customer version valid on the order date. The date 9999-12-31 is a common convention for "still current".</p>
-<h4 id="c8-load-safety">3.2.8.4 Making a load safe</h4>
+<h3 id="c8-load-safety">3.22.4 Making a load safe</h3>
 <ul>
 <li><strong>Transactions and commit size.</strong> Rows are written in groups; each group is committed. Informatica's plan lets you set a source-based or target-based commit (target-based is the default) and a commit interval whose default is 10,000 rows (User Guide 10.5.10, p.285). Delphix masking jobs have a <em>Commit Size</em> field with the same meaning. <span class="badge doc">From docs</span></li>
 <li><strong>Recovery.</strong> Decide in advance what a failed load does: roll back and stop, skip the bad row, or resume from a checkpoint (see 8.13).</li>
 </ul>
 
-<h3 id="c8-batch-streaming">3.2.9 Batch, streaming, and ETL versus ELT</h3>
-<h4 id="c8-batch-vs-streaming">3.2.9.1 Batch versus streaming at a glance</h4>
+<h2 id="c8-batch-streaming">3.23 Batch, streaming, and ETL versus ELT</h2>
+<h3 id="c8-batch-vs-streaming">3.23.1 Batch versus streaming at a glance</h3>
 <p><strong>Batch</strong> collects data for a period (an hour, a night) and processes it as one group. It is easy to reason about and to re-run, and results are always "as of the last run". Most ETL, and nearly all test data provisioning, is batch. <strong>Streaming</strong> processes each event within seconds of arrival. Results are fresh, but you must handle duplicates and out-of-order events, so it is used where the answer must be current, such as fraud alerts. A middle path, <em>micro-batching</em>, runs a small batch every minute or so.</p>
-<h4 id="c8-etl-vs-elt">3.2.9.2 ETL versus ELT</h4>
+<h3 id="c8-etl-vs-elt">3.23.2 ETL versus ELT</h3>
 <p>In <strong>ETL</strong>, transformations run in the ETL engine, on its own servers, before data reaches the target. In <strong>ELT</strong>, raw data is loaded into the target first (often a powerful cloud warehouse) and transformed there using its SQL engine.</p>
 <div class="tablewrap"><table>
 <thead><tr><th></th><th>ETL</th><th>ELT</th></tr></thead>
@@ -996,7 +994,7 @@ DO UPDATE SET full_name = excluded.full_name,
 </tbody></table></div>
 <p>Look at the last row, because it matters for test data. If raw data holds real personal details, ELT would place them in the target before masking. That is why test data work usually follows the ETL order: mask first, then load. The ShopSphere example in this section is really a hybrid: staging is a lightweight "EL" step and the transformation is done by SQL. Many practical systems mix both styles. <span class="badge concept">General concept</span></p>
 
-<h3 id="c8-architecture">3.2.10 ETL architecture</h3>
+<h2 id="c8-architecture">3.24 ETL architecture</h2>
 <p>An ETL tool is more than a place to run SQL. Look back at the diagram in 8.4. Here is each part and what a real product adds to the plain SQL of our example.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Part</th><th>What it does</th><th>In our SQL example</th></tr></thead>
@@ -1008,7 +1006,7 @@ DO UPDATE SET full_name = excluded.full_name,
 <tr><td>Monitoring and logging</td><td>Shows progress, row counts, rejects, errors; sends alerts</td><td>The reject table and the reconciliation query</td></tr>
 <tr><td>Targets</td><td>The systems that receive the result</td><td>dim_customer, fact_order_line, agg_daily_sales</td></tr>
 </tbody></table></div>
-<h4 id="c8-informatica-architecture">3.2.10.1 A documented example: the pieces in Informatica TDM</h4>
+<h3 id="c8-informatica-architecture">3.24.1 A documented example: the pieces in Informatica TDM</h3>
 <p>Informatica TDM's architecture section lists these parts, and they line up with the general model. All quoted from the User Guide chapter 1, pages 25 to 27 and 29. <span class="badge doc">From docs</span></p>
 <ul>
 <li>The <strong>PowerCenter Integration Service</strong> is the engine. It "runs sessions and workflows that you run from Test Data Manager" (p.26) and runs the data subset, data generation and data masking workflows (p.27).</li>
@@ -1018,7 +1016,7 @@ DO UPDATE SET full_name = excluded.full_name,
 </ul>
 <p>PowerCenter, an ETL product, is the engine under TDM. The <a href="03-generation-etl-and-tdm.html#c3-s3">next chapter</a> builds on that link.</p>
 
-<h3 id="c8-mappings-workflows">3.2.11 Mappings, sessions, workflows and jobs</h3>
+<h2 id="c8-mappings-workflows">3.25 Mappings, sessions, workflows and jobs</h2>
 <p>Every ETL tool has a few layers of "thing you can define and run". Names vary, so learn the layers and then the names. <span class="badge concept">General concept</span></p>
 <ol class="steps">
 <li><strong>Transformation.</strong><p>One operation on rows: filter, lookup, aggregate. The smallest piece.</p></li>
@@ -1035,7 +1033,7 @@ DO UPDATE SET full_name = excluded.full_name,
 <li>The guide also warns that if you edit components generated from Test Data Manager in the PowerCenter Client, "the session might generate unexpected results" (p.150). <span class="badge doc">From docs</span></li>
 </ul></div>
 
-<h3 id="c8-reusable">3.2.12 Reusable components and the mapplet</h3>
+<h2 id="c8-reusable">3.26 Reusable components and the mapplet</h2>
 <p><strong>Concept.</strong> A reusable component is a piece of ETL logic you build once and use in many places, like a function in programming.</p>
 <p><strong>Why it matters.</strong> Without reuse, the same rule (clean a phone number, standardise a country name) is copied into twenty mappings. When the rule changes, someone must find and fix twenty copies, and will miss one.</p>
 <p>In Informatica's world, the reusable group of transformations is called a <dfn>mapplet</dfn>. A mapplet has input and output ports (named connection points), contains one or more transformations, and can be placed into many mappings. Think of it as a small mapping with sockets at each end.</p>
@@ -1057,10 +1055,10 @@ DO UPDATE SET full_name = excluded.full_name,
 <p>The syllabus mentions "mapplet creation" on Day 54; the <a href="05-informatica-masking-generation-workflows.html#c5-s1">Informatica data masking chapter</a> returns to this. This guide has no documentation excerpt on building a mapplet in PowerCenter itself.</p>
 
 
-<h3 id="c8-errors">3.2.13 Error handling</h3>
+<h2 id="c8-errors">3.27 Error handling</h2>
 <p><strong>Concept.</strong> Error handling is the plan for what the job does when something goes wrong, decided <em>before</em> it goes wrong.</p>
 <p><strong>Why it matters.</strong> Something will go wrong. A file will arrive empty, a database will be down for maintenance, a date will say 31 February. The question is whether you find out from an alert at 2 a.m. with a clear row count, or from an angry tester at 10 a.m. with a half-loaded database.</p>
-<h4 id="c8-error-kinds">3.2.13.1 Three kinds of error</h4>
+<h3 id="c8-error-kinds">3.27.1 Three kinds of error</h3>
 <div class="tablewrap"><table>
 <thead><tr><th>Kind</th><th>Example</th><th>Usual response</th></tr></thead>
 <tbody>
@@ -1068,7 +1066,7 @@ DO UPDATE SET full_name = excluded.full_name,
 <tr><td>Process error (the whole run cannot continue)</td><td>Target database down; source file missing; disk full</td><td>Stop, roll back, alert, retry later</td></tr>
 <tr><td>Logic error (runs fine but is wrong)</td><td>Join duplicates rows so revenue doubles</td><td>Found only by checks and reconciliation (8.14)</td></tr>
 </tbody></table></div>
-<h4 id="c8-error-strategies">3.2.13.2 Strategies</h4>
+<h3 id="c8-error-strategies">3.27.2 Strategies</h3>
 <ul>
 <li><strong>Reject and continue</strong> for data errors, as in 8.7.6. Each reject row has a batch id and a reason.</li>
 <li><strong>Threshold stop.</strong> Continue unless more than N errors occur. A file where 40% of rows fail is a broken file, not 40% bad customers.</li>
@@ -1087,12 +1085,12 @@ DO UPDATE SET full_name = excluded.full_name,
 <li><strong>Commit type and interval:</strong> target-based commit by default; interval default 10,000 rows.</li>
 </ul></div>
 <p>Delphix gives a second example of the same ideas for masking jobs. Data that does not fit what an algorithm expects (non-conformant data) can, at job level, make the job fail, leave the value unmasked, or set it to null (jobs page; terminology page). It also warns that when a masking job fails, the target database or files may be left in a partially masked or unmasked state (job monitoring page). <span class="badge doc">From docs</span> <a href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">Job monitoring ↗</a> That sentence is a good reminder: after a failed job, never assume the target is usable.</p>
-<h4 id="c8-reprocessing">3.2.13.3 Reprocessing rejected rows</h4>
+<h3 id="c8-reprocessing">3.27.3 Reprocessing rejected rows</h3>
 <p>Run 1 rejected orders 5004 and 5005, and the watermark moved past them, so nothing picks them up again. Rejected rows need their own path: group the reject table by reason, have the owner fix the cause (the "abc" amount; whether customer 9999 arrives tomorrow), then re-stage the corrected rows as a new batch and run transform and load again.</p>
 <div class="callout warn"><strong class="ctitle">Idempotence and restarts</strong>
 <p>A safe job can be run twice with no harm. Achieve this with upserts, with "delete the target rows of this batch, then insert them" loads, and with watermarks moved last. Without it, every failed run needs a careful human cleanup, and humans make mistakes at 2 a.m. In my SQL, the fact load used <code>INSERT OR REPLACE</code> keyed on <code>item_id</code> for this reason (other databases: <code>MERGE</code> or delete-then-insert).</p></div>
 
-<h3 id="c8-data-quality">3.2.14 Data quality and reconciliation</h3>
+<h2 id="c8-data-quality">3.28 Data quality and reconciliation</h2>
 <p><strong>Concept.</strong> Data quality checks are tests on the data itself, run as part of the job, that prove the result is what you expected.</p>
 <p><strong>Why it matters.</strong> The most dangerous failure is a job that "succeeds" and loads the wrong thing. Only checks find logic errors.</p>
 <div class="tablewrap"><table>
@@ -1104,7 +1102,7 @@ DO UPDATE SET full_name = excluded.full_name,
 <tr><td>Consistency</td><td>Do related values agree?</td><td>Every fact row has a customer; line amounts add up to order totals</td></tr>
 <tr><td>Timeliness</td><td>Is it fresh enough?</td><td>Latest order date in the target is yesterday or later</td></tr>
 </tbody></table></div>
-<h4 id="c8-recon">3.2.14.1 Reconciliation queries</h4>
+<h3 id="c8-recon">3.28.1 Reconciliation queries</h3>
 <p><em>Reconciliation</em> means comparing counts and totals between two stages to show nothing was lost or invented. These are the queries I ran after run 2 of the ShopSphere job.</p>
 <pre><code>-- Completeness: orders read = orders loaded + orders rejected
 SELECT (SELECT COUNT(*) FROM feed_orders)                      AS read_total,
@@ -1120,7 +1118,7 @@ WHERE  d.customer_id IS NULL;</code></pre>
 <div class="callout tip"><strong class="ctitle">Keep the checks with the job</strong>
 <p>Write checks once and run them every time, with results stored in a table. Then the question "was last Tuesday's load complete?" has an answer. The Informatica guide shows the same idea at the product level: TDM can be used with the Data Validation Option so that target data can be validated and compared against production to show the transformation process did not introduce errors (User Guide 10.5.10, p.24). <span class="badge doc">From docs</span></p></div>
 
-<h3 id="c8-performance">3.2.15 Performance ideas</h3>
+<h2 id="c8-performance">3.29 Performance ideas</h2>
 <p>Performance tuning is its own craft, and the right fix depends on measurement. These are the ideas that help most often, in the order I would try them. <span class="badge concept">General concept</span></p>
 <ol class="steps">
 <li><strong>Think in sets, not rows.</strong><p>One SQL statement that updates a million rows is much faster than a program that updates them one by one. Many ETL tools give you a row-by-row feeling in their diagrams, but good ones process rows in streams and batches.</p></li>
@@ -1130,12 +1128,12 @@ WHERE  d.customer_id IS NULL;</code></pre>
 <li><strong>Run in parallel.</strong><p>Independent tables can load at the same time. Delphix jobs have "Number of Streams", described as the number of parallel streams, so several tables are processed at once; some streams finish before others, so the number of active streams falls during the job (jobs page). <span class="badge doc">From docs</span> Informatica allows up to eight concurrent workflows (p.276).</p></li>
 </ol>
 
-<h3 id="c8-tools">3.2.16 Common ETL tools</h3>
+<h2 id="c8-tools">3.30 Common ETL tools</h2>
 <p>Informatica PowerCenter is the ETL product under Informatica TDM, and this guide documents how TDM uses it (8.10 and 8.11). You will also meet Microsoft SQL Server Integration Services, Talend, cloud services such as AWS Glue and Azure Data Factory, and schedulers such as Apache Airflow. I did not read their documentation, so I make no claim about them beyond the general ideas of this section. <span class="badge unverified">Unverified</span> Plain SQL scripts plus a scheduler such as cron, as in this section, are a real way to do small ETL. TDM tools are ETL-style tools specialised for producing safe test data; the <a href="03-generation-etl-and-tdm.html#c3-s3">next chapter</a> compares the two.</p>
 
 
-<h3 id="c8-worked-example">3.2.17 The complete ShopSphere ETL job on one page</h3>
-<p>Sections 3.2.5 to 8.8 showed the pieces. Here is how they fit into one job, the way you would document it for a colleague. The target is a small star schema for sales reporting.</p>
+<h2 id="c8-worked-example">3.31 The complete ShopSphere ETL job on one page</h2>
+<p>Sections 3.19 to 8.8 showed the pieces. Here is how they fit into one job, the way you would document it for a colleague. The target is a small star schema for sales reporting.</p>
 <figure class="diagram"><svg viewBox="0 0 800 270" role="img" aria-label="Star schema. The fact table fact_order_line is in the centre. dim_customer is on the left, joined by customer_id. products (product dimension) is on the right, joined by product_code. agg_daily_sales sits below, built from the fact table.">
 <rect x="20" y="40" width="200" height="120" rx="10" fill="var(--surface)" stroke="currentColor"/>
 <text x="120" y="68" text-anchor="middle" fill="currentColor" font-weight="bold">dim_customer</text>
@@ -1158,7 +1156,7 @@ WHERE  d.customer_id IS NULL;</code></pre>
 <text x="259" y="92" text-anchor="middle" fill="currentColor" font-size="11">customer_id</text>
 <text x="540" y="92" text-anchor="middle" fill="currentColor" font-size="11">product_code</text>
 </svg><figcaption>Original diagram: the target star schema. The fact table holds one row per order line; the dimensions describe who and what; the summary table is built from the fact table.</figcaption></figure>
-<h4 id="c8-run-log">3.2.17.1 What the two runs did</h4>
+<h3 id="c8-run-log">3.31.1 What the two runs did</h3>
 <p>These row counts come from my two SQLite runs of the full job. Run 1 is the first load; run 2 is the next day, after Asha's zip code changed and two new orders (5006 and 5007) arrived.</p>
 <div class="tablewrap"><table class="sample"><caption>Run log (counts at each step)</caption>
 <thead><tr><th>Step</th><th>Run 1</th><th>Run 2</th></tr></thead>
@@ -1174,10 +1172,10 @@ WHERE  d.customer_id IS NULL;</code></pre>
 </tbody></table></div>
 <p>Order 5007 has an unknown product (P-999) and an unmapped status (Z); it still loads, as "UNKNOWN PRODUCT" and "Unknown", because the lookups use left joins. The 2026-10-23 summary row (2 orders, 3 units, 220.0) includes that line. Whether unknown products count as revenue is a decision to raise, not to bury.</p>
 
-<h3 id="c8-labs">3.2.18 Hands-on labs</h3>
-<p>You need any SQL database. I used SQLite because it is free and has no setup: install the SQLite command-line tool or use an online SQLite playground, open a new empty in-memory database, and paste each block. If you use another database, adjust the function names as noted in section 3.2.7.</p>
+<h2 id="c8-labs">3.32 Hands-on labs</h2>
+<p>You need any SQL database. I used SQLite because it is free and has no setup: install the SQLite command-line tool or use an online SQLite playground, open a new empty in-memory database, and paste each block. If you use another database, adjust the function names as noted in section 3.21.</p>
 <div class="exercise"><h4 id="c3-lab-1-etl-by-hand-with-sql">Lab 1: ETL by hand with SQL</h4>
-<p>Goal: run extract-staged data through clean, deduplicate, reject, convert, look up, derive, aggregate and reconcile, and compare your results with mine. The staged data is the ShopSphere batch 1 from section 3.2.6. <span class="badge concept">Illustrative data, not from vendor docs</span></p>
+<p>Goal: run extract-staged data through clean, deduplicate, reject, convert, look up, derive, aggregate and reconcile, and compare your results with mine. The staged data is the ShopSphere batch 1 from section 3.20. <span class="badge concept">Illustrative data, not from vendor docs</span></p>
 <ol class="steps">
 <li><strong>Create the staging and target tables.</strong><p>Staging holds the raw text; the targets are empty until the transform runs.</p><pre><code>CREATE TABLE stg_customers (customer_id TEXT, first_name TEXT, last_name TEXT, email TEXT, zip_code TEXT);
 INSERT INTO stg_customers VALUES
@@ -1375,7 +1373,7 @@ SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 <p>This lab omits the reject step; see 8.13.3. Challenge: add the reject step from Lab 1, with a batch id.</p>
 </details></div>
 
-<h3 id="c8-mistakes">3.2.19 Common mistakes and gotchas</h3>
+<h2 id="c8-mistakes">3.33 Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Mistakes beginners make</strong>
 <ul>
 <li><strong>Transforming while extracting.</strong> Business logic buried in the source query is invisible and slows the source.</li>
@@ -1387,7 +1385,7 @@ SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 <li><strong>Forgetting that deletes are invisible to a watermark.</strong> Plan for them, or accept and document the gap.</li>
 </ul></div>
 
-<h3 id="c8-recap">3.2.20 Recap</h3>
+<h2 id="c8-recap">3.34 Recap</h2>
 <div class="callout recap"><strong class="ctitle">Recap</strong>
 <ul>
 <li>ETL moves data from sources to targets in three steps: <strong>extract</strong> (read), <strong>transform</strong> (clean, convert, enrich, combine, summarise) and <strong>load</strong> (write), usually through a <strong>staging area</strong> that keeps a raw copy.</li>
@@ -1400,7 +1398,7 @@ SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 <li>ELT loads raw data first and transforms inside the target; test data work usually transforms (masks) before loading.</li>
 </ul></div>
 
-<section class="sources"><h3 id="c8-sources-2">Sources used in this section</h3>
+<section class="sources"><h4 id="c8-sources-2">Sources used in this section</h4>
 <ul>
 <li>Informatica TDM 10.5.10 User Guide (PDF, February 2026): chapter 1 pp.24 to 29 (architecture, Data Validation Option); chapter 7 pp.137, 144, 150 (mapplet rules and exported mapplets, generated components warning); chapter 9 pp.192 (custom generation rule); chapter 10 p.211 (custom generation example); chapter 13 pp.274 to 278 and 284 to 285, 308 (plans, connections, update strategy, error and recovery, workflow generation).</li>
 <li>Delphix Continuous Compliance 2026.5: <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs</a> (truncate, batch update, commit size, streams, constraint options) and <a href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">Job monitoring</a> (state of a failed job).</li>
@@ -1409,8 +1407,7 @@ SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 <li>All SQL, data and results are my own illustrations, executed in SQLite 3.45. Dialect differences are noted in the text.</li>
 </ul></section>
 
-<h2 id="c3-s3">3.3 ETL and TDM: how they relate</h2>
-<p><span class="day">Day 43, Day 44, Day 54</span></p>
+<div class="grp" id="c3-s3"><span class="grplabel">ETL and TDM: how they relate</span><span class="day">Day 43, Day 44, Day 54</span></div>
 <p>You now know what ETL is (<a href="03-generation-etl-and-tdm.html#c3-s2">ETL from scratch</a>) and what test data management has to achieve (<a href="02-privacy-discovery-subsetting-masking.html#c2-s2">subsetting</a>, <a href="02-privacy-discovery-subsetting-masking.html#c2-s3">masking</a> and <a href="03-generation-etl-and-tdm.html#c3-s1">generation</a>). This section joins the two. The short version: <strong>a TDM job is an ETL job whose output is a safe, small, consistent copy of production for testing</strong>. Seeing the shared skeleton makes each tool in the next parts easier to understand, because you can ask of every screen: which ETL stage is this?</p>
 <p>It also tells you what is <em>not</em> the same. A person who treats a TDM job as an ordinary ETL job will load unmasked data, break foreign keys or leave no record of what was done. The differences are where TDM engineers earn their pay.</p>
 <div class="callout recap"><strong class="ctitle">What you will learn</strong>
@@ -1428,7 +1425,7 @@ SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 <p><strong>GenRocket:</strong> help-centre pages on receivers, the five key components, G-Subset, Synthetic Data Replacement and the General FAQ, linked where used.</p>
 <p>The comparison tables, the reference architecture and the ShopSphere SQL are my own synthesis and are labelled <span class="badge concept">General concept</span>. I ran the SQL in SQLite 3.45. Delphix, Informatica and GenRocket statements are paraphrased from the pages named; I did not run any of the three products.</p></div>
 
-<h3 id="c9-words">3.3.1 Words to know first</h3>
+<h2 id="c9-words">3.35 Words to know first</h2>
 <dl class="defs">
 <div><dt>TDM pipeline</dt><dd>The chain of stages that turns production (or a generator) into a usable test data set: find sensitive data, cut it down, mask it, load it, check it.</dd></div>
 <div><dt>Provisioning</dt><dd>Delivering a prepared data set to a test environment so testers can use it.</dd></div>
@@ -1442,7 +1439,7 @@ SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 <div><dt>Workflow (Informatica)</dt><dd>The runnable job that Test Data Manager generates from a plan.</dd></div>
 </dl>
 
-<h3 id="c9-same-idea">3.3.2 The same underlying idea</h3>
+<h2 id="c9-same-idea">3.36 The same underlying idea</h2>
 <p><strong>Concept.</strong> Both ETL and TDM <em>move data and change it on the way</em>. Both read from a source, apply rules, and write to a target. Both are driven by definitions that tell the engine what to do, both run as repeatable jobs, and both need logs, error handling and connections to databases.</p>
 <p><strong>Evidence from the products.</strong> The strongest proof is in the Informatica guide itself. The PowerCenter repository, it says, stores the workflows and mappings generated from Test Data Manager and "information required to extract, transform, and load data" (User Guide 10.5.10, p.26). <span class="badge doc">From docs</span> The workflows that perform data subset, data masking and data generation are run by the PowerCenter Integration Service (p.27). In other words, Informatica TDM <em>is</em> an ETL engine with a test-data front end.</p>
 <div class="flow">
@@ -1452,7 +1449,7 @@ SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 </div>
 <p>The analogy is useful but incomplete: a photocopier that blacks out names is a good picture of masking, and a photocopier is not an ETL engine. TDM adds <em>purpose-built rules</em> (find the sensitive columns, hide them consistently, keep keys valid) on top of the same moving parts.</p>
 
-<h3 id="c9-differences">3.3.3 How they differ</h3>
+<h2 id="c9-differences">3.37 How they differ</h2>
 <p>The seven differences below explain why you cannot take an everyday ETL job and call it a TDM job. <span class="badge concept">General concept</span></p>
 <div class="tablewrap"><table>
 <thead><tr><th>Dimension</th><th>Typical ETL</th><th>TDM</th></tr></thead>
@@ -1465,15 +1462,15 @@ SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 <tr><td><strong>Repeatability</strong></td><td>Scheduled, usually nightly; results are the latest facts</td><td>On demand or per release; results should be reproducible and resettable</td></tr>
 <tr><td><strong>Who uses it</strong></td><td>Data engineers, BI developers</td><td>TDM engineers, QA engineers, developers, with data stewards and compliance officers as approvers</td></tr>
 </tbody></table></div>
-<h4 id="c9-diff-detail">3.3.3.1 The differences in more detail</h4>
+<h3 id="c9-diff-detail">3.37.1 The differences in more detail</h3>
 <p><strong>Shape.</strong> ETL changes shape because the target has a different purpose (a star schema, as in the previous chapter). TDM keeps shape because the application under test expects its own tables. The documents show this: GenRocket's G-Subset can only migrate between databases of the same type, for example MySQL to MySQL (G-Subset overview); Delphix on-the-fly masking supports Oracle to Oracle or delimited file to delimited file, and database to delimited file (jobs page). <span class="badge doc">From docs</span></p>
 <p><strong>Consistency.</strong> A warehouse can lose the original keys and use surrogate ones. A test database cannot, because the application joins on the real keys. Masking must keep joins working: if <code>customer_id</code> in CUSTOMERS is masked differently from <code>customer_id</code> in ORDERS, the join returns no rows. Delphix's terminology page shows how its algorithms deal with this: a secure lookup algorithm picks replacements by a cryptographic hash of the original value, "so masking output is consistent for each input"; mapping algorithms guarantee no collisions; segment mapping permutes short values with no collisions and is suggested for unique columns such as Social Security Numbers and keys. <span class="badge doc">From docs</span> <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology ↗</a></p>
-<p><strong>Size.</strong> Informatica describes a data subset as a "small, targeted, and referentially intact copy" of production for nonproduction use (User Guide 10.5.10, p.112). <span class="badge doc">From docs</span> Small matters because test environments are cheap and many; but small must still be <em>whole</em>, meaning parents and children come together. Section 3.3.6 shows the integrity options.</p>
+<p><strong>Size.</strong> Informatica describes a data subset as a "small, targeted, and referentially intact copy" of production for nonproduction use (User Guide 10.5.10, p.112). <span class="badge doc">From docs</span> Small matters because test environments are cheap and many; but small must still be <em>whole</em>, meaning parents and children come together. Section 3.40 shows the integrity options.</p>
 <p><strong>Repeatability.</strong> Informatica lets you use criteria parameters so the same workflow produces different subsets by changing values at run time (p.113). Delphix jobs can be multi-tenant, so the same rule set masks identical schemas through different connectors chosen when the job runs. GenRocket can regenerate the same data with a seed (General FAQ). <span class="badge doc">From docs</span></p>
-<p><strong>Success measure.</strong> A broken ETL job is noticed when a report is wrong. A broken TDM job may produce a data set that <em>looks</em> fine and leaks a real phone number. Its success has to be proven by checks for leakage as well as for counts, which is why section 3.3.7 ends with a test step.</p>
+<p><strong>Success measure.</strong> A broken ETL job is noticed when a report is wrong. A broken TDM job may produce a data set that <em>looks</em> fine and leaks a real phone number. Its success has to be proven by checks for leakage as well as for counts, which is why section 3.41 ends with a test step.</p>
 
 
-<h3 id="c9-overlap">3.3.4 Where they overlap</h3>
+<h2 id="c9-overlap">3.38 Where they overlap</h2>
 <p>Every TDM capability in the syllabus is an ETL operation with a TDM twist. <span class="badge concept">General concept</span></p>
 <div class="tablewrap"><table>
 <thead><tr><th>TDM capability</th><th>ETL equivalent</th><th>The TDM twist</th></tr></thead>
@@ -1487,14 +1484,14 @@ SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 <tr><td>Plan, workflow, job</td><td>Workflow and schedule</td><td>Generated from a specification, not drawn by hand</td></tr>
 <tr><td>Monitor, logs, audit</td><td>Monitoring and logging</td><td>Also a compliance record</td></tr>
 </tbody></table></div>
-<h4 id="c9-etl-view-of-masking">3.3.4.1 Masking really is a transformation</h4>
+<h3 id="c9-etl-view-of-masking">3.38.1 Masking really is a transformation</h3>
 <p>Look back at the previous chapter's cleaning transformation: <code>LOWER(TRIM(email))</code> changes a value row by row, according to a rule. A masking rule such as <code>'user' || customer_id || '@example.test'</code> does exactly the same. The only difference is the reason: cleaning makes a value <em>better</em>; masking makes it <em>safe</em>. In the Informatica guide, masking rules that come from mapplets are literally PowerCenter transformation logic imported into TDM (User Guide 10.5.10, p.137). <span class="badge doc">From docs</span> The same is true of generation: a custom generation rule is built from mapplet logic (p.192). <span class="badge doc">From docs</span></p>
-<h4 id="c9-etl-view-of-subset">3.3.4.2 Subsetting really is a filtered extract</h4>
+<h3 id="c9-etl-view-of-subset">3.38.2 Subsetting really is a filtered extract</h3>
 <p>The Informatica guide defines an entity as a <em>driving table</em> plus the tables related to it through constraints. Define a filter, such as EmpID equal to 10, and the workflow loads the Employee row, its history rows and its orders into the target (pp.114 and 121). <span class="badge doc">From docs</span> In SQL that is <code>WHERE</code> on the parent plus joins down to the children. Delphix rule sets offer the same at table level: each table can carry a <em>Filter</em>, "a WHERE clause to filter or subset the data", or a custom SQL SELECT (Managing rule sets). <span class="badge doc">From docs</span> <a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets ↗</a> GenRocket's G-Subset offers a "Where" clause, a percentage of rows, or a number of rows (G-Subset overview).</p>
-<h4 id="c9-etl-view-of-provisioning">3.3.4.3 Provisioning really is a load</h4>
+<h3 id="c9-etl-view-of-provisioning">3.38.3 Provisioning really is a load</h3>
 <p>Loading rules from the previous chapter apply directly: load parents before children, decide truncate versus append, use commit sizes, handle constraints. Delphix on-the-fly jobs expose a <em>Truncate</em> checkbox, <em>Commit Size</em>, <em>Batch Update</em> and <em>Disable Constraints</em>. Informatica's plan has an update strategy and a commit interval (p.284 to 285). Provisioning adds one thing ETL rarely has: a path <em>back</em>. Informatica's test data warehouse stores versions of data sets and lets you reset a target to any version (pp.236 to 237). <span class="badge doc">From docs</span></p>
 
-<h3 id="c9-reference-architecture">3.3.5 A reference architecture for a TDM pipeline</h3>
+<h2 id="c9-reference-architecture">3.39 A reference architecture for a TDM pipeline</h2>
 <p>Here is the picture to keep in your head for the tool chapters. Every stage is something you met in the ETL chapter; the two extra boxes at the ends (profile and test) are TDM additions. <span class="badge concept">General concept</span></p>
 <figure class="diagram"><svg viewBox="0 0 900 360" role="img" aria-label="TDM pipeline. Left to right: production source, profile, extract subset, mask and transform, load to test, verify. Test environments on the right. Below: rules repository, orchestrator and scheduler, audit and logs, and a test data store.">
 <rect x="10" y="40" width="110" height="110" rx="10" fill="var(--surface)" stroke="currentColor"/>
@@ -1540,7 +1537,7 @@ SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 <text x="785" y="258" text-anchor="middle" fill="currentColor" font-weight="bold">Test data store</text>
 <text x="785" y="280" text-anchor="middle" fill="currentColor" font-size="12">versions, reset, self-service</text>
 </svg><figcaption>Original diagram: a TDM pipeline built from ETL-style stages. Solid arrows are the data path; dashed boxes are the supporting services.</figcaption></figure>
-<h4 id="c9-stage-by-stage">3.3.5.1 Stage by stage</h4>
+<h3 id="c9-stage-by-stage">3.39.1 Stage by stage</h3>
 <ol class="steps">
 <li><strong>Profile.</strong><p>Reason: you cannot mask what you have not found. Profiling scans columns for patterns (SSN-like, phone-like) and learns which tables relate.</p><p class="expect">Output: a list of sensitive columns and a relationship map, approved by a data steward. Covered in <a href="04-informatica-architecture-discovery-subset.html#c4-s3">the Informatica profiling chapter</a> and <a href="08-delphix-connect-keys-profiling.html#c8-s4">the Delphix profiling chapter</a>.</p></li>
 <li><strong>Extract the subset.</strong><p>Reason: copying everything is slow and expands the exposure. Choose driver rows, then pull in all related rows so the subset is whole.</p><p class="expect">Output: a consistent slice in staging or in a stream, still containing real values.</p></li>
@@ -1553,9 +1550,9 @@ SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 <p>If you load first and mask afterwards (an ELT-style order), there is a time window in which real personal data sits in the test database, copies may be taken, and a failed masking job leaves the original data behind. Delphix says it plainly for in-place jobs: when a masking job fails, the target "may be in a partially masked or unmasked state" (Job monitoring), and stopping a running job results in semi-masked data (Running and Stopping Jobs). <span class="badge doc">From docs</span> On-the-fly masking avoids the window by never writing unmasked data to the target.</p></div>
 
 
-<h3 id="c9-three-tools">3.3.6 How the three tools sit on this picture</h3>
+<h2 id="c9-three-tools">3.40 How the three tools sit on this picture</h2>
 <p>Each tool packages the same stages differently. The goal here is not to learn the screens (the tool chapters do that) but to see the ETL skeleton inside each one.</p>
-<h4 id="c9-informatica">3.3.6.1 Informatica TDM: a plan that becomes a PowerCenter workflow</h4>
+<h3 id="c9-informatica">3.40.1 Informatica TDM: a plan that becomes a PowerCenter workflow</h3>
 <p><strong>Core idea.</strong> You do not draw an ETL mapping. You describe <em>what you want</em> in a plan, and TDM generates the ETL objects for you. A plan defines a data subset, masking or data generation operation and holds the components it needs (User Guide 10.5.10, p.274). When you generate a workflow, "the PowerCenter Repository Service generates mappings for the workflow"; when you start it, the PowerCenter Integration Service does the subset, masking and generation tasks (p.308). The guide lists what the Integration Service creates for masking: mappings, transformations, mapplets, sessions and workflows (p.150). <span class="badge doc">From docs</span></p>
 <div class="flow">
 <div class="node"><b>Rules, entities, policies</b>in the TDM repository</div>
@@ -1576,7 +1573,7 @@ SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 </ul>
 <p>Architecture reminder (pp.25 to 27): Test Data Manager is the web front end; the TDM repository stores rules, projects and entities; the PowerCenter Repository Service and Integration Service hold and run the generated workflows. <a href="04-informatica-architecture-discovery-subset.html#c4-s1">The Informatica architecture chapter</a> covers this in full, and <a href="05-informatica-masking-generation-workflows.html#c5-s3">the plans and workflows chapter</a> covers the plan screens.</p>
 
-<h4 id="c9-delphix">3.3.6.2 Delphix Continuous Compliance: connectors, rule sets and masking jobs</h4>
+<h3 id="c9-delphix">3.40.2 Delphix Continuous Compliance: connectors, rule sets and masking jobs</h3>
 <p><strong>Core idea.</strong> Delphix's masking engine models the pipeline as four objects you configure once and reuse: a <em>connector</em> (how to reach a source or target), a <em>rule set</em> (which tables or files), an <em>inventory</em> (which columns get which algorithm) and a <em>job</em> (the thing that runs). The terminology page defines masking as iterating through a dataset to find sensitive fields and replace them with desensitised values, and a rule set as a group of tables or flat files on which profile, masking or tokenization jobs run. <span class="badge doc">From docs</span> <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology ↗</a></p>
 <div class="flow">
 <div class="node"><b>Connector</b>source and target access</div>
@@ -1596,7 +1593,7 @@ SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 <li><strong>Provisioning.</strong> A masking job can be marked eligible for masked provisioning of virtual databases under a feature called Selective Data Distribution (jobs page); the <a href="08-delphix-connect-keys-profiling.html#c8-s2">connectors and VDB chapter</a> covers it.</li>
 </ul>
 
-<h4 id="c9-genrocket">3.3.6.3 GenRocket: generators feed receivers; G-Subset is an ETL job</h4>
+<h3 id="c9-genrocket">3.40.3 GenRocket: generators feed receivers; G-Subset is an ETL job</h3>
 <p><strong>Core idea.</strong> GenRocket's main product creates data, so in the pipeline it replaces the "source". Its five key components give each ETL stage a name: a <em>domain</em> (like a table) with <em>attributes</em> (like columns), a <em>generator</em> that creates values, a <em>receiver</em> that "receives the data from an Attribute's Generator and morphs it into a usable format", and a <em>scenario</em> with the instructions for what to generate and how much. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-five-key-components" target="_blank" rel="noopener">GenRocket Five Key Components ↗</a></p>
 <ul>
 <li><strong>Load = receiver.</strong> The Receivers overview describes 120+ receiver types that format and deliver generated data: SQL and NoSQL databases, web services, fixed and delimited files, big data formats such as Parquet and Avro, message formats such as Kafka and MQ, packaged applications, EDI, documents and images, and cloud environments. More than one receiver can be attached to a domain, and data is generated for each in order. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/receivers-overview" target="_blank" rel="noopener">Receivers Overview ↗</a> The FAQ adds that a receiver does not know whether it delivers to a mainframe or a PC; it only knows its format and destination. For large volumes, native bulk load receivers are preferred over JDBC. Pre and post SQL runs through the SQLUpdateReceiver. <span class="badge doc">From docs</span></li>
@@ -1613,7 +1610,7 @@ SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 </ol>
 <p>Here the ETL parts are named: extract into staging, transform (replace), load, clean up. Note one design difference from most masking tools: by default the sensitive values are not read at all, which is a privacy advantage over reading and then hiding them. The overview also describes an optional conditional masking feature, disabled by default, that does read the actual values.</p>
 
-<h4 id="c9-side-by-side">3.3.6.4 Side by side</h4>
+<h3 id="c9-side-by-side">3.40.4 Side by side</h3>
 <div class="tablewrap"><table>
 <thead><tr><th>Pipeline stage</th><th>Informatica TDM</th><th>Delphix masking engine</th><th>GenRocket</th></tr></thead>
 <tbody>
@@ -1631,7 +1628,7 @@ SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
 <p>An entry that says "not described on the pages I read" means the documentation excerpt I had does not state it. It does not mean the tool lacks the feature. Check your product version.</p></div>
 
 
-<h3 id="c9-story">3.3.7 An end-to-end ShopSphere story: profile, subset, mask, load, test</h3>
+<h2 id="c9-story">3.41 An end-to-end ShopSphere story: profile, subset, mask, load, test</h2>
 <p><strong>The request.</strong> The ShopSphere QA team needs a test copy of "Customer Orders" for a release. They need customers who ordered on 20 October 2026, with all of their orders and items. The compliance officer adds one rule: no real SSN, phone, email, tax id, name, date of birth or exact zip code may reach the test database. You are the TDM engineer. Here is the plan, with every step labelled as ETL-style or TDM-specific.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Step</th><th>What happens</th><th>ETL-style?</th><th>TDM-specific part</th></tr></thead>
@@ -1721,10 +1718,10 @@ SELECT 'Tester' || 1001 = last_name AS same_as_first_run FROM t_customers WHERE 
 <p>Limitation of this miniature: the masks here are formula-based and easy to reverse for anyone who knows the formula and the id. Real tools use lookups, hashing or keyed algorithms; see the masking chapters.</p>
 </details></div>
 
-<h3 id="c9-pitfalls">3.3.8 Pitfalls: where ETL habits hurt TDM</h3>
-<h4 id="c9-pit-order">3.3.8.1 Masking after load instead of before</h4>
+<h2 id="c9-pitfalls">3.42 Pitfalls: where ETL habits hurt TDM</h2>
+<h3 id="c9-pit-order">3.42.1 Masking after load instead of before</h3>
 <p>The ETL reflex "land the raw data, then clean it" is wrong for sensitive data. Between the load and the end of masking, real values sit in an environment with wide access, and a failure leaves them there. Prefer on-the-fly or pre-load masking, or in-place masking inside a protected staging environment that testers cannot reach, and copy onward only after verification. Informatica's plan masks data inside the same workflow that loads the target, with subset first (p.275); Delphix on-the-fly jobs never write unmasked rows to the target; GenRocket G-Subset replaces sensitive values in the dump file before insertion. <span class="badge doc">From docs</span></p>
-<h4 id="c9-pit-consistency">3.3.8.2 Consistency across ETL and masking</h4>
+<h3 id="c9-pit-consistency">3.42.2 Consistency across ETL and masking</h3>
 <p>When keys are masked, they must be masked identically wherever they appear. I tested this with the three ShopSphere customers and four orders by adding 70000 to the key.</p>
 <pre><code>-- Customer keys masked, order keys left alone: the join breaks
 SELECT COUNT(*) FROM orders o JOIN (SELECT customer_id + 70000 AS customer_id FROM customers) c
@@ -1735,9 +1732,9 @@ SELECT COUNT(*) FROM (SELECT order_id, customer_id + 70000 AS customer_id FROM o
   JOIN (SELECT customer_id + 70000 AS customer_id FROM customers) c
   ON c.customer_id = o.customer_id;                        -- returns 4</code></pre>
 <p>Two further consistency risks come from ETL-style staging. First, if the same person appears in two systems (CRM and billing) and each is masked by a separate job with a random rule, the person gets two different fake identities and cross-system tests fail. Use deterministic rules and share the algorithm and its key across jobs. Delphix algorithms differ in this respect: some are non-deterministic and "cannot guarantee the same output for the same input across masking jobs", while others are fixed (<a href="https://help.delphix.com/cc/current/content/algorithm_syncability.htm" target="_blank" rel="noopener">Algorithm syncability ↗</a>); the terminology page also notes that a secure lookup can collide, which matters when a column must stay unique. <span class="badge doc">From docs</span> Second, a <em>reversible</em> method such as tokenization (the only algorithm type that allows reversing, per the terminology page) is a deliberate exception, not a default.</p>
-<h4 id="c9-pit-performance">3.3.8.3 Performance</h4>
+<h3 id="c9-pit-performance">3.42.3 Performance</h3>
 <p>Masking adds work to every row, and subsetting adds joins. Plan for it as you would for ETL: choose commit sizes, parallelism and index handling, and expect trade-offs. Delphix's guidance includes number of streams, update threads (reduce them if you see database deadlocks), and the option to drop indexes during a job; Informatica allows up to eight workflows at once. A subset reduces volume, which is usually the biggest performance win, so extract less before you optimise anything else. <span class="badge doc">From docs</span></p>
-<h4 id="c9-pit-audit">3.3.8.4 Audit trails</h4>
+<h3 id="c9-pit-audit">3.42.4 Audit trails</h3>
 <p>An ordinary ETL log says whether the job ran. A TDM log must also help answer: who masked this, with which rules, and when? What the tools provide, from the pages I read: <span class="badge doc">From docs</span></p>
 <ul>
 <li><strong>Informatica:</strong> an Audit Trail Report listing recent activities in Test Data Manager (type of activity, object, user, date and time, with filters and CSV download), a Data Masking Report listing columns with their assigned rules and policies, a Plan Audit Report, and a Row Count Report (User Guide 10.5.10, pp.321 to 322, 324). The Monitor view shows job types such as Generate Workflow, Execute Workflow and Reset Data Set from Test Data Warehouse (p.316).</li>
@@ -1752,7 +1749,7 @@ SELECT COUNT(*) FROM (SELECT order_id, customer_id + 70000 AS customer_id FROM o
 <li><strong>Overwriting masked data with a refresh by accident.</strong> Name and version data sets, as the test data warehouse does.</li>
 </ul></div>
 
-<h3 id="c9-recap">3.3.9 Recap</h3>
+<h2 id="c9-recap">3.43 Recap</h2>
 <div class="callout recap"><strong class="ctitle">Recap</strong>
 <ul>
 <li>A TDM job is an ETL job with a different purpose: safe, small, consistent test data. Informatica TDM is built on a PowerCenter ETL engine.</li>
@@ -1764,7 +1761,7 @@ SELECT COUNT(*) FROM (SELECT order_id, customer_id + 70000 AS customer_id FROM o
 <li>Verify leaks as well as counts, and keep audit evidence.</li>
 </ul></div>
 
-<section class="sources"><h3 id="c9-sources">Sources used in this section</h3>
+<section class="sources"><h4 id="c9-sources">Sources used in this section</h4>
 <ul>
 <li>Informatica TDM 10.5.10 User Guide (February 2026): chapter 1 pp.25 to 29; chapter 6 pp.112 to 122; chapter 7 pp.135 to 150; chapter 11 pp.236 to 238; chapter 13 pp.274 to 285 and 308; chapter 14 pp.315 to 317; chapter 15 pp.321 to 324.</li>
 <li>Delphix Continuous Compliance 2026.5: <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">terminology</a>, <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">jobs</a>, <a href="https://help.delphix.com/cc/current/content/running_and_stopping_jobs.htm" target="_blank" rel="noopener">running and stopping jobs</a>, <a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">rule sets</a>, <a href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">inventories</a>, <a href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">job monitoring</a>, <a href="https://help.delphix.com/cc/current/content/audit_logs.htm" target="_blank" rel="noopener">audit logs</a>, <a href="https://help.delphix.com/cc/current/content/algorithm_syncability.htm" target="_blank" rel="noopener">algorithm syncability</a>.</li>
@@ -1773,4 +1770,4 @@ SELECT COUNT(*) FROM (SELECT order_id, customer_id + 70000 AS customer_id FROM o
 <li>All ShopSphere data, SQL and results are my own illustrations, executed in SQLite 3.45.</li>
 </ul></section>
 
-<nav class="chapter-nav" aria-label="Previous and next chapter"><a href="02-privacy-discovery-subsetting-masking.html">← 2. Privacy, discovery, subsetting and masking: the concepts</a><a href="04-informatica-architecture-discovery-subset.html">4. Informatica TDM (1): architecture, the tool tour, discovery and subsetting →</a></nav></article></div></main><footer class="sitefooter"><div class="wrap">© 2026 Saravan Kumar M K · <a href="https://saravankumar25.github.io/">Portfolio</a> · <a href="index.html">TDM Guide</a> · <a href="sources-and-limitations.html">Sources &amp; limitations</a> · Study notes: always confirm screen details against your own tool version.</div></footer><div id="search-modal" hidden><div class="search-box" role="dialog" aria-label="Search"><input id="search-input" type="search" placeholder="Search the whole guide (e.g. 'primary key', 'shuffle', 'receiver')…" autocomplete="off"><div id="search-results"></div><p class="search-hint">Esc to close · ↑↓ to move · Enter to open</p></div></div><script src="assets/guide.js" defer></script></body></html>
+<nav class="chapter-nav" aria-label="Previous and next chapter"><a href="02-privacy-discovery-subsetting-masking.html">← 2. Privacy, discovery, subsetting and masking: the concepts</a><a href="04-informatica-architecture-discovery-subset.html">4. Informatica TDM (1): architecture, the tool tour, discovery and subsetting →</a></nav></article></div></main><footer class="sitefooter"><div class="wrap">© 2026 Saravan Kumar M K · <a href="https://saravankumar25.github.io/">Portfolio</a> · <a href="index.html">TDM Guide</a> · <a href="syllabus.html">Syllabus index</a> · <a href="sources-and-limitations.html">Sources &amp; limitations</a> · Study notes: always confirm screen details against your own tool version.</div></footer><div id="search-modal" hidden><div class="search-box" role="dialog" aria-label="Search"><input id="search-input" type="search" placeholder="Search the whole guide (e.g. 'primary key', 'shuffle', 'receiver')…" autocomplete="off"><div id="search-results"></div><p class="search-hint">Esc to close · ↑↓ to move · Enter to open</p></div></div><script src="assets/guide.js" defer></script></body></html>

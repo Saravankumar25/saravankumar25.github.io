@@ -1,5 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 9: Delphix (2): algorithms, file masking and hands-on labs | TDM Guide</title><meta name="description" content="Masking algorithms and jobs, masking txt and dat files, and the Delphix lab series from connector to masked output."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/09-delphix-masking-files-labs.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 9: Delphix (2): algorithms, file masking and hands-on labs | TDM Guide"><meta property="og:description" content="Masking algorithms and jobs, masking txt and dat files, and the Delphix lab series from connector to masked output."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" aria-label="Chapter navigation"><a class="allchap" href="index.html">← Guide home &amp; curriculum map</a><details class="partbox"><summary>Foundations</summary><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a></div></details><details class="partbox"><summary>Informatica TDM</summary><div class="chapter-list"><a class="" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a></div></details><details class="partbox"><summary>GenRocket</summary><div class="chapter-list"><a class="" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a></div></details><details class="partbox" open><summary>Delphix</summary><div class="chapter-list"><a class="" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="current" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a></div></details><details class="partbox"><summary>Capstone and reference</summary><div class="chapter-list"><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, the capstone and the glossary</a></div></details><a class="" href="sources-and-limitations.html" style="margin-top:10px">About the sources</a><h3>On this page</h3><div class="section-list"><a class="l2" href="#c9-s1">9.1 Delphix: masking algorithms and masking jobs</a><a class="l3" href="#c26-words">9.1.1 Words to know first</a><a class="l3" href="#c26-big-picture">9.1.2 The big picture: from domain to masked row</a><a class="l3" href="#c26-what-is-algorithm">9.1.3 What an algorithm is, in five ideas</a><a class="l3" href="#c26-catalogue">9.1.4 Every algorithm framework, in one table</a><a class="l3" href="#c26-firstname">9.1.5 Deep dive: masking a first name</a><a class="l3" href="#c26-alnum">9.1.6 Deep dive: alphanumeric text with Character Mapping</a><a class="l3" href="#c26-ssn">9.1.7 Deep dive: SSN with Segment Mapping (or Character Mapping)</a><a class="l3" href="#c26-phone">9.1.8 Deep dive: telephone numbers</a><a class="l3" href="#c26-more">9.1.9 More algorithms you will meet: dates, email, mapping, tokenization</a><a class="l3" href="#c26-configure">9.1.10 Creating, choosing and managing algorithms</a><a class="l3" href="#c26-jobs">9.1.11 Masking jobs: in-place or on-the-fly</a><a class="l3" href="#c26-labs">9.1.12 Labs on ShopSphere (Day 55 and Day 56)</a><a class="l3" href="#c26-mistakes">9.1.13 Common mistakes and gotchas</a><a class="l3" href="#c26-recap">9.1.14 Recap</a><a class="l3" href="#c26-sources">Sources used in this section</a><a class="l2" href="#c9-s2">9.2 Delphix: masking files (txt and dat)</a><a class="l3" href="#c27-words">9.2.1 Words to know first</a><a class="l3" href="#c27-from-file-to-fields">9.2.2 How a text file becomes fields the engine can mask</a><a class="l3" href="#c27-supported">9.2.3 Supported file types and encodings</a><a class="l3" href="#c27-delimited-vs-fixed">9.2.4 Delimited versus fixed-width, and the characters that matter</a><a class="l3" href="#c27-file-formats">9.2.5 File format definitions</a><a class="l3" href="#c27-record-types">9.2.6 Record types, qualifiers, header and footer</a><a class="l3" href="#c27-add-field">9.2.7 Adding and editing fields in a format</a><a class="l3" href="#c27-connectors">9.2.8 Connectors that reach files</a><a class="l3" href="#c27-rule-sets">9.2.9 The file rule set</a><a class="l3" href="#c27-inventory">9.2.10 Assigning algorithms to file fields</a><a class="l3" href="#c27-jobs">9.2.11 File masking jobs</a><a class="l3" href="#c27-structured">9.2.12 JSON, XML, Parquet and whole-file masking (brief)</a><a class="l3" href="#c27-lab">9.2.13 Lab: mask a ShopSphere customers.dat file (Day 53, TDM_Handson6)</a><a class="l3" href="#c27-mistakes">9.2.14 Common mistakes and gotchas</a><a class="l3" href="#c27-recap">9.2.15 Recap</a><a class="l3" href="#c27-sources">Sources used in this section</a><a class="l2" href="#c9-s3">9.3 Delphix hands-on labs (Days 51-56)</a><a class="l3" href="#c28-words">9.3.1 Words to know first</a><a class="l3" href="#c28-series">9.3.2 How the five labs chain together</a><a class="l3" href="#c28-setup-data">9.3.3 Setup data for every lab</a><a class="l3" href="#c28-lab4">9.3.4 Lab 4: create a connector to a VDB (TDM_Handson4)</a><a class="l3" href="#c28-lab5">9.3.5 Lab 5: create a rule set and profile the VDB (TDM_Handson5)</a><a class="l3" href="#c28-lab6">9.3.6 Lab 6: mask a delimited and a fixed-width file (TDM_Handson6)</a><a class="l3" href="#c28-lab7">9.3.7 Lab 7: mask FirstName in the database (TDM_Handson7)</a><a class="l3" href="#c28-lab8">9.3.8 Lab 8: mask alphanumeric text, SSN and telephone number (TDM_Handson8)</a><a class="l3" href="#c28-checklist">9.3.9 One-page lab checklist</a><a class="l3" href="#c28-evidence">9.3.10 Evidence template for the sign-off</a><a class="l3" href="#c28-differ">9.3.11 Where your engine may differ from the docs</a><a class="l3" href="#c28-mistakes">9.3.12 Common mistakes and gotchas</a><a class="l3" href="#c28-recap">9.3.13 Recap</a><a class="l3" href="#c28-sources">Sources used in this section</a></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">TDM GUIDE / DELPHIX / CHAPTER 9</p><h1>Delphix (2): algorithms, file masking and hands-on labs</h1><div class="meta"><span>Saravan Kumar M K</span><span>3 sections</span></div><p class="chapter-summary">Masking algorithms and jobs, masking txt and dat files, and the Delphix lab series from connector to masked output.</p></div><h2 id="c9-s1">9.1 Delphix: masking algorithms and masking jobs</h2>
-<p><span class="day">Day 44, Day 54, Day 55, Day 56</span></p>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 9: Delphix (2): algorithms, file masking and hands-on labs | TDM Guide</title><meta name="description" content="Masking algorithms and jobs, masking txt and dat files, and the Delphix lab series from connector to masked output."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/09-delphix-masking-files-labs.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 9: Delphix (2): algorithms, file masking and hands-on labs | TDM Guide"><meta property="og:description" content="Masking algorithms and jobs, masking txt and dat files, and the Delphix lab series from connector to masked output."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" aria-label="Chapter navigation"><a class="allchap" href="index.html">← All 10 chapters</a><h3>Chapters</h3><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a><a class="" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a><a class="" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a><a class="" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="current" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, the capstone and the glossary</a><a class="" href="sources-and-limitations.html"><span class="n">··</span> About the sources</a></div><h3>In this chapter</h3><div class="section-list"><details class="grpbox" open data-grp="c9-s1"><summary>Delphix: masking algorithms and masking jobs</summary><div class="secs"><a href="#c26-words">9.1 Words to know first</a><a href="#c26-big-picture">9.2 The big picture: from domain to masked row</a><a href="#c26-what-is-algorithm">9.3 What an algorithm is, in five ideas</a><a href="#c26-catalogue">9.4 Every algorithm framework, in one table</a><a href="#c26-firstname">9.5 Deep dive: masking a first name</a><a href="#c26-alnum">9.6 Deep dive: alphanumeric text with Character Mapping</a><a href="#c26-ssn">9.7 Deep dive: SSN with Segment Mapping (or Character Mapping)</a><a href="#c26-phone">9.8 Deep dive: telephone numbers</a><a href="#c26-more">9.9 More algorithms you will meet: dates, email, mapping, tokenization</a><a href="#c26-configure">9.10 Creating, choosing and managing algorithms</a><a href="#c26-jobs">9.11 Masking jobs: in-place or on-the-fly</a><a href="#c26-labs">9.12 Labs on ShopSphere (Day 55 and Day 56)</a><a href="#c26-mistakes">9.13 Common mistakes and gotchas</a><a href="#c26-recap">9.14 Recap</a></div></details><details class="grpbox" data-grp="c9-s2"><summary>Delphix: masking files (txt and dat)</summary><div class="secs"><a href="#c27-words">9.15 Words to know first</a><a href="#c27-from-file-to-fields">9.16 How a text file becomes fields the engine can mask</a><a href="#c27-supported">9.17 Supported file types and encodings</a><a href="#c27-delimited-vs-fixed">9.18 Delimited versus fixed-width, and the characters that matter</a><a href="#c27-file-formats">9.19 File format definitions</a><a href="#c27-record-types">9.20 Record types, qualifiers, header and footer</a><a href="#c27-add-field">9.21 Adding and editing fields in a format</a><a href="#c27-connectors">9.22 Connectors that reach files</a><a href="#c27-rule-sets">9.23 The file rule set</a><a href="#c27-inventory">9.24 Assigning algorithms to file fields</a><a href="#c27-jobs">9.25 File masking jobs</a><a href="#c27-structured">9.26 JSON, XML, Parquet and whole-file masking (brief)</a><a href="#c27-lab">9.27 Lab: mask a ShopSphere customers.dat file (Day 53, TDM_Handson6)</a><a href="#c27-mistakes">9.28 Common mistakes and gotchas</a><a href="#c27-recap">9.29 Recap</a></div></details><details class="grpbox" data-grp="c9-s3"><summary>Delphix hands-on labs (Days 51-56)</summary><div class="secs"><a href="#c28-words">9.30 Words to know first</a><a href="#c28-series">9.31 How the five labs chain together</a><a href="#c28-setup-data">9.32 Setup data for every lab</a><a href="#c28-lab4">9.33 Lab 4: create a connector to a VDB (TDM_Handson4)</a><a href="#c28-lab5">9.34 Lab 5: create a rule set and profile the VDB (TDM_Handson5)</a><a href="#c28-lab6">9.35 Lab 6: mask a delimited and a fixed-width file (TDM_Handson6)</a><a href="#c28-lab7">9.36 Lab 7: mask FirstName in the database (TDM_Handson7)</a><a href="#c28-lab8">9.37 Lab 8: mask alphanumeric text, SSN and telephone number (TDM_Handson8)</a><a href="#c28-checklist">9.38 One-page lab checklist</a><a href="#c28-evidence">9.39 Evidence template for the sign-off</a><a href="#c28-differ">9.40 Where your engine may differ from the docs</a><a href="#c28-mistakes">9.41 Common mistakes and gotchas</a><a href="#c28-recap">9.42 Recap</a></div></details></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">TDM GUIDE / DELPHIX / CHAPTER 09 OF 10</p><h1>Delphix (2): algorithms, file masking and hands-on labs</h1><div class="meta"><span>Saravan Kumar M K</span><span>Updated 2026-10-23</span><span>42 sections</span></div><p class="chapter-summary">Masking algorithms and jobs, masking txt and dat files, and the Delphix lab series from connector to masked output.</p></div><details class="pagetoc"><summary>Contents of this chapter</summary><details class="grpbox" open data-grp="c9-s1"><summary>Delphix: masking algorithms and masking jobs</summary><div class="secs"><a href="#c26-words">9.1 Words to know first</a><a href="#c26-big-picture">9.2 The big picture: from domain to masked row</a><a href="#c26-what-is-algorithm">9.3 What an algorithm is, in five ideas</a><a href="#c26-catalogue">9.4 Every algorithm framework, in one table</a><a href="#c26-firstname">9.5 Deep dive: masking a first name</a><a href="#c26-alnum">9.6 Deep dive: alphanumeric text with Character Mapping</a><a href="#c26-ssn">9.7 Deep dive: SSN with Segment Mapping (or Character Mapping)</a><a href="#c26-phone">9.8 Deep dive: telephone numbers</a><a href="#c26-more">9.9 More algorithms you will meet: dates, email, mapping, tokenization</a><a href="#c26-configure">9.10 Creating, choosing and managing algorithms</a><a href="#c26-jobs">9.11 Masking jobs: in-place or on-the-fly</a><a href="#c26-labs">9.12 Labs on ShopSphere (Day 55 and Day 56)</a><a href="#c26-mistakes">9.13 Common mistakes and gotchas</a><a href="#c26-recap">9.14 Recap</a></div></details><details class="grpbox" data-grp="c9-s2"><summary>Delphix: masking files (txt and dat)</summary><div class="secs"><a href="#c27-words">9.15 Words to know first</a><a href="#c27-from-file-to-fields">9.16 How a text file becomes fields the engine can mask</a><a href="#c27-supported">9.17 Supported file types and encodings</a><a href="#c27-delimited-vs-fixed">9.18 Delimited versus fixed-width, and the characters that matter</a><a href="#c27-file-formats">9.19 File format definitions</a><a href="#c27-record-types">9.20 Record types, qualifiers, header and footer</a><a href="#c27-add-field">9.21 Adding and editing fields in a format</a><a href="#c27-connectors">9.22 Connectors that reach files</a><a href="#c27-rule-sets">9.23 The file rule set</a><a href="#c27-inventory">9.24 Assigning algorithms to file fields</a><a href="#c27-jobs">9.25 File masking jobs</a><a href="#c27-structured">9.26 JSON, XML, Parquet and whole-file masking (brief)</a><a href="#c27-lab">9.27 Lab: mask a ShopSphere customers.dat file (Day 53, TDM_Handson6)</a><a href="#c27-mistakes">9.28 Common mistakes and gotchas</a><a href="#c27-recap">9.29 Recap</a></div></details><details class="grpbox" data-grp="c9-s3"><summary>Delphix hands-on labs (Days 51-56)</summary><div class="secs"><a href="#c28-words">9.30 Words to know first</a><a href="#c28-series">9.31 How the five labs chain together</a><a href="#c28-setup-data">9.32 Setup data for every lab</a><a href="#c28-lab4">9.33 Lab 4: create a connector to a VDB (TDM_Handson4)</a><a href="#c28-lab5">9.34 Lab 5: create a rule set and profile the VDB (TDM_Handson5)</a><a href="#c28-lab6">9.35 Lab 6: mask a delimited and a fixed-width file (TDM_Handson6)</a><a href="#c28-lab7">9.36 Lab 7: mask FirstName in the database (TDM_Handson7)</a><a href="#c28-lab8">9.37 Lab 8: mask alphanumeric text, SSN and telephone number (TDM_Handson8)</a><a href="#c28-checklist">9.38 One-page lab checklist</a><a href="#c28-evidence">9.39 Evidence template for the sign-off</a><a href="#c28-differ">9.40 Where your engine may differ from the docs</a><a href="#c28-mistakes">9.41 Common mistakes and gotchas</a><a href="#c28-recap">9.42 Recap</a></div></details></details><div class="grp" id="c9-s1"><span class="grplabel">Delphix: masking algorithms and masking jobs</span><span class="day">Day 44, Day 54, Day 55, Day 56</span></div>
 <p>Profiling told you <em>which</em> columns are sensitive. Masking is the step that actually changes them. In Delphix the work is split in two: an <dfn>algorithm</dfn> decides how one value becomes another, and a <dfn>masking job</dfn> applies the assigned algorithms to every row of a rule set. This section covers both halves. First the idea of algorithms (frameworks, instances, keys, lookup files, uniqueness), then a catalogue of every algorithm framework the documentation lists, then a close look at the algorithms you need for the syllabus: first name, SSN, alphanumeric text and telephone number. The second half explains how to build, run, monitor and tune a masking job.</p>
 <p>It ends with two labs: TDM_Handson7 (mask FirstName, Day 55) and TDM_Handson8 (mask alphanumeric text, SSN and telephone number, Day 56), using the ShopSphere tables. Before this section you should know how rule sets and inventories work (<a href="08-delphix-connect-keys-profiling.html#c8-s3">the rule sets and keys chapter</a>, <a href="08-delphix-connect-keys-profiling.html#c8-s4">the profiling chapter</a>). For the generic ideas behind masking see <a href="02-privacy-discovery-subsetting-masking.html#c2-s3">the masking concepts chapter</a>, and for the Informatica equivalent see <a href="05-informatica-masking-generation-workflows.html#c5-s1">the Informatica data masking chapter</a>. Masking files is the topic of <a href="09-delphix-masking-files-labs.html#c9-s2">the file masking chapter</a>, and the full lab walkthrough set is in <a href="09-delphix-masking-files-labs.html#c9-s3">the Delphix hands-on labs chapter</a>.</p>
 <div class="callout recap"><strong class="ctitle">What you will learn</strong>
@@ -15,7 +14,7 @@
 <p>Delphix Continuous Compliance documentation, version 2026.5 (last published October 16, 2026). Pages read in full: <a href="https://help.delphix.com/cc/current/content/algorithms.htm" target="_blank" rel="noopener">Algorithms</a>, <a href="https://help.delphix.com/cc/current/content/algorithm_frameworks.htm" target="_blank" rel="noopener">Algorithm frameworks</a>, <a href="https://help.delphix.com/cc/current/content/out_of_the_box_algorithm_instances.htm" target="_blank" rel="noopener">Out of the box algorithm instances</a>, <a href="https://help.delphix.com/cc/current/content/configuring_algorithms.htm" target="_blank" rel="noopener">Configuring algorithms</a>, <a href="https://help.delphix.com/cc/current/content/managing_algorithm_usage.htm" target="_blank" rel="noopener">Managing algorithm usage</a>, <a href="https://help.delphix.com/cc/current/content/algorithm_syncability.htm" target="_blank" rel="noopener">Algorithm syncability</a>, <a href="https://help.delphix.com/cc/current/content/managing_jobs.htm" target="_blank" rel="noopener">Managing jobs</a>, <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs</a> (the masking job parts here), <a href="https://help.delphix.com/cc/current/content/performance_logging_for_masking_jobs.htm" target="_blank" rel="noopener">Performance logging for masking jobs</a> and <a href="https://help.delphix.com/cc/current/content/best_practices_for_delphix_data_masking.htm" target="_blank" rel="noopener">Best practices for Delphix data masking</a>. For the catalogue I read each framework page (Secure Lookup, Name, Full Name, Character Mapping, Segment Mapping, Mapping, Tokenization, Email, Date Shift, Dependent Date Shift, Date Replacement, Min Max Number, Min Max Date, Payment Card, Regex Decompose, Free Text Redaction, Numeric Expression, Data Cleansing, Character Replacement, Binary Lookup, Checkdigit, BR - Financial ID, String Algorithm Chain, Multi Column Address, Multi Column Condition) and the instance pages for FirstName, LastName, FullName, FirstNameLookup, LastNameLookup, FullNMLookup, Phone Unique, Phone US, CM Alpha-Numeric, CM Digits, CM Numeric, Email Unique, Email SL, Credit Card, Date Shift Discrete, Fixed and Variable, SecureShuffle, NullValueLookup, RepeatFirstDigit and several lookup instances. Job pages: <a href="https://help.delphix.com/cc/current/content/running_and_stopping_jobs.htm" target="_blank" rel="noopener">Running and stopping jobs</a>, <a href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">Job monitoring</a> and the <a href="https://help.delphix.com/cc/current/content/masking_api_client.htm" target="_blank" rel="noopener">Masking API client</a> for defaults.</p>
 <p>The fourth link the learner supplied (<code>.../content/create</code>) was truncated and returns 404; the intended page is almost certainly <code>create__view__edit__delete__verify_jobs.htm</code>, used here for the masking job part. Screenshots come from engine versions 22.0.0.0 to 26.0.0.0 as shown in their banners. Every before and after value in the ShopSphere tables below is <strong>illustrative</strong>: I chose them to show the behaviour that the documentation describes, and your engine will produce different values because the output depends on the algorithm key and lookup file.</p></div>
 
-<h3 id="c26-words">9.1.1 Words to know first</h3>
+<h2 id="c26-words">9.1 Words to know first</h2>
 <dl class="defs">
 <div><dt>Algorithm (instance)</dt><dd>A named, ready-to-use masking recipe with its configuration, such as <code>dlpx-core:FirstName</code>. You assign instances to columns.</dd></div>
 <div><dt>Algorithm framework</dt><dd>A kind of algorithm that you can configure to create new instances, such as Secure Lookup or Segment Mapping. "FIRST NAME SL" is an instance of the Secure Lookup framework.</dd></div>
@@ -30,7 +29,7 @@
 <div><dt>Stream</dt><dd>One parallel lane of work. More streams let the engine mask several tables at once.</dd></div>
 </dl>
 
-<h3 id="c26-big-picture">9.1.2 The big picture: from domain to masked row</h3>
+<h2 id="c26-big-picture">9.2 The big picture: from domain to masked row</h2>
 <p>The previous chapter ended with an inventory: every sensitive column carries a domain and an algorithm. The masking job reads that inventory, takes each row from the source, runs each assigned algorithm on the matching value, and writes the result.</p>
 <div class="flow">
 <div class="node"><b>Inventory</b>column → algorithm</div><div class="arrow">→</div>
@@ -44,30 +43,30 @@
 <figcaption><strong>Official screenshot:</strong> The Settings &gt; Algorithms screen (engine 23.0.0.0, 138 algorithms on that test engine). On screen: rows such as "ACCOUNT SL" (framework Secure Lookup, mask type STRING, owner System) next to user-made ones like "ACCOUNT_TK" (Tokenization, owner admin) and "ALG_JRTIYFXL" (Dependent Date Shift, mask type GENERIC_DATA_ROW). A "+ Algorithm" button and an "Extension Support Policy" link are top right. <a class="badge-link" href="https://help.delphix.com/cc/current/content/algorithms.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p>The Owner column tells you which instances are yours: <em>System</em> rows ship with the engine. The docs say system-defined instances and those from algorithm plugins can only be viewed, never edited or deleted. Administrators and users with the EDIT Algorithm permission can edit any user-defined one, but the name and framework cannot change after creation <span class="badge doc">From docs</span>.</p>
 
-<h3 id="c26-what-is-algorithm">9.1.3 What an algorithm is, in five ideas</h3>
-<h4 id="c26-idea-framework">Idea 1: framework versus instance</h4>
+<h2 id="c26-what-is-algorithm">9.3 What an algorithm is, in five ideas</h2>
+<h3 id="c26-idea-framework">9.3.1 Idea 1: framework versus instance</h3>
 <p>Think of a framework as a recipe template ("replace each value with one chosen from a list") and an instance as a filled-in recipe ("...using this list of first names, ignoring case"). The documentation's own example: "FIRST NAME SL" is an instance of the Secure Lookup framework <span class="badge doc">From docs</span>. The analogy stops being accurate in one place: a framework is not something you assign to a column. Only instances are assigned.</p>
-<h4 id="c26-idea-key">Idea 2: the key makes output repeatable but secret</h4>
+<h3 id="c26-idea-key">9.3.2 Idea 2: the key makes output repeatable but secret</h3>
 <p>Most algorithms include a key. If <code>FirstNameLookup</code> masks "Michelle" to "Rachael", changing the key might make it "Ben" instead <span class="badge doc">From docs</span>. The key can be randomised through an API call (<code>PUT /algorithms/{algorithmName}/randomize-key</code>). Two consequences:</p>
 <ul>
 <li>Within one key, repeatable output means the same customer name masks the same way in every table and every run, so test data stays internally consistent.</li>
 <li>Whoever knows the key and the algorithm might be able to rebuild mappings, so treat the key like a password and do not casually re-key production algorithms, because every later run would produce different test data.</li>
 </ul>
-<h4 id="c26-idea-unique">Idea 3: unique versus non-unique</h4>
+<h3 id="c26-idea-unique">9.3.3 Idea 3: unique versus non-unique</h3>
 <p>Some algorithms may give two inputs the same output (collisions). Others guarantee that different inputs give different outputs. The docs are consistent about which is which:</p>
 <div class="tablewrap"><table><thead><tr><th>Property</th><th>Frameworks</th><th>Use it for</th></tr></thead><tbody>
 <tr><td>Collisions possible (non-unique)</td><td>Secure Lookup, Name, Full Name, Date Shift Discrete or Variable, Free Text Redaction, Min Max</td><td>Names, cities, comments: values that repeat naturally in real data</td></tr>
 <tr><td>No collisions (unique)</td><td>Character Mapping, Segment Mapping, Mapping, Tokenization</td><td>Keys and identifiers: primary keys, foreign keys, SSN, account numbers</td></tr>
 </tbody></table></div>
 <p>Caveat from the docs: even Character Mapping can collide for numeric data types, because "001" and "1" are the same number once stored in a numeric column <span class="badge doc">From docs</span>.</p>
-<h4 id="c26-idea-lookup">Idea 4: a lookup file is just a list</h4>
+<h3 id="c26-idea-lookup">9.3.4 Idea 4: a lookup file is just a list</h3>
 <p>Lookup-based algorithms (Secure Lookup, Name and their out-of-the-box instances such as FirstNameLookup, LastNameLookup and FullNMLookup) hold a list of fake values. The engine hashes the input, uses the hash to choose a line, and returns that line. The file has one value per line, no header, in ASCII or UTF-8 <span class="badge doc">From docs</span>. For example, a tiny file for cities could be:</p>
 <pre><code>Smallville
 Clarkville
 Farmville
 Townville</code></pre>
 <p>With a hash method of SHA256 (the default) the same input always chooses the same line. The framework also offers LEGACY (to mimic old behaviour) and RANDOMIZE, which picks a random line each time and therefore does <em>not</em> keep referential integrity. RANDOMIZE suits things like gender, where you want a statistical spread rather than consistency <span class="badge doc">From docs</span>.</p>
-<h4 id="c26-idea-reversible">Idea 5: masking versus tokenization</h4>
+<h3 id="c26-idea-reversible">9.3.5 Idea 5: masking versus tokenization</h3>
 <p>Almost all masking is one-way. Tokenization is the one family that can be reversed, which is why it exists: mask data, send it to an outside vendor, and later re-identify the vendor's findings <span class="badge doc">From docs</span>. It is covered in the framework catalogue below.</p>
 <div class="callout note"><strong class="ctitle">Generic technique names and their Delphix counterparts</strong>
 <p>Your syllabus (Day 44) names substitution, shuffle, key masking and encryption. This mapping is my own reading, marked <span class="badge concept">General concept</span>:</p>
@@ -78,7 +77,7 @@ Townville</code></pre>
 <li><strong>Encryption</strong>: Tokenization (AES-128 in the framework description, reversible).</li>
 </ul></div>
 
-<h3 id="c26-catalogue">9.1.4 Every algorithm framework, in one table</h3>
+<h2 id="c26-catalogue">9.4 Every algorithm framework, in one table</h2>
 <p>The documentation lists 25 frameworks (the <a href="https://help.delphix.com/cc/current/content/algorithm_frameworks.htm" target="_blank" rel="noopener">Algorithm frameworks</a> index). Each row below gives one plain sentence and an example taken from that framework's own page <span class="badge doc">From docs</span>. Bold names are the ones the syllabus labs need.</p>
 <div class="tablewrap"><table><thead><tr><th>Framework</th><th>What it does</th><th>Example from the docs</th></tr></thead><tbody>
 <tr><td>Binary Lookup</td><td>Replaces whole files stored in a column (such as images) with a fictional file you supply</td><td>Scanned cheque image becomes a stock image</td></tr>
@@ -117,7 +116,7 @@ Townville</code></pre>
 </tbody></table></div>
 <p>The docs say the older lookup instances such as FirstNameLookup, LastNameLookup and FullNMLookup are superseded by the Name and Full Name frameworks (introduced in 6.0.8.0), which they call the preferred way to mask name values <span class="badge doc">From docs</span>. Use the dlpx-core instances for new work.</p>
 
-<h3 id="c26-firstname">9.1.5 Deep dive: masking a first name</h3>
+<h2 id="c26-firstname">9.5 Deep dive: masking a first name</h2>
 <p>The default tool is <code>dlpx-core:FirstName</code>, an instance of the Name framework. It needs String input. If the value is null, empty or only spaces, it comes back unchanged. Words joined by a hyphen count as one word, a single letter is treated as an initial and masks to a single letter, and by default at most two names are masked and extra ones dropped. It raises no non-conformant data errors, and it can occasionally mask a name to itself <span class="badge doc">From docs</span>.</p>
 <div class="tablewrap"><table class="sample"><caption>dlpx-core:FirstName behaviour (documented examples)</caption><thead><tr><th>Input</th><th>Output</th><th>Lesson</th></tr></thead><tbody>
 <tr><td>(null) / "" / " "</td><td>unchanged</td><td>Nothing to mask</td></tr>
@@ -148,7 +147,7 @@ Townville</code></pre>
 <tr><td>1003</td><td>Meera</td><td>Simeon</td></tr>
 </tbody></table></div>
 
-<h3 id="c26-alnum">9.1.6 Deep dive: alphanumeric text with Character Mapping</h3>
+<h2 id="c26-alnum">9.6 Deep dive: alphanumeric text with Character Mapping</h2>
 <p>Character Mapping swaps each maskable character for another one <em>from the same group</em>, using a key. You define groups such as <code>[0-9]</code> and <code>[a-zA-Z]</code>; a digit becomes a digit and a letter a letter; anything not in a group (dashes, spaces) is left alone. Every maskable position affects every other, no two text inputs share an output, and a masked value never equals the original if at least one character is masked. That makes it suitable for keys and identifiers <span class="badge doc">From docs</span>.</p>
 <p>Three ready instances cover most needs:</p>
 <div class="tablewrap"><table><thead><tr><th>Instance</th><th>Masks</th><th>Use on</th><th>Documented example</th></tr></thead><tbody>
@@ -164,7 +163,7 @@ Townville</code></pre>
 <tr><td>1002</td><td>PQRST5678K</td><td>HWBNL3947C</td><td>Different input, different output</td></tr>
 </tbody></table></div>
 
-<h3 id="c26-ssn">9.1.7 Deep dive: SSN with Segment Mapping (or Character Mapping)</h3>
+<h2 id="c26-ssn">9.7 Deep dive: SSN with Segment Mapping (or Character Mapping)</h2>
 <p>An SSN has structure (3 digits, dash, 2 digits, dash, 4 digits) and often serves as a lookup key, so you want unique, format-preserving output. The Segment Mapping page names Social Security Numbers as a typical use and describes exactly the controls you need <span class="badge doc">From docs</span>:</p>
 <ul>
 <li>Up to 10 segments, each up to 6 characters, each treated as <em>Mask alpha-numeric</em>, <em>Mask numeric</em>, <em>Preserve</em> or <em>Mask with a constant value</em>.</li>
@@ -190,7 +189,7 @@ Townville</code></pre>
 <tr><td>1003</td><td>345-67-8901</td><td>719-85-2043</td></tr>
 </tbody></table></div>
 
-<h3 id="c26-phone">9.1.8 Deep dive: telephone numbers</h3>
+<h2 id="c26-phone">9.8 Deep dive: telephone numbers</h2>
 <p>Two instances target phones, and both keep every non-digit character in place <span class="badge doc">From docs</span>:</p>
 <div class="tablewrap"><table><thead><tr><th>Instance</th><th>What changes</th><th>Documented example</th></tr></thead><tbody>
 <tr><td>dlpx-core:Phone Unique</td><td>The last 7 digits are replaced by a hash of the digits; everything before them stays</td><td>"(123)456-7890" to "(123)012-3901"</td></tr>
@@ -203,21 +202,21 @@ Townville</code></pre>
 <tr><td>1003</td><td>9988776655</td><td>9987203518</td></tr>
 </tbody></table></div>
 
-<h3 id="c26-more">9.1.9 More algorithms you will meet: dates, email, mapping, tokenization</h3>
+<h2 id="c26-more">9.9 More algorithms you will meet: dates, email, mapping, tokenization</h2>
 <p>The labs use four algorithms, but the rest of ShopSphere (and any real project) needs a few more. Each paragraph below is a short orientation from the framework pages <span class="badge doc">From docs</span>.</p>
-<h4 id="c26-dates">Dates (date_of_birth, order_date)</h4>
+<h3 id="c26-dates">9.9.1 Dates (date_of_birth, order_date)</h3>
 <p>Three out-of-the-box instances differ in how much they preserve. <strong>Date Shift Fixed</strong> moves every date five days forward and rolls within the month, so the same input always gives the same output and no two dates collide ("2001-02-27" becomes "2001-02-04"). <strong>Date Shift Variable</strong> picks a random day within the same month and year and can collide. <strong>Date Shift Discrete</strong> sends every date of one year-month to one fixed day (about one in thirty dates may collide), so it is unsuitable for columns with unique, primary or foreign key constraints. When you build your own Date Shift instance you choose a minimum and maximum shift and a unit; equal values give a fixed shift, 0 inside the range is never used (a date never masks to itself), and <em>Roll</em> keeps all larger and smaller units unchanged. For a column that is not a native date type, set the Date Format in the inventory (default <code>yyyy-MM-dd</code>, case sensitive). Pairs such as admission and discharge need Dependent Date Shift so the order and the interval survive.</p>
-<h4 id="c26-email">Email</h4>
+<h3 id="c26-email">9.9.2 Email</h3>
 <p>The Email framework splits at the "@". The default <code>dlpx-core:Email Unique</code> hashes the whole input into a 52-character Base32 name and replaces the domain with <code>example.com</code>, so every input gets its own output (64 characters in total, which matters for short columns). <code>dlpx-core:Email SL</code> instead picks a readable name such as "E.Duboise" from a 20,000-value lookup, so collisions are possible but the data looks more human. The Email Unique output is what the profiling screenshots showed for the EMAIL domain, so ShopSphere's <code>email</code> column is covered by default; check that the column is wide enough for 64 characters.</p>
-<h4 id="c26-mapping">Mapping: you decide the replacements</h4>
+<h3 id="c26-mapping">9.9.3 Mapping: you decide the replacements</h3>
 <p>A Mapping algorithm replaces each distinct input with a value you supplied, and it never reuses an output, so there are no collisions. You must provide at least as many replacement values as there are distinct inputs, or the job reports "No free mappings are available". Mappings can be imported as a plain list of outputs or as a CSV with <code>input,output</code> columns, and exported (encrypted with a passphrase), reset or deleted. All mappings load into memory during a job, so give the job enough memory. Mappings can live on the engine or in your own PostgreSQL database shared by several engines. Before engine 6.0.10.0, only one table could be masked at a time with a mapping algorithm; later versions allow concurrent jobs.</p>
-<h4 id="c26-tokenization">Tokenization: masking you can reverse</h4>
+<h3 id="c26-tokenization">9.9.4 Tokenization: masking you can reverse</h3>
 <p>The Tokenization framework encrypts values with AES-128 and Base64 so a vendor can analyse data they cannot read, and you can later re-identify their findings. The output is longer than the input; if it would not fit the column, the framework either fails the job or falls back to a reversible Character Mapping. Segment Mapping, Character Mapping and Mapping can also be used for tokenization under conditions the framework pages list. You create a domain with both a masking and a tokenization algorithm, then a Tokenization environment, and use <em>+ Tokenization Job</em> and <em>+ Re-Identification Job</em>; the form has the same fields as a masking job.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/create_jobs8.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/create_jobs8.png" alt="Create Tokenization Job Details step with Select Tokenization Method" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Create Tokenization Job form: the same layout as a masking job, with a "Select Tokenization Method" drop-down in place of the masking method. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
-<h3 id="c26-configure">9.1.10 Creating, choosing and managing algorithms</h3>
-<h4 id="c26-create-algorithm">Create your own instance</h4>
+<h2 id="c26-configure">9.10 Creating, choosing and managing algorithms</h2>
+<h3 id="c26-create-algorithm">9.10.1 Create your own instance</h3>
 <ol class="steps">
 <li><strong>Settings &gt; Algorithms &gt; <em>+ Algorithm</em>.</strong><p>Your instances are called user-defined algorithms; once saved they are available to all users.</p></li>
 <li><strong>Enter a unique Algorithm Name, a Description and choose the Framework, then Next.</strong><p>Name and framework are locked after creation, so choose carefully. The wizard shows the framework's Mask Type (for Date Shift it showed LOCAL_DATE_TIME).</p></li>
@@ -227,7 +226,7 @@ Townville</code></pre>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/algorithms1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/algorithms1.png" alt="Add Algorithm wizard Details step with Name, Description and Framework Name Date Shift" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Details step of the Add Algorithm wizard. On screen: Name "test_algo", Description, Framework Name "Date Shift", Mask Type LOCAL_DATE_TIME and a short framework description; steps Details, Configuration and Summary on the left. <a class="badge-link" href="https://help.delphix.com/cc/current/content/algorithms.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p>To use a new algorithm in a profiling job you must first attach it to a domain as that domain's default (see <a href="08-delphix-connect-keys-profiling.html#c8-s4">the profiling chapter</a>). If you build the inventory by hand, no domain is needed <span class="badge doc">From docs</span>.</p>
-<h4 id="c26-choose-framework">Choosing between Character Mapping and Segment Mapping</h4>
+<h3 id="c26-choose-framework">9.10.2 Choosing between Character Mapping and Segment Mapping</h3>
 <p>The docs say Character Mapping is intended to replace Segment Mapping in many cases, but not all <span class="badge doc">From docs</span>.</p>
 <div class="compare"><div><h4 id="c9-prefer-character-mapping-when">Prefer Character Mapping when</h4>
 <ul>
@@ -242,23 +241,23 @@ Townville</code></pre>
 <li>You need to map input ranges to different output ranges (A-D to W-Z)</li>
 <li>You need numeric segments limited to a value range (up to 6 digits)</li>
 </ul></div></div>
-<h4 id="c26-multi-column">Multi-column algorithms</h4>
+<h3 id="c26-multi-column">9.10.3 Multi-column algorithms</h3>
 <p>A multi-column algorithm (for example Dependent Date Shift or Multi Column Address) is assigned once but spans several columns, each filling a <em>logical field</em>. It is meant for coordinated masking, such as two dates that must keep their interval. Each non-optional logical field must be assigned for every Algorithm Group number, and incomplete assignments may only be noticed when the job runs. They only work where whole rows are processed together, and cannot be called by other algorithms through chaining <span class="badge doc">From docs</span>.</p>
-<h4 id="c26-usage-sync">Usage and syncability (engine administration)</h4>
+<h3 id="c26-usage-sync">9.10.4 Usage and syncability (engine administration)</h3>
 <ul>
 <li><strong>Usage.</strong> <code>GET algorithm/{algorithmName}/usage</code> lists every column, file field, domain and other algorithm that uses it. <code>PUT</code> on the same path with <code>replacementAlgorithmName</code> swaps it everywhere, with optional environment and rule set filters. The docs warn that this can change many inventories and is hard to undo, so first GET usage for both algorithms and export global settings and affected environments <span class="badge doc">From docs</span>.</li>
 <li><strong>Syncability.</strong> Algorithms are fully syncable between engines (<code>GET /syncable-objects?object_type=USER_ALGORITHM</code>). Non-deterministic ones (all Secure Lookup Random algorithms, DateShiftVariable, Gender SL, SexualOrientation SL, SecureShuffle) cannot give the same output twice, so they cannot be used for syncable masking. DateShiftFixed and RepeatFirstDigit are listed as fixed. Syncing an out-of-the-box instance updates its key but does not replace its files <span class="badge doc">From docs</span>.</li>
 </ul>
 <p>Why this matters to a TDM engineer: if two engines mask the same source, identical output on both needs the same keys, which is what syncing delivers. The consistency argument is my reasoning, not a quote.</p>
 
-<h3 id="c26-jobs">9.1.11 Masking jobs: in-place or on-the-fly</h3>
+<h2 id="c26-jobs">9.11 Masking jobs: in-place or on-the-fly</h2>
 <p>A masking job lives in an environment next to the profiling jobs of <a href="08-delphix-connect-keys-profiling.html#c8-s4">the profiling chapter</a>. A masking environment supports Profiling and Masking jobs; a tokenize environment supports Profiling, Tokenization and Re-Identification jobs, created with the same flow <span class="badge doc">From docs</span>. Start with the one choice that shapes everything else, the masking method.</p>
 <div class="compare"><div><h4 id="c9-in-place">In-Place</h4>
 <p>Updates the source environment with masked values. Typical use: you already copied production into a test database (for example a virtual database) and mask that copy where it sits. Risk: if the job fails midway, that database may be partly masked.</p></div>
 <div><h4 id="c9-on-the-fly">On-The-Fly</h4>
 <p>Reads unmasked data from a source environment and connector, and writes masked data to the target. Typical use: production stays untouched and the masked copy goes elsewhere. Supported pairs: same connector type (Oracle to Oracle, delimited file to delimited file) and database source to delimited-file target.</p></div></div>
 <p>For a database-to-file job, tick <em>Database to File Job</em> so that the source connector list shows database connectors. Target files need not exist in advance if the file name pattern matches the source, but in a database-to-delimited-file job the target files must be created first, with names matching the source tables. You need the View Connector role to create or run on-the-fly jobs <span class="badge doc">From docs</span>.</p>
-<h4 id="c26-create-job">Create a masking job, step by step</h4>
+<h3 id="c26-create-job">9.11.1 Create a masking job, step by step</h3>
 <ol class="steps">
 <li><strong>In the environment's Jobs tab click <em>+ Masking Job</em>.</strong><p>The Create Masking Job wizard opens: Details, then Database Options (database rule sets only), Configuration, Summary.</p></li>
 <li><strong>Details: unique Job Name, Masking Method, Rule Set.</strong><p>The name must be unique across the entire application. For On-The-Fly you also choose Source Environment and Source Connector.</p></li>
@@ -288,7 +287,7 @@ Townville</code></pre>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/create_jobs6.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/create_jobs6.png" alt="Configuration step with Number of Streams, Row Limit, Feedback Size, Min Memory, Max Memory, Comments and Email" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Configuration step: Number of Streams (1), Row Limit, Feedback Size, Min and Max Memory, Comments and Email (a placeholder address). <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p><strong>Edit, view, delete.</strong> Use the <strong>...</strong> menu on the job row; the name cannot be edited, and delete asks for confirmation. A job cannot be edited or deleted while running. The row menu also offers a <em>Checklist</em> for database jobs that runs an Identity Column Check: the rule set's tables must have a primary key, an indexed identity column or a logical key. The check looks only at the rule set, so it still passes if a primary key constraint is disabled by the job <span class="badge doc">From docs</span>.</p>
-<h4 id="c26-run-monitor">Run, stop and monitor</h4>
+<h3 id="c26-run-monitor">9.11.2 Run, stop and monitor</h3>
 <p><strong>Run.</strong> Click <strong>...</strong> then <em>Run</em>. The engine checks the memory allowed for all running jobs (by default 75% of system memory minus 6 GB reserved for the web application, overridable with <code>MaximumMemoryForJobs</code>) and the number of simultaneous jobs (<code>NumSimulJobsAllowed</code>, default 7). If either limit would be exceeded the job queues <span class="badge doc">From docs</span>.</p>
 <p><strong>Stop.</strong> <em>Cancel</em> a running masking job and the data can be left <em>semi-masked</em>; indexes, constraints or triggers that were dropped are not recreated. Cancelling a queued job has no effect on your data <span class="badge doc">From docs</span>. Plan to restore from a copy rather than trust a half-masked database.</p>
 <p><strong>Monitor.</strong> Open Monitor &gt; Job Executions or click the job name. The execution page shows a summary (tables masked, rows masked and remaining, tables and columns with non-conformant data, streams), the sequence of events (Initializing, Collecting Configurations, Preparing, Running Pre-execution Custom Driver Tasks, Starting, Creating Identity Column, Running PreSQL and PostSQL Scripts, Dropping Created Identity Column, Running Post-execution Custom Driver Tasks, Collecting Information, Job Completed) and a grid of Execution Components, one row per table or file.</p>
@@ -299,17 +298,17 @@ Townville</code></pre>
 <p><em>Report and Logs</em> offers the Execution Log plus PDF reports: the Job Report and the Inventory Report (the profiling job showed only Job Report).</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/monitor_job4.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/monitor_job4.png" alt="Report and Logs menu open on a masking job showing Execution Log, Inventory Report and Job Report" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Report and Logs menu on a masking job: Execution Log, Inventory Report and Job Report. <a class="badge-link" href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h4 id="c26-nonconformant">Non-conformant data: when a value does not fit the algorithm</h4>
+<h3 id="c26-nonconformant">9.11.3 Non-conformant data: when a value does not fit the algorithm</h3>
 <p>If a value does not match what an algorithm expects (letters going into a numeric-only algorithm, an 11-digit string into a 10-digit segment pattern), the job, depending on settings, fails, skips the value, or nulls it. The global default is the application setting <code>DefaultNonConformantDataHandling</code>; an algorithm's own setting overrides it, and a job can override both with <em>Job-level Non-Conforming Data Handling</em>: Use global setting, Fail on encounter (FAIL), Don't mask value (DONT_MASK) or Set value to null (NULLIFY). The job-level override applies only to Hop-based jobs. By default non-conformant data is not masked and the job ends with a warning <span class="badge doc">From docs</span>.</p>
 <p>Unmasked data in a test database is a leak, so never ignore a yellow warning. Open the execution component's logs. The Error Report lists the event type (UNMASKED_DATA, or JOB_ABORTED if the job stopped), the cause (PATTERN_MATCH_FAILURE), the row count and the column, plus a sample of the <em>pattern</em> of the bad value, never the value itself. Each character is shown as a class: N digit, L letter, M mark, P punctuation, S symbol, Z separator, O other, U unknown.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/monitor_job6.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/monitor_job6.png" alt="Error Report dialog showing an UNMASKED_DATA PATTERN_MATCH_FAILURE event with a sample pattern of letters" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Error Report for one table: Event UNMASKED_DATA, Cause PATTERN_MATCH_FAILURE, Event Count 1, and a sample pattern made only of the letter L, followed by the masking log text. <a class="badge-link" href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p>To find the offending rows, translate the pattern into a database query. For the pattern LLLLL on an Oracle column, the docs use <code>SELECT EXCEPTION_00 FROM testdata_EXCEPTION WHERE regexp_like(EXCEPTION_00, '[&#91;:alpha:]]{5}');</code>. For a multi-column algorithm the pattern is shown for every masked column of that algorithm, so you must read the message to find the real culprit.</p>
-<h4 id="c26-perf">Speed: PerfLogger and best practices</h4>
+<h3 id="c26-perf">9.11.4 Speed: PerfLogger and best practices</h3>
 <p>From version 2026.3 the throughput log is called <em>PerfLogger</em>. It logs at job start (every 10,000 rows), then every 30 seconds after 100,000 rows, and once at the end with totals. The main number is <strong>RPM</strong>, rows per minute; MB/sec is only informational, and BPR is the average bytes per row. Rows of about 1 KB or more lower RPM. A sharp RPM drop to zero with an unchanged BPR points at the target side (transaction log pressure, auto-growth, many indexes). If RPM falls below earlier runs, check for concurrent jobs, new indexes, constraints or triggers, and bigger rows <span class="badge doc">From docs</span>.</p>
 <p>The best practices page recommends, for a dedicated compliance engine, 8 vCPUs and 64 GB RAM minimum (128 GB or more preferred), about one vCPU per concurrent job, at least 1 GB of memory per job and per stream (more for particularly wide rows or big lookup files such as 500,000 values), the engine near the database server on a slow network, and tuning the masked VDB first (for Oracle, no-archivelog mode; for SQL Server, SIMPLE recovery) <span class="badge doc">From docs</span>. Mapping algorithms are the other big memory user: all mappings load into memory, so a 2 GB mapping needs much more job memory than a 2 MB one.</p>
 
-<h3 id="c26-labs">9.1.12 Labs on ShopSphere (Day 55 and Day 56)</h3>
+<h2 id="c26-labs">9.12 Labs on ShopSphere (Day 55 and Day 56)</h2>
 <p>Both labs mask a <strong>test copy</strong> of ShopSphere, never <code>SHOPSPHERE_PROD</code>. They assume the environment, connector and rule set from <a href="08-delphix-connect-keys-profiling.html#c8-s2">the connectors chapter</a> and <a href="08-delphix-connect-keys-profiling.html#c8-s3">the rule sets chapter</a>, and an inventory from <a href="08-delphix-connect-keys-profiling.html#c8-s4">the profiling chapter</a>. The SQL is generic; adjust it for your database (Oracle, PostgreSQL and SQL Server differ in small ways, noted where it matters). The Delphix hands-on chapter repeats these labs in a wider flow: <a href="09-delphix-masking-files-labs.html#c9-s3">the Delphix hands-on labs chapter</a>.</p>
 <div class="callout warn"><strong class="ctitle">Take a "before" snapshot first</strong>
 <p>An in-place job overwrites the data, so create a copy of the original rows to compare against. In PostgreSQL or Oracle: <code>CREATE TABLE customers_before AS SELECT * FROM customers;</code> (SQL Server: <code>SELECT * INTO customers_before FROM customers;</code>). This snapshot table is my lab convention, not a Delphix feature. Drop it when you finish: it holds the real-looking data.</p></div>
@@ -412,7 +411,7 @@ SELECT COUNT(*) FROM orders o JOIN customers c ON c.customer_id = o.customer_id;
 <p><strong>Consistency across tables.</strong> If an SSN or tax id also appears in another table or file, that column must use the same algorithm, or the same person gets two different masked values and tests break.</p>
 <p><strong>Extra challenge.</strong> Repeat the SSN step with <code>dlpx-core:CM Digits</code> instead of the custom algorithm and compare the output. Which one gave better-looking SSNs?</p></details></div>
 
-<h3 id="c26-mistakes">9.1.13 Common mistakes and gotchas</h3>
+<h2 id="c26-mistakes">9.13 Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Watch out for these</strong>
 <ul>
 <li><strong>Using a non-unique algorithm on a key or unique column.</strong> Secure Lookup, Name and Date Shift Discrete can collide. Use Character Mapping, Segment Mapping or Mapping for keys, and the same algorithm on every column that must still match, including foreign keys.</li>
@@ -426,7 +425,7 @@ SELECT COUNT(*) FROM orders o JOIN customers c ON c.customer_id = o.customer_id;
 <li><strong>Giving a job too little memory.</strong> Below the recommended 1024 MB, and with large lookup files or mappings, performance suffers or jobs fail.</li>
 </ul></div>
 
-<h3 id="c26-recap">9.1.14 Recap</h3>
+<h2 id="c26-recap">9.14 Recap</h2>
 <div class="callout recap"><strong class="ctitle">Key points</strong>
 <ul>
 <li>A framework is a configurable kind of algorithm; an instance is a ready recipe you assign to a column. Output is repeatable for the same input, key and configuration.</li>
@@ -437,7 +436,7 @@ SELECT COUNT(*) FROM orders o JOIN customers c ON c.customer_id = o.customer_id;
 <li>Always verify with SQL: row counts, side by side, distinct counts, uniqueness, format and join checks.</li>
 </ul></div>
 
-<section class="sources"><h3 id="c26-sources">Sources used in this section</h3>
+<section class="sources"><h4 id="c26-sources">Sources used in this section</h4>
 <ul>
 <li><a href="https://help.delphix.com/cc/current/content/algorithms.htm" target="_blank" rel="noopener">Algorithms</a>, <a href="https://help.delphix.com/cc/current/content/algorithm_frameworks.htm" target="_blank" rel="noopener">Algorithm frameworks</a>, <a href="https://help.delphix.com/cc/current/content/out_of_the_box_algorithm_instances.htm" target="_blank" rel="noopener">Out of the box algorithm instances</a>, <a href="https://help.delphix.com/cc/current/content/configuring_algorithms.htm" target="_blank" rel="noopener">Configuring algorithms</a>: instance and framework lists, creation steps, keys, multi-column rules, Character versus Segment Mapping.</li>
 <li>Framework pages: <a href="https://help.delphix.com/cc/current/content/secure_lookup__algorithm_frameworks_.htm" target="_blank" rel="noopener">Secure Lookup</a>, <a href="https://help.delphix.com/cc/current/content/name__algorithm_frameworks_.htm" target="_blank" rel="noopener">Name</a>, <a href="https://help.delphix.com/cc/current/content/full_name__algorithm_frameworks_.htm" target="_blank" rel="noopener">Full Name</a>, <a href="https://help.delphix.com/cc/current/content/character_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Character Mapping</a>, <a href="https://help.delphix.com/cc/current/content/segment_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Segment Mapping</a>, <a href="https://help.delphix.com/cc/current/content/mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Mapping</a>, <a href="https://help.delphix.com/cc/current/content/tokenization__algorithm_frameworks_.htm" target="_blank" rel="noopener">Tokenization</a>, <a href="https://help.delphix.com/cc/current/content/email__algorithm_frameworks_.htm" target="_blank" rel="noopener">Email</a>, <a href="https://help.delphix.com/cc/current/content/date_shift__algorithm_frameworks_.htm" target="_blank" rel="noopener">Date Shift</a>, <a href="https://help.delphix.com/cc/current/content/free_text_redaction__algorithm_frameworks_.htm" target="_blank" rel="noopener">Free Text Redaction</a>, plus the other framework pages named in the evidence note.</li>
@@ -448,8 +447,7 @@ SELECT COUNT(*) FROM orders o JOIN customers c ON c.customer_id = o.customer_id;
 <li>Not found or not stated in what I read: the default algorithm for the SSN domain; whether Phone Unique guarantees distinct outputs; whether Segment Mapping can map a value to itself; how DatabaseCommitSize interacts with the job's Commit Size field. The ShopSphere before and after values are invented illustrations.</li>
 </ul></section>
 
-<h2 id="c9-s2">9.2 Delphix: masking files (txt and dat)</h2>
-<p><span class="day">Day 53</span></p>
+<div class="grp" id="c9-s2"><span class="grplabel">Delphix: masking files (txt and dat)</span><span class="day">Day 53</span></div>
 <p>Not all sensitive data sits in a database. Customers export spreadsheets, partners drop <code>.dat</code> feeds on an SFTP server, and batch jobs write flat text files that testers later load. A masking project has to cover those files too. The good news is that Delphix masks files with the same algorithms and the same ideas you have already met: a connector, a rule set, an inventory and a masking job. The new piece is the <dfn>file format</dfn>: because a text file has no built-in column names, you must tell the engine where the fields are.</p>
 <p>This section teaches that from zero and ends with the Day 53 lab (TDM_Handson6): masking a ShopSphere <code>customers.dat</code> file end to end. Connectors and rule sets are introduced in <a href="08-delphix-connect-keys-profiling.html#c8-s2">the connectors chapter</a> and <a href="08-delphix-connect-keys-profiling.html#c8-s3">the rule sets chapter</a>; profiling and the inventory are in <a href="08-delphix-connect-keys-profiling.html#c8-s4">the profiling chapter</a>; the algorithms and job options come from <a href="09-delphix-masking-files-labs.html#c9-s1">the algorithms and masking jobs chapter</a>. Flat-file basics are also in <a href="01-welcome-why-tdm-and-data-basics.html#c1-s3">the data basics chapter</a>.</p>
 <div class="callout recap"><strong class="ctitle">What you will learn</strong>
@@ -465,7 +463,7 @@ SELECT COUNT(*) FROM orders o JOIN customers c ON c.customer_id = o.customer_id;
 <p>Delphix Continuous Compliance documentation 2026.5 (last published October 16, 2026), read in full: <a href="https://help.delphix.com/cc/current/content/files_connector.htm" target="_blank" rel="noopener">Files connector</a>, <a href="https://help.delphix.com/cc/current/content/accessing_files.htm" target="_blank" rel="noopener">Accessing Files</a>, <a href="https://help.delphix.com/cc/current/content/managing_file_formats.htm" target="_blank" rel="noopener">Managing file formats</a>, <a href="https://help.delphix.com/cc/current/content/add__view__edit__and_delete_fields_for_file_formats.htm" target="_blank" rel="noopener">Add, view, edit, and delete fields for file formats</a>, <a href="https://help.delphix.com/cc/current/content/constructing_file_formats_for_upload.htm" target="_blank" rel="noopener">Constructing file formats for upload</a>, <a href="https://help.delphix.com/cc/current/content/file_structure_for_masking.htm" target="_blank" rel="noopener">File structure for masking</a>, <a href="https://help.delphix.com/cc/current/content/managing_record_types_and_header_footer_records.htm" target="_blank" rel="noopener">Managing record types and header/footer records</a>, <a href="https://help.delphix.com/cc/current/content/configure_enclosure_escape_character.htm" target="_blank" rel="noopener">Configure enclosure escape character</a>, <a href="https://help.delphix.com/cc/current/content/json_structure.htm" target="_blank" rel="noopener">JSON structure</a>, <a href="https://help.delphix.com/cc/current/content/parquet_structure.htm" target="_blank" rel="noopener">Parquet structure</a>, <a href="https://help.delphix.com/cc/current/content/amazon_simple_storage_service__s3__connector_for_files.htm" target="_blank" rel="noopener">Amazon S3 connector for files</a>, <a href="https://help.delphix.com/cc/current/content/azure_blob_storage_connector_for_files.htm" target="_blank" rel="noopener">Azure Blob Storage connector for files</a> and <a href="https://help.delphix.com/cc/current/content/mainframe_dataset_connector.htm" target="_blank" rel="noopener">Mainframe data set connector</a>. For the end-to-end flow I also used <a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>, <a href="https://help.delphix.com/cc/current/content/managing_connectors.htm" target="_blank" rel="noopener">Managing connectors</a>, <a href="https://help.delphix.com/cc/current/content/working_with_file_formats.htm" target="_blank" rel="noopener">Working with file formats</a>, <a href="https://help.delphix.com/cc/current/content/whole_file_masking.htm" target="_blank" rel="noopener">Whole file masking</a>, <a href="https://help.delphix.com/cc/current/content/xml_structure.htm" target="_blank" rel="noopener">XML structure</a> and <a href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Managing inventories</a>.</p>
 <p>Note: the "Accessing Files" page is about how <em>algorithms</em> open their own input files (for example lookup files) when written with the plugin SDK. It is not about masking data files, so this section only mentions it. Screenshots come from engine versions 22.0.0.0 to 999.0.0.0 (a build number shown in some banners). The <code>customers.dat</code> sample and every masked value are illustrative inventions of mine.</p></div>
 
-<h3 id="c27-words">9.2.1 Words to know first</h3>
+<h2 id="c27-words">9.15 Words to know first</h2>
 <dl class="defs">
 <div><dt>Flat file</dt><dd>A plain text file where each line is a record and each record holds fields in a fixed order, such as a <code>.txt</code>, <code>.csv</code> or <code>.dat</code> file. The extension is only a habit; the engine cares about the layout.</dd></div>
 <div><dt>Record / field</dt><dd>A record is one line (one customer). A field is one value in it (the phone number).</dd></div>
@@ -481,7 +479,7 @@ SELECT COUNT(*) FROM orders o JOIN customers c ON c.customer_id = o.customer_id;
 <div><dt>Encoding</dt><dd>How characters become bytes. ASCII and UTF-8 are supported for the main file types; mainframe data must be EBCDIC.</dd></div>
 </dl>
 
-<h3 id="c27-from-file-to-fields">9.2.2 How a text file becomes fields the engine can mask</h3>
+<h2 id="c27-from-file-to-fields">9.16 How a text file becomes fields the engine can mask</h2>
 <p>A database table knows its own columns. A text file does not. Here is the ShopSphere sample used throughout this section, as a pipe-delimited file. All data is fake.</p>
 <pre><code>customer_id|first_name|last_name|email|phone|ssn|date_of_birth|zip_code|tax_id
 1001|Asha|Menon|asha.menon@example.com|9876543210|123-45-6789|1990-04-12|560001|ABCDE1234F
@@ -497,7 +495,7 @@ SELECT COUNT(*) FROM orders o JOIN customers c ON c.customer_id = o.customer_id;
 </div>
 <p>The docs state the reason directly: unlike databases, files typically carry no built-in metadata describing their fields, so you supply it in Settings &gt; Data Formats <span class="badge doc">From docs</span>.</p>
 
-<h4 id="c27-inspect">Look at the file before you describe it</h4>
+<h3 id="c27-inspect">9.16.1 Look at the file before you describe it</h3>
 <p>The extension (<code>.txt</code>, <code>.dat</code>, <code>.csv</code>) tells the engine nothing; only the layout matters. Before you write a format, answer four questions about the actual file. These commands are ordinary Linux tools, not Delphix features, and are my suggestion:</p>
 <pre><code>head -3 customers.dat                      # what separates the fields?
 cat -A customers.dat | head -2             # $ marks LF; ^M$ means CR+LF (Windows)
@@ -508,7 +506,7 @@ file customers.dat                         # ASCII or UTF-8 text?</code></pre>
 <pre class="ascii">1001..Asha........Menon.......asha.menon@example.com......
 ^1-6  ^7-18       ^19-30      ^31-60</pre>
 <p>Field 2 starts at position 7 because field 1 is six characters long. The engine computes every start from the lengths you list, which is why one wrong length shifts everything after it.</p>
-<h3 id="c27-supported">9.2.3 Supported file types and encodings</h3>
+<h2 id="c27-supported">9.17 Supported file types and encodings</h2>
 <div class="tablewrap"><table><thead><tr><th>Type</th><th>Encodings</th><th>Notes</th></tr></thead><tbody>
 <tr><td>Fixed Width</td><td>ASCII, UTF-8</td><td>Supported</td></tr>
 <tr><td>Delimited</td><td>ASCII, UTF-8</td><td>Supported</td></tr>
@@ -519,16 +517,16 @@ file customers.dat                         # ASCII or UTF-8 text?</code></pre>
 </tbody></table></div>
 <p>All of these are masked with the same algorithms available for other sources. JSON or XML stored <em>inside</em> a database column or a delimited field can be handled by Document Store Type masking, which is outside this section <span class="badge doc">From docs</span>.</p>
 
-<h3 id="c27-delimited-vs-fixed">9.2.4 Delimited versus fixed-width, and the characters that matter</h3>
+<h2 id="c27-delimited-vs-fixed">9.18 Delimited versus fixed-width, and the characters that matter</h2>
 <div class="compare"><div><h4 id="c9-delimited">Delimited</h4>
 <p>Fields separated by a delimiter. Needs: the delimiter, optionally a text enclosure, an end-of-record. Fields can have any length. The format file lists field names, one per line, and no header.</p>
 <p>Sample: <code>1001|Asha|Menon</code></p></div>
 <div><h4 id="c9-fixed-width">Fixed-width</h4>
 <p>Fields occupy fixed positions. Needs: an end-of-record and exact field lengths. The format file lists <code>name,length</code> per line. Length is counted in characters, not bytes, so multi-byte characters count once.</p>
 <p>Sample: <code>1001Asha      Menon     </code></p></div></div>
-<h4 id="c27-eor">End-of-record</h4>
+<h3 id="c27-eor">9.18.1 End-of-record</h3>
 <p>Choose LF for Linux-style files and CR+LF for Windows-style ones in the rule set's file properties. The docs do not describe the failure mode; my expectation is that a wrong choice glues lines together or leaves a stray carriage return in the last field. The rule set page also lets you use a control character as delimiter or end-of-record: click the CTRL button for a virtual keyboard, or type it as <code>$[hex value]</code>, for example <code>$[01]</code> for ^A. The docs say to avoid typing <code>^t</code> or <code>\t</code> <span class="badge doc">From docs</span>.</p>
-<h4 id="c27-enclosure">Enclosures and escaping</h4>
+<h3 id="c27-enclosure">9.18.2 Enclosures and escaping</h3>
 <p>Take the line <code>1004|"Rao, Kiran"|...</code> with a pipe delimiter and a double quote enclosure. The comma inside the quotes belongs to the value. If a value itself contains a quote, it must be escaped. The rule set offers an <em>Enclosure Escaping Strategy</em> <span class="badge doc">From docs</span>:</p>
 <ul>
 <li><strong>Double Enclosure</strong> (the default): the escape character is the enclosure character, so <code>""</code> means one literal quote.</li>
@@ -537,13 +535,13 @@ file customers.dat                         # ASCII or UTF-8 text?</code></pre>
 </ul>
 <p>For a large number of rule sets the docs provide an API script that updates these settings through <code>PUT /file-metadata</code>, for all delimited rule sets with an enclosure or for one rule set ID. A custom escape character or the "escape the escape" flag is not supported for delimited fields holding structured (JSON or XML) data; only double enclosure is.</p>
 
-<h3 id="c27-file-formats">9.2.5 File format definitions</h3>
+<h2 id="c27-file-formats">9.19 File format definitions</h2>
 <p>Open <strong>Settings &gt; Data Formats</strong>. The File tab lists formats with ID, Name and Type (Delimited, Fixed Width, XML, JSON, Parquet); the Mainframe tab holds copybooks. Click a name to open it.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_file_format.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_file_format.png" alt="Settings, Data Formats screen with File and Mainframe tabs and a + File Format button" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Settings &gt; Data Formats (engine 24.0.0.0): File and Mainframe tabs, a "+ File Format" button, and rows with ID, Name and Type such as Delimited, Fixed Width, XML and JSON. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_file_formats.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <div class="callout warn"><strong class="ctitle">Two rules from the docs</strong>
 <p><strong>Schema only.</strong> Upload field names, never production data, sample records or PII; for XML, JSON and Parquet use empty tags, nulls or dummy values. <strong>Global effect.</strong> A format is shared: changing its inventory changes every data file that uses it, in every rule set. The format screens show a banner saying so <span class="badge doc">From docs</span>.</p></div>
-<h4 id="c27-build-format">Build a format file</h4>
+<h3 id="c27-build-format">9.19.1 Build a format file</h3>
 <p>You create the definition as a small text file, then import it.</p>
 <div class="tablewrap"><table><thead><tr><th>File type</th><th>What the definition file contains</th></tr></thead><tbody>
 <tr><td>Delimited</td><td>Field names, one per line, no header</td></tr>
@@ -557,7 +555,7 @@ file customers.dat                         # ASCII or UTF-8 text?</code></pre>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/construct_file1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/construct_file1.png" alt="Fixed-width format file content: field names with lengths separated by commas" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The fixed-width equivalent: each line is a name, a comma and a length, such as First_Name,20 and Zip_Code,10. <a class="badge-link" href="https://help.delphix.com/cc/current/content/constructing_file_formats_for_upload.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p>If your data does not match the format, the docs describe two behaviours for delimited files. Fewer fields than the format: delimiters are added after masking to reach the full count (<code>Data1,Data2</code> becomes <code>Masked1,Masked2,</code>). More fields than the format: the extras are lost (<code>Data1,...,Data4</code> becomes three masked fields). In both cases the output no longer matches the input shape, so keep formats accurate. For fixed-width files a wrong length shifts every later field, so you mask the wrong characters. On Windows, save format files with LF line endings, since CRLF can pass your eye but fail the engine's parser <span class="badge doc">From docs</span>.</p>
-<h4 id="c27-import-format">Import a format, step by step</h4>
+<h3 id="c27-import-format">9.19.2 Import a format, step by step</h3>
 <ol class="steps">
 <li><strong>Settings &gt; Data Formats &gt; File tab &gt; <em>+ File Format</em>.</strong><p>The wizard opens at Format Type.</p></li>
 <li><strong>Choose the type (for example Delimited) and click Next.</strong><p>The wizard shows formatting examples for each type.</p></li>
@@ -569,7 +567,7 @@ file customers.dat                         # ASCII or UTF-8 text?</code></pre>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/file_formats.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/file_formats.png" alt="Data Formats list with export, duplicate and delete icons in the Actions column" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Data Formats list in a later UI (File tab): default_fixed.fmt, default_delimited.fmt, books.xml and whole_file_single_field.fmt, with export (up arrow), copy (duplicate) and delete icons in Actions. <a class="badge-link" href="https://help.delphix.com/cc/current/content/working_with_file_formats.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
-<h3 id="c27-record-types">9.2.6 Record types, qualifiers, header and footer</h3>
+<h2 id="c27-record-types">9.20 Record types, qualifiers, header and footer</h2>
 <p>Real feeds often mix layouts in one file. The docs' example has lines like <code>address, account1234, 9A Lexington Street, ...</code> and <code>email, account1234, bar@example.com</code>: the first field says what kind of record follows. A <dfn>record type</dfn> describes one layout; up to three <dfn>qualifiers</dfn> (a field plus a regular expression) tell the engine which lines belong to it. A line gets exactly one record type, and if several qualifiers match, the engine cannot guarantee which wins. Record types and header/footer apply only to delimited and fixed-width formats, and can be managed only on the Formats page, not on the inventory page <span class="badge doc">From docs</span>.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/add_files.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/add_files.png" alt="Format detail page with + Field, + Record Type, + Qualifiers and + Header & Footer buttons and two record types" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> A delimited format (engine 24.0.0.0): buttons "+ Field", "+ Record Type", "+ Qualifiers", "+ Header &amp; Footer" and "Actions"; the grid is grouped by record type, "All Records (6)" and "new_record (2)", with Domain and Algorithm columns and Automatic Updates enabled or disabled. <a class="badge-link" href="https://help.delphix.com/cc/current/content/add__view__edit__and_delete_fields_for_file_formats.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
@@ -582,7 +580,7 @@ file customers.dat                         # ASCII or UTF-8 text?</code></pre>
 <figcaption><strong>Official screenshot:</strong> The Record Type Qualifiers dialog: Select Record Type, No. of Qualifiers (3), and for Qualifier 1 a Regular Expression box (here <code>([A-Z])\w+</code>) and a Field Name drop-down set to "id". <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_record_types_and_header_footer_records.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p>Editing a record type's name and deleting a record type are in its row's Actions column. To reach the format from a rule set inventory, use the <em>Edit File Format</em> button.</p>
 
-<h3 id="c27-add-field">9.2.7 Adding and editing fields in a format</h3>
+<h2 id="c27-add-field">9.21 Adding and editing fields in a format</h2>
 <p>New fields can be added only in delimited, fixed-width and JSON formats (XML and mainframe fields cannot be deleted). Click <em>+ Field</em> on the format page.</p>
 <ol class="steps">
 <li><strong>Fill in Field Name (or JSON Path), and the Formatting section (Record Type and Position).</strong><p>These are mandatory because they place the field in the line.</p></li>
@@ -592,7 +590,7 @@ file customers.dat                         # ASCII or UTF-8 text?</code></pre>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/add_files1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/add_files1.png" alt="Add Field dialog with Field Name, Notes, Formatting (Record Type, Position) and Masking sections" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Add Field dialog: Field Name, Notes, Formatting (Record Type, Position), and Masking with Enable Automatic Updates ticked, Data Model Plain, and Select Domain and Select Algorithm drop-downs. <a class="badge-link" href="https://help.delphix.com/cc/current/content/add__view__edit__and_delete_fields_for_file_formats.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
-<h3 id="c27-connectors">9.2.8 Connectors that reach files</h3>
+<h2 id="c27-connectors">9.22 Connectors that reach files</h2>
 <p>A file connector tells the engine <em>where</em> files live. In <strong>Environments &gt; your environment &gt; Connectors &gt; + Connection</strong>, choose a Source Type that starts with "File" (Delimited, Fixed Width, XML, JSON, Parquet) and then a <em>Connection Mode</em>.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_connector3.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_connector3.png" alt="Create Connector wizard Details step with Source Type File - Delimited and a Connection Mode drop-down listing AWS S3, Azure Blob Storage, File System Mount Point, FTP, Other S3 Compatible Storage and SFTP" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Create Connector, Details step: Connector Name, Select Source Type "File - Delimited", and the Connection Mode list (AWS S3, Azure Blob Storage, File System Mount Point, FTP, Other S3 Compatible Storage, SFTP). A banner warns that the legacy generic database connector type is deprecated. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_connectors.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
@@ -609,12 +607,12 @@ file customers.dat                         # ASCII or UTF-8 text?</code></pre>
 <figcaption><strong>Official screenshot:</strong> Credentials step for an SFTP file connector: Port 22, Server Name, Path, "User Directory as root", authentication type "Username/Password", Username and a masked Password. Click Test Connection before saving. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_connectors.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p><strong>Mounts in plain words.</strong> A mount makes a folder on a file server (shared over NFS or CIFS) appear as a folder on the engine, so the engine can read and write files there as if they were local. You register the mount first (a name, the server address and the shared path) and then pick it in the connector. Use SFTP when the files sit on a normal server you can log in to, and a mount when the share already exists.</p>
 <p><strong>Cloud storage.</strong> "Prefix" and "delimiter" work as in the cloud vendor's list-objects calls: the prefix (for example <code>json/</code>) limits which objects the engine sees. <strong>On-the-fly note.</strong> For on-the-fly file masking you need a second connector (and environment) for the target. One page says the target rule set's file path must already point to a file with the same name in the target directory, which the masked file then replaces. The masking job page says target files need not exist in advance if the file name pattern matches the source. I could not reconcile these two statements; test on your engine version.</p>
-<h4 id="c27-mainframe">Mainframe data sets (overview)</h4>
+<h3 id="c27-mainframe">9.22.1 Mainframe data sets (overview)</h3>
 <p>The engine can also mask IBM z/OS data sets, described by a COBOL copybook, but the data must be EBCDIC (not ASCII or UTF-8). Where a record area can be read in several ways (COBOL <code>REDEFINES</code>), you give <em>redefine conditions</em> such as <code>[CUST-TYPE]='P'</code> so that exactly one reading applies per record. Operators are <code>=</code>, <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code>, <code>&gt;=</code> with AND, OR and NOT. Mainframe formats list a variable-length checkbox in the rule set and can be reached over FTPS or other file modes. Masking a node that has Level 88 children is not supported <span class="badge doc">From docs</span>.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_file_formats2.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_file_formats2.png" alt="Mainframe copybook format page with Domain, Algorithm, Redefine Condition and Redefines columns" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> A mainframe format (VSAM_Demo.cbl). The grid shows PERSON-DET marked REDEFINED and COMP-DET marked REDEF with "Redefines PERSON-DET"; fields such as PERSON-FIRSTNAME carry FIRST_NAME and dlpx-core:FirstName. Condition editing is only on this Formats page. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_file_formats.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
-<h3 id="c27-rule-sets">9.2.9 The file rule set</h3>
+<h2 id="c27-rule-sets">9.23 The file rule set</h2>
 <p>In the environment's Rule Sets tab click <em>Add Rule Set</em>, choose <strong>Flat Files</strong> (the other choices are Database, Semi-Structured and Copybook), then Continue. The wizard has three steps: Details (name and a connector, filtered by rule set type), Data Files, Summary. In Data Files you add files with <em>Add File Name</em> (lists files the connector can see) or <em>Add File Pattern</em> (Java regular expressions, case sensitive, for example <code>.*\.txt</code>). Properties are applied to all selected files or patterns <span class="badge doc">From docs</span>:</p>
 <div class="tablewrap"><table><thead><tr><th>Property</th><th>Applies to</th><th>Meaning</th></tr></thead><tbody>
 <tr><td>File Name or Pattern, Is Pattern</td><td>All</td><td>A name or regular expression. Patterns work for file-to-file jobs, not database-to-file jobs, where the target file name must equal the source table name</td></tr>
@@ -631,13 +629,13 @@ file customers.dat                         # ASCII or UTF-8 text?</code></pre>
 <div class="callout tip"><strong class="ctitle">A rule set per layout</strong>
 <p>Patterns are tempting, but files matched by one pattern all use the same format, delimiter and end-of-record. If <code>customers_*.dat</code> and <code>orders_*.dat</code> differ, make separate rule sets or separate patterns with their own properties.</p></div>
 
-<h3 id="c27-inventory">9.2.10 Assigning algorithms to file fields</h3>
+<h2 id="c27-inventory">9.24 Assigning algorithms to file fields</h2>
 <p>Click the rule set name to open the file inventory. Pick a file or a format in the File Format drop-down and the record types and fields appear. Edit a field with the pencil icon, as in <a href="08-delphix-connect-keys-profiling.html#c8-s4">the profiling chapter</a>: tick or untick Enable Automatic Updates, choose Domain and Algorithm, set a date format for DATESHIFT algorithms. Profiling can fill this in for delimited, fixed-width, XML and mainframe files, and the inventory can be exported to CSV for delimited, fixed-width and XML files <span class="badge doc">From docs</span>.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_inventories1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_inventories1.png" alt="Fixed-width file inventory with File Format default_fixed.fmt and three fields: id, first_name, last_name" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> A file inventory (engine 999.0.0.0): the File Format drop-down shows default_fixed.fmt, with an "Edit File Format" button; fields id (position 1, no algorithm), first_name (position 31, FIRST_NAME, dlpx-core:FirstName) and last_name (position 181, LAST_NAME, dlpx-core:LastName), grouped under "All Records (3)". <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p>Formatting properties (position, record type) are edited on the format page, not here, because the inventory belongs to the format.</p>
 
-<h3 id="c27-jobs">9.2.11 File masking jobs</h3>
+<h2 id="c27-jobs">9.25 File masking jobs</h2>
 <p>A file job uses the same <strong>+ Masking Job</strong> wizard as in <a href="09-delphix-masking-files-labs.html#c9-s1">the algorithms and masking jobs chapter</a>, with differences you will notice at once: there is no Database Options step (no commit size, update threads, triggers or constraints), and for files the Row Limit counts delimited or fixed-width lines, mainframe records or XML elements in process per stream <span class="badge doc">From docs</span>. The choice that matters is the method.</p>
 <div class="compare"><div><h4 id="c9-in-place-2">In-Place</h4>
 <p>The engine reads the original file, masks each field, writes the result to a hidden temporary file ending <code>.msk</code> in the connector's location, and only after success writes it over the original. If anything fails, the original stays intact, and the user and group permissions stay the same.</p></div>
@@ -647,7 +645,7 @@ file customers.dat                         # ASCII or UTF-8 text?</code></pre>
 <figcaption><strong>Official screenshot:</strong> The Details step with Masking Method "On-The-Fly": Select Rule Set, Select Source Environment and Select Source Connector appear. For In-Place they do not. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p>For file-to-file jobs the target does not need to be a database. If your source is a database and the target a delimited file, tick <em>Database to File Job</em> as described earlier, make the target files in advance with the source table names, and expect binary data to be written as hex strings (the default hex prefix is <code>\x</code>) <span class="badge doc">From docs</span>. If a file pattern matches nothing on the source, the job still reports success although no file was masked, so check the Execution Components for the file names. Monitoring and logs work as for databases; file jobs report Bytes Masked as well as Rows Masked, and the execution summary calls them Files rather than Tables.</p>
 
-<h4 id="c27-db-to-file">A ShopSphere variant: database table to masked delimited file</h4>
+<h3 id="c27-db-to-file">9.25.1 A ShopSphere variant: database table to masked delimited file</h3>
 <p>Suppose the test team wants a masked extract of CUSTOMERS as a file, without ever writing unmasked data to disk. That is the database-to-delimited-file on-the-fly case:</p>
 <ol class="steps">
 <li><strong>Create the target connector and an empty target file named like the source table (for example <code>CUSTOMERS</code>) in the target directory.</strong><p>The docs require the target file to exist and match the table name for this case.</p></li>
@@ -655,7 +653,7 @@ file customers.dat                         # ASCII or UTF-8 text?</code></pre>
 <li><strong>Create the masking job: On-The-Fly, tick Database to File Job, choose that rule set and the source environment and database connector.</strong><p>Without the tick, only file connectors appear in the source list.</p></li>
 <li><strong>Run it and open the output file.</strong><p class="expect">Masked rows appear as delimited lines; binary columns, if any, appear as hex strings.</p></li>
 </ol>
-<h3 id="c27-structured">9.2.12 JSON, XML, Parquet and whole-file masking (brief)</h3>
+<h2 id="c27-structured">9.26 JSON, XML, Parquet and whole-file masking (brief)</h2>
 <p>These are covered by the same connector, format, rule set and job chain, with a path language instead of positions.</p>
 <div class="tablewrap"><table><thead><tr><th>Type</th><th>How fields are named</th><th>What the format file shows</th></tr></thead><tbody>
 <tr><td>JSON</td><td>JSON Path: <code>$[*]['First_Name']</code> for a list of objects, <code>$['First_Name']</code> for one object</td><td>Only fields you want to mask need to appear (values may be null placeholders); one record per structure is enough</td></tr>
@@ -664,7 +662,7 @@ file customers.dat                         # ASCII or UTF-8 text?</code></pre>
 </tbody></table></div>
 <p><strong>Whole-file masking.</strong> Sometimes a file should go to one algorithm in one piece (a free-text document, say). Create a fixed-width connector and a format with exactly one field of length 0, tick <em>Mask whole file</em> in Edit Selected for the data file (End of Record then disappears), and assign an extended algorithm to the one field. The default limit is 200 MB per file, adjustable with the application setting <code>Whole File Masking Max File Size In MB</code>; Add Record Types, Add Fields and Delete are disabled for such formats <span class="badge doc">From docs</span>.</p>
 
-<h3 id="c27-lab">9.2.13 Lab: mask a ShopSphere customers.dat file (Day 53, TDM_Handson6)</h3>
+<h2 id="c27-lab">9.27 Lab: mask a ShopSphere customers.dat file (Day 53, TDM_Handson6)</h2>
 <div class="exercise"><h4 id="c9-lab-from-a-text-file-to-a-masked-file">Lab: from a text file to a masked file</h4>
 <p>Goal: mask <code>customers.dat</code> in place on a file server, using a delimited format, a connector, a file rule set, algorithm assignments and a masking job, then verify the output with shell commands. All data is fake. Use a work copy on a disposable path, never a real feed. The names (<code>customers_delimited.fmt</code>, <code>/data/shopsphere/work</code>) are my own choices. The algorithms were introduced in <a href="09-delphix-masking-files-labs.html#c9-s1">the algorithms and masking jobs chapter</a>.</p>
 <ol class="steps">
@@ -719,7 +717,7 @@ ls -la</code></pre>
 <li><strong>Change first_name to length 10 and rerun on a fresh copy.</strong><p class="expect">The masked first name no longer lines up with the original field: the engine now reads characters 7 to 16 as the first name, so part of the last name and padding get masked or left behind. This is my prediction from the docs' warning about wrong lengths; try it and look.</p></li>
 </ol></div>
 
-<h3 id="c27-mistakes">9.2.14 Common mistakes and gotchas</h3>
+<h2 id="c27-mistakes">9.28 Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Watch out for these</strong>
 <ul>
 <li><strong>Uploading real data as a "format".</strong> Format files are schema only. A copy of last week's feed in the format dialog puts real values in the engine.</li>
@@ -734,7 +732,7 @@ ls -la</code></pre>
 <li><strong>Treating a masked file as safe without checking it.</strong> Run the verification commands and grep for known real values.</li>
 </ul></div>
 
-<h3 id="c27-recap">9.2.15 Recap</h3>
+<h2 id="c27-recap">9.29 Recap</h2>
 <div class="callout recap"><strong class="ctitle">Key points</strong>
 <ul>
 <li>Files have no built-in column names, so a file format definition (schema only) maps positions or names to fields. Formats are global and shared.</li>
@@ -746,7 +744,7 @@ ls -la</code></pre>
 <li>Always verify the output file: line counts, field counts, original values gone, unique fields still unique.</li>
 </ul></div>
 
-<section class="sources"><h3 id="c27-sources">Sources used in this section</h3>
+<section class="sources"><h4 id="c27-sources">Sources used in this section</h4>
 <ul>
 <li><a href="https://help.delphix.com/cc/current/content/files_connector.htm" target="_blank" rel="noopener">Files connector</a>: supported types and encodings; <a href="https://help.delphix.com/cc/current/content/accessing_files.htm" target="_blank" rel="noopener">Accessing Files</a>: read, but it concerns algorithm plugins and is not used for masking steps.</li>
 <li><a href="https://help.delphix.com/cc/current/content/managing_file_formats.htm" target="_blank" rel="noopener">Managing file formats</a>, <a href="https://help.delphix.com/cc/current/content/working_with_file_formats.htm" target="_blank" rel="noopener">Working with file formats</a>, <a href="https://help.delphix.com/cc/current/content/constructing_file_formats_for_upload.htm" target="_blank" rel="noopener">Constructing file formats for upload</a>, <a href="https://help.delphix.com/cc/current/content/add__view__edit__and_delete_fields_for_file_formats.htm" target="_blank" rel="noopener">Add, view, edit, delete fields</a>: format purpose, building, importing, editing, schema-only rule, mismatch behaviour.</li>
@@ -757,8 +755,7 @@ ls -la</code></pre>
 <li>Not resolved: whether the on-the-fly target file must pre-exist (two pages differ); whether JSON rule sets can be profiled (two pages differ). Not read in full: the Mount Filesystem API details. Verification commands and the masked sample line are my own.</li>
 </ul></section>
 
-<h2 id="c9-s3">9.3 Delphix hands-on labs (Days 51-56)</h2>
-<p><span class="day">Days 51-56</span></p>
+<div class="grp" id="c9-s3"><span class="grplabel">Delphix hands-on labs (Days 51-56)</span><span class="day">Days 51-56</span></div>
 <p>The earlier Delphix chapters taught the parts one at a time: the engine, connectors, rule sets and inventories, profiling, algorithms and files. Here you put them together in five labs, run in order on one small data set (ShopSphere), so that each lab leaves behind what the next one needs.</p>
 
 <p>The labs are the syllabus hands-ons for Days 51 to 56: TDM_Handson4 (connector to a VDB), 5 (connections and profiling), 6 (masking files), 7 (masking FirstName) and 8 (masking alphanumeric text, SSN and telephone number). Concepts are not re-taught; each lab links to the chapter that owns them.</p>
@@ -781,7 +778,7 @@ ls -la</code></pre>
 <p>The official screenshots come from different releases: the corner label in the images I opened reads 21.0.0.0, 22.0.0.0, 24.0.0.0, 26.0.0.0 and, in one, a development build number. Your engine will differ in labels, button order and extra fields, so read each screenshot as "what to look for". Your trainer's lab may also differ in database type, file access method or login method; where I do not know, I say so.</p>
 </div>
 
-<h3 id="c28-words">9.3.1 Words to know first</h3>
+<h2 id="c28-words">9.30 Words to know first</h2>
 
 <dl class="defs">
 <div><dt>Masking engine</dt><dd>The Delphix Continuous Compliance engine, where you define connectors, rule sets, profiling jobs and masking jobs.</dd></div>
@@ -794,7 +791,7 @@ ls -la</code></pre>
 <div><dt>Non-conformant data</dt><dd>A value that does not fit what an algorithm expects. By default it is left unmasked and the job records a warning, so a "successful" job can still leave data exposed.</dd></div>
 </dl>
 
-<h3 id="c28-series">9.3.2 How the five labs chain together</h3>
+<h2 id="c28-series">9.31 How the five labs chain together</h2>
 
 <p>Lab 4 gets the engine talking to a database. Lab 5 asks which columns are sensitive. Lab 6 repeats the idea for files. Labs 7 and 8 fix algorithm choices and run real masking jobs. If a lab fails, the later ones starve, so do not skip its verification.</p>
 
@@ -820,11 +817,11 @@ ls -la</code></pre>
 <tr><td>TDM_Handson8: alphanumeric text, SSN, telephone number</td><td>8</td><td>56</td></tr>
 </tbody></table></div>
 
-<h3 id="c28-setup-data">9.3.3 Setup data for every lab</h3>
+<h2 id="c28-setup-data">9.32 Setup data for every lab</h2>
 
 <p>All labs use the ShopSphere tables. The data is entirely fake and the setup is my design.</p>
 
-<h4 id="c28-setup-db">The database</h4>
+<h3 id="c28-setup-db">9.32.1 The database</h3>
 
 <p>Ask your trainer which database holds the lab copy. It must be one the engine may change: a VDB or other disposable copy, never <code>SHOPSPHERE_PROD</code>. The docs recommend a VDB as the masking target and call it the best security practice because it runs in a sandbox (<a href="https://help.delphix.com/cc/current/content/preparing_data.htm" target="_blank" rel="noopener">Preparing data</a>). Load the four ShopSphere tables with three customers (plus two or three orders each and a few items and products):</p>
 
@@ -848,7 +845,7 @@ WHERE  c.customer_id IS NULL;</code></pre>
 
 <p>The orphan query counts orders whose customer is missing. It must return 0 before and after masking; if it is not 0 now, the "keys survived" check later means nothing. A masking job can report success while a column was never masked, so only a comparison of the data proves the work: the snapshot is the left-hand side of that proof.</p>
 
-<h4 id="c28-setup-files">The files</h4>
+<h3 id="c28-setup-files">9.32.2 The files</h3>
 
 <p>Lab 6 needs two files with the same customers, on the location your trainer gives you. A pipe-delimited <code>customers.dat</code> without a header:</p>
 
@@ -864,7 +861,7 @@ WHERE  c.customer_id IS NULL;</code></pre>
 
 <p>Copy both to an <code>original</code> folder first: Lab 6 compares against them and an in-place job overwrites the file it masks.</p>
 
-<h4 id="c28-prereq">Prerequisites</h4>
+<h3 id="c28-prereq">9.32.3 Prerequisites</h3>
 
 <ul>
 <li>A login with a role that can add environments, connectors, rule sets and jobs and run jobs; ask which one you hold (<a href="https://help.delphix.com/cc/current/content/users_and_roles.htm" target="_blank" rel="noopener">Users and roles</a>).</li>
@@ -873,15 +870,15 @@ WHERE  c.customer_id IS NULL;</code></pre>
 <li>Job and object names must be unique on the engine (the docs say job names are unique across the application), so add your initials if learners share one.</li>
 </ul>
 
-<h3 id="c28-lab4">9.3.4 Lab 4: create a connector to a VDB (TDM_Handson4)</h3>
+<h2 id="c28-lab4">9.33 Lab 4: create a connector to a VDB (TDM_Handson4)</h2>
 
-<h4 id="c28-lab4-goal">Goal and prerequisites</h4>
+<h3 id="c28-lab4-goal">9.33.1 Goal and prerequisites</h3>
 
 <p>Create an application, an environment and a database connector so that the engine can reach the ShopSphere VDB, and prove the connection works. Every later lab depends on it. You need the setup data and "before" snapshot, plus from your trainer or DBA: database type, host, port, database name, schema, and a masking user and password. A wrong guess here is the most common reason Test Connection fails.</p>
 
 <p><strong>What "a connector to a VDB" means.</strong> The documentation pages I read describe database connectors and describe a VDB as a database that Delphix Continuous Data provisions (<a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>); they describe no special "VDB connector". My reading, to confirm with your trainer, is that you create an ordinary database connector and point it at the VDB's host, port and database name. In-place masking rewrites data, so doing it on a disposable VDB keeps production untouched. (Masking as part of VDB provisioning is a separate setup with restrictions, described on <a href="https://help.delphix.com/cc/current/content/provision_masked_vdbs.htm" target="_blank" rel="noopener">Provision masked VDBs</a>; this lab does not use it.)</p>
 
-<h4 id="c28-lab4-steps">Steps</h4>
+<h3 id="c28-lab4-steps">9.33.2 Steps</h3>
 
 <ol class="steps">
 <li><strong>Log in and open the Environments page.</strong>
@@ -933,7 +930,7 @@ WHERE  c.customer_id IS NULL;</code></pre>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/create_connection7.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/create_connection7.png" alt="Connectors grid with the actions menu open showing Edit, Test Connection and Delete" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> the row actions menu. The red arrow points at Test Connection. The docs say deleting a connector also deletes its rule sets and inventory data. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__test__edit__and_delete_a_connector.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
-<h4 id="c28-lab4-verify">Verification checks</h4>
+<h3 id="c28-lab4-verify">9.33.3 Verification checks</h3>
 
 <ol>
 <li>Test Connection succeeds twice (wizard and grid); screenshot the message.</li>
@@ -942,7 +939,7 @@ WHERE  c.customer_id IS NULL;</code></pre>
 <li>Record the exact database name, schema and host.</li>
 </ol>
 
-<h4 id="c28-lab4-wrong">What can go wrong</h4>
+<h3 id="c28-lab4-wrong">9.33.4 What can go wrong</h3>
 
 <div class="tablewrap"><table>
 <thead><tr><th>Symptom</th><th>Likely cause</th><th>What to do</th></tr></thead>
@@ -958,15 +955,15 @@ WHERE  c.customer_id IS NULL;</code></pre>
 <p>"I created an application and a masking environment, then a database connector pointing at the ShopSphere VDB, not production. I used host, port, database name and schema from the DBA, tested in the wizard and again from the grid, and both passed. I used a dedicated masking user and kept the password out of the properties file, which anyone who can view connectors can read." If asked whether a VDB connector is different: "In the documentation I read there is no separate type; the VDB matters because it is safe to change."</p>
 </div>
 
-<h3 id="c28-lab5">9.3.5 Lab 5: create a rule set and profile the VDB (TDM_Handson5)</h3>
-<h4 id="c28-lab5-goal">Goal</h4>
+<h2 id="c28-lab5">9.34 Lab 5: create a rule set and profile the VDB (TDM_Handson5)</h2>
+<h3 id="c28-lab5-goal">9.34.1 Goal</h3>
 <p>Turn the connector from Lab 4 into a rule set that lists the four ShopSphere tables, run a profiling job over it, read what the profiler found, and correct anything it got wrong. At the end you have an inventory: a table that says which column gets which domain and algorithm.</p>
-<h4 id="c28-lab5-prereq">Prerequisites and setup data</h4>
+<h3 id="c28-lab5-prereq">9.34.2 Prerequisites and setup data</h3>
 <ul>
 <li>Lab 4 is finished: connector SS_VDB_Conn tests successfully.</li>
 <li>The CUSTOMERS, ORDERS, ORDER_ITEMS and PRODUCTS tables exist in the VDB. The concepts behind this lab are in <a href="08-delphix-connect-keys-profiling.html#c8-s3">the rule sets and keys chapter</a> and <a href="08-delphix-connect-keys-profiling.html#c8-s4">the Delphix profiling chapter</a>.</li>
 </ul>
-<h4 id="c28-lab5-steps">Steps</h4>
+<h3 id="c28-lab5-steps">9.34.3 Steps</h3>
 <ol class="steps">
 <li><strong>Open the environment's Rule Sets tab and click + Rule Set.</strong>
 <p>A rule set is the engine's "shopping list" of tables. Profiling and masking jobs both work on a rule set, never on a connector directly.</p>
@@ -1019,7 +1016,7 @@ WHERE  c.customer_id IS NULL;</code></pre>
 <strong class="ctitle">Screenshots in this part come from other data sources</strong>
 <p>The official Edit dialog images I opened show a file field, not a database column. The docs call the same dialog Edit Field/Column and say it is used for both kinds; I have not seen an official screenshot of the database version of that dialog, so expect small differences. The File Format drop-down in the inventory appears only for file rule sets. The next lab uses the file versions.</p>
 </div>
-<h4 id="c28-lab5-expected">Expected results for ShopSphere</h4>
+<h3 id="c28-lab5-expected">9.34.4 Expected results for ShopSphere</h3>
 <p>The table below is <strong>my prediction</strong>, made by reading the published classifier patterns in the ASDD standard profile set (<a href="https://help.delphix.com/cc/current/content/asdd_standard_profile_set.htm" target="_blank" rel="noopener">ASDD standard profile set</a>) against the ShopSphere column names. Confidence values depend on your engine's settings, so the real result can differ. Where it differs, that is a finding to record, not a failure of the lab.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Column</th><th>Domain I expect</th><th>Why (pattern or type rule)</th><th>Default algorithm</th></tr></thead>
@@ -1034,14 +1031,14 @@ WHERE  c.customer_id IS NULL;</code></pre>
 <tr><td>tax_id</td><td>TAX_ID</td><td>"tax id" path; string or number of 6 or more characters (no data pattern in the ASDD set I read)</td><td>Not stated; check Settings, Domains</td></tr>
 <tr><td>customer_id, order_id, total_amount, product_code</td><td>none expected</td><td>no matching pattern; keys must not be masked in this lab</td><td>none</td></tr>
 </tbody></table></div>
-<h4 id="c28-lab5-verify">Verification checks</h4>
+<h3 id="c28-lab5-verify">9.34.5 Verification checks</h3>
 <ol>
 <li>The profiling job ends SUCCEEDED, and the Execution Summary lists all four tables as profiled with none remaining.</li>
 <li>The inventory shows a Domain and an Algorithm for each of the eight sensitive ShopSphere columns above, or you have recorded which ones are missing and fixed them by hand.</li>
 <li>No key column (customer_id, order_id, item_id) has an algorithm. Masking a primary or foreign key without a plan breaks joins.</li>
 <li>Export Rule Set and keep the CSV. This is your record of "what did the profiler find and what did we decide".</li>
 </ol>
-<h4 id="c28-lab5-wrong">What can go wrong</h4>
+<h3 id="c28-lab5-wrong">9.34.6 What can go wrong</h3>
 <div class="tablewrap"><table>
 <thead><tr><th>Symptom</th><th>Likely cause</th><th>What to do</th></tr></thead>
 <tbody>
@@ -1059,16 +1056,16 @@ WHERE  c.customer_id IS NULL;</code></pre>
 <p>If asked "does profiling look at the data?": "ASDD has both name-based and data-based classifiers. For a column like a six-digit postal code, the name rule does the finding, because the data rule I read targets US formats."</p>
 </div>
 
-<h3 id="c28-lab6">9.3.6 Lab 6: mask a delimited and a fixed-width file (TDM_Handson6)</h3>
-<h4 id="c28-lab6-goal">Goal</h4>
+<h2 id="c28-lab6">9.35 Lab 6: mask a delimited and a fixed-width file (TDM_Handson6)</h2>
+<h3 id="c28-lab6-goal">9.35.1 Goal</h3>
 <p>Mask the customer files <code>customers.dat</code> (pipe-delimited) and <code>customers_fixed.txt</code> (fixed-width) with the file side of the engine. Files carry no built-in description of their columns, so this lab adds one step the database labs did not need: telling the engine what the fields are, with a file format.</p>
-<h4 id="c28-lab6-prereq">Prerequisites and setup data</h4>
+<h3 id="c28-lab6-prereq">9.35.2 Prerequisites and setup data</h3>
 <ul>
 <li>The two files from the setup section exist in a working folder, and the originals are copied to a separate <code>original</code> folder.</li>
 <li>You know how the engine reaches that folder. The docs list the connection modes Filesystem Mount Point, SFTP, FTP, FTPS (mainframe datasets only), AWS S3, Other S3 Compatible Storage and Azure Blob Storage. Ask your trainer which one the lab uses. A mount point also needs a mount created through the Mount Filesystem API before you can pick it in the connector (<a href="https://help.delphix.com/cc/current/content/managing_remote_mounts_for_vm_continuous_compliance_engines.htm" target="_blank" rel="noopener">Managing remote mounts</a>). The file concepts are in <a href="09-delphix-masking-files-labs.html#c9-s2">the file masking chapter</a>.</li>
 <li>A new environment named <code>ShopSphere_File_Mask</code> (same steps as in Lab 4, Purpose: Mask).</li>
 </ul>
-<h4 id="c28-lab6-steps">Steps</h4>
+<h3 id="c28-lab6-steps">9.35.3 Steps</h3>
 <ol class="steps">
 <li><strong>Create two file connectors.</strong>
 <p>In the new environment open Connectors, click + Connection, and choose a File source type: Delimited for <code>SS_Delim_Conn</code> and Fixed Width for <code>SS_Fixed_Conn</code>. The type matters because it decides what the rule set will ask for later. For SFTP the credential step asks for Path (the directory that holds the files), Server Name, Port and User Name, plus Password or a public key. The docs add that, from version 6.0.9.0, an "User Directory as root" option exists when the path is relative to the SFTP user's home directory. Test the connection if the wizard offers it.</p>
@@ -1126,7 +1123,7 @@ phone,10</code></pre>
 <strong class="ctitle">Docs differ slightly on on-the-fly target files</strong>
 <p>The jobs page says target files are created automatically when the name pattern matches the source (but a database-to-delimited-file job needs the target files to exist beforehand). The connector page says the target rule set must point at an existing entry in the target directory. If an on-the-fly file job masks nothing, create an empty placeholder with the same file name in the target folder and run again.</p>
 </div>
-<h4 id="c28-lab6-verify">Verification checks</h4>
+<h3 id="c28-lab6-verify">9.35.4 Verification checks</h3>
 <p>Run these in a shell on the folder that holds both the masked and the <code>original</code> files:</p>
 <pre><code>diff original/customers.dat customers.dat
 awk -F'|' '{print NF}' customers.dat | sort | uniq -c
@@ -1140,7 +1137,7 @@ diff &lt;(cut -c1-4,36-45 original/customers_fixed.txt) &lt;(cut -c1-4,36-45 cus
 <li>Row count is unchanged: 3 lines in each file.</li>
 <li>Consistency: save the masked files as <code>run1</code>, copy the originals back into the working folder, run both jobs again, and run <code>diff</code> against the <code>run1</code> copies. It should print nothing, because the docs describe the Name and Character Mapping frameworks as deterministic for the same configuration and key.</li>
 </ol>
-<h4 id="c28-lab6-wrong">What can go wrong</h4>
+<h3 id="c28-lab6-wrong">9.35.5 What can go wrong</h3>
 <div class="tablewrap"><table>
 <thead><tr><th>Symptom</th><th>Likely cause</th><th>What to do</th></tr></thead>
 <tbody>
@@ -1157,10 +1154,10 @@ diff &lt;(cut -c1-4,36-45 original/customers_fixed.txt) &lt;(cut -c1-4,36-45 cus
 <p>"Files have no schema, so I gave the engine one: a file format per file type with field names only, no real data. I made a file connector, a flat-file rule set and an inventory per file, profiled them, and assigned FirstName, LastName and a digit-mapping algorithm to the SSN field. I masked in-place on a working copy and compared against the original: the structure is unchanged, 5 fields per line and 45 characters per fixed-width line, and the names and SSNs are different. The same input gave the same output on a second run."</p>
 </div>
 
-<h3 id="c28-lab7">9.3.7 Lab 7: mask FirstName in the database (TDM_Handson7)</h3>
-<h4 id="c28-lab7-goal">Goal</h4>
+<h2 id="c28-lab7">9.36 Lab 7: mask FirstName in the database (TDM_Handson7)</h2>
+<h3 id="c28-lab7-goal">9.36.1 Goal</h3>
 <p>Run one real in-place masking job on the ShopSphere VDB that changes <code>customers.first_name</code> and nothing else, then prove by query that the job did exactly that. The algorithm rationale is in <a href="09-delphix-masking-files-labs.html#c9-s1">the algorithms and masking jobs chapter</a>; here you see it work.</p>
-<h4 id="c28-lab7-prereq">Prerequisites and setup data</h4>
+<h3 id="c28-lab7-prereq">9.36.2 Prerequisites and setup data</h3>
 <ul>
 <li>Labs 4 and 5 are done: rule set SS_DB_RS exists and has an inventory.</li>
 <li>The VDB can be restored if a job goes wrong. Ask how: for example, a snapshot or bookmark taken before the run. The docs I read describe rewind and refresh for masked VDBs only, so I cannot promise the exact route for your VDB.</li>
@@ -1176,7 +1173,7 @@ VALUES
 
 INSERT INTO customers_before SELECT * FROM customers WHERE customer_id = 1004;</code></pre>
 <p>Customer 1004 has the same first name as 1001. Two customers named Asha should receive the same masked first name; that is the consistency check. Its phone and SSN values are deliberately bad: Lab 8 uses them to show non-conformant data.</p>
-<h4 id="c28-lab7-steps">Steps</h4>
+<h3 id="c28-lab7-steps">9.36.3 Steps</h3>
 <ol class="steps">
 <li><strong>Make a rule set that contains only today's masking.</strong>
 <p>A masking job masks every column that has an algorithm in the inventory. After Lab 5 your inventory has eight columns assigned. To mask only first_name, duplicate the rule set (the row's actions menu, Duplicate), name the copy <code>SS_DB_RS_FN</code>, and open its inventory. The docs say a copy includes the inventory and any filters. Use the "Clear Masking Assignment" icon on each assigned row (it works per column, as in the profiling chapter): the docs say it removes that assignment and disables automatic updates, after a short confirmation bar. Then edit first_name only.</p>
@@ -1202,7 +1199,7 @@ INSERT INTO customers_before SELECT * FROM customers WHERE customer_id = 1004;</
 </ol>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/monitor_job1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/monitor_job1.png" alt="Job execution page titled Masking Completed with an Execution Summary list on the left, an events list from Initializing to Job Completed at top right, an Execution Components table and a Report and Logs button" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> a finished masking job. Left: Execution Summary (tables masked, rows masked, tables and columns with nonconforming data). Top right: the event sequence. Bottom right: Execution Components with a View Logs eye icon per table. The Report and Logs button downloads the job report. This sample masked a different table. <a class="badge-link" href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h4 id="c28-lab7-verify">Verification checks</h4>
+<h3 id="c28-lab7-verify">9.36.4 Verification checks</h3>
 <pre><code>-- 1. first names changed
 SELECT c.customer_id, b.first_name AS before_name, c.first_name AS after_name
 FROM   customers c JOIN customers_before b ON b.customer_id = c.customer_id
@@ -1227,7 +1224,7 @@ WHERE  c.last_name &lt;&gt; b.last_name OR c.phone &lt;&gt; b.phone OR c.ssn &lt
 <li>Query 4 returns 0 and the "orphans" query from the setup still returns 0.</li>
 <li>Screenshot the Execution Summary and save the job report (Report and Logs).</li>
 </ol>
-<h4 id="c28-lab7-wrong">What can go wrong</h4>
+<h3 id="c28-lab7-wrong">9.36.5 What can go wrong</h3>
 <div class="tablewrap"><table>
 <thead><tr><th>Symptom</th><th>Likely cause</th><th>What to do</th></tr></thead>
 <tbody>
@@ -1242,10 +1239,10 @@ WHERE  c.last_name &lt;&gt; b.last_name OR c.phone &lt;&gt; b.phone OR c.ssn &lt
 <strong class="ctitle">What to say in the walkthrough</strong>
 <p>"I duplicated the rule set, cleared all assignments, and kept only first_name with dlpx-core:FirstName so the job could change nothing else. I ran it in-place on the VDB after taking a snapshot. Afterwards I compared with a before-copy: every first name changed, both Asha rows got the same masked value, and last name, phone and SSN were untouched. I also know the algorithm is not unique and may, rarely, return the input, so I do not use it on a key."</p>
 </div>
-<h3 id="c28-lab8">9.3.8 Lab 8: mask alphanumeric text, SSN and telephone number (TDM_Handson8)</h3>
-<h4 id="c28-lab8-goal">Goal</h4>
+<h2 id="c28-lab8">9.37 Lab 8: mask alphanumeric text, SSN and telephone number (TDM_Handson8)</h2>
+<h3 id="c28-lab8-goal">9.37.1 Goal</h3>
 <p>Mask three different kinds of value with three algorithms, verify format and consistency with queries, and deliberately feed in two bad values to see what non-conformant data looks like in a log. The ShopSphere table has no free alphanumeric column, so this lab adds one, <code>membership_code</code>, such as <code>SS-A7K29X</code>.</p>
-<h4 id="c28-lab8-prereq">Prerequisites and setup data</h4>
+<h3 id="c28-lab8-prereq">9.37.2 Prerequisites and setup data</h3>
 <pre><code>ALTER TABLE customers ADD membership_code VARCHAR(12);
 UPDATE customers SET membership_code = 'SS-A7K29X' WHERE customer_id = 1001;
 UPDATE customers SET membership_code = 'SS-B3M81Q' WHERE customer_id = 1002;
@@ -1255,7 +1252,7 @@ ALTER TABLE customers_before ADD membership_code VARCHAR(12);
 UPDATE customers_before b SET membership_code =
   (SELECT c.membership_code FROM customers c WHERE c.customer_id = b.customer_id);</code></pre>
 <p>Then refresh the rule set SS_DB_RS (actions menu, Refresh) so it sees the new column, duplicate it as <code>SS_DB_RS_Sens</code>, clear its assignments, and assign the three below. Lab 7's first-name masking is not repeated here.</p>
-<h4 id="c28-lab8-choice">Choosing the algorithms</h4>
+<h3 id="c28-lab8-choice">9.37.3 Choosing the algorithms</h3>
 <p>The choice column below separates what the docs state from what I decided. The default algorithm for the SSN domain is not stated in the pages I read, so confirm it in Settings, Domains instead of relying on my memory of any product.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Column</th><th>Algorithm</th><th>Basis in the docs</th><th>Design choice or caution</th></tr></thead>
@@ -1265,7 +1262,7 @@ UPDATE customers_before b SET membership_code =
 <tr><td>phone (10 digits)</td><td>dlpx-core:Phone US</td><td>Keeps the first digits, replaces the three digits before the last four with 555, and masks the last four with a hash of the digits; other characters are preserved; input up to 30 symbols and at least one digit</td><td>My choice for a clearly fake number. Phone Unique (last 7 digits hashed) was the profiler's own pick in the official screenshot; the page does not promise uniqueness</td></tr>
 </tbody></table></div>
 <p>Pages: <a href="https://help.delphix.com/cc/current/content/dlpx_core__cm_alpha_numeric.htm" target="_blank" rel="noopener">CM Alpha-Numeric</a>, <a href="https://help.delphix.com/cc/current/content/dlpx_core__cm_digits.htm" target="_blank" rel="noopener">CM Digits</a>, <a href="https://help.delphix.com/cc/current/content/dlpx_core__phone_us.htm" target="_blank" rel="noopener">Phone US</a>, <a href="https://help.delphix.com/cc/current/content/character_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Character Mapping</a> and <a href="https://help.delphix.com/cc/current/content/segment_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Segment Mapping</a>.</p>
-<h4 id="c28-lab8-steps">Steps</h4>
+<h3 id="c28-lab8-steps">9.37.4 Steps</h3>
 <ol class="steps">
 <li><strong>Assign the algorithms in SS_DB_RS_Sens.</strong>
 <p>For each of the three columns, Edit, untick Enable Automatic Updates, set Domain (membership_code has no built-in domain: pick one that fits or leave the domain empty as your engine allows) and Algorithm, Save.</p><p class="expect">Three assigned rows, every other column blank.</p></li>
@@ -1274,7 +1271,7 @@ UPDATE customers_before b SET membership_code =
 <li><strong>Read the warning.</strong>
 <p>Open the job, then View Logs on the CUSTOMERS row in Execution Components. The docs say each event shows Event type UNMASKED_DATA (or JOB_ABORTED), Cause PATTERN_MATCH_FAILURE, a row count and the column name, and that only a pattern of the bad value is shown (L for letters, N for digits, P for punctuation), never the value itself. For "CALL-ME-NOW" expect a pattern like letters, punctuation, letters, punctuation, letters.</p></li>
 </ol>
-<h4 id="c28-lab8-verify">Verification checks</h4>
+<h3 id="c28-lab8-verify">9.37.5 Verification checks</h3>
 <pre><code>-- SSN keeps its shape and stays unique (rows with a real SSN)
 SELECT COUNT(*) AS bad_shape FROM customers
 WHERE customer_id &lt;= 1003 AND ssn NOT LIKE '___-__-____';
@@ -1299,7 +1296,7 @@ SELECT customer_id, ssn, phone, membership_code FROM customers WHERE customer_id
 <li>Row 1004 still shows "N/A" and "CALL-ME-NOW". These bad values stayed unmasked and produced the warning. In real life this is how bad source data leaks through, so a WARNING status must never be ignored.</li>
 <li>Orphan query from the setup: 0. Other columns unchanged.</li>
 </ol>
-<h4 id="c28-lab8-wrong">What can go wrong</h4>
+<h3 id="c28-lab8-wrong">9.37.6 What can go wrong</h3>
 <div class="tablewrap"><table>
 <thead><tr><th>Symptom</th><th>Likely cause</th><th>What to do</th></tr></thead>
 <tbody>
@@ -1315,7 +1312,7 @@ SELECT customer_id, ssn, phone, membership_code FROM customers WHERE customer_id
 <p>Be ready to say which parts are documented (what each algorithm does) and which parts are your own design (choosing CM Digits for SSN).</p>
 </div>
 
-<h3 id="c28-checklist">9.3.9 One-page lab checklist</h3>
+<h2 id="c28-checklist">9.38 One-page lab checklist</h2>
 
 <p>Tick a box only when you can point at the evidence for it.</p>
 
@@ -1331,7 +1328,7 @@ SELECT customer_id, ssn, phone, membership_code FROM customers WHERE customer_id
 <tr><td>All</td><td>Orphan query still 0; row counts unchanged; evidence pack complete; lab-only tables and customer 1004 removed if asked</td><td>☐</td></tr>
 </tbody></table></div>
 
-<h3 id="c28-evidence">9.3.10 Evidence template for the sign-off</h3>
+<h2 id="c28-evidence">9.39 Evidence template for the sign-off</h2>
 
 <p>A reviewer signs off proof, not "I did it". File names are my suggestion; use your trainer's convention if there is one. This is general practice, not a Delphix requirement.</p>
 
@@ -1359,7 +1356,7 @@ Evidence attached: E1 E2 E3 E4 E5 E6   Open warnings and explanation: ______
 Deviations from the lab steps and why: ______
 Reviewer: ______   Result: PASS / REWORK   Comments: ______</code></pre>
 
-<h3 id="c28-differ">9.3.11 Where your engine may differ from the docs</h3>
+<h2 id="c28-differ">9.40 Where your engine may differ from the docs</h2>
 
 <div class="tablewrap"><table>
 <thead><tr><th>Detail</th><th>What the docs say</th><th>What may differ</th></tr></thead>
@@ -1372,7 +1369,7 @@ Reviewer: ______   Result: PASS / REWORK   Comments: ______</code></pre>
 <tr><td>Messages and log wording</td><td>Not reproduced here</td><td>Read your own message</td></tr>
 </tbody></table></div>
 
-<h3 id="c28-mistakes">9.3.12 Common mistakes and gotchas</h3>
+<h2 id="c28-mistakes">9.41 Common mistakes and gotchas</h2>
 
 <div class="callout warn">
 <strong class="ctitle">Mistakes that cost the most time</strong>
@@ -1386,7 +1383,7 @@ Reviewer: ______   Result: PASS / REWORK   Comments: ______</code></pre>
 </ul>
 </div>
 
-<h3 id="c28-recap">9.3.13 Recap</h3>
+<h2 id="c28-recap">9.42 Recap</h2>
 
 <div class="callout recap">
 <strong class="ctitle">Recap</strong>
@@ -1403,8 +1400,7 @@ Reviewer: ______   Result: PASS / REWORK   Comments: ______</code></pre>
 
 <p>Next: <a href="10-engagements-capstone-and-glossary.html#c10-s1">the engagement planning chapter</a> shows how work like this is scoped and signed off, and <a href="10-engagements-capstone-and-glossary.html#c10-s2">the capstone chapter</a> applies it to names, SSN, alphanumeric values, TaxID and ZipCode.</p>
 
-<section class="sources">
-<h3 id="c28-sources">Sources used in this section</h3>
+<section class="sources"><h4 id="c28-sources">Sources used in this section</h4>
 <ul>
 <li>Delphix Continuous Compliance 2026.5 pages (all under help.delphix.com/cc/current/content/): <a href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Managing environments</a>, <a href="https://help.delphix.com/cc/current/content/managing_connectors.htm" target="_blank" rel="noopener">Managing connectors</a>, <a href="https://help.delphix.com/cc/current/content/create__test__edit__and_delete_a_connector.htm" target="_blank" rel="noopener">Create, test, edit and delete a connector</a>, <a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>: steps, fields and all screenshots in Labs 4 to 6.</li>
 <li><a href="https://help.delphix.com/cc/current/content/managing_profiling_jobs.htm" target="_blank" rel="noopener">Managing profiling jobs</a>, <a href="https://help.delphix.com/cc/current/content/reporting_profiling_results.htm" target="_blank" rel="noopener">Reporting profiling results</a>, <a href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Managing inventories</a>, <a href="https://help.delphix.com/cc/current/content/asdd_standard_profile_set.htm" target="_blank" rel="noopener">ASDD standard profile set</a>, <a href="https://help.delphix.com/cc/current/content/asdd_features_and_support.htm" target="_blank" rel="noopener">ASDD features</a>: profiling, inventory, classifier patterns behind the predicted results.</li>
@@ -1416,4 +1412,4 @@ Reviewer: ______   Result: PASS / REWORK   Comments: ______</code></pre>
 </ul>
 </section>
 
-<nav class="chapter-nav" aria-label="Previous and next chapter"><a href="08-delphix-connect-keys-profiling.html">← 8. Delphix (1): connecting, keys and profiling</a><a href="10-engagements-capstone-and-glossary.html">10. Putting it together: real engagements, the capstone and the glossary →</a></nav></article></div></main><footer class="sitefooter"><div class="wrap">© 2026 Saravan Kumar M K · <a href="https://saravankumar25.github.io/">Portfolio</a> · <a href="index.html">TDM Guide</a> · <a href="sources-and-limitations.html">Sources &amp; limitations</a> · Study notes: always confirm screen details against your own tool version.</div></footer><div id="search-modal" hidden><div class="search-box" role="dialog" aria-label="Search"><input id="search-input" type="search" placeholder="Search the whole guide (e.g. 'primary key', 'shuffle', 'receiver')…" autocomplete="off"><div id="search-results"></div><p class="search-hint">Esc to close · ↑↓ to move · Enter to open</p></div></div><script src="assets/guide.js" defer></script></body></html>
+<nav class="chapter-nav" aria-label="Previous and next chapter"><a href="08-delphix-connect-keys-profiling.html">← 8. Delphix (1): connecting, keys and profiling</a><a href="10-engagements-capstone-and-glossary.html">10. Putting it together: real engagements, the capstone and the glossary →</a></nav></article></div></main><footer class="sitefooter"><div class="wrap">© 2026 Saravan Kumar M K · <a href="https://saravankumar25.github.io/">Portfolio</a> · <a href="index.html">TDM Guide</a> · <a href="syllabus.html">Syllabus index</a> · <a href="sources-and-limitations.html">Sources &amp; limitations</a> · Study notes: always confirm screen details against your own tool version.</div></footer><div id="search-modal" hidden><div class="search-box" role="dialog" aria-label="Search"><input id="search-input" type="search" placeholder="Search the whole guide (e.g. 'primary key', 'shuffle', 'receiver')…" autocomplete="off"><div id="search-results"></div><p class="search-hint">Esc to close · ↑↓ to move · Enter to open</p></div></div><script src="assets/guide.js" defer></script></body></html>
