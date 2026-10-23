@@ -1,0 +1,115 @@
+
+<h2 id="c22-deploy">22.8 Where the engine runs: deployment options at overview level</h2>
+<p>As a TDM engineer you will rarely install the engine yourself, but you should know what shape it takes, because that decides who you ask when something is down. The documentation offers two families. <span class="badge doc">From docs</span></p>
+<div class="compare">
+<div><h4>Virtual machine image</h4>
+<p>The engine is a <em>virtual appliance</em>: a ready-made machine image you import into a hypervisor or cloud. The Installation page lists VMware, AWS EC2, Azure, Google Cloud Platform, IBM Cloud, Hyper-V and OCI (Oracle Cloud). A KVM installation page also exists in the documentation set.</p>
+<p>The first-time-setup page describes the flow for VMware, AWS EC2, Azure or GCP: power on, open the console, set the network (hostname, DNS, a static address in CIDR form such as <code>192.168.1.2/24</code> or DHCP, and a gateway) using a system administrator login, then use the browser-based <strong>Setup Wizard</strong>.</p></div>
+<div><h4>Containerized</h4>
+<p>The same engine packaged as containers on Kubernetes. The containerized installation page says it behaves like the VM version with a few small exceptions, runs on any certified Kubernetes platform that supports an OCI-compliant runtime, and names OpenShift, MicroK8s, AWS EKS and AWS ECS with Fargate as explicitly tested.</p>
+<p>It runs as a pod of three containers (<code>delphix-masking-app</code>, <code>delphix-masking-database</code> and <code>delphix-masking-proxy</code>) and can be deployed directly or with Helm. One documented limitation you will meet in the connector chapter: FTP and FTPS file connectors are disabled in containerized deployments.</p></div>
+</div>
+<h3 id="c22-setup">22.8.1 What the Setup Wizard asks</h3>
+<p>I read the whole wizard description. In order, it covers: a Welcome page where you pick the engine type (choose <em>Continuous Compliance</em> for a masking engine), passwords and the three administrator roles (System, Compliance and Engine administrators), time, network, network security (certificates), storage, outbound connectivity (web proxy, phone home, usage analytics and the SMTP server used for job email), authentication (LDAP, SAML/SSO and OAuth2 are all described) and network authorization (Kerberos and enterprise password vaults), registration (online or offline) and a summary. Details worth remembering:</p>
+<ul>
+<li>The documented first logins use default accounts (a <code>sysadmin</code> account for engine setup and an <code>admin</code> account for the masking application). The page tells you to change the default password for security. I do not repeat the defaults here.</li>
+<li><strong>Engine type cannot be changed</strong> once set in the wizard, because other features such as SSO depend on it.</li>
+<li>After three failed attempts the account is locked from the Compliance service.</li>
+<li>The Compliance engine <strong>operates only in UTC</strong>; time zone choices during setup do not apply. Remember this when you read job times in Monitor.</li>
+<li>LDAP for non-containerized engines is configured in the setup application, not in the masking UI; containerized engines keep LDAP settings local. This is a change from earlier releases that the page calls out, which is a good example of why you check your version.</li>
+<li>Email for job completion needs the SMTP settings from the Outbound Connectivity page.</li>
+</ul>
+<h3 id="c22-size">22.8.2 Sizing and rules that affect your work</h3>
+<p>The best-practices page gives a standard configuration for a <em>dedicated</em> Compliance Engine: 8 vCPUs, 64 GB of RAM as a minimum (128 GB or more recommended), a 127 GB system disk and at least 50 GB for the data storage pool, more if mapping algorithms are heavily used. The same page offers rules of thumb that affect how you plan jobs: about one vCPU per concurrent masking job, at least 1 GB of memory per masking job, and at least 1 GB per stream when a job uses several parallel streams. It notes that the engine can become I/O-bound waiting for the database, that slow networks with many hops hurt, and that cloning an engine through hypervisor features or copying its storage is not supported as a backup method.</p>
+<div class="callout warn"><strong class="ctitle">Two engines, never one machine</strong>
+<p>Both the masked-provisioning pages and the configuration page say that Delphix Masking and Delphix Virtualization must never run inside the same virtual machine. Use separate, dedicated engines. The best-practices page also says that Continuous Data and Continuous Compliance are delivered in one OVA, and you pick which one at first setup. So an engine <em>image</em> can become either product, but one running engine is only one of them.</p></div>
+<div class="callout note"><strong class="ctitle">What I could not ground</strong>
+<p>I did not read the per-cloud installation pages in full, so I give no instance sizes, ports or prices. Usage-based pricing is mentioned on the supported-connectors page (per terabyte of data managed), but I have no price list. Ask your Delphix administrator for the concrete deployment you are using.</p></div>
+
+<h2 id="c22-roles">22.9 Users and roles overview</h2>
+<p>The masking engine uses role-based access control: a <dfn>role</dfn> is a set of allowed actions on certain kinds of objects, and a <dfn>user</dfn> is a person who has one role and access to certain environments. This is how ShopSphere keeps the data steward from editing connection passwords and keeps testers away from masking jobs. <span class="badge doc">From docs</span></p>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/user_roles.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/user_roles.png" alt="The Admin menu showing the Roles page: a grid of roles such as All Privileges, DBA, Environment Owner, IT Security Analyst, Operator, SME and one CUSTOM role, each with a Type column" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> Admin > Roles. The left-hand list shows About, Application Settings, Logs, Roles, Users and Utilization. Built-in roles have type DEFAULT; one role created by a user has type CUSTOM. The + Role button adds a new one. <a class="badge-link" href="https://help.delphix.com/cc/current/content/users_and_roles.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/user_roles2.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/user_roles2.png" alt="An Add Role dialog with a role name box and a matrix of objects against the actions View, Add, Update, Delete, Copy, Import, Export, with a few boxes ticked in the Masking Job row" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> Adding a role. The matrix lists objects (Environment, Connection, Rule Set, Inventory, then Jobs such as Profile Job and Masking Job, then Settings, Report, Approval Workflow) against actions. In this picture the role gets View on Environment and View, Add, Update, Delete and Run on Masking Job. Some objects depend on others: the page notes that Masking Job actions depend on Environment - View. <a class="badge-link" href="https://help.delphix.com/cc/current/content/users_and_roles.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<h3 id="c22-roles-detail">22.9.1 Roles, actions, objects</h3>
+<ul>
+<li><strong>Actions</strong> you can grant: View, Add, Update, Delete, Copy, Export and Import (not every action exists for every object).</li>
+<li><strong>Objects</strong> you can grant them on include Environment, Connection, Ruleset, Inventory, Profile Job, Masking Job, Tokenize Job, Re-identify Job, Domains, Algorithms, Classifier, Profiler Set, File Format, JDBC Drivers, Plugins, Password Vault, User, Report, Approve Inventories and Diagnostic.</li>
+<li><strong>Role type</strong>: DEFAULT roles come with the product and can be viewed and duplicated but not edited or deleted. CUSTOM roles can be added, edited, deleted and duplicated.</li>
+<li><strong>Five default roles</strong> exist: IT Security Analyst, DBA, SME, Operator and Environment Owner, plus a default All Privileges role if one exists.</li>
+<li>Each user has <strong>one role</strong> and a list of environments. Access to an environment does not grant unlimited access: the role still limits what the user can do there.</li>
+<li>The <strong>Administrator</strong> setting on a user gives unrestricted access to everything, plus some admin-only powers (sync, audit page, user API-access settings, deleting any object, and others). With it enabled, the role and environment fields disappear.</li>
+</ul>
+<div class="tablewrap"><table><thead><tr><th>Role (docs)</th><th>One-line meaning</th><th>Who in ShopSphere</th></tr></thead><tbody>
+<tr><td>Administrator</td><td>Unrestricted. Manages the engine, domains, algorithms, roles, users.</td><td>The central TDM admin, kept to a small team.</td></tr>
+<tr><td>IT Security Analyst</td><td>All settings functions and almost all application functions except creating, deleting or updating environments.</td><td>The compliance officer's delegate.</td></tr>
+<tr><td>All Privileges</td><td>Everything inside the environments a user is given, but may delete only objects they created.</td><td>The TDM engineer for an environment.</td></tr>
+<tr><td>DBA</td><td>Manages connections, scripting and scheduling; no settings.</td><td>The database administrator who owns the connector credentials.</td></tr>
+<tr><td>SME / Analyst / Developer</td><td>Manages inventories, creates and views jobs.</td><td>The data steward who reviews the inventory.</td></tr>
+<tr><td>Operator</td><td>All job privileges.</td><td>The person who runs and schedules jobs.</td></tr>
+<tr><td>Environment Owner</td><td>Approves workflow and inventories; view access to settings and environment.</td><td>The application owner who signs off the inventory.</td></tr>
+</tbody></table></div>
+<div class="callout warn"><strong class="ctitle">A role that is also a security risk</strong>
+<p>The Users and roles page warns that a user allowed to add or update JDBC drivers can upload code that runs inside the engine's JVM, which is effectively running code on the engine host. The built-in DBA role includes that permission by default; the page suggests a custom role or fewer DBA assignments if you separate database work from driver installation. Treat JDBC-driver permission as administrative.</p></div>
+<p>Creating a user needs: user name, email (the engine mails job completion to it), optionally first and last name and a principal for OAuth2, a password (at least eight and at most 65 characters, with an uppercase letter, a special character from a short list and a number), the Administrator checkbox, a role and the environments. An account locks after three invalid login attempts. Roles and users can also be managed through the engine's API.</p>
+
+<h2 id="c22-syllabus">22.10 How Delphix fits the syllabus (Days 51 to 56)</h2>
+<p>The syllabus spends six days on Delphix. This chapter is the vocabulary for all of them.</p>
+<div class="tablewrap"><table><thead><tr><th>Syllabus day</th><th>What the syllabus asks</th><th>Where to learn it</th></tr></thead><tbody>
+<tr><td>Day 51</td><td>Primary key basics and discovery, key integrity in primary and foreign key columns, and creating a connector to a VDB from the masking engine</td><td><a href="03-data-basics.html">Data basics</a>, <a href="23-delphix-connectors-and-vdb.html">connectors and VDB</a>, <a href="24-delphix-rule-sets-and-keys.html">rule sets and keys</a></td></tr>
+<tr><td>Day 52</td><td>Create connections and perform data profiling</td><td><a href="23-delphix-connectors-and-vdb.html">connectors and VDB</a>, <a href="25-delphix-profiling.html">profiling</a>, <a href="28-delphix-hands-on-labs.html">hands-on labs</a></td></tr>
+<tr><td>Day 53</td><td>Perform data masking in files (txt, dat)</td><td><a href="26-delphix-algorithms-and-masking-jobs.html">algorithms and jobs</a>, <a href="27-delphix-file-masking.html">file masking</a></td></tr>
+<tr><td>Days 54 to 56</td><td>Masking rules and algorithms in sample scenarios; mask FirstName; then alphanumeric text, SSN and telephone number</td><td><a href="26-delphix-algorithms-and-masking-jobs.html">algorithms and jobs</a>, <a href="28-delphix-hands-on-labs.html">hands-on labs</a></td></tr>
+</tbody></table></div>
+<p>The mandatory hands-on list also includes <em>TDM_Handson4</em>: create a connector to a VDB from the Delphix masking engine. <a href="23-delphix-connectors-and-vdb.html">The connectors and VDB chapter</a> builds that lab step by step. Day 54 also mentions mapplets (an Informatica idea), which is not a Delphix feature; see <a href="14-informatica-data-masking.html">the Informatica masking chapter</a> for that part.</p>
+
+<h2 id="c22-versions">22.11 Frequent releases: expect your screen to differ</h2>
+<p>The documentation set has a release-notes page for each of 2025.1 through 2026.5, and the 2026.5 notes are dated September 2026. That is eleven releases in under two years. Several facts in this chapter already show how fast the product moves:</p>
+<ul>
+<li>The screenshots on the documentation pages carry different version numbers in the corner (for example 21.0.0.0, 22.0.0.0, 24.0.0.0, 26.0.0.0 and 2025.6.0.0), so the same documentation mixes pictures from different generations.</li>
+<li>The environments screenshot has an Approval column that the text for that screen does not list.</li>
+<li>The connector wizard in the text says "Connection Mode: Basic or Advanced"; the screenshot of the same wizard says "Select Connection Method: Hostname/IP (Basic) or JDBC URL (advanced)".</li>
+<li>Release 2026.5 upgrades the host's Java from JDK 8 to JDK 17 and warns that custom algorithm plugins and custom JDBC drivers must be Java 17 compatible. Older pages on extended connectors still talk about Java 8, so some pages lag behind.</li>
+<li>A rule set screenshot shows an action called Checklist, while the same page's text calls the action "Verify" in one place and "Checklist" in another.</li>
+</ul>
+<div class="callout tip"><strong class="ctitle">A habit that saves hours</strong>
+<p>Before following any procedure in this guide on a real engine, find the version of your engine (the screenshots show it in the corner of the top bar; the Admin menu also has an About page, which I did not read) and compare it with the page you are reading. When screen and text disagree, trust the screen and tell your trainer.</p></div>
+
+<h2 id="c22-mistakes">22.12 Common mistakes and gotchas</h2>
+<div class="callout warn"><strong class="ctitle">Things that trip beginners</strong>
+<ul>
+<li><strong>Looking for algorithms inside the environment.</strong> They live under Settings, shared by all environments. A deleted environment never takes them with it.</li>
+<li><strong>Assuming profiling masks anything.</strong> A profiling job only <em>proposes</em> domains and algorithms in the inventory. Nothing changes in the database until a masking job runs.</li>
+<li><strong>Running an in-place job on the real production database.</strong> In-place overwrites the source values. Mask a copy.</li>
+<li><strong>Forgetting the Purpose of an environment is fixed.</strong> Mask versus Tokenize/Re-Identify cannot be edited later. Create a new environment instead.</li>
+<li><strong>Special characters in names.</strong> A colon or bracket in a rule set or job name fails the save.</li>
+<li><strong>Ignoring warnings.</strong> Non-conformant data is left unmasked by default and only produces a yellow warning.</li>
+<li><strong>Believing a screenshot is exact.</strong> Versions differ; read the labels on your screen.</li>
+</ul></div>
+
+<h2 id="c22-recap">22.13 Recap</h2>
+<div class="callout recap"><strong class="ctitle">Recap</strong>
+<ul>
+<li>Delphix Continuous Compliance is the masking engine: it profiles to find sensitive data, masks irreversibly, or tokenizes reversibly.</li>
+<li>Masking is <em>in-place</em> (overwrite the source, so use a copy) or <em>on-the-fly</em> (read one place, write another).</li>
+<li>The interface has five menus: Environments, Monitor, Settings, Admin, Audit. The same grid control (sort, filter, pin, actions) appears everywhere.</li>
+<li>Work objects (connector, rule set, inventory, jobs) live inside an environment inside an application. Shared objects (domains, algorithms, profile sets, classifiers, file formats, JDBC drivers) live in Settings.</li>
+<li>A project flows: engine, prepare the database, environment, connector, rule set, profile, review the inventory, mask.</li>
+<li>The engine is a VM image or a Kubernetes deployment, never in the same machine as the Virtualization Engine. It works in UTC.</li>
+<li>Roles are sets of actions on objects; each user has one role plus environments.</li>
+<li>The product changes often. Check your version and trust your screen over this text.</li>
+</ul></div>
+
+<section class="sources"><h2 id="c22-sources">Sources used in this chapter</h2>
+<ul>
+<li><a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a>: product purpose, four platform services, profiling methods, masking versus tokenization, the platform diagram and four screenshots.</li>
+<li><a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>: products, interfaces, core concepts, object definitions, algorithm families, profile and masking job options.</li>
+<li><a href="https://help.delphix.com/cc/current/content/getting_started.htm" target="_blank" rel="noopener">Getting started</a> and <a href="https://help.delphix.com/cc/current/content/first_time_setup.htm" target="_blank" rel="noopener">First time setup</a>: the topic list and the Setup Wizard.</li>
+<li><a href="https://help.delphix.com/cc/current/content/graphical_user_interface__gui_.htm" target="_blank" rel="noopener">Graphical User Interface (GUI)</a>, <a href="https://help.delphix.com/cc/current/content/continuous_compliance_engine_icon_reference.htm" target="_blank" rel="noopener">icon reference</a> and <a href="https://help.delphix.com/cc/current/content/naming_requirements.htm" target="_blank" rel="noopener">Naming requirements</a>: the grid, icons and naming rules; screenshots of Job Executions and Settings.</li>
+<li><a href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Managing environments</a>, <a href="https://help.delphix.com/cc/current/content/managing_jobs.htm" target="_blank" rel="noopener">Managing jobs</a> and <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs</a>: environment as container, job types, in-place and on-the-fly definitions.</li>
+<li><a href="https://help.delphix.com/cc/current/content/discovering_your_sensitive_data.htm" target="_blank" rel="noopener">Discovering your sensitive data</a> and <a href="https://help.delphix.com/cc/current/content/managing_domains.htm" target="_blank" rel="noopener">Managing domains</a>: profile sets, domains, classifiers.</li>
+<li><a href="https://help.delphix.com/cc/current/content/users_and_roles.htm" target="_blank" rel="noopener">Users and roles</a> and <a href="https://help.delphix.com/cc/current/content/best_practices_for_defining_masking_roles.htm" target="_blank" rel="noopener">Best practices for defining masking roles</a>: roles, actions, objects, default roles, sample RACI; two screenshots.</li>
+<li><a href="https://help.delphix.com/cc/current/content/best_practices_for_delphix_data_masking.htm" target="_blank" rel="noopener">Best practices for Delphix data masking</a>, <a href="https://help.delphix.com/cc/current/content/installation.htm" target="_blank" rel="noopener">Installation</a> and <a href="https://help.delphix.com/cc/current/content/containerized_masking_installation.htm" target="_blank" rel="noopener">Containerized masking installation</a>: sizing and deployment families.</li>
+<li><a href="https://help.delphix.com/cc/current/content/2026_5_release_notes.htm" target="_blank" rel="noopener">2026.5 release notes</a> and <a href="https://help.delphix.com/cc/current/content/release_notes.htm" target="_blank" rel="noopener">Release notes index</a>: release cadence and the JDK 17 change.</li>
+</ul></section>

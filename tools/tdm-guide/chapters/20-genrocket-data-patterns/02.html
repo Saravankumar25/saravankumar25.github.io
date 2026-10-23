@@ -1,0 +1,113 @@
+<h2 id="c20-sequential">20.3 Sequential data</h2>
+<h3 id="c20-sequential-plain">20.3.1 In plain words</h3>
+<p><span class="badge concept">General concept</span> Sequential data is data in a fixed, predictable order: 1, 2, 3, 4. Think of the numbered tickets you pull at a bakery counter. Each ticket is the previous one plus one, and no two customers get the same number.</p>
+<p>Testers want sequential data in three places:</p>
+<ul>
+<li><strong>Primary keys.</strong> A primary key must be unique, so counting up is the simplest safe pattern. ShopSphere's <code>customer_id</code> values 1001, 1002, 1003 are sequential.</li>
+<li><strong>Numbered records.</strong> Order numbers such as ORD-1001, ORD-1002, where you want to look at row 5 and know exactly what should be there.</li>
+<li><strong>Predictable walks.</strong> A list of statuses walked in order (Pending, Shipped, Delivered) so a test can assume which row has which status.</li>
+</ul>
+<p>The strength of sequential data is that you can predict it, which makes a failing test easy to read. Its weakness is the same: it looks nothing like real life, so you usually mix it with random data for the other columns.</p>
+
+<h3 id="c20-rangegen">20.3.2 RangeGen: counting up (and down)</h3>
+<p><span class="badge doc">From docs</span> The generator for counting is <strong>RangeGen</strong>. The help page says it "produces an increasing value from startRange to endRange", or to <code>long.MAX_VALUE</code> when no end range is given, and that "once the endRange has been reached, the value is reset to the startRange" (<a href="@@URL rangegen_generators_how_do_i_use_the_rangegen_generator@@" target="_blank" rel="noopener">RangeGen help page</a>). The page also notes it can be set to start at a number other than 1, for example to continue a database's primary keys.</p>
+<div class="tablewrap"><table><caption>RangeGen parameters as documented (asterisk means required)</caption>
+<thead><tr><th>Parameter</th><th>What it does</th><th>ShopSphere use</th></tr></thead>
+<tbody>
+<tr><td><code>startRange*</code></td><td>The first value.</td><td>1001 for <code>customer_id</code>.</td></tr>
+<tr><td><code>endRange</code></td><td>The largest value before the count restarts at <code>startRange</code>. If empty, it is <code>long.MAX_VALUE</code>.</td><td>Leave empty for a primary key so it never wraps.</td></tr>
+<tr><td><code>jumpAmount*</code></td><td>How much to add each time.</td><td>5 to leave gaps between ids.</td></tr>
+<tr><td><code>waitAmount*</code></td><td>How many rows to wait before adding <code>jumpAmount</code>.</td><td>3 to give each customer three rows (for example three order items).</td></tr>
+<tr><td><code>iterate</code></td><td>A true/false that decides when to move to the next value. Can reference another generator that produces true/false.</td><td>Advance only when a linked generator says true.</td></tr>
+<tr><td><code>sortOrder*</code></td><td><code>ascending</code> or <code>descending</code>.</td><td>Descending for negative ranges.</td></tr>
+</tbody></table></div>
+<p>The help page shows five worked examples. Here are the four that matter most, each with the official screenshots of the parameters and the preview.</p>
+<p><strong>Start at a chosen value.</strong> Setting <code>startRange</code> to 500 makes the first row 500, then 501, 502 and so on.</p>
+@@SHOT rangegen_generators_how_do_i_use_the_rangegen_generator 2 | RangeGen configuration with startRange set to 500 and jumpAmount 1 | The RangeGen parameter form with <code>startRange</code> set to 500, <code>jumpAmount</code> and <code>waitAmount</code> both 1, and <code>sortOrder</code> ascending. @@
+@@SHOT rangegen_generators_how_do_i_use_the_rangegen_generator 3 | Preview pane listing 500, 501, 502 and so on | The Preview pane for that setting: 500, 501, 502, 503 and onward, one value per row. This is exactly the "start at a specific value" pattern. @@
+<p><strong>Jump by 5.</strong> With <code>startRange</code> 0, <code>endRange</code> 100 and <code>jumpAmount</code> 5, the values are 0, 5, 10, 15 and so on, and the count returns to 0 after 100.</p>
+@@SHOT rangegen_generators_how_do_i_use_the_rangegen_generator 7 | RangeGen configured with start 0, end 100, jump 5 | RangeGen with <code>startRange</code> 0, <code>endRange</code> 100 and <code>jumpAmount</code> 5. @@
+@@SHOT rangegen_generators_how_do_i_use_the_rangegen_generator 8 | Preview showing 0, 5, 10, 15 up to 40 | The matching preview: 0, 5, 10, 15, 20, 25, 30, 35, 40. @@
+<p><strong>Wait before jumping.</strong> Raising <code>waitAmount</code> to 3 repeats each value three times before the jump. The page's preview for this setting shows 0, 0, 0, then 5, 5, 5, then 10, 10, 10. This is the pattern to use when one parent value must repeat for several child rows.</p>
+@@SHOT rangegen_generators_how_do_i_use_the_rangegen_generator 10 | Preview showing each value repeated three times | The preview with <code>waitAmount</code> 3: each value appears three times (0, 0, 0, 5, 5, 5, 10, 10, 10) before the jump of 5 is applied. @@
+<p><strong>Count down through negatives.</strong> To produce -1, -2, -3 and so on, set <code>startRange</code> to -1, <code>endRange</code> to a more negative number such as -100, and <code>sortOrder</code> to descending.</p>
+@@SHOT rangegen_generators_how_do_i_use_the_rangegen_generator 11 | RangeGen with startRange -1, endRange -100, sortOrder descending | RangeGen set to <code>startRange</code> -1, <code>endRange</code> -100 and <code>sortOrder</code> descending. @@
+@@SHOT rangegen_generators_how_do_i_use_the_rangegen_generator 12 | Preview named negativeValues showing -1 down to -10 | The preview for that setting: -1, -2, -3 down to -10. Negative numbers like these are the raw material for negative tests, such as a negative quantity. @@
+<div class="callout warn"><strong class="ctitle">Direction and range must agree</strong>
+<p>If you give a descending order a positive end range, GenRocket stops you. The help page names the error "startRange cannot be less than or equal to endRange" and gives two fixes: change <code>endRange</code> to a negative value, or change <code>sortOrder</code> to ascending. The official screenshot below is the red error box the form shows.</p></div>
+@@SHOT rangegen_generators_how_do_i_use_the_rangegen_generator 13 | Generator Parameter Errors box complaining that startRange -1 cannot be less than or equal to endRange 100 | The "Generator Parameter Errors" message shown when the start and end values contradict the sort order. It names the attribute and both values, so you can see which one to change. @@
+
+<h3 id="c20-sequential-other">20.3.3 Other ways to get sequential values</h3>
+<p>RangeGen is the main tool, but the documentation shows several more sequential patterns.</p>
+<ul>
+<li><strong>The domain id.</strong> <span class="badge doc">From docs</span> When a domain is created or imported it automatically gets an <code>id</code> attribute that "generates a unique ID for each test data record" (<a href="@@URL attributes_attributes_overview@@" target="_blank" rel="noopener">Attributes Overview</a>). For many tests that is the primary key and you need do nothing.</li>
+<li><strong>RangeConstantGen.</strong> The string-generators list describes it as an increasing value "similar to the RangeGen" with an optional prefix and suffix. With range 1 to 5 and prefix <code>test</code> the output is test1 to test5. The StringRemoveGen page confirms the parameter names <code>startRange</code> and <code>prefix</code> for it. For ShopSphere, a prefix of <code>ORD-</code> and start 1001 gives ORD-1001, ORD-1002 and so on (this adaptation is mine, the mechanism is documented).</li>
+<li><strong>ListGen in order.</strong> <span class="badge doc">From docs</span> ListGen "generates items in a provided list in sequential or random order". Its <code>random</code> parameter defaults to False, so the list is walked in order. Its example sets <code>waitAmount</code> to 5 so each of Pending, Shipped and Delivered repeats for five rows before moving on (<a href="@@URL misc_generators_how_do_i_use_the_listgen_generator@@" target="_blank" rel="noopener">ListGen</a>).</li>
+<li><strong>NameGen in order.</strong> NameGen's <code>sortOrder</code> can be <code>ascending</code> or <code>descending</code> instead of <code>random</code>, so you get names in alphabetical order. Useful when you want to find a specific row quickly.</li>
+<li><strong>PhoneNumberGen.</strong> The page says it "generates phone numbers in a sequence (100-1000, 100-1001, ..., 999-9999)", with two optional parameters: <code>areaCode</code> (the three-digit area code placed in front) and <code>prefix</code> (the starting prefix, from which the number increases). It points to RandomPhoneNumberGen for random numbers.</li>
+</ul>
+@@SHOT user_generators_how_do_i_use_the_phonenumbergen_generator 2 | Preview pane listing phone numbers from (800) 600-1000 upward | The PhoneNumberGen preview: (800) 600-1000, (800) 600-1001, (800) 600-1002 and so on. Each row is the previous number plus one, the sequential pattern applied to phone numbers. The numbers are fake. @@
+<h3 id="c20-pk-after-max">20.3.4 Continuing after existing data</h3>
+<p><span class="badge doc">From docs</span> Sometimes the target database already has rows, and new primary keys must start after the largest existing one. The help centre shows a linked-generator recipe (<a href="@@URL assigning_and_configuring_generators_how_to_generate_primary_key_values_after_the_max_value_from_a_database_ta@@" target="_blank" rel="noopener">primary key values after the max value</a>):</p>
+<ol class="steps">
+<li><strong>Add QueryOnceGen to the id attribute.</strong><p>It runs one query before generating. Set <code>resourceName</code> to the JDBC resource, <code>query</code> to <code>select max(id) + 1 from &lt;tableName&gt;</code> and give <code>sampleValue</code> (the page uses 5001) so the Preview pane has something to show.</p><p class="expect">gen1 holds "the next free id".</p></li>
+<li><strong>Add RangeGen after it.</strong><p>For <code>startRange</code>, double-click the field and choose the Attribute Generator tab, then pick <code>gen1</code> (it is written <code>#{self.gen1}</code>).</p><p class="expect">New ids begin after the largest existing id, so inserts will not collide with existing rows.</p></li>
+</ol>
+<p>This is a good example of why order matters when linking generators: RangeGen can reference QueryOnceGen only because QueryOnceGen sits to its left. We return to that rule in <a href="#c20-conditional">section 20.6</a>.</p>
+<div class="callout example"><strong class="ctitle">Worked example: ShopSphere order numbers</strong>
+<p>Requirement: each of 20 orders needs a unique, increasing <code>order_id</code> starting at 5001, and each order has 3 item rows.</p>
+<ul>
+<li><code>order_id</code> on the Order domain: RangeGen, <code>startRange</code> 5001, <code>jumpAmount</code> 1, <code>waitAmount</code> 1, loop count 20. Result: 5001 to 5020.</li>
+<li><code>order_id</code> repeated on the item rows: a child domain with RangeGen <code>startRange</code> 5001, <code>waitAmount</code> 3. Result: 5001, 5001, 5001, 5002, 5002, 5002 and so on, one order id for every three item rows.</li>
+</ul>
+<p>The second half is a simple way to imitate parent and child rows. The fully supported way, with referential integrity, uses parent and child domains and is covered in the lab on parent and child rows in <a href="21-genrocket-hands-on-50-records.html#c21-lab-parent-child">the hands-on chapter</a>.</p></div>
+<div class="callout warn"><strong class="ctitle">Gotcha: a sequence that wraps is not unique</strong>
+<p>RangeGen goes back to <code>startRange</code> when it reaches <code>endRange</code>. If you set a small <code>endRange</code> on a primary key and generate more rows than the range holds, you create duplicate keys. Leave <code>endRange</code> empty for ids, or make sure the loop count is no larger than the range.</p></div>
+
+<h2 id="c20-random">20.4 Random data and repeatable randomness</h2>
+<h3 id="c20-random-plain">20.4.1 In plain words</h3>
+<p><span class="badge concept">General concept</span> Random data is data picked without a visible order. Rolling a die and writing down the result ten times gives random data: 3, 6, 1, 1, 4, and so on. Random data is what makes a generated customer list look like a real one: different names, different ages, different cities.</p>
+<p>Random data has one practical problem. If a test fails today with a random customer, and tomorrow's run creates different customers, you cannot reproduce the failure. The fix is the <strong>seed</strong>: a starting number for the random picker. The same seed gives the same "random" sequence every time. Random but repeatable is the best of both.</p>
+
+<h3 id="c20-randomgen">20.4.2 RandomGen: a random number in a range</h3>
+<p><span class="badge doc">From docs</span> <strong>RandomGen</strong> "randomly generates a number within a range"; the page's own example is random ages between 18 and 65 (<a href="@@URL financial_generators_how_do_i_use_the_randomgen_generator@@" target="_blank" rel="noopener">RandomGen</a>).</p>
+<div class="tablewrap"><table><caption>RandomGen parameters as documented</caption>
+<thead><tr><th>Parameter</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>startRange*</code></td><td>The smallest value that can be produced.</td></tr>
+<tr><td><code>endRange*</code></td><td>The largest value that can be produced.</td></tr>
+<tr><td><code>uniqueLimit</code></td><td>How many times a given value may be produced. Empty means no limit. 1 means each value appears at most once; 10 means each value can appear ten times. It does not apply to dynamic start and end ranges that change per row.</td></tr>
+<tr><td><code>seed</code></td><td>Makes the same random data come out every run.</td></tr>
+</tbody></table></div>
+<p>The page's second example limits repeats: numbers 1 to 10, <code>uniqueLimit</code> 2, and a domain loop count of 15 so the possible values are not used up. Each number appears at most twice.</p>
+@@SHOT financial_generators_how_do_i_use_the_randomgen_generator 5 | RandomGen with startRange 1, endRange 10 and uniqueLimit 2 | RandomGen set to <code>startRange</code> 1, <code>endRange</code> 10 and <code>uniqueLimit</code> 2, so no number may appear more than twice. @@
+@@SHOT financial_generators_how_do_i_use_the_randomgen_generator 6 | Delimited output of 15 rows with an id and a number column | The delimited output for that setting: 15 rows, numbers between 1 and 10, none more than twice. This is how you generate "random but not too repetitive" values. @@
+<div class="callout warn"><strong class="ctitle">The error you get when uniqueness runs out</strong>
+<p>With <code>uniqueLimit</code> 1, range 1 to 20 and a loop count of 20, the page reports <em>"Exhausted attempts to find the next valid random value from range of 1 to 20"</em>. The fixes it lists: raise the loop count, widen <code>endRange</code> or raise <code>uniqueLimit</code>. The rule of thumb is that rows asked for must be no more than (range size times <code>uniqueLimit</code>). The same Java memory exhaustion can appear for very large unique sets: the troubleshooting page for "GC overhead limit exceeded" lists "generator parameters that limit the amount of data, such as a unique limit" as a cause (<a href="@@URL scenarios_error_javalangoutofmemoryerror_gc_overhead_limit_exceeded@@" target="_blank" rel="noopener">that error page</a>).</p></div>
+
+<h3 id="c20-random-others">20.4.3 Random names, lists and strings</h3>
+<ul>
+<li><strong>NameGen.</strong> Generates first, last, male or female names (<code>nameType</code>), cased as <code>capitalize</code>, <code>upperCase</code> or <code>lowerCase</code> (<code>caseType</code>), in <code>random</code>, <code>ascending</code> or <code>descending</code> order (<code>sortOrder</code>), with an optional <code>seed</code> and a <code>waitAmount</code>. The page says it holds 1,000 male names, 3,000 female names and 10,000 last names, giving 40,000,000 possible combinations. That large pool is why random names rarely repeat in a few thousand rows.</li>
+<li><strong>ListGen.</strong> Set <code>random</code> to True to pick from a fixed list in random order (the page example picks one of five colours). Add <code>unique</code> True to use each list value only once; then the loop count must not exceed the number of values, or GenRocket throws an exception. ListGen supports up to 15 list items; for bigger lists the page recommends ListCSVV2Gen.</li>
+<li><strong>RandomStringGen.</strong> Random text of a given <code>length</code> and <code>stringType</code> (letters, numbers, lettersAndNumbers, specialCharacters, ASCIICharacters or allCharacters), with <code>caseType</code>, <code>seed</code>, <code>unique</code>, <code>include</code> and <code>exclude</code>. The help page lists "test boundary conditions or invalid characters" and "filling a notes field with random strings to test character limits" among its uses. Its promo-code example links ConstantGen (PROMO), RandomStringGen (6 unique digits) and ConcatGen.</li>
+</ul>
+@@SHOT name_generators_how_do_i_use_the_namegen_generator 6 | NameGen configured for firstName, capitalize, random | NameGen with <code>nameType</code> firstName, <code>caseType</code> capitalize, <code>sortOrder</code> random, an empty <code>seed</code> and <code>waitAmount</code> 1. This is the setting you will use for first names in the next chapter's lab. @@
+
+<h3 id="c20-seeding">20.4.4 Seeding: random, but the same every time</h3>
+<p><span class="badge doc">From docs</span> The help page "What is Seeding?" defines seeding as generating "the same set of random data for the same value of a seed". It says a seed can be entered in several places in GenRocket, including the domain's Global Seed variable and the generator's own <code>seed</code> parameter (<a href="@@URL generators_overview_12_what_is_seeding@@" target="_blank" rel="noopener">What is Seeding?</a>). The page's example uses two attributes, <code>number1</code> and <code>number2</code>, both RandomGen from 1 to 25:</p>
+<ul>
+<li>No seed on <code>number1</code>: a different set of numbers every time the data is generated.</li>
+<li>Seed 1 on <code>number1</code>: one fixed set of numbers, the same every run.</li>
+<li>Seed 1 on <code>number2</code> too, same configuration: <code>number2</code> gets the same set as <code>number1</code>.</li>
+<li>Seed 2 on <code>number2</code>: a different fixed set.</li>
+</ul>
+@@SHOT generators_overview_12_what_is_seeding 2 | RandomGen from 1 to 25 with no seed | RandomGen with <code>startRange</code> 1, <code>endRange</code> 25 and the <code>seed</code> field empty. @@
+@@SHOT generators_overview_12_what_is_seeding 3 | Preview with unseeded values such as 11, 3, 6, 20 | The preview without a seed (11, 3, 6, 20, 2, 3, 3, 21, 20 and so on). Refreshing or regenerating would give a different list. @@
+@@SHOT generators_overview_12_what_is_seeding 4 | RandomGen from 1 to 25 with seed 1 | The same RandomGen with <code>seed</code> set to 1. @@
+@@SHOT generators_overview_12_what_is_seeding 5 | Preview with seed 1 values such as 10, 22, 2, 17 | The preview with seed 1: 10, 22, 2, 17, 15, 20, 8, 19, 6. With this seed these are the values you would get on every run. @@
+@@SHOT generators_overview_12_what_is_seeding 6 | RandomGen from 1 to 25 with seed 2 | The same generator with <code>seed</code> 2, which gives a different fixed set. @@
+@@SHOT generators_overview_12_what_is_seeding 7 | Preview with seed 2 values such as 19, 8, 19, 8, 4 | The preview with seed 2: 19, 8, 19, 8, 4, 14, 11, 25, 1. It differs from the seed 1 list, and it will be the same on every run of seed 2. @@
+<div class="callout why"><strong class="ctitle">Why seeding matters for a TDM engineer</strong>
+<p>Without a seed, "random" test data differs each run, so a failing test is a ghost. With a fixed seed, a regression suite sees identical data every night, and a failure can be replayed on a developer's laptop. Seed attributes you want repeatable. Leave the seed empty on attributes where you want fresh variety each run, such as a load test.</p></div>
+<div class="callout note"><strong class="ctitle">Seeds and identical columns</strong>
+<p>The documentation example shows that two attributes with the same generator settings and the same seed produce the same values. If you give two different columns the same seed and the same range, they will move in lockstep. Use different seeds for columns that should look independent.</p></div>

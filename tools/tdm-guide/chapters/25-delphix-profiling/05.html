@@ -53,6 +53,21 @@
 <li><strong>Download the PDF (<em>Report and Logs &gt; Job Report</em>) and keep it with the CSV.</strong><p>These two files are what you would hand to a data steward.</p>
 </li>
 </ol>
+<h4>Part B (optional): add your own classifier</h4>
+<p>Use the loyalty-number scenario from the classifiers section. This is an exercise on a lab engine; do not do it on shared ShopSphere tables.</p>
+<ol class="steps">
+<li><strong>Create the domain.</strong><p>Settings &gt; Domains &gt; <em>+ Domain</em>, name <code>LOYALTY_NO</code>, choose a default masking algorithm, skip the tokenization algorithm, Save.</p>
+<p class="expect">The domain appears in the Domains grid with your algorithm as its Masking Method.</p>
+</li>
+<li><strong>Create a PATH classifier.</strong><p>Settings &gt; Classifiers &gt; <em>+ Classifier</em>, pick the new domain, framework Path, enter a Field Value that matches column names containing "loyalty", click Add, then Save.</p>
+<p class="expect">The classifier shows in the grid with type PATH and your domain.</p>
+</li>
+<li><strong>Duplicate ASDD Standard and tick the new classifier.</strong><p>Settings &gt; Profile Sets, row menu &gt; Duplicate, give it a new name, tick your classifier, Save.</p>
+</li>
+<li><strong>Add a <code>loyalty_no</code> column to a scratch copy of CUSTOMERS, refresh the rule set, and run a profiling job with the new profile set.</strong><p>Rule set refresh is covered in <a href="24-delphix-rule-sets-and-keys.html">the rule sets and keys chapter</a>.</p>
+<p class="expect"><code>loyalty_no</code> is reported with domain LOYALTY_NO.</p>
+</li>
+</ol>
 <details class="sol"><summary>Show a worked answer</summary>
 <p><strong>Likely corrections (prediction-based):</strong></p>
 <ul>
@@ -92,23 +107,6 @@
 <li>For ShopSphere, expect the customer columns to be flagged and price or amount columns to be false alarms.</li>
 </ul>
 </div>
-
-<h2 id="c25-check">25.14 Check yourself</h2>
-<details class="quiz"><summary>What is the difference between a profile set and a domain?</summary>
-<p>A profile set is a bundle of classifiers (recognition rules) used by a profiling job. A domain is a kind of sensitive data (such as SSN) with a default masking algorithm. Each classifier points to one domain, so the profile set decides what can be detected, and the domain decides which algorithm gets assigned.</p>
-</details>
-<details class="quiz"><summary>A column called <code>passport_no</code> holds 9 digits. Why might the profiler pick PASSPORT_NO rather than SSN?</summary>
-<p>In the docs' example both REGEX classifiers match the digits with equal strength (0.5), but only the PASSPORT_NO PATH classifier matches the column name (0.67). The combined confidence is 0.84 for PASSPORT_NO and 0.5 for SSN, so PASSPORT_NO wins.</p>
-</details>
-<details class="quiz"><summary>You fixed three columns by hand, and after the next profiling run two of them changed back. What did you forget?</summary>
-<p>Untick Enable Automatic Updates on those columns. While it is ticked, a profiling job may update the assignment; unticking makes your decision override the profiler.</p>
-</details>
-<details class="quiz"><summary>You change the default algorithm of the FIRST_NAME domain. Do existing inventories change?</summary>
-<p>No. The change only influences assignments made by future profiling job executions. Existing assignments stay until you edit them or re-profile.</p>
-</details>
-<details class="quiz"><summary>Why might <code>ORDER_ITEMS.unit_price</code> be flagged, and what should you do?</summary>
-<p>The Payment Amount PATH rule matches names that end in "price" (also amount, amnt, amt, balance). That is a name coincidence; a catalogue price is not personal data. Clear the assignment and untick automatic updates, after confirming with the business that prices are not sensitive.</p>
-</details>
 
 <section class="sources"><h2 id="c25-sources">Sources used in this chapter</h2>
 <ul>

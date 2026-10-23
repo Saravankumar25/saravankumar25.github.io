@@ -1,0 +1,90 @@
+
+<h2 id="c22-flow">22.6 How a masking project flows</h2>
+<p>With the objects named, the order of work follows from the nesting: you cannot create a rule set before a connector, and you cannot create a connector before an environment. The documentation's own table of contents for "Connecting data" (environments, connectors, extended connectors, file formats, rule sets, inventories) follows exactly this order, and the Continuous Compliance home page groups the rest as "Identify sensitive data", "Preparing data" and "Connecting data".</p>
+<figure class="diagram"><svg viewBox="0 0 820 220" role="img" aria-label="Eight steps in a row: install and set up the engine, prepare the database, create application and environment, create connector, create rule set, profile, review inventory and assign algorithms, run masking job and monitor.">
+<defs><marker id="c22ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="currentColor"/></marker></defs>
+<g font-size="12" fill="currentColor">
+<rect x="6" y="20" width="92" height="76" rx="6" fill="var(--surface)" stroke="currentColor"/><text x="14" y="42" font-weight="700">1 Engine</text><text x="14" y="60">install, first</text><text x="14" y="76">setup, users</text>
+<rect x="108" y="20" width="92" height="76" rx="6" fill="var(--surface)" stroke="currentColor"/><text x="116" y="42" font-weight="700">2 Database</text><text x="116" y="60">masking user,</text><text x="116" y="76">prepare copy</text>
+<rect x="210" y="20" width="92" height="76" rx="6" fill="var(--surface)" stroke="currentColor"/><text x="218" y="42" font-weight="700">3 Container</text><text x="218" y="60">application +</text><text x="218" y="76">environment</text>
+<rect x="312" y="20" width="92" height="76" rx="6" fill="var(--surface)" stroke="currentColor"/><text x="320" y="42" font-weight="700">4 Connector</text><text x="320" y="60">test the</text><text x="320" y="76">connection</text>
+<rect x="414" y="20" width="92" height="76" rx="6" fill="var(--surface)" stroke="currentColor"/><text x="422" y="42" font-weight="700">5 Rule set</text><text x="422" y="60">tables, keys,</text><text x="422" y="76">checklist</text>
+<rect x="516" y="20" width="92" height="76" rx="6" fill="var(--surface)" stroke="currentColor"/><text x="524" y="42" font-weight="700">6 Profile</text><text x="524" y="60">find sensitive</text><text x="524" y="76">columns</text>
+<rect x="618" y="20" width="92" height="76" rx="6" fill="var(--surface)" stroke="currentColor"/><text x="626" y="42" font-weight="700">7 Inventory</text><text x="626" y="60">review, assign</text><text x="626" y="76">algorithms</text>
+<rect x="720" y="20" width="92" height="76" rx="6" fill="var(--surface)" stroke="currentColor"/><text x="728" y="42" font-weight="700">8 Mask</text><text x="728" y="60">run job,</text><text x="728" y="76">monitor</text>
+</g>
+<g stroke="currentColor" stroke-width="1.5" marker-end="url(#c22ar)"><line x1="98" y1="58" x2="108" y2="58"/><line x1="200" y1="58" x2="210" y2="58"/><line x1="302" y1="58" x2="312" y2="58"/><line x1="404" y1="58" x2="414" y2="58"/><line x1="506" y1="58" x2="516" y2="58"/><line x1="608" y1="58" x2="618" y2="58"/><line x1="710" y1="58" x2="720" y2="58"/></g>
+<text x="6" y="140" font-size="12" fill="currentColor">Steps 3 to 5 are the "Connecting data" part. Steps 6 and 7 are "Identify sensitive data". Step 8 is "Securing sensitive data".</text>
+<text x="6" y="166" font-size="12" fill="currentColor">Optional after step 8: if the masked copy is a VDB, the Virtualization Engine can run the masking job while provisioning it.</text>
+<text x="6" y="192" font-size="12" fill="currentColor">Steps 6 and 7 can loop: profile, review, adjust, run the profile again.</text>
+</svg><figcaption>Original diagram: a typical order of work. The sequence is my summary of how the documentation's sections depend on each other; the documentation does not publish a single numbered "project plan". Section titles in the last notes are the documentation's own.</figcaption></figure>
+<div class="tablewrap"><table><thead><tr><th>Step</th><th>What you do</th><th>Why that order</th><th>Learn it in</th></tr></thead><tbody>
+<tr><td>1. Engine</td><td>Install the virtual appliance, run the Setup Wizard, create administrators, roles and users.</td><td>Nothing else works until the engine runs and you can sign in.</td><td><a href="#c22-deploy">Deployment</a> and <a href="#c22-roles">users and roles</a> later in this chapter</td></tr>
+<tr><td>2. Database</td><td>Create a dedicated masking user in the database, give it the documented privileges, tune the copy you will mask.</td><td>The connector in step 4 will log in as this user.</td><td><a href="23-delphix-connectors-and-vdb.html">Connectors and VDB</a></td></tr>
+<tr><td>3. Container</td><td>Add an application, then an environment (Purpose: Mask).</td><td>Connectors, rule sets and jobs all live in an environment.</td><td><a href="23-delphix-connectors-and-vdb.html">Connectors and VDB</a></td></tr>
+<tr><td>4. Connector</td><td>Create and test a connector to the database or files.</td><td>A rule set needs a connector to list the tables.</td><td><a href="23-delphix-connectors-and-vdb.html">Connectors and VDB</a></td></tr>
+<tr><td>5. Rule set</td><td>Choose tables, add a logical key where a table has no primary key, run the Checklist.</td><td>The profiler and the masking job work on exactly the tables in the rule set.</td><td><a href="24-delphix-rule-sets-and-keys.html">Rule sets and keys</a></td></tr>
+<tr><td>6. Profile</td><td>Run a profiling job with a profile set.</td><td>It proposes which columns are sensitive and which domain and algorithm each gets.</td><td><a href="25-delphix-profiling.html">Profiling</a></td></tr>
+<tr><td>7. Inventory</td><td>Review the proposals; change or add algorithm assignments by hand.</td><td>Profiling is a recommendation. A human, usually a data steward, confirms.</td><td><a href="25-delphix-profiling.html">Profiling</a>, <a href="26-delphix-algorithms-and-masking-jobs.html">Algorithms and jobs</a></td></tr>
+<tr><td>8. Mask</td><td>Create a masking job on the rule set, choose in-place or on-the-fly, run it, watch Monitor.</td><td>Everything the job needs is now defined.</td><td><a href="26-delphix-algorithms-and-masking-jobs.html">Algorithms and jobs</a>, <a href="27-delphix-file-masking.html">File masking</a></td></tr>
+</tbody></table></div>
+<div class="callout real"><strong class="ctitle">How a TDM team splits this</strong>
+<p>The "best practices for defining masking roles" page gives a sample RACI (who is Responsible, Accountable, Consulted, Informed). It makes IT Security accountable for deciding which data types are sensitive, the application owner accountable for inventory management, data masking and masked-data validation, and the data masking admin team responsible for masking administration (domains, classifiers, roles, users). In ShopSphere terms: the compliance officer decides that SSN, email and phone are sensitive, the data steward reviews the inventory, and the TDM engineer builds and runs the jobs. This is a sample from the vendor, not a rule. <span class="badge doc">From docs</span></p></div>
+
+<h2 id="c22-terms-walk">22.7 The terminology page, term by term</h2>
+<p>The <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">terminology page</a> is a one-page glossary and worth reading yourself. Here is the part you need for masking, with a ShopSphere picture for each idea. The objects (application, environment, rule set, domain, connector) were covered above, so I move to the algorithm and job vocabulary. <span class="badge doc">From docs</span></p>
+<h3 id="c22-alg-terms">22.7.1 Algorithm words</h3>
+<dl class="defs">
+<div><dt>Algorithm framework</dt>
+<dd>A type of masking algorithm. You can create one or more usable instances from it. "FIRST NAME SL" is an instance of the Secure Lookup framework.</dd></div>
+<div><dt>Algorithm instance</dt>
+<dd>A named combination of a framework and its settings. This is what you actually assign to a column in the inventory.</dd></div>
+<div><dt>Built-in algorithm</dt>
+<dd>An algorithm instance or framework shipped with the engine. Some built-ins have behaviour that matches no built-in framework.</dd></div>
+<div><dt>Non-conformant data</dt>
+<dd>A value that does not fit the format an algorithm expects (for example a 10-digit rule fed a 7-digit number). By default such values are <em>not</em> masked and a warning is recorded, shown as a yellow triangle beside the job execution. You can choose per job, or globally under Admin > Application Settings > Default Non-Conformant Data Handling, whether the job fails, leaves the value unmasked, or sets it to null.</dd></div>
+<div><dt>Collision</dt>
+<dd>Two different real values masked to the same fake value. "Amy" and "Jane" both becoming "Beth" is the docs' example.</dd></div>
+</dl>
+<div class="callout warn"><strong class="ctitle">Non-conformant data means "silently left real" by default</strong>
+<p>This default surprises beginners. If ShopSphere's phone column contains <code>n/a</code> in some rows, an algorithm expecting ten digits does not fail the job. It leaves <code>n/a</code> unmasked and logs a warning. That is harmless for <code>n/a</code>, but a real SSN typed with spaces might slip through the same way. Always read the warning count after a job.</p></div>
+<h3 id="c22-families">22.7.2 The algorithm families in one table</h3>
+<p>The terminology page describes eight families. <a href="26-delphix-algorithms-and-masking-jobs.html">The algorithms chapter</a> shows how to build them. Here is only the idea, so the names are not strange later.</p>
+<div class="tablewrap"><table><thead><tr><th>Family</th><th>How it works (docs, in short)</th><th>Typical ShopSphere use</th></tr></thead><tbody>
+<tr><td>Secure Lookup</td><td>Replaces each value by one picked from an input file using a cryptographic hash of the original, so the same input always gets the same output. Most common. Collisions are possible.</td><td>first_name, last_name: a name list.</td></tr>
+<tr><td>Segment Mapping</td><td>Permutes short numeric or alphanumeric values to others of the same format; guaranteed collision-free if the allowed output range is at least as large as the input set. Maximum 36 digits or characters in the masked value (as the terminology page states).</td><td>ssn, tax_id, and key columns that need unique values.</td></tr>
+<tr><td>Mapping</td><td>You supply the replacement values. The engine records all input-to-output pairs in encrypted form so no two inputs share an output. You must know how many values you will mask. You cannot mask more than one table at a time with it.</td><td>A small fixed list of codes, such as product_code, if you want to hand-pick substitutes.</td></tr>
+<tr><td>Binary Lookup</td><td>Replaces objects in object columns, such as images, with a replacement image you provide. It cannot edit inside an image.</td><td>Not used in ShopSphere.</td></tr>
+<tr><td>Tokenization</td><td>The only reversible family. Creates a unique token per input and stores both token and original.</td><td>Only if an outside vendor must analyse accounts and ShopSphere must later reverse the result.</td></tr>
+<tr><td>Min Max</td><td>Moves extreme values toward the middle so the outlier cannot identify someone (a salary of $1 suggests a CEO).</td><td>An unusually large total_amount in ORDERS, if you consider it identifying.</td></tr>
+<tr><td>Data Cleaning</td><td>Does not mask. Standardises spellings ("Ariz", "Az", "Arizona" to "AZ").</td><td>Cleaning inconsistent state codes before masking.</td></tr>
+<tr><td>Free Text Redaction</td><td>Finds and removes sensitive material in free-text columns such as Notes, using profile sets and pattern matching; can use a deny list or an allow list.</td><td>A support-notes column, if ShopSphere had one.</td></tr>
+</tbody></table></div>
+<p>Two documented warnings you should hold onto now, because <a href="24-delphix-rule-sets-and-keys.html">the keys chapter</a> relies on them. First, Secure Lookup is deterministic on its input (same hash, same output), and Segment Mapping and Mapping are the collision-free choices, so these are the ones used on unique and key columns. Second, the terminology page's wording for Segment Mapping explicitly lists "Social Security Numbers, primary key columns, or foreign key columns" as its use.</p>
+<h3 id="c22-job-terms">22.7.3 Profiling-job and masking-job fields</h3>
+<p>Both job types appear on the terminology page as lists of options. You will meet them on real screens in <a href="25-delphix-profiling.html">the profiling chapter</a> and <a href="26-delphix-algorithms-and-masking-jobs.html">the algorithms and jobs chapter</a>; reading the list now makes those screens predictable.</p>
+<div class="compare">
+<div><h4>Profiling job options</h4>
+<ul>
+<li><strong>Job Name</strong>: free-form, unique.</li>
+<li><strong>Multi-Tenant</strong>: reuse a rule set on identical schemas through different connectors, chosen at execution time.</li>
+<li><strong>Rule Set</strong>: what to profile.</li>
+<li><strong>No. of Streams</strong>: parallel streams (for example two tables at once).</li>
+<li><strong>Min/Max Memory (MB)</strong>, <strong>Feedback Size</strong> (rows between log messages) and <strong>Profile Sets</strong>: optional.</li>
+<li><strong>Comments</strong> and <strong>Email</strong> (comma-separated addresses): optional.</li>
+</ul></div>
+<div><h4>Masking job options</h4>
+<ul>
+<li><strong>Job Name</strong>: unique across the whole application.</li>
+<li><strong>Masking Method</strong>: In-Place or On-The-Fly.</li>
+<li><strong>Multi-Tenant</strong>, <strong>Rule Set</strong>, <strong>Min/Max Memory</strong>.</li>
+<li><strong>Update Threads</strong>: parallel updates to the target. With T-SQL databases several threads can deadlock; reduce them if so.</li>
+<li><strong>Commit Size</strong>, <strong>Feedback Size</strong>.</li>
+<li><strong>Disable Trigger</strong>, <strong>Drop Index</strong>: both clear by default.</li>
+<li><strong>Prescript</strong> and <strong>Postscript</strong>: SQL files run before and after the job.</li>
+<li><strong>Comments</strong>, <strong>Email</strong>.</li>
+</ul></div>
+</div>
+<p>The job-creation page, which I also read, has more detail than the terminology list and adds options such as Selective Data Distribution, Batch Update, Truncate, Disable Constraints and a Checklist action. Those belong to the jobs chapter. One thing to notice now is that "Disable Trigger" and "Drop Index" being off by default means the job will not touch indexes or triggers unless someone turns the options on. Turn them on deliberately, and read what they do first; the keys chapter returns to this for primary-key columns.</p>
+<div class="callout note"><strong class="ctitle">Docs and screens do not always use the same label</strong>
+<p>The terminology page says "Disable Trigger" and "Drop Index" (singular). The job screens documented elsewhere say "Drop Indexes", "Disable Triggers" and "Disable Constraints", and for connectors with a driver support plugin they appear as <em>Enable Tasks</em>. Search for the idea, not the exact label.</p></div>

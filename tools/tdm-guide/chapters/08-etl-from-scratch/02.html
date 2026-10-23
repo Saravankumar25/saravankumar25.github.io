@@ -1,0 +1,134 @@
+
+<h2 id="c8-extract">8.5 Extract: getting data out</h2>
+<p><strong>Concept.</strong> Extraction reads data from a source system and hands it to the ETL process, without changing the source.</p>
+<p><strong>Why it matters.</strong> Extraction is where ETL jobs first meet the real world: slow networks, locked tables, files that arrive late or half-written, and sources that must not be slowed down because customers are using them. A good extract takes only what it needs, takes it consistently, and leaves the source as it found it.</p>
+<h3 id="c8-sources">8.5.1 Kinds of source</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Source kind</th><th>How it is read</th><th>Watch out for</th></tr></thead>
+<tbody>
+<tr><td>Relational database</td><td>SQL query over a database connection</td><td>Load on the source; reading while rows are being changed</td></tr>
+<tr><td>Flat files (CSV, fixed-width, delimited text)</td><td>Read line by line using a layout definition</td><td>Different date formats, stray quotes, missing columns, a file that is still being written</td></tr>
+<tr><td>Structured documents (XML, JSON)</td><td>Parse, then flatten nested parts into rows</td><td>Optional elements, repeating groups that become child tables</td></tr>
+<tr><td>Web services (APIs)</td><td>HTTP requests, often in pages</td><td>Rate limits, authentication, changing response shapes</td></tr>
+<tr><td>Message queues and event streams</td><td>Consume messages as they arrive</td><td>Duplicates, out-of-order arrival</td></tr>
+<tr><td>Application packages and mainframes</td><td>Vendor connectors or exported files</td><td>Unusual encodings and record layouts</td></tr>
+</tbody></table></div>
+<p>The Informatica guide shows the same range in test data work: it mentions relational sources, flat files and XSD (XML) sources as things that data subset, masking and generation plans can run on (User Guide 10.5.10, pp.274 to 277). <span class="badge doc">From docs</span> GenRocket's FAQ describes its targets in the same vein (databases, flat files, mainframe formats, NoSQL). <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">GenRocket General FAQ ↗</a></p>
+<h3 id="c8-full-vs-incremental">8.5.2 Full versus incremental extraction</h3>
+<div class="compare">
+<div>
+<h4>Full extract</h4>
+<p>Read every row, every run.</p>
+<p><strong>Good:</strong> simple; no state to remember; picks up deletions automatically because the target is rebuilt.</p>
+<p><strong>Bad:</strong> slow and heavy as data grows; reads unchanged data again and again.</p>
+<p><strong>Use for:</strong> small reference tables such as PRODUCTS, and first-time loads.</p>
+</div>
+<div>
+<h4>Incremental extract</h4>
+<p>Read only rows that are new or changed since the last successful run.</p>
+<p><strong>Good:</strong> fast; kind to the source.</p>
+<p><strong>Bad:</strong> needs a reliable way to know "what changed"; misses deleted rows unless you plan for them.</p>
+<p><strong>Use for:</strong> large, growing tables such as ORDERS.</p>
+</div>
+</div>
+<h3 id="c8-watermark">8.5.3 The watermark technique</h3>
+<p>The simplest incremental method is a <strong>watermark</strong>: store the highest value you have processed, and next time ask only for rows beyond it. It needs a column whose value only ever grows, such as an increasing order number or a "last modified" timestamp.</p>
+<p>ShopSphere's order feed has an increasing <code>order_id</code>, so we keep a small control table with one row per job:</p>
+<pre><code>CREATE TABLE etl_control (
+  job_name      TEXT PRIMARY KEY,
+  last_order_id INTEGER
+);
+INSERT INTO etl_control VALUES ('orders_daily', 0);
+
+-- Extract only new orders (the feed holds text, so convert for the comparison)
+INSERT INTO stg_orders
+SELECT 1, o.*
+FROM   feed_orders o
+WHERE  CAST(o.order_id AS INTEGER) &gt;
+       (SELECT last_order_id FROM etl_control WHERE job_name = 'orders_daily');
+
+-- After the whole run succeeds, move the watermark forward
+UPDATE etl_control
+SET    last_order_id = (SELECT MAX(CAST(order_id AS INTEGER)) FROM stg_orders)
+WHERE  job_name = 'orders_daily';</code></pre>
+<p class="expect">Expected result in my SQLite run: on the first run (watermark 0) five orders (5001 to 5005) were staged and the watermark moved to 5005. On the second run, with orders 5006 and 5007 newly added to the feed, only those two were staged and the watermark moved to 5007.</p>
+<div class="callout warn"><strong class="ctitle">Three ways a watermark goes wrong</strong>
+<ul>
+<li><strong>Moving the watermark too early.</strong> If you advance it before the load finishes and the job fails, those rows are never retried. Advance it as the very last step, in the same transaction as the load when possible.</li>
+<li><strong>A column that is not strictly increasing.</strong> If IDs can be assigned out of order by two servers, a late row with a smaller number is skipped forever. A "last modified" timestamp has the same trap when clocks differ.</li>
+<li><strong>Changes and deletes are invisible.</strong> A watermark on <code>order_id</code> sees new orders, not edits to old ones, and never sees a deleted row. For edits use a last-modified column; for deletes use CDC or a periodic full comparison.</li>
+</ul></div>
+<h3 id="c8-cdc">8.5.4 Change data capture at concept level</h3>
+<p>Change data capture (CDC) is the umbrella name for ways to learn <em>what</em> changed. <span class="badge concept">General concept</span> There are four common approaches. Each product implements them differently, so check your tool's documentation before relying on one.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Approach</th><th>How it works</th><th>Catches deletes?</th><th>Cost to the source</th></tr></thead>
+<tbody>
+<tr><td>Timestamp or version column</td><td>Query rows where <code>last_modified &gt; watermark</code></td><td>No</td><td>Low, but the table needs the column</td></tr>
+<tr><td>Trigger-based</td><td>A database trigger writes every change into a side table that ETL reads</td><td>Yes</td><td>Adds work to every write</td></tr>
+<tr><td>Log-based</td><td>Read the database's own transaction log to see inserts, updates and deletes in order</td><td>Yes</td><td>Low on the source, but needs special access and tooling</td></tr>
+<tr><td>Compare snapshots</td><td>Keep yesterday's copy; compare with today's; the difference is the change</td><td>Yes</td><td>High: reads and compares everything</td></tr>
+</tbody></table></div>
+<h3 id="c8-extract-rules">8.5.5 Good extraction habits</h3>
+<ol class="steps">
+<li><strong>Extract more than you think you need, but not everything.</strong><p>Pulling every column of a wide table wastes time; pulling too few forces another extract when requirements change. Agree the column list with the people who will use the data.</p></li>
+<li><strong>Record the run.</strong><p>Give every run a batch id and a timestamp, and write both next to the extracted rows. When something looks wrong later, you can say exactly which run brought it in.</p></li>
+<li><strong>Read a consistent snapshot.</strong><p>If you extract CUSTOMERS and then ORDERS five minutes later, new orders may point at customers you did not capture. Extract related tables in one transaction or point in time, or cut the orders to a time you know customers cover.</p><p class="expect">What you should see: every order in staging has its customer in staging, or the job knows why not.</p></li>
+<li><strong>Do not transform at the source.</strong><p>Keep the extract query simple. Heavy logic in the source query slows the source and hides your rules inside a query nobody reviews.</p></li>
+</ol>
+
+<h2 id="c8-staging">8.6 The staging area</h2>
+<p><strong>Concept.</strong> The staging area is a temporary landing zone between the source and the final target. Extracted data is stored there in nearly the same form as it was found.</p>
+<p><strong>Simple explanation.</strong> In the canteen, it is the delivery bay where crates are put down before anyone peels anything.</p>
+<p><strong>Why it matters.</strong> Staging gives you four things:</p>
+<ul>
+<li><strong>A frozen copy.</strong> You can transform, check and re-run without hitting the source again.</li>
+<li><strong>A place to inspect.</strong> If a result looks wrong you can compare it to the raw staged rows.</li>
+<li><strong>Separation of duties.</strong> Extraction only reads; transformation only reshapes; neither depends on the other being fast.</li>
+<li><strong>Safe restarts.</strong> A failure in the transform step does not need a new extract.</li>
+</ul>
+<p>Informatica's plans give you the same idea in their connection options. When you create a plan, you can choose a <em>staging connection</em>, "a connection to a database for staging data", and the default shown comes from the Preferences view (User Guide 10.5.10, p.276). <span class="badge doc">From docs</span> That is a documented example of a staging area as a configured part of a real tool.</p>
+<h3 id="c8-staging-design">8.6.1 How to design staging tables</h3>
+<ul>
+<li><strong>Mirror the source, with all columns as text.</strong> A staged row should never fail because a date has a strange format. Conversion is the transform step's job.</li>
+<li><strong>Add audit columns.</strong> At least <code>batch_id</code>; often a load timestamp and the source file name.</li>
+<li><strong>No keys, no foreign keys, no constraints.</strong> Staging must accept bad data so that the transform step can decide what to do with it.</li>
+<li><strong>Empty it each run (or partition by batch).</strong> Old staged data is usually not worth keeping beyond debugging.</li>
+</ul>
+<pre><code>CREATE TABLE stg_customers (
+  batch_id    INTEGER,
+  customer_id TEXT,
+  first_name  TEXT,
+  last_name   TEXT,
+  email       TEXT,
+  zip_code    TEXT
+);
+CREATE TABLE stg_orders (
+  batch_id     INTEGER,
+  order_id     TEXT,
+  customer_id  TEXT,
+  order_date   TEXT,       -- arrives as DD/MM/YYYY text
+  total_amount TEXT,       -- may contain junk such as 'abc'
+  status_code  TEXT
+);</code></pre>
+<div class="callout example"><strong class="ctitle">ShopSphere staging, run 1</strong>
+<p>The extract wrote these rows into <code>stg_customers</code>, and notice it kept the mess exactly as found: the leading space in " Asha ", the upper-case "MENON", the trailing space in the email, the duplicate row for 1002 and the missing email for 1003.</p></div>
+<div class="tablewrap"><table class="sample">
+<caption>stg_customers after extract (batch 1)</caption>
+<thead><tr><th>batch_id</th><th>customer_id</th><th>first_name</th><th>last_name</th><th>email</th><th>zip_code</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>1001</td><td>" Asha "</td><td>MENON</td><td>"Asha.Menon@Example.com "</td><td>560001</td></tr>
+<tr><td>1</td><td>1002</td><td>Ravi</td><td>Kumar</td><td>ravi.k@example.com</td><td>600017</td></tr>
+<tr><td>1</td><td>1002</td><td>Ravi</td><td>Kumar</td><td>ravi.k@example.com</td><td>600017</td></tr>
+<tr><td>1</td><td>1003</td><td>Meera</td><td>Nair</td><td>NULL</td><td>682001</td></tr>
+</tbody></table></div>
+<div class="tablewrap"><table class="sample">
+<caption>stg_orders after extract (batch 1): all text, junk included</caption>
+<thead><tr><th>batch_id</th><th>order_id</th><th>customer_id</th><th>order_date</th><th>total_amount</th><th>status_code</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>5001</td><td>1001</td><td>20/10/2026</td><td>1499.00</td><td>S</td></tr>
+<tr><td>1</td><td>5002</td><td>1002</td><td>20/10/2026</td><td>250.50</td><td>S</td></tr>
+<tr><td>1</td><td>5003</td><td>1001</td><td>21/10/2026</td><td>75.00</td><td>P</td></tr>
+<tr><td>1</td><td>5004</td><td>1003</td><td>21/10/2026</td><td>abc</td><td>S</td></tr>
+<tr><td>1</td><td>5005</td><td>9999</td><td>22/10/2026</td><td>303.00</td><td>S</td></tr>
+</tbody></table></div>
+<p>Two rows here are traps we will deal with later: order 5004 has a total of "abc", and order 5005 belongs to customer 9999, who does not exist. Both are realistic: feeds from other systems are never perfectly clean.</p>
