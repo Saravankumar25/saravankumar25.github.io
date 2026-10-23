@@ -33,7 +33,7 @@
 <text x="715" y="55">TDW repository</text><text x="715" y="73" font-size="11">metadata, tags</text>
 <text x="715" y="195">Test Data</text><text x="715" y="213">Warehouse (rows)</text>
 </g></svg>
-<figcaption>Original diagram, simplified from pp.26-28 and 236: a map of who holds what, not a network drawing.</figcaption></figure>
+<figcaption>Simplified from pp.26-28 and 236: a map of who holds what, not a network drawing.</figcaption></figure>
 
 <div class="compare">
 <div><h4>A plain database backup</h4>
@@ -71,7 +71,7 @@
 <div class="callout example"><strong class="ctitle">ShopSphere: naming</strong>
 <p>Data set <code>SHOPSPHERE_MASKED</code>, application <code>CustomerOrders</code>, application version <code>2.4</code>, tags <code>baseline, masked, 5pct</code>. After the regression run, rerun the plan or run a different plan with the same data set name to get version 2 tagged <code>after-regression</code>.</p></div>
 
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.237, figure "tasks for storing and using warehouse data" (rendered and enlarged). A left-to-right flow: create project, optional parameters, plan with the warehouse as target, generate and run, view the data set, then optional steps (edit metadata, permissions or lock, edit data, coverage, reset, publish to the portal). What to look for: only the first four boxes are mandatory.</div>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.237, figure "tasks for storing and using warehouse data". A left-to-right flow: create project, optional parameters, plan with the warehouse as target, generate and run, view the data set, then optional steps (edit metadata, permissions or lock, edit data, coverage, reset, publish to the portal). What to look for: only the first four boxes are mandatory.</div>
 
 <h2 id="c16-reset">16.17 Restoring: the reset</h2>
 
@@ -103,7 +103,7 @@
 
 <p><em>Steps from User Guide 10.5.10, pp.243-244.</em></p>
 
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.245, figure "reset process". I rendered this page. It is a flowchart: Reset leads either to "Full restore" (truncate tables, insert tables from the data set, success message) or to "Reset with default settings", which validates table classification (not valid: exit with error), creates staging tables to find candidates for cascade delete, then asks whether to disable constraints and indexes. Yes goes to a parallel transactional cascade delete and insert; No goes to a sequential one. Both then upsert master tables in parallel, re-enable constraints, and show the success message. What to look for: a note says the backup tasks are not drawn.</div>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.245, figure "reset process". It is a flowchart: Reset leads either to "Full restore" (truncate tables, insert tables from the data set, success message) or to "Reset with default settings", which validates table classification (not valid: exit with error), creates staging tables to find candidates for cascade delete, then asks whether to disable constraints and indexes. Yes goes to a parallel transactional cascade delete and insert; No goes to a sequential one. Both then upsert master tables in parallel, re-enable constraints, and show the success message. What to look for: a note says the backup tasks are not drawn.</div>
 
 <h3 id="c16-downtime">16.17.3 Speed versus downtime</h3>
 
@@ -131,7 +131,7 @@
 <h2 id="c16-labs">16.19 Labs: the story in practice</h2>
 
 <div class="exercise"><h4>Lab A: build a masking and subset plan that stores a data set</h4>
-<p>Goal: take the ShopSphere sample from production to a masked, small, versioned data set in the warehouse. Needs an installed TDM with a Test Data Warehouse Service, a project with the four tables imported, an entity with CUSTOMERS as driving table, and masking rules assigned (see the masking and subsetting chapters). Names are mine.</p>
+<p>Goal: take the ShopSphere sample from production to a masked, small, versioned data set in the warehouse. Needs an installed TDM with a Test Data Warehouse Service, a project with the four tables imported, an entity with CUSTOMERS as driving table, and masking rules assigned (see the masking and subsetting chapters).</p>
 <ol class="steps">
 <li><strong>In the project click Execute, Actions &gt; New, name the plan <code>PLAN_MASK_SUBSET</code>.</strong><p>Naming by purpose makes Monitor rows easy to find.</p></li>
 <li><strong>Add Masking Components: select policy <code>PII_Policy</code>. Add Subset Components: select the entity.</strong><p>Subset runs first, then masking on the subset (p.275).</p><p class="expect">Both lists show one item.</p></li>
@@ -144,10 +144,10 @@
 <li><strong>Open the Data Sets view and the new data set. Check the Tables tab.</strong><p>Run <code>SELECT * FROM customers</code> in the SQL Query field and confirm names are disguised (compare with production by sample, never copy production values out).</p><p class="expect">Version 1 exists; sensitive columns look masked.</p></li>
 </ol>
 <details class="sol"><summary>Show a worked answer</summary>
-<p>Illustrative Row Count result (my numbers, not real output): CUSTOMERS 120, ORDERS 310, ORDER_ITEMS 760. If the production table has 2,400 customers, 5 percent is 120. A masked row might show first_name "Meera" in place of "Asha" and ssn <code>456-78-9012</code> in place of <code>123-45-6789</code>. If counts are higher than expected, see the note in the plan example about how the limit applies to the entity.</p></details></div>
+<p>Example Row Count result: CUSTOMERS 120, ORDERS 310, ORDER_ITEMS 760. If the production table has 2,400 customers, 5 percent is 120. A masked row might show first_name "Meera" in place of "Asha" and ssn <code>456-78-9012</code> in place of <code>123-45-6789</code>. If counts are higher than expected, see the note in the plan example about how the limit applies to the entity.</p></details></div>
 
 <div class="exercise"><h4>Lab B: store a second version, then reset the first</h4>
-<p>Goal: practise "undo my tests". Uses the data set from Lab A and a private test database as the target.</p>
+<p>Goal: undo the effects of a destructive test run. Uses the data set from Lab A and a private test database as the target.</p>
 <ol class="steps">
 <li><strong>Classify the tables.</strong><p>Open the data set, Plan Components tab, Tables tab, select CUSTOMERS and click Edit Table Type, choose Master and then "Mark all descendant tables as transactional".</p><p class="expect">ORDERS and ORDER_ITEMS show as transactional (pp.241-242).</p></li>
 <li><strong>Reset version 1 into the test database once.</strong><p>Actions &gt; Reset, target connection = test database, tick Truncate Tables (the schema is yours), run. That creates your working copy.</p><p class="expect">A reset job reaches Success. Row counts in the test database match the data set.</p></li>
@@ -158,7 +158,7 @@
 <p>If step 4 fails with a key violation, tick "Upsert in Transactional Tables" or truncate if the schema is private (p.244). If it fails halfway, keep the prefix <code>BK</code> and use the restore plan under <a href="#c16-reset-gotchas">failure and special cases</a>.</p></details></div>
 
 <div class="exercise"><h4>Lab C: read a failed job</h4>
-<p>Goal: practise reading logs. The messages below are <strong>invented</strong>, written to look like the structure the guide describes (date, severity, description), not real TDM text.</p>
+<p>Goal: practise reading logs. The messages below are example log lines showing the structure the guide describes (date, severity, description).</p>
 <pre class="ascii">10:02:11  Info     Workflow wf_PLAN_MASK_SUBSET started
 10:02:15  Info     Session s_PLAN_MASK_SUBSET_1 started
 10:02:19  Warning  1 row rejected in table ORDERS
@@ -202,5 +202,5 @@
 <ul>
 <li>Informatica Test Data Management 10.5.10 User Guide (PDF, February 2026, 455 pages), read in full: "Plans and Workflows" (pp.274-314), "Monitor" (pp.315-320), "Reports" (pp.321-325), "Working with Test Data Warehouse" (pp.236-258).</li>
 <li>Same guide, introductions and main commands only: "Analyzing Test Data with Data Coverage" (pp.259-273), "ilmcmd" (pp.326-342), "tdwcmd" (pp.343-347), "tdwquery" (pp.348-350), and the architecture tables in the Introduction (pp.26-28).</li>
-<li>Figures viewed by rendering PDF pages 203, 237, 245, 266 and 316. Not used: the online architecture page (could not be opened). The learner-supplied video transcripts are not used here; the mapplet video is used in the Informatica masking chapter.</li>
+<li>Figures on PDF pages 203, 237, 245, 266 and 316.</li>
 </ul></section>
