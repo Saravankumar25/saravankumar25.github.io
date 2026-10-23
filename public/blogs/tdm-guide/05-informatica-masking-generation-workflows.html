@@ -39,7 +39,7 @@
 
 <h3 id="c14-big-picture">5.1.2 The big picture: rules, domains, policies and assignments</h3>
 
-<h4 id="c14-parts">Four objects and how they connect</h4>
+<h4 id="c14-parts">Six objects and how they connect</h4>
 
 <p>Start with the ShopSphere problem. Your <code>CUSTOMERS</code> table has first name, last name, email, phone, SSN, date of birth, zip code and tax ID, all sensitive. You do not want to configure "how to mask an SSN" nine times in nine projects. TDM lets you define it once and reuse it. The guide's building blocks (User Guide 10.5.10, p.71 to 73, p.135 to 138, p.149 to 150) <span class="badge doc">From docs</span>:</p>
 
@@ -971,7 +971,7 @@ WHERE t.ssn = s.ssn OR t.phone = s.phone OR t.tax_id = s.tax_id;</code></pre>
 <p>One detail from the overview is easy to miss: if a table name or column name contains special characters, the data generation workflow fails (User Guide 10.5.10, p.190). Check your target names before you import metadata.</p>
 
 <div class="callout tip"><strong class="ctitle">Where you click</strong>
-<p>In the Test Data Manager web client, global rules live under <strong>Policies</strong>. Inside a project, the tabs are Overview, Discover, Define, Execute, Monitor and Security. Generation rules are assigned under <strong>Define | Data Generation</strong>, plans are built under <strong>Execute</strong> (User Guide 10.5.10, pp.50, 203). The next chapter tours plan building in detail.</p></div>
+<p>In the Test Data Manager web client, global rules live under <strong>Policies</strong>. Inside a project, the tabs are Overview, Discover, Define, Execute, Monitor and Permissions (older screenshots say Security). Generation rules are assigned under <strong>Define | Data Generation</strong>, plans are built under <strong>Execute</strong> (User Guide 10.5.10, pp.50, 203). The next chapter tours plan building in detail.</p></div>
 
 <h3 id="c15-rule-types">5.2.4 Rule types: standard, custom, advanced and ad hoc</h3>
 
@@ -1270,7 +1270,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <div class="callout example"><strong class="ctitle">ShopSphere: realistic emails (my adaptation of the guide's example)</strong>
 <p>Input <code>in_FirstName</code> mapped to <code>first_name</code>. Variable <code>var_Domain</code> with a Generation Rule Set: <code>example.com</code> 50 percent, <code>example.org</code> 50 percent. Output <code>out_Email</code> with the expression above. Result: Asha@example.com, Ravi@example.org.</p>
-<p>Two customers called Asha get the same email, as in the guide's own example. The guide does not say whether an input port reads the value <em>generated</em> for another column in the same run, so check that <code>first_name</code> is generated before the email. <span class="badge unverified">Verify in your version</span></p></div>
+<p>Two customers called Asha share the same name before the @. The guide does not say whether an input port reads the value <em>generated</em> for another column in the same run, so check that <code>first_name</code> is generated before the email. <span class="badge unverified">Verify in your version</span></p></div>
 
 <h4 id="c15-t-custom">5.2.9.11 Custom</h4>
 
@@ -1897,7 +1897,7 @@ ilmcmd -r -dvn "RESET Version1" -rf "C:\Documents\ResetObject.json" -ris PIS</co
 <h4 id="c16-create-dataset">5.3.16.1 Creating a data set</h4>
 
 <ol class="steps">
-<li><strong>Check the tables first.</strong><p>You cannot create a data set from tables with user-defined data types; mark such columns Restricted under Discover &gt; Columns. Tables without primary keys need logical keys, or a reset might fail. Character columns with precision 4000 should be edited to 3,999 or less (p.239).</p></li>
+<li><strong>Check the tables first.</strong><p>You cannot create a data set from tables with user-defined data types; mark such columns Restricted under Discover &gt; Columns. Tables without primary keys need logical keys, or a reset might fail. More than two character columns with precision 4000 should be edited to 3,999 or less (p.239).</p></li>
 <li><strong>Build a plan (masking, subset or generation) and in the plan settings select Test Data Warehouse from the target connections.</strong><p>The Data Set Properties section appears.</p></li>
 <li><strong>Enter a data set name (default: the plan name), application name, application version and tags.</strong><p>A new name creates version 1. TDM fills in the version number (p.240).</p></li>
 <li><strong>Finish the plan and click Actions &gt; Generate and Execute.</strong><p>Optionally publish to the self-service portal in the same step.</p><p class="expect">Monitor shows the job. On success the data set appears in the Data Sets view.</p></li>
