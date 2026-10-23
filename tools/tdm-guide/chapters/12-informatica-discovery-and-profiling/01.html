@@ -1,18 +1,23 @@
-<p>Before you can protect data you have to know where it is. ShopSphere's <code>CUSTOMERS</code> table has nine columns, and it is easy to see that <code>ssn</code> is sensitive. But the real production database has hundreds of tables, and a Social Security number can hide in a column called <code>NOTES</code>. <dfn>Data discovery</dfn> is Informatica's name for the automatic search that finds sensitive columns and table relationships so you do not have to read every column by eye.</p>
-<p>This chapter covers everything the guide says about discovery and profiling in Test Data Manager: the four kinds of profile, how to create and run them, how to review and approve their results, how primary keys and logical relationships fit in, and the three syllabus hands-on exercises (TDM and data profiling, profiling and masking, profiling and subset) built as labs on ShopSphere. It builds on <a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>, <a href="03-data-basics.html">the data basics chapter</a> (for keys), and the project and policy tour in <a href="11-informatica-tdm-tour.html">the guided tour of Test Data Manager</a>.</p>
-<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
-<p>The <strong>Informatica Test Data Management 10.5.10 User Guide, PDF, February 2026, 455 pages</strong>, chapter 5 "Data Discovery" (PDF pages 86 to 111), read in full, with supporting facts from chapter 1 (pp.30-34), chapter 3 (pp.60, 88) and chapter 4 (pp.73-75). I viewed the figures on pp.88 and 103 to 106. Citations look like <em>(User Guide 10.5.10, p.93)</em>.</p>
-<p>The guide's figures have no image address, so I use <strong>visual reference</strong> boxes. <strong>All ShopSphere numbers and results are illustrative</strong>, invented to explain the screens, and are labelled so. The syllabus gives only the titles of the three hands-on exercises, so the labs below are my reconstruction and mark which steps come from the guide.</p></div>
-<div class="callout recap"><strong class="ctitle">What you will learn</strong>
+<p>Before you can protect data you have to know where it is. ShopSphere's <code>CUSTOMERS</code> table has nine columns, so it is easy to see that <code>ssn</code> is sensitive. A real production database has hundreds of tables, and a Social Security number can hide in a column called <code>NOTES</code>. <dfn>Data discovery</dfn> is Informatica's name for the automatic search that finds sensitive columns and table relationships.</p>
+
+<p>This chapter covers the discovery and profiling material of the guide: the profile types, how to run them, how to review and approve results, primary keys and logical relationships, and three labs matching the syllabus items TDM_Handson1, 2 and 3. It builds on <a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>, <a href="03-data-basics.html">the data basics chapter</a> (for keys) and <a href="11-informatica-tdm-tour.html">the guided tour of Test Data Manager</a>.</p>
+
+<div class="callout note">
+<strong class="ctitle">What this chapter is based on</strong>
+<p>The <strong>Informatica Test Data Management 10.5.10 User Guide, PDF, February 2026, 455 pages</strong>, chapter 5 "Data Discovery" (PDF pages 86 to 111), read in full, with supporting facts from chapters 1, 3 and 4; the figures on pp.88 and 103 to 106 were viewed. Figures have no image address, so I use <strong>visual reference</strong> boxes. <strong>All ShopSphere numbers and results are illustrative.</strong> The syllabus gives only the titles of the three hands-on items, so the labs are my reconstruction, with guide steps cited by page.</p>
+</div>
+
+<div class="callout recap">
+<strong class="ctitle">What you will learn</strong>
 <ul>
-<li>What data discovery is for and the four profile types: primary key, entity (foreign key), data domain and column.</li>
-<li>What a primary key is, why subsetting and masking need keys, and how to discover and approve them.</li>
-<li>How data domain discovery finds sensitive columns, and what the sampling options mean.</li>
-<li>How to review results, approve or reject them, and assign domains by hand or by CSV.</li>
-<li>Constraints and relationships: logical keys, major and minor severity, and value cascades.</li>
-<li>Tips from the guide that affect profile speed and accuracy.</li>
-<li>Three labs that match the syllabus items TDM_Handson1, TDM_Handson2 and TDM_Handson3.</li>
-</ul></div>
+<li>The four profile types: primary key, entity (foreign key), data domain and column.</li>
+<li>What a primary key is and how to discover, review and approve keys.</li>
+<li>How data domain discovery finds sensitive columns and how to curate its results.</li>
+<li>Constraints, major and minor severity, and cascades.</li>
+<li>Three labs: profiling, profiling plus masking, profiling plus subset.</li>
+</ul>
+</div>
+
 <h2 id="c12-words">12.1 Words to know first</h2>
 <dl class="defs"><div><dt>Profile</dt><dd>A saved search definition: which tables, which kind of analysis, which sampling limits. You can run it again later.</dd></div>
 <div><dt>Profiling</dt><dd>Reading the data (or the column names) to describe it: which columns are unique, which look like SSNs, how many are empty.</dd></div>
@@ -46,15 +51,10 @@
 <div class="node"><b>Applied</b>keys, constraints, domain assignments</div>
 </div>
 <h3 id="c12-sources">Which sources can be profiled</h3>
-<p>Profiles run on <strong>relational sources</strong>: Oracle, Microsoft SQL Server, IBM DB2 for Linux, UNIX and Windows, MySQL, Sybase and Teradata. Use ODBC to connect to MySQL, Sybase and Teradata. Data domain profiles also run on Hive and HDFS sources (p.87). Rules from the guide (pp.87-88):</p>
+<p>Profiles run on <strong>relational sources</strong>: Oracle, Microsoft SQL Server, IBM DB2 for Linux, UNIX and Windows, MySQL, Sybase and Teradata (ODBC for MySQL, Sybase and Teradata). Data domain profiles also run on Hive and HDFS (User Guide 10.5.10, p.87). Rules (pp.87-88, 94):</p>
 <ul>
-<li><strong>Not nonrelational sources.</strong> You cannot run a discovery profile on them. You can run profiles in PowerCenter or Informatica Data Quality, export the results, and import them into the TDM repository.</li>
-<li>You can view imported results of profiles that use the Enterprise Discovery Profile and Profile options. For Hadoop, import results from the Developer client with the Enterprise Discovery Profile option.</li>
-<li>You can import results of discovery done with mapplets that use <strong>simple regular expressions</strong>, but not mapplets that use labeler, tokenizer, content set or reference tables.</li>
-<li>Importing data domains from the Model repository does not bring data patterns, metadata patterns or preferred rules.</li>
-<li>A table must have the <strong>same connection</strong> in the profile as when you imported it, or results may be unexpected.</li>
-<li><strong>Two tables with the same name</strong> cannot be in one profile. If a project has two EMPLOYEE tables with different owners, make a separate profile for each.</li>
-<li>If you import a MySQL source from PowerCenter, unique key constraints appear as primary keys on the Discover &gt; Tables &gt; Columns tab.</li>
-<li>You cannot run primary key and entity profiles on Hive data sources, and you cannot run profiles on Avro or Parquet formats (pp.61, 94).</li>
+<li>You cannot profile nonrelational sources, but you can profile in PowerCenter or Informatica Data Quality, export the results and import them into TDM. Imported mapplet-based results must use simple regular expressions (no labeler, tokenizer, content set or reference tables).</li>
+<li>A table must use the <strong>same connection</strong> in the profile as when imported, or results may be unexpected.</li>
+<li>One profile cannot hold <strong>two tables with the same name</strong>; make a profile per table.</li>
+<li>No primary key or entity profiles on Hive, and no profiles on Avro or Parquet.</li>
 </ul>
-<p>ShopSphere's relational source qualifies. Note the "same table name" rule: if ShopSphere had a <code>CUSTOMERS</code> table in two schemas in one project, you would need two profiles.</p>

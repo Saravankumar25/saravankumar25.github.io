@@ -1,26 +1,20 @@
 <h2 id="c12-discover-view">12.3 The Discover view</h2>
-<p>Inside a project, the <strong>Discover</strong> tab is where profiling happens. The guide describes it as the place to view tables, manage primary key and foreign key relationships, configure profiles, and update columns for masking (User Guide 10.5.10, p.88).</p>
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.88, Figure "Discover view in a Project". What to look for: the project tab bar, then Tables, Profile, Columns and Files sub-tabs; a list of tables in the upper pane; and, below, a General Properties pane and a Relationship Overview pane that draws the selected table with its related tables.</div>
-<div class="tablewrap"><table>
-<thead><tr><th>Sub-view</th><th>What you do there (pp.88-89)</th></tr></thead>
-<tbody>
-<tr><td>Tables</td><td>View tables in the data source and the relationships of a selected table; see its columns; define primary and foreign keys; delete a table from the metadata. You can disable a physical primary key column when you do not need composite keys or entity relationships (select the row on Tables &gt; Columns and enable or disable from the Actions menu). You can also edit the precision of a source column to match the value you need in the target.</td></tr>
-<tr><td>Profile</td><td>Define a profile that finds columns for data domains and possible primary-key and foreign-key relationships.</td></tr>
-<tr><td>Columns</td><td>Maintain data domain assignments; mark columns Restricted or Sensitive; assign domains in bulk; define similar columns for value cascades.</td></tr>
-<tr><td>Files</td><td>List XSD files in the project and open one for subset, masking and generation work.</td></tr></tbody></table></div>
+<p>Inside a project, the <strong>Discover</strong> tab is where profiling happens (User Guide 10.5.10, pp.88-89). Its sub-views: <strong>Tables</strong> (tables, relationships, columns; define keys; delete a table; disable a physical primary key you do not need; edit a column's precision), <strong>Profile</strong> (define profiles), <strong>Columns</strong> (maintain domain assignments, mark columns Restricted or Sensitive, assign domains in bulk, define value cascades) and <strong>Files</strong> (XSD files).</p>
+
+<div class="visualref">
+<span class="vtitle">Visual reference</span>
+Informatica TDM 10.5.10 User Guide, p.88, Figure "Discover view in a Project". What to look for: the Tables, Profile, Columns and Files sub-tabs, a table list, and a Relationship Overview pane that draws the selected table with its related tables.
+</div>
+
 <h3 id="c12-column-props">Column properties</h3>
-<p>The Discover &gt; Columns view shows these properties for each column (p.89):</p>
-<div class="tablewrap"><table>
-<thead><tr><th>Property</th><th>Meaning</th></tr></thead>
-<tbody>
-<tr><td>Table Name, Column, Owner, Data Type</td><td>Where the column lives (Owner is the database schema) and its type.</td></tr>
-<tr><td>Domain</td><td>The data domain the column belongs to.</td></tr>
-<tr><td>Restricted</td><td>The Integration Service does not write this column's value to a target.</td></tr>
-<tr><td>Computed</td><td>The column's data is computed from other columns. You cannot assign rules to it.</td></tr>
-<tr><td>Sensitive</td><td>The column contains sensitive data. This is for reference only; it does not affect processing.</td></tr>
-<tr><td>Similar Value Columns</td><td>Number of columns related to this one in a value cascade.</td></tr></tbody></table></div>
-<p><strong>Sensitive columns.</strong> Marking a column sensitive is a label for people. It does not mask anything by itself. When you assign a data domain to a column, Test Data Manager marks it sensitive automatically (p.89). So a column with a domain is both labelled and ready for domain rules.</p>
-<p><strong>Computed columns (p.90).</strong> Example: <code>Net_Pay = Basic_Salary + Allowances - Tax_Deduction</code>. The database fills it in. TDM can include such a table but does not copy data into computed columns in the target, because the target database recomputes them. You cannot apply masking or generation rules, nor a value cascade or auto cascade, and you cannot run a generation operation on an entity whose primary key column is computed. ShopSphere has no computed column in our sample, but an <code>ORDERS.total_amount</code> computed from <code>ORDER_ITEMS</code> would behave this way. That is a thought experiment of ours, not the real schema.</p>
+<p>Discover &gt; Columns shows Table Name, Column, Owner (the schema), Data Type, <strong>Domain</strong>, and three flags (p.89):</p>
+<ul>
+<li><strong>Restricted</strong>: the Integration Service does not write the value to a target.</li>
+<li><strong>Computed</strong>: the value is calculated from other columns, for example <code>Net_Pay = Basic_Salary + Allowances - Tax_Deduction</code>. You cannot assign masking or generation rules or cascades to it, and TDM does not copy data into it because the database recomputes it (p.90).</li>
+<li><strong>Sensitive</strong>: a label for people only; it does not affect processing. Assigning a data domain marks the column sensitive automatically.</li>
+</ul>
+<p>A <strong>Similar Value Columns</strong> count shows how many columns share a value cascade with this one.</p>
+
 <h3 id="c12-cascades">Value cascades and auto cascades</h3>
 <p>Both make sure the <em>same original value</em> becomes the <em>same masked value</em> in several places. That is the difference between a customer whose id looks right everywhere and one whose id no longer matches across tables.</p>
 <div class="compare">
@@ -38,14 +32,12 @@
 <li><strong>Delete the group:</strong> select the driving column, open Similar Value Columns, select any column in the group, click Delete, confirm (p.91).</li>
 </ol>
 <h2 id="c12-task-flow">12.4 The discovery task flow</h2>
-<p>Before profiles can run, the <strong>administrator</strong> must configure a source database connection for data discovery, plus connections to the Data Integration Service and the Model Repository Service (User Guide 10.5.10, p.92). The <a href="10-informatica-overview-and-architecture.html">Informatica architecture chapter</a> explained why those services are involved. If you are a developer and the Execute button fails with a connection message, that setup is the first place to look.</p>
+<p>Before profiles can run, the <strong>administrator</strong> must configure a source database connection for discovery plus connections to the Data Integration Service and Model Repository Service (User Guide 10.5.10, p.92). The steps (p.92):</p>
 <ol class="steps">
-<li><strong>Create a profile.</strong><p>Name and describe it.</p></li>
-<li><strong>Choose the type:</strong> primary key, entity, or data domain discovery.<p>You may combine primary key with entity or with data domain.</p></li>
-<li><strong>For a data domain profile, choose which data domains (or policies) to search for.</strong><p>Selecting a policy includes all its domains.</p></li>
-<li><strong>Choose the sampling size.</strong><p>More rows is more reliable and slower.</p></li>
-<li><strong>Run the profile and monitor the job.</strong><p>Use the project's Monitor view.</p></li>
-<li><strong>When it completes, open the profile again.</strong><p>The guide says to close and reopen the profile in Test Data Manager to see results (p.103).</p></li>
-<li><strong>Review the results.</strong><p>Primary key, entity and data domain results are on separate tabs.</p></li>
-<li><strong>Select and approve the results to use</strong> for masking and subset.<p>Approval is what applies them.</p></li>
+<li><strong>Create a profile and choose its type</strong> (primary key, entity or data domain; primary key can combine with the others).</li>
+<li><strong>For a data domain profile, choose domains or policies, then choose the sampling size.</strong>
+<p>More rows is more reliable and slower.</p></li>
+<li><strong>Run the profile and watch the job in Monitor.</strong></li>
+<li><strong>Close and reopen the profile, review the results, then approve the ones to use.</strong>
+<p>The guide says results show only after you reopen it (p.103). Approval applies them.</p></li>
 </ol>
