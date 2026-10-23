@@ -1,5 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 8: Delphix (1): connecting, keys and profiling | TDM Guide</title><meta name="description" content="What the Delphix masking engine is, connecting to databases and a VDB, rule sets and primary keys, and profiling to find sensitive data."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/08-delphix-connect-keys-profiling.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 8: Delphix (1): connecting, keys and profiling | TDM Guide"><meta property="og:description" content="What the Delphix masking engine is, connecting to databases and a VDB, rule sets and primary keys, and profiling to find sensitive data."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" aria-label="Chapter navigation"><a class="allchap" href="index.html">← Guide home &amp; curriculum map</a><details class="partbox"><summary>Foundations</summary><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a></div></details><details class="partbox"><summary>Informatica TDM</summary><div class="chapter-list"><a class="" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a></div></details><details class="partbox"><summary>GenRocket</summary><div class="chapter-list"><a class="" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a></div></details><details class="partbox" open><summary>Delphix</summary><div class="chapter-list"><a class="current" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a></div></details><details class="partbox"><summary>Capstone and reference</summary><div class="chapter-list"><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, the capstone and the glossary</a></div></details><a class="" href="sources-and-limitations.html" style="margin-top:10px">About the sources</a><h3>On this page</h3><div class="section-list"><a class="l2" href="#c8-s1">8.1 Delphix masking: what it is and how it is organised</a><a class="l3" href="#c22-words">8.1.1 Words to know first</a><a class="l3" href="#c22-what-is">8.1.2 What Delphix masking is</a><a class="l3" href="#c22-does">8.1.3 What the engine does for you</a><a class="l3" href="#c22-gui">8.1.4 The engine's web interface</a><a class="l3" href="#c22-model">8.1.5 The object model in plain words</a><a class="l3" href="#c22-flow">8.1.6 How a masking project flows</a><a class="l3" href="#c22-terms-walk">8.1.7 The terminology page, term by term</a><a class="l3" href="#c22-deploy">8.1.8 Where the engine runs: deployment options at overview level</a><a class="l3" href="#c22-roles">8.1.9 Users and roles overview</a><a class="l3" href="#c22-multi">8.1.10 Moving work between engines: export, import and sync</a><a class="l3" href="#c22-story">8.1.11 ShopSphere in object terms</a><a class="l3" href="#c22-syllabus">8.1.12 How Delphix fits the syllabus (Days 51 to 56)</a><a class="l3" href="#c22-versions">8.1.13 Frequent releases: expect your screen to differ</a><a class="l3" href="#c22-mistakes">8.1.14 Common mistakes and gotchas</a><a class="l3" href="#c22-recap">8.1.15 Recap</a><a class="l3" href="#c22-sources">Sources used in this section</a><a class="l2" href="#c8-s2">8.2 Delphix: connecting to data and to a VDB</a><a class="l3" href="#c23-words">8.2.1 Words to know first</a><a class="l3" href="#c23-environments">8.2.2 Applications and environments</a><a class="l3" href="#c23-connectors">8.2.3 Connectors: what they are</a><a class="l3" href="#c23-create">8.2.4 Creating a connector: the wizard, field by field</a><a class="l3" href="#c23-file-connectors">8.2.5 File and mainframe connectors</a><a class="l3" href="#c23-test">8.2.6 Testing, editing and deleting a connector</a><a class="l3" href="#c23-supported">8.2.7 Which data sources are supported, and extended connectors</a><a class="l3" href="#c23-permissions">8.2.8 Database permissions and preparing the database</a><a class="l3" href="#c23-vdb">8.2.9 What a VDB is, from zero</a><a class="l3" href="#c23-vdbconn">8.2.10 &quot;Create a connector to a VDB from the masking engine&quot;</a><a class="l3" href="#c23-mistakes">8.2.11 Common mistakes and gotchas</a><a class="l3" href="#c23-recap">8.2.12 Recap</a><a class="l3" href="#c23-sources">Sources used in this section</a><a class="l2" href="#c8-s3">8.3 Delphix: rule sets, primary keys and data integrity</a><a class="l3" href="#c24-words">8.3.1 Words to know first</a><a class="l3" href="#c24-keys">8.3.2 Primary and foreign keys from zero, with ShopSphere</a><a class="l3" href="#c24-whykey">8.3.3 Why a masking engine needs a key on every table</a><a class="l3" href="#c24-rulesets">8.3.4 Rule sets: what they are and the four types</a><a class="l3" href="#c24-create">8.3.5 Creating a database rule set</a><a class="l3" href="#c24-manage">8.3.6 Editing, refreshing, copying, deleting and verifying</a><a class="l3" href="#c24-logical-key">8.3.7 Logical keys, filters and custom SQL</a><a class="l3" href="#c24-checklist">8.3.8 The Checklist: does every table have a usable key?</a><a class="l3" href="#c24-integrity">8.3.9 Data integrity in primary and foreign key columns</a><a class="l3" href="#c24-lab">8.3.10 Hands-on lab: a rule set for the SHOPSPHERE tables</a><a class="l3" href="#c24-mistakes">8.3.11 Common mistakes and gotchas</a><a class="l3" href="#c24-recap">8.3.12 Recap</a><a class="l3" href="#c24-sources">Sources used in this section</a><a class="l2" href="#c8-s4">8.4 Delphix: profiling to find sensitive data</a><a class="l3" href="#c25-words">8.4.1 Words to know first</a><a class="l3" href="#c25-why">8.4.2 Why profile at all?</a><a class="l3" href="#c25-concepts">8.4.3 Profile, domain, algorithm assignment and inventory: how they differ</a><a class="l3" href="#c25-how-asdd-decides">8.4.4 How the profiler decides: classifiers, strengths and thresholds</a><a class="l3" href="#c25-profile-sets">8.4.5 Profile sets: choosing and configuring the rulebook</a><a class="l3" href="#c25-domains-classifiers">8.4.6 Domains and classifiers on the Settings screens</a><a class="l3" href="#c25-profiling-job">8.4.7 Creating and managing a profiling job</a><a class="l3" href="#c25-run-monitor">8.4.8 Running a profiling job and reading the results</a><a class="l3" href="#c25-inventory-review">8.4.9 From findings to a reviewed inventory</a><a class="l3" href="#c25-shopsphere-predictions">8.4.10 ShopSphere: what should the profiler flag?</a><a class="l3" href="#c25-lab">8.4.11 Lab: profile ShopSphere (Day 52, TDM_Handson5)</a><a class="l3" href="#c25-mistakes">8.4.12 Common mistakes and gotchas</a><a class="l3" href="#c25-recap">8.4.13 Recap</a><a class="l3" href="#c25-sources">Sources used in this section</a></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">TDM GUIDE / DELPHIX / CHAPTER 8</p><h1>Delphix (1): connecting, keys and profiling</h1><div class="meta"><span>Saravan Kumar M K</span><span>4 sections</span></div><p class="chapter-summary">What the Delphix masking engine is, connecting to databases and a VDB, rule sets and primary keys, and profiling to find sensitive data.</p></div><h2 id="c8-s1">8.1 Delphix masking: what it is and how it is organised</h2>
-<p><span class="day">Day 51 to Day 56</span></p>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 8: Delphix (1): connecting, keys and profiling | TDM Guide</title><meta name="description" content="What the Delphix masking engine is, connecting to databases and a VDB, rule sets and primary keys, and profiling to find sensitive data."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/08-delphix-connect-keys-profiling.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 8: Delphix (1): connecting, keys and profiling | TDM Guide"><meta property="og:description" content="What the Delphix masking engine is, connecting to databases and a VDB, rule sets and primary keys, and profiling to find sensitive data."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" aria-label="Chapter navigation"><a class="allchap" href="index.html">← All 10 chapters</a><h3>Chapters</h3><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a><a class="" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a><a class="" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a><a class="current" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, the capstone and the glossary</a><a class="" href="sources-and-limitations.html"><span class="n">··</span> About the sources</a></div><h3>In this chapter</h3><div class="section-list"><details class="grpbox" open data-grp="c8-s1"><summary>Delphix masking: what it is and how it is organised</summary><div class="secs"><a href="#c22-words">8.1 Words to know first</a><a href="#c22-what-is">8.2 What Delphix masking is</a><a href="#c22-does">8.3 What the engine does for you</a><a href="#c22-gui">8.4 The engine's web interface</a><a href="#c22-model">8.5 The object model in plain words</a><a href="#c22-flow">8.6 How a masking project flows</a><a href="#c22-terms-walk">8.7 The terminology page, term by term</a><a href="#c22-deploy">8.8 Where the engine runs: deployment options at overview level</a><a href="#c22-roles">8.9 Users and roles overview</a><a href="#c22-multi">8.10 Moving work between engines: export, import and sync</a><a href="#c22-story">8.11 ShopSphere in object terms</a><a href="#c22-syllabus">8.12 How Delphix fits the syllabus (Days 51 to 56)</a><a href="#c22-versions">8.13 Frequent releases: expect your screen to differ</a><a href="#c22-mistakes">8.14 Common mistakes and gotchas</a><a href="#c22-recap">8.15 Recap</a></div></details><details class="grpbox" data-grp="c8-s2"><summary>Delphix: connecting to data and to a VDB</summary><div class="secs"><a href="#c23-words">8.16 Words to know first</a><a href="#c23-environments">8.17 Applications and environments</a><a href="#c23-connectors">8.18 Connectors: what they are</a><a href="#c23-create">8.19 Creating a connector: the wizard, field by field</a><a href="#c23-file-connectors">8.20 File and mainframe connectors</a><a href="#c23-test">8.21 Testing, editing and deleting a connector</a><a href="#c23-supported">8.22 Which data sources are supported, and extended connectors</a><a href="#c23-permissions">8.23 Database permissions and preparing the database</a><a href="#c23-vdb">8.24 What a VDB is, from zero</a><a href="#c23-vdbconn">8.25 &quot;Create a connector to a VDB from the masking engine&quot;</a><a href="#c23-mistakes">8.26 Common mistakes and gotchas</a><a href="#c23-recap">8.27 Recap</a></div></details><details class="grpbox" data-grp="c8-s3"><summary>Delphix: rule sets, primary keys and data integrity</summary><div class="secs"><a href="#c24-words">8.28 Words to know first</a><a href="#c24-keys">8.29 Primary and foreign keys from zero, with ShopSphere</a><a href="#c24-whykey">8.30 Why a masking engine needs a key on every table</a><a href="#c24-rulesets">8.31 Rule sets: what they are and the four types</a><a href="#c24-create">8.32 Creating a database rule set</a><a href="#c24-manage">8.33 Editing, refreshing, copying, deleting and verifying</a><a href="#c24-logical-key">8.34 Logical keys, filters and custom SQL</a><a href="#c24-checklist">8.35 The Checklist: does every table have a usable key?</a><a href="#c24-integrity">8.36 Data integrity in primary and foreign key columns</a><a href="#c24-lab">8.37 Hands-on lab: a rule set for the SHOPSPHERE tables</a><a href="#c24-mistakes">8.38 Common mistakes and gotchas</a><a href="#c24-recap">8.39 Recap</a></div></details><details class="grpbox" data-grp="c8-s4"><summary>Delphix: profiling to find sensitive data</summary><div class="secs"><a href="#c25-words">8.40 Words to know first</a><a href="#c25-why">8.41 Why profile at all?</a><a href="#c25-concepts">8.42 Profile, domain, algorithm assignment and inventory: how they differ</a><a href="#c25-how-asdd-decides">8.43 How the profiler decides: classifiers, strengths and thresholds</a><a href="#c25-profile-sets">8.44 Profile sets: choosing and configuring the rulebook</a><a href="#c25-domains-classifiers">8.45 Domains and classifiers on the Settings screens</a><a href="#c25-profiling-job">8.46 Creating and managing a profiling job</a><a href="#c25-run-monitor">8.47 Running a profiling job and reading the results</a><a href="#c25-inventory-review">8.48 From findings to a reviewed inventory</a><a href="#c25-shopsphere-predictions">8.49 ShopSphere: what should the profiler flag?</a><a href="#c25-lab">8.50 Lab: profile ShopSphere (Day 52, TDM_Handson5)</a><a href="#c25-mistakes">8.51 Common mistakes and gotchas</a><a href="#c25-recap">8.52 Recap</a></div></details></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">TDM GUIDE / DELPHIX / CHAPTER 08 OF 10</p><h1>Delphix (1): connecting, keys and profiling</h1><div class="meta"><span>Saravan Kumar M K</span><span>Updated 2026-10-23</span><span>52 sections</span></div><p class="chapter-summary">What the Delphix masking engine is, connecting to databases and a VDB, rule sets and primary keys, and profiling to find sensitive data.</p></div><details class="pagetoc"><summary>Contents of this chapter</summary><details class="grpbox" open data-grp="c8-s1"><summary>Delphix masking: what it is and how it is organised</summary><div class="secs"><a href="#c22-words">8.1 Words to know first</a><a href="#c22-what-is">8.2 What Delphix masking is</a><a href="#c22-does">8.3 What the engine does for you</a><a href="#c22-gui">8.4 The engine's web interface</a><a href="#c22-model">8.5 The object model in plain words</a><a href="#c22-flow">8.6 How a masking project flows</a><a href="#c22-terms-walk">8.7 The terminology page, term by term</a><a href="#c22-deploy">8.8 Where the engine runs: deployment options at overview level</a><a href="#c22-roles">8.9 Users and roles overview</a><a href="#c22-multi">8.10 Moving work between engines: export, import and sync</a><a href="#c22-story">8.11 ShopSphere in object terms</a><a href="#c22-syllabus">8.12 How Delphix fits the syllabus (Days 51 to 56)</a><a href="#c22-versions">8.13 Frequent releases: expect your screen to differ</a><a href="#c22-mistakes">8.14 Common mistakes and gotchas</a><a href="#c22-recap">8.15 Recap</a></div></details><details class="grpbox" data-grp="c8-s2"><summary>Delphix: connecting to data and to a VDB</summary><div class="secs"><a href="#c23-words">8.16 Words to know first</a><a href="#c23-environments">8.17 Applications and environments</a><a href="#c23-connectors">8.18 Connectors: what they are</a><a href="#c23-create">8.19 Creating a connector: the wizard, field by field</a><a href="#c23-file-connectors">8.20 File and mainframe connectors</a><a href="#c23-test">8.21 Testing, editing and deleting a connector</a><a href="#c23-supported">8.22 Which data sources are supported, and extended connectors</a><a href="#c23-permissions">8.23 Database permissions and preparing the database</a><a href="#c23-vdb">8.24 What a VDB is, from zero</a><a href="#c23-vdbconn">8.25 &quot;Create a connector to a VDB from the masking engine&quot;</a><a href="#c23-mistakes">8.26 Common mistakes and gotchas</a><a href="#c23-recap">8.27 Recap</a></div></details><details class="grpbox" data-grp="c8-s3"><summary>Delphix: rule sets, primary keys and data integrity</summary><div class="secs"><a href="#c24-words">8.28 Words to know first</a><a href="#c24-keys">8.29 Primary and foreign keys from zero, with ShopSphere</a><a href="#c24-whykey">8.30 Why a masking engine needs a key on every table</a><a href="#c24-rulesets">8.31 Rule sets: what they are and the four types</a><a href="#c24-create">8.32 Creating a database rule set</a><a href="#c24-manage">8.33 Editing, refreshing, copying, deleting and verifying</a><a href="#c24-logical-key">8.34 Logical keys, filters and custom SQL</a><a href="#c24-checklist">8.35 The Checklist: does every table have a usable key?</a><a href="#c24-integrity">8.36 Data integrity in primary and foreign key columns</a><a href="#c24-lab">8.37 Hands-on lab: a rule set for the SHOPSPHERE tables</a><a href="#c24-mistakes">8.38 Common mistakes and gotchas</a><a href="#c24-recap">8.39 Recap</a></div></details><details class="grpbox" data-grp="c8-s4"><summary>Delphix: profiling to find sensitive data</summary><div class="secs"><a href="#c25-words">8.40 Words to know first</a><a href="#c25-why">8.41 Why profile at all?</a><a href="#c25-concepts">8.42 Profile, domain, algorithm assignment and inventory: how they differ</a><a href="#c25-how-asdd-decides">8.43 How the profiler decides: classifiers, strengths and thresholds</a><a href="#c25-profile-sets">8.44 Profile sets: choosing and configuring the rulebook</a><a href="#c25-domains-classifiers">8.45 Domains and classifiers on the Settings screens</a><a href="#c25-profiling-job">8.46 Creating and managing a profiling job</a><a href="#c25-run-monitor">8.47 Running a profiling job and reading the results</a><a href="#c25-inventory-review">8.48 From findings to a reviewed inventory</a><a href="#c25-shopsphere-predictions">8.49 ShopSphere: what should the profiler flag?</a><a href="#c25-lab">8.50 Lab: profile ShopSphere (Day 52, TDM_Handson5)</a><a href="#c25-mistakes">8.51 Common mistakes and gotchas</a><a href="#c25-recap">8.52 Recap</a></div></details></details><div class="grp" id="c8-s1"><span class="grplabel">Delphix masking: what it is and how it is organised</span><span class="day">Day 51 to Day 56</span></div>
 <p>You have now seen two other families of tools. <a href="04-informatica-architecture-discovery-subset.html#c4-s1">Informatica TDM</a> is a large suite that discovers, subsets, masks and generates data. <a href="06-genrocket-building-blocks.html#c6-s1">GenRocket</a> builds synthetic data from scratch. This part of the guide is about the third tool, <strong>Delphix</strong>, and more precisely its masking product, called <strong>Delphix Continuous Compliance</strong>. Its engine finds sensitive values in a database or a file and replaces them with realistic but fictitious ones, so that a copy of production can safely go to testers.</p>
 <p>This opening chapter is a map. You will not create anything yet. You will learn what the product is for, what its screens look like, which objects the engine keeps (an environment, a connector, a rule set, an inventory and so on), and in what order a masking project touches them. Every later Delphix chapter assumes this map. When a button or a field name confuses you later, the cause is nearly always "I forgot which object lives inside which".</p>
 <p>The chapters after this one go deeper on one slice at a time. <a href="08-delphix-connect-keys-profiling.html#c8-s2">Connecting to data and to a VDB</a> covers environments and connectors. <a href="08-delphix-connect-keys-profiling.html#c8-s3">Rule sets, primary keys and data integrity</a> covers the next layer. <a href="08-delphix-connect-keys-profiling.html#c8-s4">Profiling</a>, <a href="09-delphix-masking-files-labs.html#c9-s1">algorithms and masking jobs</a> and <a href="09-delphix-masking-files-labs.html#c9-s2">file masking</a> finish the engine, and <a href="09-delphix-masking-files-labs.html#c9-s3">the hands-on labs</a> put it together.</p>
@@ -18,7 +17,7 @@
 <li>The deployment options, the user and role system, and how this fits the syllabus days 51 to 56.</li>
 </ul></div>
 
-<h3 id="c22-words">8.1.1 Words to know first</h3>
+<h2 id="c22-words">8.1 Words to know first</h2>
 <p>These are the words you meet in the first five minutes. Each one gets a fuller treatment later in the chapter.</p>
 <dl class="defs">
 <div><dt>Continuous Compliance engine</dt>
@@ -47,15 +46,15 @@
 <dd>A virtual database: a lightweight, writable copy of a database that Delphix's virtualization product creates in minutes. <a href="08-delphix-connect-keys-profiling.html#c8-s2">The next chapter</a> explains it from zero.</dd></div>
 </dl>
 
-<h3 id="c22-what-is">8.1.2 What Delphix masking is</h3>
-<h4 id="c22-problem">8.1.2.1 The problem it answers</h4>
+<h2 id="c22-what-is">8.2 What Delphix masking is</h2>
+<h3 id="c22-problem">8.2.1 The problem it answers</h3>
 <p>You already know the story from <a href="02-privacy-discovery-subsetting-masking.html#c2-s1">the chapter on sensitive data and regulations</a> and <a href="02-privacy-discovery-subsetting-masking.html#c2-s3">the chapter on masking concepts</a>. Production holds real customers. Testers and developers need data that behaves like production but must not leak real people. The Delphix introduction frames the same problem: breaches, pressure from regulators and the fact that teams also want to move faster. It says that encryption suits data in motion or at rest on disks, but is a poor fit for protecting non-production copies used for development, testing and reporting.</p>
 <p>Its answer is masking: replace confidential values (the page names Social Security numbers, patient records and credit card numbers) with fictitious yet realistic data. It adds that masking, unlike encryption, protects data irreversibly in downstream environments, and that masking should stay <em>consistent</em> across different data sources while keeping <dfn>referential integrity</dfn>. Referential integrity means that a value which points to another table's row (a foreign key) still points to the right row after masking. That idea drives <a href="08-delphix-connect-keys-profiling.html#c8-s3">the rule set and keys chapter</a>. <span class="badge doc">From docs</span></p>
 
 <div class="callout why"><strong class="ctitle">Why this matters for ShopSphere</strong>
 <p>ShopSphere's testers need CUSTOMERS, ORDERS and ORDER_ITEMS that join correctly (every order belongs to a customer). If the tool blanked the names but broke the joins, test cases such as "show a customer's last five orders" would return nothing. Realistic and consistent is the whole point.</p></div>
 
-<h4 id="c22-platform">8.1.2.2 The platform around it</h4>
+<h3 id="c22-platform">8.2.2 The platform around it</h3>
 <p>The masking capability is one part of the Delphix DevOps Data Platform. The introduction page describes four services: <strong>virtualize</strong> (compressed, lightweight, writable virtual copies), <strong>identify and secure</strong> (find sensitive values and mask them), <strong>manage</strong> (provision and audit copies from one point of control) and <strong>self-service</strong> (let developers and testers refresh, rewind, bookmark, branch and share their copies). <span class="badge doc">From docs</span></p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/intro.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/intro.png" alt="Platform diagram: applications, files and databases from on-premises and cloud feed a Connect stage, then Virtualize, Secure and Manage stages, then APIs that serve developer, QA, analyst and data scientist data pods" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The vendor's platform picture. Read it left to right: sources (applications, files, databases, on-premises or cloud) are connected, virtualized (sync, compress, provision), secured (compliance policy, masking), managed (distribute, audit and report) and then handed to people such as a developer, QA and an analyst. The masking engine of this section is the "Secure" box. <a class="badge-link" href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
@@ -64,17 +63,17 @@
 <div class="callout warn"><strong class="ctitle">Two numbers that disagree inside the docs</strong>
 <p>The introduction page says "eighteen algorithm frameworks" in one place and "seven out-of-the-box algorithm frameworks" in another. Both appear in the same page. I cannot tell which is current, so this guide does not quote a count. <a href="09-delphix-masking-files-labs.html#c9-s1">The algorithms chapter</a> lists the frameworks that the algorithm pages actually describe.</p></div>
 
-<h3 id="c22-does">8.1.3 What the engine does for you</h3>
+<h2 id="c22-does">8.3 What the engine does for you</h2>
 <p>Think of the engine as a three-step assembly line that you configure once and re-run on every refresh: <em>find</em> the sensitive columns, <em>decide</em> what replaces them, <em>apply</em> the replacement.</p>
 <div class="flow"><div class="node"><b>1. Connect</b>tell the engine where the data lives</div><div class="arrow">→</div><div class="node"><b>2. Profile</b>find the sensitive columns</div><div class="arrow">→</div><div class="node"><b>3. Assign</b>pick an algorithm per column</div><div class="arrow">→</div><div class="node"><b>4. Mask or tokenize</b>run a job</div></div>
 
-<h4 id="c22-profiling">8.1.3.1 Finding sensitive data: profiling</h4>
+<h3 id="c22-profiling">8.3.1 Finding sensitive data: profiling</h3>
 <p>The introduction names two methods. <strong>Column-level profiling</strong> uses regular expressions to scan the <em>names</em> of columns (metadata) against dozens of pre-configured classifiers, for example a pattern that recognises a column called <code>ssn</code> or <code>last_name</code>. <strong>Data-level profiling</strong> also uses regular expressions but scans the <em>values</em>. You can write or import your own classifiers. When something is judged sensitive, the engine recommends and assigns a masking algorithm. <span class="badge doc">From docs</span></p>
 <p>A <dfn>regular expression</dfn> (regex) is a compact pattern language for text. The pattern <code>[0-9]{3}-[0-9]{2}-[0-9]{4}</code> describes the shape of a US Social Security number, so a data-level classifier can ask "do the values in this column match that shape?".</p>
 
 <p><a href="08-delphix-connect-keys-profiling.html#c8-s4">The profiling chapter</a> covers profile sets, domains and classifiers in practice. <a href="#c22-model">The object model section</a> shows where they fit. For background on why discovery comes first, see <a href="02-privacy-discovery-subsetting-masking.html#c2-s2">discovery and subsetting concepts</a>.</p>
 
-<h4 id="c22-secure">8.1.3.2 Replacing the values: masking and tokenization</h4>
+<h3 id="c22-secure">8.3.2 Replacing the values: masking and tokenization</h3>
 <p>The docs list two ways to secure data. <strong>Masking</strong> (also called anonymization on that page) replaces values with realistic, fictitious ones. <strong>Tokenization</strong> (also called pseudonymization) uses reversible algorithms so the data can be returned to its original state later. The page describes a token as something that conveys no meaning in appearance or format.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/intro3.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/intro3.png" alt="A two-column table headed Before Masking and After Masking showing one real-looking name replaced by a different name" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The masking idea in one picture: one person's name goes in, a different but still name-shaped value comes out. The documentation chose famous names for the example; in ShopSphere you would see Asha Menon replaced by another believable name. <a class="badge-link" href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
@@ -85,7 +84,7 @@
 <div class="callout warn"><strong class="ctitle">Masking is not tokenization</strong>
 <p>Tokenization is the only reversible method: the engine stores both token and original. Do not use it on a test copy just to "be safe", because the originals stay recoverable by design.</p></div>
 
-<h4 id="c22-inplace">8.1.3.3 In-place versus on-the-fly</h4>
+<h3 id="c22-inplace">8.3.3 In-place versus on-the-fly</h3>
 <p>A masking job has a <strong>Masking Method</strong>: <em>In-Place</em> or <em>On-The-Fly</em>. The job-creation page defines them in one sentence each. <span class="badge doc">From docs</span></p>
 <div class="compare">
 <div><h4 id="c8-in-place">In-Place</h4>
@@ -114,7 +113,7 @@
 <text x="40" y="280" font-size="12">Needs a second environment and connector for the source side. Source stays as it was.</text>
 </g></svg><figcaption>Original diagram: the two masking methods. The one-sentence definitions come from the job-creation page; the "found again by its key" note comes from the database preparation pages and is explained in the keys chapter.</figcaption></figure>
 <p>One more difference shows up in the keys discussion of <a href="08-delphix-connect-keys-profiling.html#c8-s3">the rule set chapter</a>: because an in-place job has to find each row again in order to update it, it needs a key per table. The database preparation pages for SQL Server, Db2 and Sybase offer on-the-fly masking as the alternative when a table has no usable key.</p>
-<h4 id="c22-classify-demo">8.1.3.4 Seeing profiling on ShopSphere</h4>
+<h3 id="c22-classify-demo">8.3.4 Seeing profiling on ShopSphere</h3>
 <p>The discovery page names four classifier frameworks. Pairing them with ShopSphere's CUSTOMERS table shows why the engine can use both column names and values. The matches below are what each framework <em>would look at</em>, not output from a real profiling run, since I had no engine to run one on.</p>
 <div class="tablewrap"><table class="sample"><caption>Which classifier framework could help with each CUSTOMERS column (illustrative)</caption><thead><tr><th>Column</th><th>PATH (column name)</th><th>TYPE (data type and length)</th><th>REGEX / LIST (the values)</th></tr></thead><tbody>
 <tr><td>first_name</td><td>name looks like "first name"</td><td>rules out a number or a date</td><td>LIST: is the value in a list of known first names?</td></tr>
@@ -125,7 +124,7 @@
 <p>The last row teaches something important. <code>customer_id</code> is not "sensitive" to a profiler, yet it is a key, and keys can break if you mask one side of a relationship. Profiling finds sensitive <em>values</em>; it does not understand your business relationships. You, or the data steward, must add key columns to the masking plan on purpose. That is the topic of <a href="08-delphix-connect-keys-profiling.html#c8-s3">the keys chapter</a>.</p>
 
 
-<h3 id="c22-gui">8.1.4 The engine's web interface</h3>
+<h2 id="c22-gui">8.4 The engine's web interface</h2>
 <p>The introduction page calls Delphix Masking a multi-user, browser-based web application. You open a supported browser at the engine's address; the first-time setup page gives the login path as <code>http://masking-engine.example.com/masking</code>, where the host name is your own. Once signed in, you see the same strip of five menus on every screen.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_environments.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_environments.png" alt="The Continuous Compliance home screen: a dark blue bar with the menu items Environments, Monitor, Settings, Admin and Audit, above an Environments grid with one row and the buttons + Application, + Environment and Actions" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The first screen you see after signing in. Along the top: Environments (selected), Monitor, Settings, Admin and Audit. The grid lists ID, Application, Environment, Purpose, Approval and Actions. In this picture there is one row, application "App", environment "Env1", purpose Masking. The docs text lists no Approval column, but this picture shows one, which is a small sign that screens and text drift apart between releases. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
@@ -140,7 +139,7 @@
 <figcaption><strong>Official screenshot:</strong> The Monitor menu, Job Executions page. Each row is one run of a job, with Environment, Job Name, Status (SUCCEEDED, FAILED, CANCELLED, WARNING), Progress, Submit Time, Start Time and Type (PROFILE or MASK, among others). Counters at top right show queued jobs, running jobs and memory usage. You will watch this page after every job you start. <a class="badge-link" href="https://help.delphix.com/cc/current/content/graphical_user_interface__gui_.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/gui2.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/gui2.png" alt="The Settings menu with a left-hand list of Algorithms, Classifiers, Data Formats, Domains, Expressions, JDBC Drivers and Profile Sets and an Algorithms grid on the right" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Settings is where the shared building blocks live. The Algorithms grid shows Algorithm Name, Framework Name (for example Secure Lookup or Tokenization), Mask Type and Owner (System or a user name). Anything shown here can be used by any environment. <a class="badge-link" href="https://help.delphix.com/cc/current/content/graphical_user_interface__gui_.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h4 id="c22-grid">8.1.4.1 The grid: the control you use everywhere</h4>
+<h3 id="c22-grid">8.4.1 The grid: the control you use everywhere</h3>
 <p>Domains, classifiers, profile sets, roles, inventories and rule sets all use one table component, which the GUI page calls the Grid UI. Learn its few controls once. <span class="badge doc">From docs</span></p>
 <ul>
 <li><strong>Sorting.</strong> Hover a column name. If a star icon appears, the column can be sorted. Click to sort, click again to reverse. An arrow shows the direction. In a grouped grid, sorting happens inside each group.</li>
@@ -149,18 +148,18 @@
 <li><strong>Actions.</strong> The "..." button at the end of a row lists what you can do to that row. An action you may not perform is shown disabled, not hidden.</li>
 </ul>
 
-<h4 id="c22-icons">8.1.4.2 Icons worth recognising</h4>
+<h3 id="c22-icons">8.4.2 Icons worth recognising</h3>
 <p>The icon reference page explains about thirty-eight icons. The ones you will meet here: Edit, Delete, Duplicate, View, Download, Test Connection, Database and File; five ruleset-refresh icons (success, in progress, failed, waiting, cancelled, and N/A for file rule sets); the job-status icons (success, created, failed, queued, running, skipped, warning); and, beside each table name in an inventory, three icons that update the Custom SQL, the Filter Condition and the <strong>Logical Key</strong> (shown as a key).</p>
-<h4 id="c22-naming">8.1.4.3 A rule you will trip over: object names</h4>
+<h3 id="c22-naming">8.4.3 A rule you will trip over: object names</h3>
 <p>The naming requirements page lists the objects you may name yourself: algorithm, application, connector, domain, environment, file format, job, profiling group, record type, role and rule set. For all of them, leading and trailing spaces are not allowed, and a long list of special characters is rejected, including brackets, braces, parentheses, <code>~ ! @ # $ % ^ * " ? : ; , / \ ` + = &lt; &gt; ' |</code>. An attempt to create or rename an object with one of them fails with an error. The maximum name length varies by object; the page says to look it up in the engine's API client.</p>
 <div class="callout tip"><strong class="ctitle">Name things safely from day one</strong>
 <p>Use letters, digits, underscores and hyphens. <code>SHOPSPHERE_DEV</code> and <code>shopsphere-rules-v1</code> are fine. <code>ShopSphere (Dev) #1</code> is not.</p></div>
 
-<h4 id="c22-monitor">8.1.4.4 Monitor, Admin and Audit in brief</h4>
+<h3 id="c22-monitor">8.4.4 Monitor, Admin and Audit in brief</h3>
 <p>Long actions (saving a database rule set, exporting an environment) return an <dfn>Async Task</dfn> ID in a message at the bottom of the screen. Open <strong>Monitor &gt; Async Tasks</strong>, search that ID, and download an export file or the log of a failed import from the row's Actions menu. <strong>Monitor &gt; Job Executions</strong> is the history of job runs. Cancelling a RUNNING job leaves semi-masked data, and any indexes, constraints or triggers it dropped are not re-created, so cancel only in an emergency and expect to restore your copy. <span class="badge doc">From docs</span></p>
 <p>Under <strong>Admin</strong> you find Roles, Users (later in this section), Application Settings (administrators only; engine-wide defaults such as the default update threads, streams and non-conformant data handling, grouped by area), Logs, Utilization (PDF reports of job executions and of database sizes) and About. The <strong>Audit</strong> tab, open to administrators only, records who did what (create, edit, delete, run, test, import, export, login and more) and can be exported to PDF. For a compliance officer it is the evidence that a masking job ran, and who ran it.</p>
 
-<h3 id="c22-model">8.1.5 The object model in plain words</h3>
+<h2 id="c22-model">8.5 The object model in plain words</h2>
 <p>This is the most important picture in the chapter. The engine stores a handful of kinds of objects, and almost every confusion is "where does X live?". The short answer is that <strong>work objects live inside an environment</strong>, and <strong>shared objects live in Settings</strong>.</p>
 <figure class="diagram"><svg viewBox="0 0 820 440" role="img" aria-label="Nested boxes: an Application contains Environments; an Environment contains Connectors, Rule Sets with Inventories, and Jobs. A separate Settings box holds Domains, Algorithms, Profile Sets, Classifiers, File Formats and JDBC Drivers, which the work objects use.">
 <rect x="10" y="10" width="520" height="420" rx="10" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -211,7 +210,7 @@
 <path d="M530 200 L560 200" stroke="currentColor" stroke-width="1.5" fill="none"/>
 </svg><figcaption>Original diagram: how the Delphix masking objects nest. The nesting comes from the environments page ("folders/containers where a specified user can create and manage connectors, rule sets, and jobs") and from its delete warning. Which Settings items exist comes from the Settings screenshot. A job in the object model always points at one rule set; the "points at one rule set" wording is my summary of the job screens, which ask you to pick a rule set.</figcaption></figure>
 
-<h4 id="c22-terms">8.1.5.1 The objects, one at a time</h4>
+<h3 id="c22-terms">8.5.1 The objects, one at a time</h3>
 <p>Here is each object, with the documentation's own definition in my words, and what it is in ShopSphere terms.</p>
 <div class="tablewrap"><table><thead><tr><th>Object</th><th>What the docs say</th><th>ShopSphere</th></tr></thead><tbody>
 <tr><td><strong>Application</strong></td><td>A tag assigned to one or more environments. The docs recommend naming it after the real application. An application must exist before you can create an environment.</td><td>"ShopSphere Customer Orders". (Illustrative name; avoid special characters.)</td></tr>
@@ -234,7 +233,7 @@
 <figcaption><strong>Official screenshot:</strong> The same tab in an environment whose purpose is Tokenize. The buttons change: Profiling Job, Tokenization Job and Re-Identification Job appear instead of Masking Job. This is why the Purpose of an environment is fixed at creation. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_jobs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
 
-<h3 id="c22-flow">8.1.6 How a masking project flows</h3>
+<h2 id="c22-flow">8.6 How a masking project flows</h2>
 <p>With the objects named, the order of work follows from the nesting: you cannot create a rule set before a connector, and you cannot create a connector before an environment. The documentation's own table of contents for "Connecting data" (environments, connectors, extended connectors, file formats, rule sets, inventories) follows exactly this order, and the Continuous Compliance home page groups the rest as "Identify sensitive data", "Preparing data" and "Connecting data".</p>
 <figure class="diagram"><svg viewBox="0 0 820 220" role="img" aria-label="Eight steps in a row: install and set up the engine, prepare the database, create application and environment, create connector, create rule set, profile, review inventory and assign algorithms, run masking job and monitor.">
 <defs><marker id="c22ar" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="currentColor"/></marker></defs>
@@ -257,9 +256,9 @@
 <div class="callout real"><strong class="ctitle">How a TDM team splits this</strong>
 <p>The "best practices for defining masking roles" page gives a sample RACI (who is Responsible, Accountable, Consulted, Informed). It makes IT Security accountable for deciding which data types are sensitive, the application owner accountable for inventory management, data masking and masked-data validation, and the data masking admin team responsible for masking administration (domains, classifiers, roles, users). In ShopSphere terms: the compliance officer decides that SSN, email and phone are sensitive, the data steward reviews the inventory, and the TDM engineer builds and runs the jobs. This is a sample from the vendor, not a rule. <span class="badge doc">From docs</span></p></div>
 
-<h3 id="c22-terms-walk">8.1.7 The terminology page, term by term</h3>
+<h2 id="c22-terms-walk">8.7 The terminology page, term by term</h2>
 <p>The <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">terminology page</a> is a one-page glossary and worth reading yourself. Here is the part you need for masking, with a ShopSphere picture for each idea. The objects (application, environment, rule set, domain, connector) were covered above, so I move to the algorithm and job vocabulary. <span class="badge doc">From docs</span></p>
-<h4 id="c22-alg-terms">8.1.7.1 Algorithm words</h4>
+<h3 id="c22-alg-terms">8.7.1 Algorithm words</h3>
 <dl class="defs">
 <div><dt>Algorithm framework</dt>
 <dd>A type of masking algorithm. You can create one or more usable instances from it. "FIRST NAME SL" is an instance of the Secure Lookup framework.</dd></div>
@@ -274,7 +273,7 @@
 </dl>
 <div class="callout warn"><strong class="ctitle">Non-conformant data means "silently left real" by default</strong>
 <p>This default surprises beginners. If ShopSphere's phone column contains <code>n/a</code> in some rows, an algorithm expecting ten digits does not fail the job. It leaves <code>n/a</code> unmasked and logs a warning. That is harmless for <code>n/a</code>, but a real SSN typed with spaces might slip through the same way. Always read the warning count after a job.</p></div>
-<h4 id="c22-families">8.1.7.2 The algorithm families in one table</h4>
+<h3 id="c22-families">8.7.2 The algorithm families in one table</h3>
 <p>The terminology page describes eight families. <a href="09-delphix-masking-files-labs.html#c9-s1">The algorithms chapter</a> shows how to build them. Here is only the idea, so the names are not strange later.</p>
 <div class="tablewrap"><table><thead><tr><th>Family</th><th>How it works (docs, in short)</th><th>Typical ShopSphere use</th></tr></thead><tbody>
 <tr><td>Secure Lookup</td><td>Replaces each value by one picked from an input file using a cryptographic hash of the original, so the same input always gets the same output. Most common. Collisions are possible.</td><td>first_name, last_name: a name list.</td></tr>
@@ -284,12 +283,12 @@
 <tr><td>Binary Lookup, Min Max, Data Cleaning, Free Text Redaction</td><td>Replace images with a supplied image; move extreme values toward the middle; standardise spellings without masking; remove sensitive material from free-text columns.</td><td>Not needed for the core ShopSphere columns.</td></tr>
 </tbody></table></div>
 <p>Two documented warnings you should hold onto now, because <a href="08-delphix-connect-keys-profiling.html#c8-s3">the keys chapter</a> relies on them. First, Secure Lookup is deterministic on its input (same hash, same output), and Segment Mapping and Mapping are the collision-free choices, so these are the ones used on unique and key columns. Second, the terminology page's wording for Segment Mapping explicitly lists "Social Security Numbers, primary key columns, or foreign key columns" as its use.</p>
-<h4 id="c22-job-terms">8.1.7.3 Job options, in one look</h4>
+<h3 id="c22-job-terms">8.7.3 Job options, in one look</h3>
 <p>The terminology page lists the options of both job types, and you will meet them on real screens in <a href="08-delphix-connect-keys-profiling.html#c8-s4">the profiling chapter</a> and <a href="09-delphix-masking-files-labs.html#c9-s1">the algorithms and jobs chapter</a>. A <em>profiling job</em> has a unique Job Name, a Rule Set, No. of Streams (tables processed in parallel), optional memory limits, Feedback Size, Profile Sets and Email. A <em>masking job</em> adds the Masking Method (In-Place or On-The-Fly), Update Threads (too many can deadlock T-SQL databases), Commit Size, Disable Trigger and Drop Index (both clear by default, so the job leaves indexes and triggers alone unless you turn them on), and Prescript and Postscript SQL files. Both have a Multi-Tenant option that lets one rule set serve identical schemas through different connectors chosen at run time.</p>
 
 
 
-<h3 id="c22-deploy">8.1.8 Where the engine runs: deployment options at overview level</h3>
+<h2 id="c22-deploy">8.8 Where the engine runs: deployment options at overview level</h2>
 <p>As a TDM engineer you will rarely install the engine yourself, but you should know what shape it takes, because that decides who you ask when something is down. The documentation offers two families. <span class="badge doc">From docs</span></p>
 <div class="compare">
 <div><h4 id="c8-virtual-machine-image">Virtual machine image</h4>
@@ -297,22 +296,22 @@
 <div><h4 id="c8-containerized">Containerized</h4>
 <p>The same engine as a pod of three containers on Kubernetes (tested on OpenShift, MicroK8s, AWS EKS and AWS ECS with Fargate), deployed directly or with Helm. FTP and FTPS file connectors are disabled in this form.</p></div>
 </div>
-<h4 id="c22-setup">8.1.8.1 What the Setup Wizard asks</h4>
+<h3 id="c22-setup">8.8.1 What the Setup Wizard asks</h3>
 <p>The wizard walks through Welcome (pick <em>Continuous Compliance</em> as the engine type), passwords and the three administrator accounts, time, network, certificates, storage, outbound connectivity (support proxy, usage analytics and the SMTP server used for job email), authentication (LDAP, SAML/SSO, OAuth2), Kerberos and password vaults, registration and a summary. Facts worth keeping: the documented first logins use default accounts that you must change; the <strong>engine type cannot be changed</strong> once chosen; three failed logins lock the account; the engine <strong>works only in UTC</strong>, so read job times in Monitor accordingly; and in non-containerized engines LDAP is configured in the setup application, not in the masking UI, a change from earlier releases.</p>
-<h4 id="c22-size">8.1.8.2 Sizing, in one line</h4>
+<h3 id="c22-size">8.8.2 Sizing, in one line</h3>
 <p>The best-practices page gives a dedicated Compliance Engine 8 vCPUs, at least 64 GB of RAM (128 GB or more recommended), a 127 GB system disk and at least 50 GB of data storage, plus rules of thumb of about one vCPU and 1 GB of memory per concurrent masking job. It also says cloning an engine through hypervisor features is not supported as a backup.</p>
-<h4 id="c22-network">8.1.8.3 What the engine must reach</h4>
+<h3 id="c22-network">8.8.3 What the engine must reach</h3>
 <p>The network requirements page lists the traffic. Outbound, the engine needs SMTP (25), DNS (53), NTP (123, VM engine), HTTPS to Delphix Support and to an S3 endpoint if you use one (443), LDAPS (636) and, most important for you, <strong>"various" ports to your own databases (JDBC) and file servers (FTP, SFTP, NFS, CIFS)</strong>. Inbound, users reach the web interface on 443 (use HTTPS, not 80) and administrators use SSH on 22. The engine cannot be deployed behind a reverse proxy. Supported browsers are the latest and previous versions of Edge, Firefox and Chrome. When a connector test hangs, suspect a firewall on the database port before you suspect the password.</p>
 <p>The containerized product is meant for <em>ephemeral</em> engines (spun up for a need, then discarded) and differs from the VM engine: no FTP file masking, no Kerberos, no SSO/OAuth, no upgrade validation and no Db2 z/OS or iSeries connector. <span class="badge doc">From docs</span></p>
 <div class="callout warn"><strong class="ctitle">Two engines, never one machine</strong>
 <p>Both the masked-provisioning pages and the configuration page say that Delphix Masking and Delphix Virtualization must never run inside the same virtual machine. Use separate, dedicated engines. The best-practices page also says that Continuous Data and Continuous Compliance are delivered in one OVA, and you pick which one at first setup. So an engine <em>image</em> can become either product, but one running engine is only one of them.</p></div>
-<h3 id="c22-roles">8.1.9 Users and roles overview</h3>
+<h2 id="c22-roles">8.9 Users and roles overview</h2>
 <p>The masking engine uses role-based access control: a <dfn>role</dfn> is a set of allowed actions on certain kinds of objects, and a <dfn>user</dfn> is a person who has one role and access to certain environments. This is how ShopSphere keeps the data steward from editing connection passwords and keeps testers away from masking jobs. <span class="badge doc">From docs</span></p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/user_roles.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/user_roles.png" alt="The Admin menu showing the Roles page: a grid of roles such as All Privileges, DBA, Environment Owner, IT Security Analyst, Operator, SME and one CUSTOM role, each with a Type column" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Admin > Roles. The left-hand list shows About, Application Settings, Logs, Roles, Users and Utilization. Built-in roles have type DEFAULT; one role created by a user has type CUSTOM. The + Role button adds a new one. <a class="badge-link" href="https://help.delphix.com/cc/current/content/users_and_roles.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/user_roles2.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/user_roles2.png" alt="An Add Role dialog with a role name box and a matrix of objects against the actions View, Add, Update, Delete, Copy, Import, Export, with a few boxes ticked in the Masking Job row" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Adding a role. The matrix lists objects (Environment, Connection, Rule Set, Inventory, then Jobs such as Profile Job and Masking Job, then Settings, Report, Approval Workflow) against actions. In this picture the role gets View on Environment and View, Add, Update, Delete and Run on Masking Job. Some objects depend on others: the page notes that Masking Job actions depend on Environment - View. <a class="badge-link" href="https://help.delphix.com/cc/current/content/users_and_roles.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h4 id="c22-roles-detail">8.1.9.1 Roles, actions, objects</h4>
+<h3 id="c22-roles-detail">8.9.1 Roles, actions, objects</h3>
 <ul>
 <li><strong>Actions</strong> you can grant: View, Add, Update, Delete, Copy, Export and Import (not every action exists for every object).</li>
 <li><strong>Objects</strong> you can grant them on include Environment, Connection, Ruleset, Inventory, Profile Job, Masking Job, Tokenize Job, Re-identify Job, Domains, Algorithms, Classifier, Profiler Set, File Format, JDBC Drivers, Plugins, Password Vault, User, Report, Approve Inventories and Diagnostic.</li>
@@ -334,12 +333,12 @@
 <p>The Users and roles page warns that a user allowed to add or update JDBC drivers can upload code that runs inside the engine's JVM, which is effectively running code on the engine host. The built-in DBA role includes that permission by default; the page suggests a custom role or fewer DBA assignments if you separate database work from driver installation. Treat JDBC-driver permission as administrative.</p></div>
 <p>Creating a user needs a user name, an email (job completion mail goes there), a password, a role and the environments the user may open, or the Administrator checkbox. An account locks after three invalid login attempts.</p>
 
-<h3 id="c22-multi">8.1.10 Moving work between engines: export, import and sync</h3>
+<h2 id="c22-multi">8.10 Moving work between engines: export, import and sync</h2>
 <p>Real organisations often run several engines: one per stage of the software life cycle (development, QA, production), or several production engines to share a large workload. Objects must then be copied between them. <strong>Export Settings / Import Settings</strong> (on the Environments page) moves shared settings such as domains, algorithms and file formats. <strong>Export / Import Environment</strong> moves everything inside one environment (connectors, rule sets, inventory, jobs). An API-based <em>sync</em> does the same at scale; the docs advise moving objects in one direction only. Sync does not currently support the Application object or certain algorithms, and bundles from a newer engine may not import into an older one. <span class="badge doc">From docs</span></p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_environments4.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_environments4.png" alt="The Import Settings dialog with a blue note about updating connector passwords after import, a Force Override checkbox, an optional passphrase box and a Choose File button" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The dialog you use to bring settings from another engine. The blue note matters: passwords are not carried across, so every imported connector needs its password set again before it can connect. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
-<h3 id="c22-story">8.1.11 ShopSphere in object terms</h3>
+<h2 id="c22-story">8.11 ShopSphere in object terms</h2>
 <p>For ShopSphere the objects will be: application SHOPSPHERE_APP; environment SHOPSPHERE_DEV (purpose Mask); a connector to the VDB that holds an unmasked copy of SHOPSPHERE_PROD; a rule set with CUSTOMERS, ORDERS, ORDER_ITEMS and PRODUCTS; a profile job and an in-place masking job; and roles for the TDM engineer (All Privileges), data steward (SME) and DBA. These names are my illustration. Notice that CUSTOMERS.customer_id and ORDERS.customer_id must get the <em>same</em> algorithm so every order still points to the right customer; <a href="08-delphix-connect-keys-profiling.html#c8-s3">the keys chapter</a> is about exactly that.</p>
 
 <div class="exercise"><h4 id="c8-lab-find-your-way-around-an-engine">Lab: find your way around an engine</h4>
@@ -357,7 +356,7 @@
 <p>You should be able to say, without looking: (1) the application is a label, (2) the environment holds the connector, rule set and jobs, (3) algorithms, domains and profile sets live in Settings, (4) job and task progress lives under Monitor, and (5) roles and users live under Admin. If the Application button or the Admin menu was missing, that was the role system working, not a bug.</p>
 <p>Docs versus illustration: the steps and field names come from the Managing environments page. The names SHOPSPHERE_APP and SHOPSPHERE_DEV and the filter text are mine.</p></details></div>
 
-<h3 id="c22-syllabus">8.1.12 How Delphix fits the syllabus (Days 51 to 56)</h3>
+<h2 id="c22-syllabus">8.12 How Delphix fits the syllabus (Days 51 to 56)</h2>
 <p>The syllabus spends six days on Delphix. This section is the vocabulary for all of them.</p>
 <div class="tablewrap"><table><thead><tr><th>Syllabus day</th><th>What the syllabus asks</th><th>Where to learn it</th></tr></thead><tbody>
 <tr><td>Day 51</td><td>Primary key basics and discovery, key integrity in primary and foreign key columns, and creating a connector to a VDB from the masking engine</td><td><a href="01-welcome-why-tdm-and-data-basics.html#c1-s3">Data basics</a>, <a href="08-delphix-connect-keys-profiling.html#c8-s2">connectors and VDB</a>, <a href="08-delphix-connect-keys-profiling.html#c8-s3">rule sets and keys</a></td></tr>
@@ -367,12 +366,12 @@
 </tbody></table></div>
 <p>The mandatory hands-on list also includes <em>TDM_Handson4</em>: create a connector to a VDB from the Delphix masking engine. <a href="08-delphix-connect-keys-profiling.html#c8-s2">The connectors and VDB chapter</a> builds that lab step by step. Day 54 also mentions mapplets (an Informatica idea), which is not a Delphix feature; see <a href="05-informatica-masking-generation-workflows.html#c5-s1">the Informatica masking chapter</a> for that part.</p>
 
-<h3 id="c22-versions">8.1.13 Frequent releases: expect your screen to differ</h3>
+<h2 id="c22-versions">8.13 Frequent releases: expect your screen to differ</h2>
 <p>The documentation has a release-notes page for each of 2025.1 to 2026.5 (eleven releases in under two years), and it shows. Screenshots carry different version numbers in the corner (21.0.0.0, 22.0.0.0, 24.0.0.0, 26.0.0.0, 2025.6.0.0). The environments screenshot has an Approval column its text does not list. The connector wizard text says "Connection Mode: Basic or Advanced" while the screenshot says "Hostname/IP (Basic) or JDBC URL (advanced)". Release 2026.5 moves the host from JDK 8 to JDK 17, while older pages on extended connectors still mention Java 8. A rule set page calls one action both "Verify" and "Checklist".</p>
 <div class="callout tip"><strong class="ctitle">A habit that saves hours</strong>
 <p>Before following any procedure in this guide on a real engine, find the version of your engine (the screenshots show it in the corner of the top bar; the Admin menu also has an About page, which I did not read) and compare it with the page you are reading. When screen and text disagree, trust the screen and tell your trainer.</p></div>
 
-<h3 id="c22-mistakes">8.1.14 Common mistakes and gotchas</h3>
+<h2 id="c22-mistakes">8.14 Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Things that trip beginners</strong>
 <ul>
 <li><strong>Looking for algorithms inside the environment.</strong> They live in Settings and survive an environment delete.</li>
@@ -382,7 +381,7 @@
 <li><strong>Ignoring warnings.</strong> Non-conformant data is left unmasked by default and only shows a yellow warning.</li>
 </ul></div>
 
-<h3 id="c22-recap">8.1.15 Recap</h3>
+<h2 id="c22-recap">8.15 Recap</h2>
 <div class="callout recap"><strong class="ctitle">Recap</strong>
 <ul>
 <li>Delphix Continuous Compliance is the masking engine: it profiles to find sensitive data, masks irreversibly, or tokenizes reversibly.</li>
@@ -395,7 +394,7 @@
 <li>The product changes often. Check your version and trust your screen over this text.</li>
 </ul></div>
 
-<section class="sources"><h3 id="c22-sources">Sources used in this section</h3>
+<section class="sources"><h4 id="c22-sources">Sources used in this section</h4>
 <ul>
 <li><a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a>: product purpose, four platform services, profiling methods, masking versus tokenization, the platform diagram and four screenshots.</li>
 <li><a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>: products, interfaces, core concepts, object definitions, algorithm families, profile and masking job options.</li>
@@ -410,8 +409,7 @@
 <li><a href="https://help.delphix.com/cc/current/content/2026_5_release_notes.htm" target="_blank" rel="noopener">2026.5 release notes</a> and <a href="https://help.delphix.com/cc/current/content/release_notes.htm" target="_blank" rel="noopener">Release notes index</a>: release cadence and the JDK 17 change.</li>
 </ul></section>
 
-<h2 id="c8-s2">8.2 Delphix: connecting to data and to a VDB</h2>
-<p><span class="day">Day 51, Day 52</span></p>
+<div class="grp" id="c8-s2"><span class="grplabel">Delphix: connecting to data and to a VDB</span><span class="day">Day 51, Day 52</span></div>
 <p>A masking engine that cannot reach your data cannot mask it. This section is about the connection layer of Delphix Continuous Compliance: the application and environment that hold your work, the <strong>connector</strong> that tells the engine how to log in to a database or a file store, and the database-side preparation that has to happen before the first job. It also answers a question the syllabus asks on Day 51 in the hands-on list as <em>TDM_Handson4</em>: what does it mean to "create a connector to a VDB from the Delphix masking engine"?</p>
 <p>To answer that we start from zero on VDBs. You met the vocabulary in <a href="08-delphix-connect-keys-profiling.html#c8-s1">the Delphix overview chapter</a>; here you will see why a VDB is the recommended thing to mask, and what the Delphix pages do and do not tell you about connecting to one. The chapter then hands over to <a href="08-delphix-connect-keys-profiling.html#c8-s3">the rule sets and keys chapter</a>, which builds the next object on top of the connector, and to <a href="08-delphix-connect-keys-profiling.html#c8-s4">the profiling chapter</a> and <a href="09-delphix-masking-files-labs.html#c9-s3">the hands-on labs</a>, which use it.</p>
 
@@ -429,7 +427,7 @@
 <li>What a VDB is, how a masked VDB is provisioned, and what a "connector to a VDB" really is.</li>
 </ul></div>
 
-<h3 id="c23-words">8.2.1 Words to know first</h3>
+<h2 id="c23-words">8.16 Words to know first</h2>
 <dl class="defs">
 <div><dt>Application</dt>
 <dd>A tag, assigned to one or more environments, naming the system whose data you manage. You must create one before you can create an environment.</dd></div>
@@ -455,13 +453,13 @@
 <dd>A way to replicate a masked VDB to another Delphix Engine in non-production without sending the original unmasked data.</dd></div>
 </dl>
 
-<h3 id="c23-environments">8.2.2 Applications and environments</h3>
-<h4 id="c23-env-what">8.2.2.1 What they are and why they exist</h4>
+<h2 id="c23-environments">8.17 Applications and environments</h2>
+<h3 id="c23-env-what">8.17.1 What they are and why they exist</h3>
 <p>Think of a shared drive at work. You do not dump every project's files in one folder; you create a folder per project and put sub-folders inside. An environment is that project folder. The environments page describes it as a place where "a specified user can create and manage connectors, rule sets, and jobs". The <em>application</em> is a label above it that groups related environments: for ShopSphere, one application "SHOPSPHERE_APP" and environments such as SHOPSPHERE_DEV and SHOPSPHERE_QA. Analogy limit: unlike a shared-drive folder, an environment also carries rules (its Purpose and whether approvals are required).</p>
 <p>The main Environment screen is the first page every user sees after signing in. It lists only the environments that user may access. Its columns are ID (the number used to refer to it from the Masking API), Application, Environment, Purpose, and Actions (Edit, Export, Duplicate, Delete). The screenshots below show it. Sorting a column also sorts the Environment column ascending.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_environments.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_environments.png" alt="The Environments page with a grid showing ID, Application, Environment, Purpose, Approval and Actions, plus buttons + Application, + Environment and Actions" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Environments list. The three buttons at the top right are the three places you will start: + Application, + Environment, and an Actions menu (which holds Export Settings, Import Settings and Import Environment). The environment name is a link that opens the environment. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h4 id="c23-app">8.2.2.2 Adding an application</h4>
+<h3 id="c23-app">8.17.2 Adding an application</h3>
 <p>An environment cannot be created without an application, so start here. <span class="badge doc">From docs</span></p>
 <ol class="steps">
 <li><strong>Click + Application</strong> near the top right of the Environments page.<p>The engine wants a label first so that every environment is tagged with the system it belongs to.</p><p class="expect">A small "Add Application" dialog with one box, Application Name, and Cancel and Save buttons.</p></li>
@@ -469,7 +467,7 @@
 </ol>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_environments1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_environments1.png" alt="A small Add Application dialog with a single Application Name box and Cancel and Save buttons" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The whole Add Application dialog. It really is just one field. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h4 id="c23-envcreate">8.2.2.3 Creating an environment</h4>
+<h3 id="c23-envcreate">8.17.3 Creating an environment</h3>
 <ol class="steps">
 <li><strong>Click + Environment.</strong><p>It opens the Add Environment dialog.</p><p class="expect">A dialog with Select Application, Environment Name, Purpose and an approval checkbox.</p></li>
 <li><strong>Choose the application.</strong><p>The dropdown shows existing applications. It is "for informative purposes", the page says: it labels the environment and does not change behaviour.</p></li>
@@ -480,7 +478,7 @@
 </ol>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_environments2.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_environments2.png" alt="The Add Environment dialog with Select Application, Environment Name, Purpose set to Masking, an Enable Approval Workflow checkbox and the buttons Cancel, Save and Save And View" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The dialog behind the steps above. Purpose defaults to Masking in this picture, and the approval checkbox is clear. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h4 id="c23-envmanage">8.2.2.4 Editing, copying, exporting and deleting</h4>
+<h3 id="c23-envmanage">8.17.4 Editing, copying, exporting and deleting</h3>
 <p>All of these are in the Actions (...) menu beside each environment.</p>
 <ul>
 <li><strong>Edit.</strong> You may change the application and the name and the approval workflow setting. Purpose is read-only.</li>
@@ -495,7 +493,7 @@
 <p>Deleting a <em>connector</em> also deletes its rule sets and inventory data (the connector page says so). Deleting an <em>environment</em> deletes all its connectors, rule sets, inventories and jobs. Neither can be undone from the screen. Export the environment first if you might want it back.</p></div>
 
 
-<h3 id="c23-connectors">8.2.3 Connectors: what they are</h3>
+<h2 id="c23-connectors">8.18 Connectors: what they are</h2>
 <p>A <strong>connector</strong> is a saved answer to the question "how does the engine log in to this data?". Without it, the engine has nowhere to read tables from. Connectors are grouped within an environment: open the environment and click its <strong>Connectors</strong> tab. <span class="badge doc">From docs</span></p>
 <p>There are three families, shown as groups on the Connectors screen (the page calls the grouping field "Meta Data Source").</p>
 <div class="tablewrap"><table><thead><tr><th>Meta Data Source</th><th>What it points at</th><th>Examples of Type (from the docs and screenshots)</th></tr></thead><tbody>
@@ -509,9 +507,9 @@
 <div class="callout note"><strong class="ctitle">Encryption is not on by default</strong>
 <p>The connectors page states that connections are not encrypted by default, but you can enable TLS/SSL. The per-database pages (for example Oracle and SQL Server) explain how, typically by importing the database's certificate into the engine's truststore through the setup application, restarting the engine, and using a JDBC URL that asks for TLS. For Oracle the page adds that SSL with the BASIC Oracle connector is not supported, so you must use an advanced (JDBC URL) connector for TLS. For SQL Server the page says the needed JDBC properties depend on your instance and your DBA must supply them.</p></div>
 
-<h3 id="c23-create">8.2.4 Creating a connector: the wizard, field by field</h3>
+<h2 id="c23-create">8.19 Creating a connector: the wizard, field by field</h2>
 <p>Click <strong>+ Connection</strong> (or "+ Connector") at the top right of the Connectors tab. A wizard opens with steps down the left side: <strong>Details</strong>, <strong>Credentials</strong>, <strong>Custom Properties</strong> (database connectors only; file connectors skip it) and <strong>Summary</strong>. Every step has Cancel, Back, Next, <strong>Test Connection</strong> and Save buttons at the bottom, so you can test at any step. <span class="badge doc">From docs</span></p>
-<h4 id="c23-details">8.2.4.1 Step 1: Details</h4>
+<h3 id="c23-details">8.19.1 Step 1: Details</h3>
 <ul>
 <li><strong>Connector Name.</strong> A name of your choice. In the screenshots the label reads "Connection Name" or "Connector Name" depending on release. The same naming restrictions apply as for other objects. For ShopSphere: <code>SHOPSPHERE_VDB_CONN</code>.</li>
 <li><strong>Source Type.</strong> The kind of data source. Each entry in the dropdown is prefixed with its Meta Data Source, for example "Database - Sybase", "File - Delimited" or "Database - Extended".</li>
@@ -519,7 +517,7 @@
 </ul>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/create_connection.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/create_connection.png" alt="The Create Connection wizard on its Details step: steps Details, Credentials, Custom Properties, Summary on the left; a Connection Name box with Sybase Test, a Select Source Type box showing Database - Sybase, and a Connection Method choice between Hostname/IP (Basic) and JDBC URL (advanced)" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Step 1, Details. The documentation's own example uses a Sybase connector. The Basic radio button is selected. Footer buttons: Cancel, Back (greyed on the first step), Next, Test Connection, Save. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__test__edit__and_delete_a_connector.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h4 id="c23-credentials">8.2.4.2 Step 2: Credentials for a database connector</h4>
+<h3 id="c23-credentials">8.19.2 Step 2: Credentials for a database connector</h3>
 <p>The fields that appear depend on the source type, and the docs say to ask your DBA if you are unsure of a value. This is the full documented list of database fields.</p>
 <div class="tablewrap"><table><thead><tr><th>Field</th><th>Meaning (from the docs)</th><th>Watch out for</th></tr></thead><tbody>
 <tr><td><strong>Schema Name</strong></td><td>The schema containing the tables this connector will access.</td><td>A <em>schema</em> is a named group of tables inside a database. The rule set can only list tables in this schema.</td></tr>
@@ -539,7 +537,7 @@
 <li><strong>Kerberos.</strong> The engine authenticates to the Kerberos server first, then uses its Kerberos credentials instead of a password. The Login ID is then treated as the Kerberos user principal name, and extra fields (Principal Name, and for Sybase a Service Principal) appear. The appliance must be configured for Kerberos beforehand, and Kerberos is disabled in containerized masking.</li>
 <li><strong>Password Vault.</strong> The engine asks an external vault for the credentials using a <em>Credential Path</em> you enter. The vault must be configured first.</li>
 </ul>
-<h4 id="c23-customprops">8.2.4.3 Step 3: Custom Properties</h4>
+<h3 id="c23-customprops">8.19.3 Step 3: Custom Properties</h3>
 <p>Optional. Use it to upload a <em>connection properties file</em>, normally a Java properties file (lines of <code>key=value</code>), that adds settings to the JDBC connection. The rules, all from the managing-connectors page: the file must have the extension <code>.properties</code> and follow Java properties syntax; it is read as ISO 8859-1 text; any property you list is passed to the driver even if the driver does not officially support it, and every property loaded is logged. </p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/create_connection2.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/create_connection2.png" alt="The Custom Properties step of the Create Connection wizard with a Choose File button and an empty table with columns Property, Value and Modified saying No items to display" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Step 3, Custom Properties. The table stays empty until you upload a file. After upload, or when editing an existing connector, it lists each property with its Value and whether it was Modified from the driver default. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__test__edit__and_delete_a_connector.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
@@ -551,14 +549,14 @@
 <p>The page adds that the JDBC driver itself decides what happens with duplicates, and that a connector form shows <em>either</em> the Basic fields <em>or</em> the Advanced URL, never both, so those two cannot clash. It also notes a driver quirk: for Cach&eacute; DB the schema cannot be set through the URL, so it has to come from the form field or a properties file. Customising the JDBC URL is limited to Advanced, Generic and Extended connectors, while a properties file works for every database connector.</p>
 <div class="callout warn"><strong class="ctitle">Secrets in properties files are visible</strong>
 <p>Anything in a properties file, including a password, is shown in plain text to every user who has the View Connector privilege. The page recommends putting sensitive values in the form fields (obfuscated everywhere) or, second best, in the JDBC URL (plain text on screen but redacted in support bundles).</p></div>
-<h4 id="c23-summary">8.2.4.4 Step 4: Summary and Save</h4>
+<h3 id="c23-summary">8.19.4 Step 4: Summary and Save</h3>
 <p>The last step lists everything you entered (without the password) so you can check before saving. Click <strong>Save</strong>. If anything is wrong, Back returns you to the step to fix it.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/create_connection3.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/create_connection3.png" alt="The Summary step with a Connection Summary card listing Connection Name Sybase Test, Schema Name dbos, Database Name potateos, Host, Port 4000 and Username; the Next button is greyed out and Save is highlighted" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Step 4, Summary. Read it like a boarding pass before you leave: name, schema, database, host, port, username. Next is disabled because this is the last step. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__test__edit__and_delete_a_connector.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h4 id="c23-api">8.2.4.5 The same thing through the API</h4>
+<h3 id="c23-api">8.19.5 The same thing through the API</h3>
 <p>Underneath, a connector is a small record. The documentation's sample script for a database connector posts <code>connectorName</code>, <code>databaseType</code> (for example <code>ORACLE</code>), <code>environmentId</code>, <code>host</code>, <code>port</code>, <code>schemaName</code>, <code>sid</code>, <code>username</code> and <code>password</code> to the engine's <code>/database-connectors</code> endpoint. Notice <code>environmentId</code>: a connector always belongs to one environment. <span class="badge doc">From docs</span></p>
 
-<h3 id="c23-file-connectors">8.2.5 File and mainframe connectors</h3>
+<h2 id="c23-file-connectors">8.20 File and mainframe connectors</h2>
 <p>File connectors are created with the same wizard, but the credential step asks for different things. The Source Type is a file format (for example "File - Delimited"), and then you choose a <strong>Connection Mode</strong>. The list in the documentation is: Filesystem Mount Point, SFTP, FTP, FTPS (only for mainframe data sets), AWS S3, Other S3 Compatible Storage and Azure Blob Storage. The screenshot below shows that dropdown. Details of each mode live on separate pages (the S3, Azure Blob and remote mount pages), which I did not read in full. <a href="09-delphix-masking-files-labs.html#c9-s2">The file masking chapter</a> picks this up. <span class="badge doc">From docs</span></p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_connector3.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_connector3.png" alt="The Create Connector wizard Details step for a delimited file connector with a Select Connection Mode dropdown open, listing AWS S3, Azure Blob Storage (ticked), File System Mount Point, FTP, Other S3 Compatible Storage and SFTP" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The connection modes of a file connector. A banner in this picture says the "Database - Generic - Legacy" connector type is deprecated and will be removed in a later release, which is a good reminder that connector types change. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_connectors.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
@@ -576,8 +574,8 @@
 <p>The connector page explains that for on-the-fly file masking you create a separate environment and connector for the source files. The masked files land in the directory the <em>target</em> connector points at, and the target rule set's file path must point to an existing file there: it does not have to be a copy, just an entry with the same name, which will be replaced. Mainframe data sets are covered by their own connector page: they must be EBCDIC encoded.</p></div>
 <p>Two limits from the page worth knowing: FTP and FTPS are disabled in containerized deployments, and S3 role-based connectivity works only for engines hosted on AWS EC2. Supported file formats for the Files connector are Fixed Width, Delimited, XML, JSON and Parquet (ASCII or UTF-8; Parquet UTF-8).</p>
 
-<h3 id="c23-test">8.2.6 Testing, editing and deleting a connector</h3>
-<h4 id="c23-testing">8.2.6.1 Testing</h4>
+<h2 id="c23-test">8.21 Testing, editing and deleting a connector</h2>
+<h3 id="c23-testing">8.21.1 Testing</h3>
 <p>Test a connector as soon as you create it. <span class="badge doc">From docs</span> You can do it in two places: with the <strong>Test Connection</strong> button inside the wizard at any step, and with <strong>Test Connection</strong> in the connector's Actions (...) menu on the grid. The engine takes the information on the screen, tries to open a database connection, and shows a success or failure message.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/create_connection7.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/create_connection7.png" alt="The Connectors grid with the Actions menu open showing Edit, Test Connection and Delete, with a red arrow pointing at Test Connection" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Test from the grid: open the "..." menu on a connector row and choose Test Connection. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__test__edit__and_delete_a_connector.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
@@ -585,7 +583,7 @@
 <figcaption><strong>Official screenshot:</strong> Test from inside the wizard: the Test Connection button is in the footer of every step. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__test__edit__and_delete_a_connector.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <div class="callout why"><strong class="ctitle">Why a failed test is useful information</strong>
 <p>A failure tells you which layer to blame. Wrong password, wrong schema or wrong database name usually return a login or "not found" message. A hang or timeout points at the network: a firewall, or a port that is not reachable from the engine (the overview chapter lists the ports). A "driver" message points at an unsupported version or a missing JDBC driver. The documentation tells you only that a message shows "success or failure", so these interpretations are my general experience, not from the docs.</p></div>
-<h4 id="c23-editing">8.2.6.2 Editing</h4>
+<h3 id="c23-editing">8.21.2 Editing</h3>
 <ol class="steps">
 <li><strong>Open the connector's edit wizard.</strong><p>Click the connector name, or choose Edit in its Actions menu.</p><p class="expect">The same wizard titled "Edit Connection", with values filled in.</p></li>
 <li><strong>Change what you need across the steps.</strong><p>To change the password, tick <strong>Change Password</strong> (the stored password is never shown). To change or replace properties, use <strong>Choose File</strong> on the Custom Properties step.</p></li>
@@ -593,13 +591,13 @@
 </ol>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/create_connection6.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/create_connection6.png" alt="The Custom Properties step while editing a Postgres connector showing a long list of driver properties with Value and Modified columns, 23 of 78 displayed" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> When a connector already exists, the Custom Properties table lists the default properties set by the driver. "Modified" tells you whether a property differs from the driver default because of an uploaded file. The password-like entry is shown as REDACTED. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__test__edit__and_delete_a_connector.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h4 id="c23-deleting">8.2.6.3 Deleting</h4>
+<h3 id="c23-deleting">8.21.3 Deleting</h3>
 <p>Choose Delete in the Actions menu, then Confirm. Remember: deleting a connector also deletes the rule sets and inventory data that depend on it.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/create_connection10.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/create_connection10.png" alt="A dialog titled Delete Connector asking Are you sure you want to delete LocalhostPostgresDB Connector with Cancel and Confirm buttons" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The confirmation. Read the name in the question before clicking Confirm. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__test__edit__and_delete_a_connector.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
 
-<h3 id="c23-supported">8.2.7 Which data sources are supported, and extended connectors</h3>
+<h2 id="c23-supported">8.22 Which data sources are supported, and extended connectors</h2>
 <p>The supported-connectors page splits what the engine can profile, mask and tokenize into two kinds. <strong>Delphix connectors</strong> are built in and come in three licensing flavours: <em>Standard</em> (built and supported by Delphix, included with the licence), <em>Select</em> (built and supported by Delphix but needing a separate licence) and <em>Premium</em> (built by a third party, often with a separate licence). <strong>FEML</strong> (File Extract, Mask and Load) is a technique for sources with no dedicated connector: extract data to files through the source's APIs, mask the files, load the masked data back. <span class="badge doc">From docs</span></p>
 <div class="tablewrap"><table><thead><tr><th>Kind</th><th>Sources named on the page</th></tr></thead><tbody>
 <tr><td>Standard, databases</td><td>Db2 LUW, Oracle, MS SQL, MySQL, SAP ASE (Sybase), PostgreSQL, MariaDB</td></tr>
@@ -607,7 +605,7 @@
 <tr><td>Select and Premium</td><td>Salesforce, CockroachDB, SAP HANA 2.0; mainframe and midrange: Db2 z/OS, Db2 iSeries, mainframe data sets</td></tr>
 </tbody></table></div>
 <p>Two rules from that page matter for ShopSphere. Database masking applies only to <strong>physical tables</strong>: views, materialized views, federated systems and proxy objects are not supported. And JSON or XML stored inside database columns can be masked with a separate "Document Store Type" feature. Pricing is usage-based, per terabyte managed. The per-database pages give versions and feature tables (for example Oracle: TLS, password vault, Kerberos, in-place and on-the-fly options and "identity column support" all available), but the version matrix page was missing from my copy, so check your version there.</p>
-<h4 id="c23-extended">8.2.7.1 Extended connectors: bring your own JDBC driver</h4>
+<h3 id="c23-extended">8.22.1 Extended connectors: bring your own JDBC driver</h3>
 <p>If your database is not natively supported, an <strong>extended connector</strong> lets you upload a JDBC driver and use it. The rules, from the extended-connectors page: the driver must be a <em>type 4</em> (pure Java) <code>.jar</code>, packaged inside a <code>.zip</code> even if it is a single file; anything needing compilation or an install script on the engine is not supported; drivers needing a Java version above 8 are listed as unsupported (a line that looks out of date, since release 2026.5 runs on Java 17); and extended connectors lack some native features, though driver support plugins can add Disable Constraints, Disable Triggers and Drop Indexes. Delphix supports them under its support policy.</p>
 <ol class="steps">
 <li><strong>Get the driver from the database vendor's official site</strong> and, where a checksum is published, verify it.<p>The page warns that uploaded drivers run inside the engine's JVM, so a tampered driver could run arbitrary code on the engine host.</p></li>
@@ -621,10 +619,10 @@
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_extended3.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_extended3.png" alt="The Credentials step of an extended connector with Schema Name, JDBC URL, Enable Logger, Select JDBC Driver, Username and Password" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Credentials for an extended connector. The extra field compared with a native connector is Select JDBC Driver. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_extended_connectors.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
-<h3 id="c23-permissions">8.2.8 Database permissions and preparing the database</h3>
-<h4 id="c23-masking-user">8.2.8.1 A dedicated masking user</h4>
+<h2 id="c23-permissions">8.23 Database permissions and preparing the database</h2>
+<h3 id="c23-masking-user">8.23.1 A dedicated masking user</h3>
 <p>The permissions page recommends creating a <em>separate</em> database user for the engine, in non-production, rather than reusing a person's account. Reasons given: it is easy to replicate with its privileges, it can be a central directory user used in many places, and access audits on the database host become simpler. For <strong>masking</strong> jobs that user needs to read, write and update table data; create, drop, disable and enable indexes, triggers and constraints; and add or delete columns (the engine may add a temporary column, as you will see in <a href="08-delphix-connect-keys-profiling.html#c8-s3">the keys chapter</a>). For <strong>profiling</strong> jobs it needs only to see object definitions (the schema) and read table data. <span class="badge doc">From docs</span></p>
-<h4 id="c23-prepare">8.2.8.2 Preparing each database</h4>
+<h3 id="c23-prepare">8.23.2 Preparing each database</h3>
 <p>The "Preparing data" pages say, first of all, that using a VDB is recommended: it is also the best security practice because the database runs in a sandbox, and the page adds that Selective Data Distribution is advised for further security. The per-database pages share one logic. In-place masking changes <em>every row of every masked table</em>, which creates huge amounts of log and undo data, so the database should be tuned for a heavy write load, and log files can hold unmasked copies of the data and must be cleared afterwards.</p>
 <div class="tablewrap"><table><thead><tr><th>Database</th><th>What the page asks for (overview)</th></tr></thead><tbody>
 <tr><td>Oracle</td><td>Switch off archive logging for the copy (<code>NOARCHIVELOG</code>), enough memory (automatic SGA management), larger undo space and retention for big in-place updates (about 2 to 3 times the largest table) to avoid "snapshot too old" (ORA-01555), well-sized redo logs, PCTFREE 40 to 50, and use ROWID as the logical key. Grant SELECT on several V$ views, and <code>SELECT_CATALOG_ROLE</code> if jobs drop or disable indexes, constraints or triggers.</td></tr>
@@ -637,7 +635,7 @@
 <p>Switching off archive logging, dropping constraints or giving a user schema-altering rights are fine on a disposable copy and unacceptable on production. That is one more reason the docs steer you to a VDB or another non-production copy.</p></div>
 
 
-<h3 id="c23-vdb">8.2.9 What a VDB is, from zero</h3>
+<h2 id="c23-vdb">8.24 What a VDB is, from zero</h2>
 <p>Suppose ShopSphere's production database is 500 GB. Testers need a copy, and so do developers, and the compliance team will not allow the unmasked copy anywhere near them. Making four physical 500 GB copies takes hours and terabytes, and refreshing them is a chore. Delphix's <strong>virtualization</strong> product solves the copying half of the problem. Its pages describe it this way. <span class="badge doc">From docs</span></p>
 <ul>
 <li>The Continuous Data engine compresses the data it gathers, often to a third of the original size or better, and from that creates lightweight <strong>virtual copies</strong> that are fully readable and writable, independent of one another and created or removed in minutes. The introduction claims ten virtual copies fit in the space of one physical copy.</li>
@@ -662,7 +660,7 @@
 <div class="callout why"><strong class="ctitle">Why masking a VDB beats masking a copy by hand</strong>
 <p>An in-place job overwrites its source (see <a href="08-delphix-connect-keys-profiling.html#c22-inplace">the overview chapter</a>). On a VDB that is safe: production is untouched, the VDB can be thrown away, and a refresh brings fresh data and re-runs the masking job. Child VDBs of a masked VDB contain only masked data, so you can hand out many independent masked copies cheaply.</p></div>
 
-<h4 id="c23-masked-prov">8.2.9.1 How a masked VDB is provisioned</h4>
+<h3 id="c23-masked-prov">8.24.1 How a masked VDB is provisioned</h3>
 <p>These steps happen mostly in the <em>Virtualization</em> engine's interface, not the masking engine's, which is why I give them at overview level. The masking engine's part is the masking job and its connector. <span class="badge doc">From docs</span></p>
 <ol class="steps">
 <li><strong>Create a masking job on the masking engine</strong> for the rule set, as usual, with in-place masking and the <em>Multi-Tenant</em> option ticked.<p>The Multi-Tenant option lets one rule set serve identical schemas through different connectors chosen at run time, so the same job can be pointed at each new VDB. The job page says Selective Data Distribution must also be enabled for a job to be eligible for SDD.</p></li>
@@ -677,7 +675,7 @@
 <figcaption><strong>Official screenshot:</strong> The Masking step of the provisioning wizard. The wizard's other steps run down the left: Target Environment, Target Configuration, Advanced, Policies, Masking, Hooks, Summary. <a class="badge-link" href="https://help.delphix.com/cc/current/content/provision_masked_vdbs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/provision_vdbs7.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/provision_vdbs7.png" alt="The masking engine's Monitor, Job Executions page listing many MASK and PROFILE job runs with Status SUCCEEDED" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The masking engine's Job Executions page, where you watch the masking job that provisioning started. The page text says to monitor progress here. <a class="badge-link" href="https://help.delphix.com/cc/current/content/provision_masked_vdbs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h4 id="c23-restrictions">8.2.9.2 Rules and restrictions you must know</h4>
+<h3 id="c23-restrictions">8.24.2 Rules and restrictions you must know</h3>
 <ul>
 <li>Provisioning or refreshing <strong>masked VDBs is supported only for Oracle, MS SQL Server and Sybase</strong>; Db2, for example, is not supported. <span class="badge doc">From docs</span></li>
 <li><strong>One job per VDB.</strong> A masking job cannot be assigned to several VDBs at once; if you reuse a rule set on many VDBs, create a unique job for each. <strong>Only in-place jobs</strong> can be selected.</li>
@@ -688,7 +686,7 @@
 </ul>
 <p>To let the Virtualization Engine reach the masking engine, an administrator can change the host, port and credentials it uses through the engine's CLI (<code>maskingjob</code>, then <code>serviceconfig</code>, then <code>update</code>, set values and commit). It lists jobs automatically at each login, and <code>maskingjob fetch</code> refreshes the list on demand. The page notes that Delphix does not check network availability between the two engines.</p>
 
-<h3 id="c23-vdbconn">8.2.10 "Create a connector to a VDB from the masking engine"</h3>
+<h2 id="c23-vdbconn">8.25 "Create a connector to a VDB from the masking engine"</h2>
 <p>This is the wording of the syllabus (Day 51, <em>TDM_Handson4</em>). Two different things could be meant, and the documents describe only one of them in detail.</p>
 <div class="tablewrap"><table><thead><tr><th></th><th>A. Your own connector pointing at a VDB</th><th>B. Masked provisioning</th></tr></thead><tbody>
 <tr><td>Who starts it</td><td>You, on the masking engine, with the normal + Connection wizard.</td><td>The Virtualization Engine, while provisioning.</td></tr>
@@ -712,7 +710,7 @@
 <p>A finished connector summary for ShopSphere (illustrative values): Connection Name <code>SHOPSPHERE_VDB_CONN</code>; Schema Name <code>public</code>; Database Name <code>shopsphere_vdb</code>; Host <code>vdb-host.example.com</code>; Port <code>5432</code>; Username <code>mask_user</code>. If Test Connection fails with a login error, the database name case or the user's password is the usual cause. If it hangs, a firewall is blocking the engine from the VDB's port. The next step, a rule set over this connector, is in <a href="08-delphix-connect-keys-profiling.html#c8-s3">the keys chapter</a>.</p>
 <p>Docs versus my addition: steps 2 to 7 are documented generic steps; step 1 and the choice to mask this VDB in place with this connector are my reading of the pages, not a documented procedure.</p></details></div>
 
-<h3 id="c23-mistakes">8.2.11 Common mistakes and gotchas</h3>
+<h2 id="c23-mistakes">8.26 Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Connector and VDB pitfalls</strong>
 <ul>
 <li><strong>Wrong case in Database Name.</strong> It must match the database exactly.</li>
@@ -724,7 +722,7 @@
 <li><strong>Imported connectors without passwords.</strong> Import and sync do not carry passwords; re-enter them.</li>
 </ul></div>
 
-<h3 id="c23-recap">8.2.12 Recap</h3>
+<h2 id="c23-recap">8.27 Recap</h2>
 <div class="callout recap"><strong class="ctitle">Recap</strong>
 <ul>
 <li>Applications label systems; environments hold connectors, rule sets and jobs. Purpose is fixed; deleting an environment deletes its contents but not shared settings.</li>
@@ -736,7 +734,7 @@
 <li>"A connector to a VDB" is an ordinary connector with the VDB's address. The docs do not give a dedicated procedure, so check each detail with your trainer.</li>
 </ul></div>
 
-<section class="sources"><h3 id="c23-sources">Sources used in this section</h3>
+<section class="sources"><h4 id="c23-sources">Sources used in this section</h4>
 <ul>
 <li><a href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Managing environments</a>: applications, environments, export and import; four screenshots.</li>
 <li><a href="https://help.delphix.com/cc/current/content/managing_connectors.htm" target="_blank" rel="noopener">Managing connectors</a>, <a href="https://help.delphix.com/cc/current/content/create__test__edit__and_delete_a_connector.htm" target="_blank" rel="noopener">Create, test, edit and delete a connector</a>, <a href="https://help.delphix.com/cc/current/content/authentication_types.htm" target="_blank" rel="noopener">Authentication types</a>, <a href="https://help.delphix.com/cc/current/content/create_databaseconnector.htm" target="_blank" rel="noopener">create DatabaseConnector sample</a>: fields, wizard, properties precedence; screenshots.</li>
@@ -745,8 +743,7 @@
 <li><a href="https://help.delphix.com/cc/current/content/masked_provisioning.htm" target="_blank" rel="noopener">Masked provisioning</a>, <a href="https://help.delphix.com/cc/current/content/provision_masked_vdbs.htm" target="_blank" rel="noopener">Provision masked VDBs</a>, <a href="https://help.delphix.com/cc/current/content/configuring_virtualization_service_for_masked_provisioning.htm" target="_blank" rel="noopener">Configuring the virtualization service</a>, <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">terminology</a> and <a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">introduction</a>: VDB, dSource, restrictions, steps; four screenshots.</li>
 </ul></section>
 
-<h2 id="c8-s3">8.3 Delphix: rule sets, primary keys and data integrity</h2>
-<p><span class="day">Day 51</span></p>
+<div class="grp" id="c8-s3"><span class="grplabel">Delphix: rule sets, primary keys and data integrity</span><span class="day">Day 51</span></div>
 <p>You now have an environment and a connector (<a href="08-delphix-connect-keys-profiling.html#c8-s2">the connectors and VDB chapter</a>). The next object in the chain is the <strong>rule set</strong>: the list of tables, or files, that the engine will profile and mask. Building one is mostly point and click. The part that needs real understanding is <em>keys</em>. Delphix, like most masking engines, wants to know for every table which column or columns identify one row, and it expects masked values in related tables to stay matched. This section covers both, and it covers the syllabus's Day 51 topics: primary key basics and discovery, and data integrity in primary and foreign key columns.</p>
 <p>You will build a rule set for the ShopSphere tables, run the engine's checklist on it, and add a logical key. If you skipped the basics of keys, <a href="01-welcome-why-tdm-and-data-basics.html#c1-s3">the data basics chapter</a> is a good first stop; here they are explained again briefly, with the masking twist.</p>
 
@@ -764,7 +761,7 @@
 <li>A hands-on lab on the ShopSphere tables.</li>
 </ul></div>
 
-<h3 id="c24-words">8.3.1 Words to know first</h3>
+<h2 id="c24-words">8.28 Words to know first</h2>
 <dl class="defs">
 <div><dt>Rule set</dt>
 <dd>A group of tables or flat files, within one data source, on which you may run profile, masking or tokenization jobs.</dd></div>
@@ -788,7 +785,7 @@
 <dd>An action on a rule set (and on a job) that checks every table has a primary key, an indexed identity column or a logical key.</dd></div>
 </dl>
 
-<h3 id="c24-keys">8.3.2 Primary and foreign keys from zero, with ShopSphere</h3>
+<h2 id="c24-keys">8.29 Primary and foreign keys from zero, with ShopSphere</h2>
 <p>A database table is like a spreadsheet, but databases promise things a spreadsheet does not. One promise is that each row can be found unambiguously. Two customers may share a name, so the name cannot find a row. A <dfn>primary key</dfn> is the column designed to do it. In ShopSphere, <code>CUSTOMERS.customer_id</code> is the primary key: 1001 is Asha Menon, 1002 is Ravi Kumar, 1003 is Meera Nair, and there will never be two 1001s or an empty one.</p>
 <p>Tables connect through <dfn>foreign keys</dfn>. <code>ORDERS</code> has a column <code>customer_id</code> that stores which customer placed the order. Each value there must exist in <code>CUSTOMERS.customer_id</code>.</p>
 <div class="tablewrap"><table class="sample"><caption>Original data (fake). CUSTOMERS.customer_id is the primary key; ORDERS.customer_id is a foreign key to it.</caption><thead><tr><th>CUSTOMERS.customer_id</th><th>first_name</th><th>last_name</th><th>ssn</th></tr></thead><tbody>
@@ -805,7 +802,7 @@
 <div class="callout note"><strong class="ctitle">"Primary key discovery" in Delphix</strong>
 <p>The syllabus lists "primary key discovery using Delphix". The documentation has no separate feature of that name. What it does show: the database inventory marks each column that is a Primary Key, Foreign Key or Index (written beneath the column name, as in the screenshot later in this section), and the Checklist reports tables that lack a usable key. So "discovery" here means <em>reading the key information from the database and checking it</em>. This is my reading of the pages; ask your trainer if the course expects something more.</p></div>
 
-<h3 id="c24-whykey">8.3.3 Why a masking engine needs a key on every table</h3>
+<h2 id="c24-whykey">8.30 Why a masking engine needs a key on every table</h2>
 <p>In-place masking works in three moves: read a row, compute the masked values, write them back <em>to that same row</em>. To write to the right row, the engine must be able to name it. The preparation pages for SQL Server, Db2 and Sybase say so plainly: a key is a unique, non-null value that identifies a row, and for in-place masking "this key looks up the row to update the masked record". For speed the key should be indexed (a clustered index is best, the pages say).</p>
 <p>Analogy: a librarian who must correct the address on 100,000 library cards. If each card has a printed number, she can pull card 48213 directly. If cards have no numbers she must compare every card to find the right one, and with duplicate names she might correct the wrong person. The key is the card number. The analogy stops at speed: the engine updates in batches, not card by card.</p>
 <p>The pages then list what the engine does with a table, in this order of preference. <span class="badge doc">From docs</span></p>
@@ -818,11 +815,11 @@
 <p>A detail the pages disagree on: the SQL Server page lists the order as logical key, primary key, identity column, none. The Db2 and Sybase pages list primary key, identity, logical key, none, but still describe the logical key as the override. The practical rule is the same: <strong>define a logical key when you want to control the choice</strong>. The documentation recommends on-the-fly masking as the alternative when a table has no key, since that method writes new rows rather than updating old ones.</p>
 <div class="callout why"><strong class="ctitle">Why the temporary column is not a free pass</strong>
 <p>The 2025.5 and 2025.6 release notes list known issues: failed jobs on heap tables (tables without a clustered index) may leave the generated temporary identity column and index behind. So "the engine will add one for me" is a fallback with a cost. Give the table a real key.</p></div>
-<h4 id="c24-rowid">8.3.3.1 Oracle and ROWID</h4>
+<h3 id="c24-rowid">8.30.1 Oracle and ROWID</h3>
 <p>Oracle tables have the built-in <code>ROWID</code>. The Oracle preparation page says that adding ROWID as the logical key on each table through the GUI is generally the fastest approach, because Oracle manages the updates by the row address. A fixed issue in the 2025.2 release notes confirms that ROWID could not be added as a logical key from the Edit Ruleset screen before that, which is one reason to check your version.</p>
 
 
-<h3 id="c24-rulesets">8.3.4 Rule sets: what they are and the four types</h3>
+<h2 id="c24-rulesets">8.31 Rule sets: what they are and the four types</h2>
 <p>A rule set answers "which tables or files, of this connector, are in scope?". Profiling and masking jobs run <em>only</em> on what is in the rule set. A table added to the database later is not discovered or masked until you add it. Each rule set belongs to one connector, and the inventory (the per-column plan) hangs off the rule set. <span class="badge doc">From docs</span></p>
 <p>Open an environment and click the <strong>Rule Sets</strong> tab. The grid shows: Rule Set ID (for the API), Name, Connector Name, Source Type (Database, Fixed Width, Delimited, JSON, XML or DataSet), Metadata (the database or file type), a Refresh/Save status icon (database rule sets only; file rule sets show N/A) and Actions. You need View permission on Inventory and File Format to open a rule set's inventory.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_ruleset.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_ruleset.png" alt="The Rule Sets tab of an environment listing rule sets such as MysqlRuleset, PostgresRuleset and OracleRuleset with Connector Name, Source Type, Metadata and a green Refresh/Save tick, and file rule sets with N/A" loading="lazy"></a>
@@ -838,7 +835,7 @@
 </tbody></table></div>
 <p>The connector dropdown in the next step shows only connectors that match the type you chose here. If you have not created a connector yet, the dropdown is empty and you cannot continue.</p>
 
-<h3 id="c24-create">8.3.5 Creating a database rule set</h3>
+<h2 id="c24-create">8.32 Creating a database rule set</h2>
 <p>The Add Rule Set wizard has three steps: Details, Data Tables, Summary.</p>
 <ol class="steps">
 <li><strong>Details: name the rule set and pick the connector.</strong><p>The name follows the usual naming rules (no special characters). The connector dropdown can be filtered by typing. When you choose one, the screen shows its details (database type, database name, host, port, schema, user), so you can confirm you picked the right database before going on.</p><p class="expect">Connector details appear under the dropdown. Next is enabled.</p></li>
@@ -853,12 +850,12 @@
 <figcaption><strong>Official screenshot:</strong> The Add Tables dialog with a "contains" filter: typing "data" leaves two tables and the header box ticks them both. The footer shows how many tables are selected. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <div class="callout tip"><strong class="ctitle">Add every related table</strong>
 <p>The MS SQL driver page warns that any table with a foreign key linking to a primary key must be in the rule set. Add all four ShopSphere tables together (CUSTOMERS, ORDERS, ORDER_ITEMS, PRODUCTS). If a child table is left out and the parent's key is masked, the database will reject the change or the child rows will point at nothing.</p></div>
-<h4 id="c24-flat">8.3.5.1 Flat, semi-structured and copybook rule sets in one paragraph</h4>
+<h3 id="c24-flat">8.32.1 Flat, semi-structured and copybook rule sets in one paragraph</h3>
 <p>For files, step 2 is called Data Files, and you click <strong>Add File Name</strong> (pick files the connector can see) or <strong>Add File Pattern</strong> (a Java regular expression, such as <code>.*\.txt</code>, is case sensitive). You then set properties that depend on the type: a format file (the description of the file's layout, created under Settings &gt; Data Formats), end of record (Windows CR+LF or Linux LF, or a custom value), delimiter and text enclosure for delimited files, "Mask Whole File" for fixed-width files, and "Variable Length" for mainframe data sets. File name patterns work only for file-to-file jobs, not database-to-file jobs. Control characters can be entered as <code>$[hex]</code>, for example <code>$[01]</code>. These are the topics of <a href="09-delphix-masking-files-labs.html#c9-s2">the file masking chapter</a>.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_ruleset7.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_ruleset7.png" alt="The Edit Flat files Rule Set wizard on the Data Files step with buttons Add File Name, Add File Pattern, Edit Selected, Remove Selected and Reset All and a grid with columns File Name, Format File, End of Record, Delimiter, Text Enclosure, Enclosure Escape, Escape Enclosure and Is Pattern" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Data Files step of a flat file rule set. Compare it with the Data Tables step: the grid columns change with the type, but the pattern (add, edit selected, remove selected, reset) is the same. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
-<h3 id="c24-manage">8.3.6 Editing, refreshing, copying, deleting and verifying</h3>
+<h2 id="c24-manage">8.33 Editing, refreshing, copying, deleting and verifying</h2>
 <p>All of these are in the Actions (...) menu of a rule set. The screenshot below shows the menu: Refresh, Edit, Duplicate, Delete and Checklist. <span class="badge doc">From docs</span></p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_ruleset13.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_ruleset13.png" alt="The Rule Sets grid with the Actions menu open showing Refresh, Edit (with a red arrow), Duplicate, Delete and Checklist" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The rule set Actions menu. Note the last item, Checklist: the page text calls this "Verify" in its action list and "Checklist" in its own section, so expect either word. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
@@ -873,13 +870,13 @@
 <p>Many dialogs in this wizard (Add Tables, Edit Logical Key, filters) have their own Save. That Save only stages the change. Nothing is stored until you click the <em>wizard's</em> Save on the last step. If you close without it, your key is gone.</p></div>
 
 
-<h3 id="c24-logical-key">8.3.7 Logical keys, filters and custom SQL</h3>
-<h4 id="c24-lk">8.3.7.1 What a logical key is, and when you must add one</h4>
+<h2 id="c24-logical-key">8.34 Logical keys, filters and custom SQL</h2>
+<h3 id="c24-lk">8.34.1 What a logical key is, and when you must add one</h3>
 <p>A logical key tells Delphix "treat these columns as the row identifier for this table". The page defines it as a unique, non-null value that identifies a row. It does <strong>not change the target database</strong>; it is information for Delphix only. The rule from the page: if a table has no primary key defined in the database and you use in-place masking, you must name an existing column or columns as a logical key. For several columns, separate them with commas. If you do not, and there is no primary key, the engine creates an identity column, which needs a database user allowed to modify the schema, otherwise the job may fail. <span class="badge doc">From docs</span></p>
 <p>Limits worth knowing, all from the pages: a logical key cannot exceed 1,024 characters; the column must exist (the dialog warns that masking jobs fail if the key column does not exist); a fixed-issues entry says null values in logical key columns are now rejected at create or update; and if some tables get an invalid key, the other changes are still saved, the old key stays, and the failures are listed in the Async Tasks page under "Exception Detail".</p>
 <div class="callout example"><strong class="ctitle">Which ShopSphere tables need one?</strong>
 <p>All four core ShopSphere tables have a declared primary key (customer_id, order_id, item_id, product_code), so none <em>needs</em> a logical key. A staging table with no declared key is the typical case. In the lab you will add one on an illustrative table. A composite key is also possible: ORDER_ITEMS could use the logical key <code>order_id,product_code</code> if that pair is unique, though its own primary key is the better choice.</p></div>
-<h4 id="c24-lk-steps">8.3.7.2 Adding a logical key in the rule set wizard</h4>
+<h3 id="c24-lk-steps">8.34.2 Adding a logical key in the rule set wizard</h3>
 <ol class="steps">
 <li><strong>Open the rule set for editing</strong> (Actions, Edit) and go to the Data Tables step.<p>Logical keys are set per table, at this step.</p></li>
 <li><strong>Tick one or more tables</strong> and click <strong>Edit Logical Key</strong>.<p class="expect">A dialog asks you to specify a logical key and warns to check that the columns exist in the tables.</p></li>
@@ -892,14 +889,14 @@
 <figcaption><strong>Official screenshot:</strong> An inventory. Under the column ID the grid writes "Primary Key, Index"; table TEST10 is labelled Logical Key and TEST1 Filter Condition. The three icons on each table row (key, filter, code) edit the logical key, filter and custom SQL. A column that has a domain and algorithm, such as FIRST_NAME here, will be masked. <a class="badge-link" href="https://help.delphix.com/cc/current/content/graphical_user_interface__gui_.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_inventories9.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_inventories9.png" alt="A dialog titled Add/Edit Key Column with a Caution saying make sure the columns exist in the table, the table name TEST1 and a Key Column(s) text box" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The inventory's version of the same dialog, titled Add/Edit Key Column. Same idea, different wording: key columns for one table. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h4 id="c24-filter">8.3.7.3 Filter and custom SQL (briefly)</h4>
+<h3 id="c24-filter">8.34.3 Filter and custom SQL (briefly)</h3>
 <p>Two other table properties live beside the key. A <strong>filter</strong> is a WHERE condition that restricts which rows the job loads (the dialog's hint: prefix the column with the table name, as in <code>customer.cust_id &lt; 1000</code>). <strong>Custom SQL</strong> replaces the engine's own SELECT. A table can have a filter or custom SQL, never both; adding one removes the other. The page's rules for custom SQL: it must include the primary key column(s) and every column you will mask; it must include the <code>ROWID</code> column (the engine uses it to identify and update each row, and omitting it may fail the job or leave masking incomplete); and you can edit only one table at a time. The "Generate Custom SQL" link suggests a statement for you. Filters are covered with subsetting ideas in <a href="02-privacy-discovery-subsetting-masking.html#c2-s2">the discovery and subsetting chapter</a>.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_inventories11.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_inventories11.png" alt="A dialog titled Add/Edit Custom SQL with a caution that custom SQL cannot be applied because a filter is already applied, and a system-generated statement SELECT ROWID, ID, LAST_NAME, FIRST_NAME FROM a TEST1 table where ID greater than 10" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> System-generated custom SQL for a sample table. Notice that ROWID is the first selected column, which matches the page's rule that custom SQL must include it. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <div class="callout note"><strong class="ctitle">Two statements to reconcile</strong>
 <p>The custom SQL text says it must contain the primary key column(s) and the masked columns, and also that it must include ROWID. A fixed-issues entry for Oracle also says a table with a primary key failed when the key was missing from custom SQL. I follow both: include the key and the ROWID if your database supports it, and test with a small run. The documents do not say whether ROWID applies to non-Oracle databases.</p></div>
 
-<h3 id="c24-checklist">8.3.8 The Checklist: does every table have a usable key?</h3>
+<h2 id="c24-checklist">8.35 The Checklist: does every table have a usable key?</h2>
 <p>The engine can check your keys for you. Choosing <strong>Checklist</strong> in the Actions menu of a database rule set (or of a job) runs an <strong>Identity Column Check</strong>. It confirms that every table in the rule set has a primary key, an indexed identity column or a logical key. The new-features page describes it as helping you understand the side effects of a missing key before the job runs. <span class="badge doc">From docs</span></p>
 <p>The result is a dialog. If tables lack a key, it lists their names and explains that, for connectors that support identity columns, the engine will add a temporary column before the job starts, which may lengthen the run, and that where identity support is not available the job may fail. You can either update the rule set or go ahead with the job. If everything has a key, the dialog says the check <strong>passed</strong>.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_ruleset27.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_ruleset27.png" alt="A Checklist dialog titled Identity Column Check saying the tables below are missing a Primary Key or a Logical Key or Identity Key with Index, with a dark box listing four table names" loading="lazy"></a>
@@ -909,8 +906,8 @@
 <div class="callout warn"><strong class="ctitle">A passing checklist is narrower than it sounds</strong>
 <p>The job page says the check "relies solely on ruleset configuration". Even if a job disables a primary key constraint, the check still passes. It proves tables <em>have</em> a key, not that the key will be usable when the job runs, and not that your masking will keep foreign keys consistent. That second question is the next section.</p></div>
 
-<h3 id="c24-integrity">8.3.9 Data integrity in primary and foreign key columns</h3>
-<h4 id="c24-break">8.3.9.1 What breaks if you mask the two sides differently</h4>
+<h2 id="c24-integrity">8.36 Data integrity in primary and foreign key columns</h2>
+<h3 id="c24-break">8.36.1 What breaks if you mask the two sides differently</h3>
 <p>Suppose ShopSphere's profiling flagged only the sensitive columns, and a well-meaning engineer also masked <code>customer_id</code>, but gave CUSTOMERS and ORDERS <em>different</em> algorithms, or a random one on each side. Each value is replaced independently.</p>
 <div class="tablewrap"><table class="sample"><caption>After masking customer_id differently on each side (invented values). The join no longer works.</caption><thead><tr><th>CUSTOMERS.customer_id</th><th>first_name (masked)</th><th></th><th>ORDERS.order_id</th><th>ORDERS.customer_id</th></tr></thead><tbody>
 <tr><td>7342</td><td>Divya</td><td></td><td>5001</td><td>2199</td></tr>
@@ -927,7 +924,7 @@
 <p>1001 became 7342 in both tables, and 1003 became 3318 in both. Every order still points at its customer. The IDs no longer reveal the real ones. The same logic applies to ORDER_ITEMS.order_id against ORDERS.order_id.</p>
 <div class="callout why"><strong class="ctitle">Often the best choice is not to mask the key</strong>
 <p>A profiler marks <code>customer_id</code> as non-sensitive, because it is a meaningless number. If nobody can identify Asha from 1001, leaving key columns unmasked is the simplest and safest way to keep integrity. Mask a key only when the key itself is sensitive (an SSN used as a key, for example). This advice is my general engineering judgement, not a statement from the documentation. <span class="badge concept">General concept</span></p></div>
-<h4 id="c24-how">8.3.9.2 How Delphix keeps matching values matching</h4>
+<h3 id="c24-how">8.36.2 How Delphix keeps matching values matching</h3>
 <p>The documentation's promise appears in the introduction: Delphix masks consistently, so data is masked the same way across tables and databases. The pages that explain <em>how</em> give four ingredients. <span class="badge doc">From docs</span></p>
 <ol>
 <li><strong>Use the same deterministic algorithm on columns that reference each other.</strong> The Oracle, PostgreSQL and Db2 driver pages all say this almost word for word: use the same deterministic algorithms on primary key fields that reference each other so referential integrity is kept when constraints are re-enabled. The PostgreSQL and Db2 pages add that if a foreign key column and the key it references do not share one deterministic algorithm, the job fails with an integrity constraint violation. The SQL Server page says it too, with a stronger warning: the failure is near certain.</li>
@@ -937,12 +934,12 @@
 </ol>
 <div class="callout note"><strong class="ctitle">Where the domain helps</strong>
 <p>The discovery page says the domain mechanism "helps to ensure that the same masking algorithm is applied consistently across rule sets whenever a particular type of sensitive data is discovered". If ShopSphere defines one domain for customer identifiers and gives it one algorithm, every profiling run that finds such a column assigns the same algorithm. That is a good way to keep both sides of a key aligned, though I did not find the documentation claiming it handles key relationships by itself.</p></div>
-<h4 id="c24-sync">8.3.9.3 Algorithm syncability: the same output on two engines</h4>
+<h3 id="c24-sync">8.36.3 Algorithm syncability: the same output on two engines</h3>
 <p>Many teams run a masking engine for each stage (see the overview chapter's note on multiple engines). If the dev engine and the QA engine mask 1001 differently, test data from the two will not join. The <a href="https://help.delphix.com/cc/current/content/algorithm_syncability.htm" target="_blank" rel="noopener">Algorithm syncability</a> page is about this. It says algorithms can be synced between engines through an API, and that syncing out-of-the-box instances updates their individual <em>keys</em>. An algorithm key is the secret value that decides the output; two engines produce the same masked value only if they have the same algorithm and the same key. <span class="badge doc">From docs</span></p>
 <p>The page also separates two kinds. <strong>Non-deterministic</strong> algorithms cannot guarantee the same output for the same input across jobs, so they "cannot be used for syncable masking": it lists DATE SHIFT(VARIABLE), the Gender SL and SexualOrientation SL instances and SECURE SHUFFLE, and says all Secure Lookup (Random) algorithms are non-deterministic by design. <strong>Fixed</strong> algorithms, such as DATE SHIFT(FIXED) and ZIP+4, always give the same result and need no syncing. Everything else is deterministic and depends on its key. The page does not mention primary or foreign keys at all: its subject is consistency <em>between engines</em>. Within one engine, consistency comes from using the same algorithm on both columns.</p>
 
 
-<h3 id="c24-lab">8.3.10 Hands-on lab: a rule set for the SHOPSPHERE tables</h3>
+<h2 id="c24-lab">8.37 Hands-on lab: a rule set for the SHOPSPHERE tables</h2>
 <div class="exercise"><h4 id="c8-lab-create-a-rule-set-run-the-checklist-add-a-logical-key">Lab: create a rule set, run the checklist, add a logical key</h4>
 <p>Goal: a rule set <code>SHOPSPHERE_RS</code> over the ShopSphere tables, a passing Identity Column Check, and a logical key on a table that has no primary key. Prerequisite: the environment and tested connector from <a href="08-delphix-connect-keys-profiling.html#c8-s2">the connectors and VDB chapter</a>. The steps and screens are <span class="badge doc">From docs</span>. The table <code>CUSTOMER_STAGING</code> is <strong>my illustrative addition</strong>, because the four core tables all have primary keys and you need a keyless table to practise the logical key. Ask your DBA to create it in the lab database, or read steps 6 and 7 without running them:</p>
 <pre><code>CREATE TABLE CUSTOMER_STAGING (
@@ -973,7 +970,7 @@
 </tbody></table></div>
 <p>If you do mask a key, the job must enable Disable Constraints and Drop Indexes. The two table-level steps (Checklist and logical key) are documented; the plan is my application of the integrity rules in the section above.</p></details></div>
 
-<h3 id="c24-mistakes">8.3.11 Common mistakes and gotchas</h3>
+<h2 id="c24-mistakes">8.38 Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Key and rule set pitfalls</strong>
 <ul>
 <li><strong>Believing a passing Checklist means integrity is safe.</strong> It only proves each table has a key.</li>
@@ -986,7 +983,7 @@
 <li><strong>Assuming refresh wipes your masking choices.</strong> It keeps existing algorithm assignments and updates the table list and columns.</li>
 </ul></div>
 
-<h3 id="c24-recap">8.3.12 Recap</h3>
+<h2 id="c24-recap">8.39 Recap</h2>
 <div class="callout recap"><strong class="ctitle">Recap</strong>
 <ul>
 <li>A rule set is the list of tables or files of one connector that jobs run on. There are four types: Database, Semi-Structured Files, Flat Files and Copybook.</li>
@@ -998,7 +995,7 @@
 <li>Algorithm syncability concerns producing the same output on several engines; non-deterministic algorithms cannot be synced.</li>
 </ul></div>
 
-<section class="sources"><h3 id="c24-sources">Sources used in this section</h3>
+<section class="sources"><h4 id="c24-sources">Sources used in this section</h4>
 <ul>
 <li><a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>: types, wizard, logical key, filter, custom SQL, refresh, copy, delete, Checklist; most screenshots.</li>
 <li><a href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Managing inventories</a> and <a href="https://help.delphix.com/cc/current/content/graphical_user_interface__gui_.htm" target="_blank" rel="noopener">Graphical User Interface</a>: inventory key icons and dialogs; two screenshots.</li>
@@ -1008,8 +1005,7 @@
 <li><a href="https://help.delphix.com/cc/current/content/discovering_your_sensitive_data.htm" target="_blank" rel="noopener">Discovering your sensitive data</a> and <a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction</a>: domains and the consistency promise.</li>
 </ul></section>
 
-<h2 id="c8-s4">8.4 Delphix: profiling to find sensitive data</h2>
-<p><span class="day">Day 52</span></p>
+<div class="grp" id="c8-s4"><span class="grplabel">Delphix: profiling to find sensitive data</span><span class="day">Day 52</span></div>
 <p>You cannot protect data you have not found. A real application database has hundreds of tables and thousands of columns, and nobody remembers which of them hold a customer's phone number, a tax id, or a note typed in by a support agent. <dfn>Profiling</dfn> is Delphix's answer: a job that scans your data source, decides which columns look sensitive, and writes its decisions into a list that you review before any masking happens.</p>
 <p>This section explains that scan from zero. It covers what a profile set, a classifier, a domain and an inventory are, how they fit together, how to create and run a profiling job, how to read the results, and how to correct them by hand. It ends with the Day 52 lab (TDM_Handson5) on the ShopSphere sample database. The connections and rule sets the lab needs are set up in <a href="08-delphix-connect-keys-profiling.html#c8-s2">the Delphix connectors chapter</a> and <a href="08-delphix-connect-keys-profiling.html#c8-s3">the rule sets and keys chapter</a>; the algorithms that profiling assigns are explained in <a href="09-delphix-masking-files-labs.html#c9-s1">the algorithms and masking jobs chapter</a>. If you want the Informatica view of the same idea, see <a href="04-informatica-architecture-discovery-subset.html#c4-s3">the Informatica discovery and profiling chapter</a>.</p>
 <div class="callout recap"><strong class="ctitle">What you will learn</strong>
@@ -1025,7 +1021,7 @@
 <p>Delphix Continuous Compliance documentation 2026.5 (last published October 16, 2026), read in full: <a href="https://help.delphix.com/cc/current/content/managing_profiling_jobs.htm" target="_blank" rel="noopener">Managing profiling jobs</a>, <a href="https://help.delphix.com/cc/current/content/configuring_profile_sets.htm" target="_blank" rel="noopener">Configuring profile sets</a>, <a href="https://help.delphix.com/cc/current/content/asdd_standard_profile_set.htm" target="_blank" rel="noopener">ASDD standard profile set</a>, <a href="https://help.delphix.com/cc/current/content/asdd_features_and_support.htm" target="_blank" rel="noopener">ASDD features and support</a>, <a href="https://help.delphix.com/cc/current/content/legacy_profile_set_classifiers.htm" target="_blank" rel="noopener">Legacy profile set classifiers</a>, <a href="https://help.delphix.com/cc/current/content/managing_classifiers.htm" target="_blank" rel="noopener">Managing classifiers</a>, <a href="https://help.delphix.com/cc/current/content/profiletypeexpressions.htm" target="_blank" rel="noopener">profileTypeExpressions</a>, <a href="https://help.delphix.com/cc/current/content/out_of_the_box_profiling_settings.htm" target="_blank" rel="noopener">Out of the box profiling settings</a>, <a href="https://help.delphix.com/cc/current/content/managing_domains.htm" target="_blank" rel="noopener">Managing domains</a>, <a href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Managing inventories</a>, <a href="https://help.delphix.com/cc/current/content/createinventory.htm" target="_blank" rel="noopener">createInventory</a>, <a href="https://help.delphix.com/cc/current/content/reporting_profiling_results.htm" target="_blank" rel="noopener">Reporting profiling results</a>, <a href="https://help.delphix.com/cc/current/content/identifying_sensitive_data.htm" target="_blank" rel="noopener">Identifying sensitive data</a>, <a href="https://help.delphix.com/cc/current/content/discovering_your_sensitive_data.htm" target="_blank" rel="noopener">Discovering your sensitive data</a>, <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs</a> and <a href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">Job monitoring</a>; also <a href="https://help.delphix.com/cc/current/content/masking_api_client.htm" target="_blank" rel="noopener">Masking API client</a> (defaults) and <a href="https://help.delphix.com/cc/current/content/running_and_stopping_jobs.htm" target="_blank" rel="noopener">Running and stopping jobs</a>.</p>
 <p>The learner-supplied fourth link (<code>help.delphix.com/cc/current/content/create</code>) was cut off and returns 404 (checked). The intended page is almost certainly <code>create__view__edit__delete__verify_jobs.htm</code>, which is the one used here. Screenshots come from engine versions 22.0.0.0 to 26.0.0.0, so your screen may differ. The ShopSphere predictions are my own reasoning from the published classifier definitions, not engine output.</p></div>
 
-<h3 id="c25-words">8.4.1 Words to know first</h3>
+<h2 id="c25-words">8.40 Words to know first</h2>
 <dl class="defs">
 <div><dt>Sensitive data discovery / profiling</dt><dd>The process of scanning a data source to find columns or file fields that hold sensitive information. The docs use both names for the same thing.</dd></div>
 <div><dt>Profiling job</dt><dd>A saved set of instructions that says "scan this rule set using this profile set". You create it once and can run it many times.</dd></div>
@@ -1040,13 +1036,13 @@
 <div><dt>ASDD profiler</dt><dd>Automated Sensitive Data Discovery, the current profiler. It uses classifiers. The older "legacy" profiler uses search and type expressions.</dd></div>
 </dl>
 
-<h3 id="c25-why">8.4.2 Why profile at all?</h3>
+<h2 id="c25-why">8.41 Why profile at all?</h2>
 <p>Picture the ShopSphere developers asking for a copy of <code>SHOPSPHERE_PROD</code> to test the Customer Orders app. A TDM engineer must hide every real name, phone number and tax id before handing it over. With four tables and nine customer columns you could do that by reading the table definitions. With a real database of 3,000 columns you cannot, and one forgotten column is a privacy incident.</p>
 <p>A profiling job automates the first pass. The documentation describes it as examining metadata (column names and types) and potentially the data itself, then assigning the matching domain and its algorithm to each column it judges sensitive <span class="badge doc">From docs</span>. A person then reviews the result. That last step matters: the profiler is a fast assistant, not an auditor.</p>
 <div class="callout why"><strong class="ctitle">Why it matters</strong>
 <p>Profiling is where masking projects are won or lost. Masking jobs only protect what is in the inventory. A column the profiler missed, and nobody caught, goes to the test environment untouched.</p></div>
 
-<h4 id="c25-flow">The whole pipeline on one line</h4>
+<h3 id="c25-flow">8.41.1 The whole pipeline on one line</h3>
 <div class="flow">
 <div class="node"><b>Rule set</b>which tables to scan</div><div class="arrow">→</div>
 <div class="node"><b>Profile set</b>which rules to use</div><div class="arrow">→</div>
@@ -1057,7 +1053,7 @@
 </div>
 <p>Analogy: an airport scanner flags bags using a rulebook (the profile set). A security officer (you) opens the flagged bags, waves through the harmless ones, and sometimes stops a bag the scanner missed. The analogy stops being accurate in one place: the scanner has no memory of the officer's decisions unless you tell it, which is what the "automatic updates" checkbox, described in the inventory review part of this section, is for.</p>
 
-<h3 id="c25-concepts">8.4.3 Profile, domain, algorithm assignment and inventory: how they differ</h3>
+<h2 id="c25-concepts">8.42 Profile, domain, algorithm assignment and inventory: how they differ</h2>
 <p>Beginners often use these four words as if they meant one thing. They are four different layers, and each answers one question.</p>
 <div class="tablewrap"><table><thead><tr><th>Layer</th><th>Question it answers</th><th>Where you manage it</th><th>ShopSphere example</th></tr></thead><tbody>
 <tr><td>Profile set (made of classifiers)</td><td>How do we recognise sensitive data?</td><td>Settings, Profile Sets and Classifiers</td><td>"ASDD Standard"</td></tr>
@@ -1073,10 +1069,10 @@
 <div class="callout note"><strong class="ctitle">Changing a domain later</strong>
 <p>Editing a domain's default algorithm affects only future profiling runs. It does not change assignments already sitting in existing inventories <span class="badge doc">From docs</span>. If you change a default and expect old inventories to follow, they will not.</p></div>
 
-<h3 id="c25-how-asdd-decides">8.4.4 How the profiler decides: classifiers, strengths and thresholds</h3>
+<h2 id="c25-how-asdd-decides">8.43 How the profiler decides: classifiers, strengths and thresholds</h2>
 <p>The profiler looks at each column and asks a panel of four judges. Each judge looks at a different kind of evidence and answers with a score. The scores are combined into one confidence per domain. If the best confidence reaches the assignment threshold, that domain (and its algorithm) is written into the inventory.</p>
 
-<h4 id="c25-four-frameworks">The four classifier frameworks</h4>
+<h3 id="c25-four-frameworks">8.43.1 The four classifier frameworks</h3>
 <p>A <dfn>classifier framework</dfn> is a kind of judge; a <dfn>classifier instance</dfn> is one configured judge for one domain. The docs list four frameworks and say you cannot install more <span class="badge doc">From docs</span>.</p>
 <div class="tablewrap"><table><thead><tr><th>Framework</th><th>Looks at</th><th>Level</th><th>Plain-English job</th></tr></thead><tbody>
 <tr><td>PATH</td><td>The name (for databases: table name and column name)</td><td>Column</td><td>"The column is called <em>first_name</em>, so it is probably a first name."</td></tr>
@@ -1086,7 +1082,7 @@
 </tbody></table></div>
 <p>PATH and TYPE are cheap, because they only need the table definition. REGEX and LIST must read sample rows, so they are what lets the profiler find a sensitive column even when its name is meaningless, such as <code>COL_17</code>. The built-in value lists carry English values, so data-level detection is limited to English <span class="badge doc">From docs</span>.</p>
 
-<h4 id="c25-strengths">Match strength, reject strength and how scores combine</h4>
+<h3 id="c25-strengths">8.43.2 Match strength, reject strength and how scores combine</h3>
 <p>Inside the engine every classifier reports a number from -1.0 to 1.0. The UI shows the same idea as -100 to 100, and in practice you only see 0 to 100 because non-matches are not displayed <span class="badge doc">From docs</span>.</p>
 <ul>
 <li><strong>Match strength</strong>: how sure the classifier is that this data belongs only to its domain. 0.01 means "maybe, but it could be many things". 1.0 means "certainly this and nothing else".</li>
@@ -1117,7 +1113,7 @@
 <figcaption>Original diagram: the "passport_no" example from the classifier documentation. Both domains get the same data-level score, and only PASSPORT_NO also matches by column name.</figcaption></figure>
 <p>The built-in PATH classifiers usually carry 0.67. A REGEX or LIST classifier has to beat that to override a name match, which is why the docs advise a low match strength (0.1 to 0.5) for patterns that are not unique. A nine-digit pattern could be an SSN, an account number or a row id, so it gets a small score. A dashed pattern like <code>001-23-4567</code> is distinctive, so it gets a high one.</p>
 
-<h4 id="c25-ssn-example">What the SSN classifiers actually look like</h4>
+<h3 id="c25-ssn-example">8.43.3 What the SSN classifiers actually look like</h3>
 <p>The ASDD Standard profile set is published as JSON. For the SSN domain it holds three classifiers (listing as of the 21.0.0.0 release). I summarise rather than copy:</p>
 <div class="tablewrap"><table><thead><tr><th>Classifier</th><th>Framework</th><th>What it checks</th><th>Strength</th></tr></thead><tbody>
 <tr><td>Social Security Number - Path</td><td>PATH</td><td>Name ends in <em>ssn</em> or contains <em>social security</em> plus number, code or id</td><td>match 0.67</td></tr>
@@ -1126,7 +1122,7 @@
 </tbody></table></div>
 <p>Notice the design: the name gives a good clue, the value pattern confirms it, and the type check rules out nonsense. The same three-part shape repeats for most domains.</p>
 
-<h4 id="c25-coverage">Which domains can be found by value, and which only by name?</h4>
+<h3 id="c25-coverage">8.43.4 Which domains can be found by value, and which only by name?</h3>
 <p>Not every domain has all three kinds of evidence. Reading the ASDD Standard listing (21.0.0.0) shows the pattern, and it matters when column names are cryptic. I grouped the domains by the classifier frameworks that the listing gives them:</p>
 <div class="tablewrap"><table><thead><tr><th>Evidence available</th><th>Domains (examples from the listing)</th><th>What it means for you</th></tr></thead><tbody>
 <tr><td>Name, type and value list</td><td>FIRST_NAME, LAST_NAME, FULL_NAME, CITY, COUNTRY, COMPANY_NAME, GENDER, JOB_TITLE, US_STATE</td><td>Can be found even in a column called <code>COL_17</code>, as long as values are in the English lists</td></tr>
@@ -1134,10 +1130,10 @@
 <tr><td>Name and type only</td><td>DOB, TAX_ID, ACCOUNT_NO, CUSTOMER_NO, USER_ID, TEXT, PASSWORD, SERIAL_NO</td><td>No value check: if the column is not named sensibly, the profiler will not find it</td></tr>
 </tbody></table></div>
 <p>Two ShopSphere consequences follow. <code>date_of_birth</code> and <code>tax_id</code> are found only because their names are clear, so a legacy table with a column called <code>DT1</code> would slip through. And all grouping here comes from my reading of the JSON, so check the live Classifiers screen of your engine for the exact picture.</p>
-<h4 id="c25-threshold">Assignment threshold</h4>
+<h3 id="c25-threshold">8.43.5 Assignment threshold</h3>
 <p>The default minimum confidence for ASDD is 1, so "any positive match, no matter how weak, triggers an assignment" <span class="badge doc">From docs</span>. That is very permissive, and the docs contrast it with the legacy profiler, which by default wanted an 80% match for data-level expressions. You can raise the threshold per profile set (integer 1 to 100) or globally with the application setting <code>ASDD/DefaultAssignmentThreshold</code>. A higher threshold means fewer false alarms and more missed columns. Because a missed column is worse than a false alarm, many teams keep the threshold low and review the inventory.</p>
 
-<h4 id="c25-sampling">How much data the profiler reads</h4>
+<h3 id="c25-sampling">8.43.6 How much data the profiler reads</h3>
 <p>For data-level classifiers the ASDD profiler samples rows instead of reading whole tables. These documented settings steer it; the values are the defaults in the 2026.5 Masking API client page <span class="badge doc">From docs</span>.</p>
 <div class="tablewrap"><table><thead><tr><th>Application setting (ASDD group)</th><th>Default</th><th>What it controls</th></tr></thead><tbody>
 <tr><td><code>DefaultTableSampleRows</code></td><td>1000</td><td>Rows sampled per table</td></tr>
@@ -1146,11 +1142,11 @@
 <tr><td><code>DefaultMultipleProfilerExpressionAlgorithm</code></td><td>NullValueLookup</td><td>Algorithm used when the "multiple profiler expression" option finds a tie</td></tr>
 </tbody></table></div>
 <p>Statistical sampling (so the sample reflects the whole table) is supported for Oracle, SQL Server and SAP ASE. When sampling is used, the sample percentage is always 1%, and if that yields too few rows the query is repeated without sampling <span class="badge doc">From docs</span>. The page does not say what happens on other databases beyond this; check your version.</p>
-<h4 id="c25-legacy">The legacy profiler, briefly</h4>
+<h3 id="c25-legacy">8.43.7 The legacy profiler, briefly</h3>
 <p>Before ASDD, profiling used <em>search expressions</em> (patterns on column names or data) and <em>type expressions</em> (data type and minimum length). The legacy profile sets are kept so that old jobs keep giving the same results, and they contain no type classifiers to restrict matches by column type <span class="badge doc">From docs</span>. The legacy classifier tables list patterns such as <code>ssn(?!\w*ID)</code> for SSN and <code>(?&gt;((tele?)?phone)|...)</code> for telephone. The legacy version of the Add Profile Set dialog (not the ASDD one pictured below) carries a banner saying legacy profile sets are deprecated and will be removed in a future release. Use ASDD for new work; the <a href="https://help.delphix.com/cc/current/content/profiletypeexpressions.htm" target="_blank" rel="noopener">profileTypeExpressions</a> page only shows API scripts for legacy type expressions.</p>
 <p>ASDD currently supports databases, delimited files, fixed-width files, JSON files, XML files and mainframe data <span class="badge doc">From docs</span>. Its stated limits: XML or JSON documents stored inside database columns are not profiled, and the Informix database is a known problem for discovery because of the column-truncation SQL.</p>
 
-<h3 id="c25-profile-sets">8.4.5 Profile sets: choosing and configuring the rulebook</h3>
+<h2 id="c25-profile-sets">8.44 Profile sets: choosing and configuring the rulebook</h2>
 <p>Open <strong>Settings &gt; Profile Sets</strong> to see the available sets. The table can be sorted by Name, Description and Created, and filtered by Name, Description, Owner and Created <span class="badge doc">From docs</span>.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/configure_profile.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/configure_profile.png" alt="Settings, Profile Sets screen listing ASDD Standard, Standard, Financial - Legacy and HIPAA - Legacy" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Settings &gt; Profile Sets: ASDD Standard (ASDD column "Yes"), Standard, Financial - Legacy and HIPAA - Legacy, plus a few user-made sets. <a class="badge-link" href="https://help.delphix.com/cc/current/content/configuring_profile_sets.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
@@ -1161,7 +1157,7 @@
 </tbody></table></div>
 <p>The table follows the <a href="https://help.delphix.com/cc/current/content/out_of_the_box_profiling_settings.htm" target="_blank" rel="noopener">Out of the box profiling settings</a> page, which says the product ships logic for "over 30 types" of sensitive data. The Domains screenshot later in this section shows 69 domains on one test engine, so treat "over 30" as a floor, not a count.</p>
 
-<h4 id="c25-create-profile-set">Create your own profile set (ASDD)</h4>
+<h3 id="c25-create-profile-set">8.44.1 Create your own profile set (ASDD)</h3>
 <p>You would build a custom set when, for example, a project wants only a handful of domains scanned, or a different threshold. The steps below are for the ASDD profiler <span class="badge doc">From docs</span>.</p>
 <ol class="steps">
 <li><strong>Click <em>+ Profile Set</em> above the grid.</strong><p>This opens the Add Profile Set dialog.</p></li>
@@ -1174,8 +1170,8 @@
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/configure_profile4.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/configure_profile4.png" alt="Add Profile Set dialog for ASDD with Assignment Threshold field and some classifiers ticked" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Add Profile Set dialog with ASDD Support ticked. On screen: it shows Set Name, Description, an optional Assignment Threshold field, a single "Classifiers" tab, and a checklist such as "Account Number - Path" and "Address Line 1 - Regex"; a few boxes are ticked. <a class="badge-link" href="https://help.delphix.com/cc/current/content/configuring_profile_sets.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p>Other actions in the row menu are <strong>View</strong> (everything read-only), <strong>Edit</strong> (tick or untick classifiers), <strong>Duplicate</strong> (copy with a new name) and <strong>Delete</strong>. You cannot delete a profile set that is assigned to any job <span class="badge doc">From docs</span>. Profile sets can also be created through the API with two calls (see the ASDD profile set import and export page, which I did not read in full).</p>
-<h3 id="c25-domains-classifiers">8.4.6 Domains and classifiers on the Settings screens</h3>
-<h4 id="c25-domains">Domains</h4>
+<h2 id="c25-domains-classifiers">8.45 Domains and classifiers on the Settings screens</h2>
+<h3 id="c25-domains">8.45.1 Domains</h3>
 <p><strong>Settings &gt; Domains</strong> lists each domain with its default <em>Masking Method</em> (algorithm) and, if defined, a <em>Tokenization Method</em>. The list can be sorted by Name, Masking Method and Tokenization Method <span class="badge doc">From docs</span>.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_domain.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_domain.png" alt="Settings, Domains screen with default masking algorithms per domain" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Domains screen (engine 22.0.0.0, 69 domains on that test engine). On screen: for example ACCOUNT_NO maps to dlpx-core:CM Alpha-Numeric, ADDRESS to AddrLookup, AGE to dlpx-core:Age SL, BANK_ACCOUNT_NO to dlpx-core:CM Numeric and BLOOD_TYPE to dlpx-core:BloodType SL. These default pairings are what the profiler copies into an inventory. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_domains.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
@@ -1185,7 +1181,7 @@
 <div class="callout real"><strong class="ctitle">When you would add a domain</strong>
 <p>Suppose ShopSphere's compliance officer says "loyalty card numbers must be masked with a different algorithm than bank account numbers". The profiler can only assign one algorithm per domain, so you would create a LOYALTY_CARD domain with its own default algorithm and add a classifier that recognises such columns. This is an illustrative scenario, not something in the docs.</p></div>
 
-<h4 id="c25-classifiers">Classifiers</h4>
+<h3 id="c25-classifiers">8.45.2 Classifiers</h3>
 <p><strong>Settings &gt; Classifiers</strong> lists every classifier instance with its Domain, Owner (System or a user), Type and Description. Sortable fields are Name, Domain and Description <span class="badge doc">From docs</span>.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_classifiers.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_classifiers.png" alt="Settings, Classifiers screen showing classifier names, domains and types" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Classifiers screen (engine 22.0.0.0, "Displaying 36 to 48 of 165"). On screen: rows such as "Date of Birth - Path" (domain DOB, type PATH) and "Date of Birth - Type" (TYPE) owned by System, and "Data Classifier - Email" (REGEX) owned by admin. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_classifiers.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
@@ -1194,7 +1190,7 @@
 <figcaption><strong>Official screenshot:</strong> The Add Classifier dialog for the Regex framework. On screen: Classifier Name, Domain and Classifier Framework (Regex) across the top; a table with Match Strength, Checksum Type, Case Sensitive and Partial Match columns; an "Add Regex Configuration" panel with Profiling Regex, Data Clean Regex (optional) and Checksum Type (optional); and a Reject Strength (optional) box showing 100. Save stays greyed out until at least one regex row has been added. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_classifiers.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p>Two technical notes from the docs: PATH and REGEX use Java 8 regular expressions, with separate options for whole-input matching and case sensitivity, so you should not wrap patterns in <code>^(...)$</code>. List classifiers can "tokenize" input so that a full name is matched word by word against first-name and last-name lists, with the confidence being the sum of matching token strengths divided by the number of tokens.</p>
 
-<h3 id="c25-profiling-job">8.4.7 Creating and managing a profiling job</h3>
+<h2 id="c25-profiling-job">8.46 Creating and managing a profiling job</h2>
 <p>Profiling jobs live inside an <strong>environment</strong>, next to masking jobs. Click an environment and you land on its Jobs tab. The documentation says profiling jobs can be created for relational databases (examples: Oracle, PostgreSQL) and for XML, JSON, mainframe, delimited and fixed-width rule sets. It is not supported for XML or JSON documents stored inside database columns, or for NoSQL databases <span class="badge doc">From docs</span>.</p>
 <p>Which jobs an environment offers depends on its purpose. A masking environment supports Profiling and Masking jobs. A tokenize environment supports Profiling, Tokenization and Re-Identification jobs <span class="badge doc">From docs</span>. In both, the Jobs tab can be sorted and filtered by Job ID, Name, Rule Set, Type, Status and Completed Time, and <em>Export Environment</em> packs the environment's connectors, rule sets and jobs into a file (with an optional passphrase). Tokenization is explained in <a href="09-delphix-masking-files-labs.html#c9-s1">the algorithms and masking jobs chapter</a>.</p>
 <div class="callout warn"><strong class="ctitle">A documentation disagreement to be aware of</strong>
@@ -1202,7 +1198,7 @@
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_profile.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_profile.png" alt="Environment Jobs tab with + Profiling Job and + Masking Job buttons and a completed PROFILE job" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> An environment's Jobs tab (engine 22.0.0.0). On screen: buttons "+ Profiling Job", "+ Masking Job" and "Export Environment" top right; tabs Jobs, Rule Sets and Connectors; one job of Type PROFILE with status SUCCEEDED, 100% data processed and a "..." Actions menu. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_profiling_jobs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
-<h4 id="c25-create-job-steps">Create a profiling job, step by step</h4>
+<h3 id="c25-create-job-steps">8.46.1 Create a profiling job, step by step</h3>
 <ol class="steps">
 <li><strong>In the environment, open the Jobs tab and click <em>+ Profiling Job</em>.</strong><p>The Create Profile Job wizard opens with three steps: Details, Configuration, Summary.</p></li>
 <li><strong>Details: enter a unique Job Name and pick the Rule Set.</strong><p>The rule set is the scope of the scan. Tables not in it are never examined.</p></li>
@@ -1228,17 +1224,17 @@
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_profile7.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_profile7.png" alt="View Profile Job dialog on the Summary step showing job, rule set, profile set and configuration details" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The View action: the same Summary panels as creation, with Next and Save greyed out because nothing can be changed. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_profiling_jobs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p>The managing profiling jobs page calls the fallback setting <code>DefaultMultiphiAlgorithm</code>, while the Masking API client page calls it <code>DefaultMultipleProfilerExpressionAlgorithm</code> (default NullValueLookup). I quote the second. The docs do not say how a tie is resolved when the option is off.</p>
-<h4 id="c25-edit-view-delete">Edit, view and delete</h4>
+<h3 id="c25-edit-view-delete">8.46.2 Edit, view and delete</h3>
 <p>Each job row has a <strong>...</strong> button in the Actions column. <em>Edit</em> opens the same wizard; the job name is locked after creation, and Edit is disabled if you lack permission. <em>View</em> opens the wizard on the Summary step. <em>Delete</em> asks for confirmation (click Confirm) and is also permission controlled <span class="badge doc">From docs</span>.</p>
 
-<h3 id="c25-run-monitor">8.4.8 Running a profiling job and reading the results</h3>
-<h4 id="c25-run">Run it</h4>
+<h2 id="c25-run-monitor">8.47 Running a profiling job and reading the results</h2>
+<h3 id="c25-run">8.47.1 Run it</h3>
 <p>Click the <strong>...</strong> button on the job row and choose <strong>Run</strong>. Before it starts, the engine checks two resources: total memory allowed for all running jobs, and the number of jobs allowed to run at once (the application setting <code>NumSimulJobsAllowed</code>, default 7). If either limit would be exceeded, the job waits in a queue <span class="badge doc">From docs</span>. You cannot edit or delete a job while it is running. To stop it, use <em>Cancel</em> and confirm. The docs' warning about semi-masked data is about cancelling a running <em>masking</em> job (see <a href="09-delphix-masking-files-labs.html#c9-s1">the algorithms and masking jobs chapter</a>); a profiling job does not mask anything.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_jobs.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_jobs.png" alt="Environment Jobs tab listing a succeeded MASK job, a running PROFILE job and a MASK job with a warning" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Job statuses on the Jobs tab. On screen: job 95 of Type PROFILE shows RUNNING at 0%, job 96 MASK shows SUCCEEDED at 100%, and job 1 MASK shows a yellow WARNING at 100%. Each row has a "..." Actions menu. <a class="badge-link" href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_profile4.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_profile4.png" alt="Jobs tab with the row Actions menu open showing Run, View, Edit and Delete" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The row Actions menu. On screen: on an environment Jobs tab (engine 24.0.0.0) the "..." menu of a job row is open with four items, Run, View, Edit and Delete. Other rows show statuses CREATED (never run), WARNING and SUCCEEDED; job 8 has Type PROFILE. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_profiling_jobs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h4 id="c25-monitor">Monitor it</h4>
+<h3 id="c25-monitor">8.47.2 Monitor it</h3>
 <p>Go to <strong>Monitor &gt; Job Executions</strong>, or click the job name from anywhere. The list can be sorted and filtered by Environment, Job Name, Status, Submit Time, Start Time and Type. A job moves through these states <span class="badge doc">From docs</span>:</p>
 <div class="tablewrap"><table><thead><tr><th>Status</th><th>Meaning</th></tr></thead><tbody>
 <tr><td>Queued</td><td>Waiting for resources; events have not started</td></tr>
@@ -1254,7 +1250,7 @@
 <figcaption><strong>Official screenshot:</strong> A finished profiling job on a fixed-width file (engine 26.0.0.0). The Profile Results panel lists fields with domain and algorithm: TELEPHONE_NO, EMAIL, FIRST_NAME and LAST_NAME. <a class="badge-link" href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p>The <strong>Profile Results</strong> panel (only for profiling jobs) is the quickest read of the findings, one row per table-column or file-field. Its grid supports sorting and filtering on every column.</p>
 
-<h4 id="c25-reports">Four ways to share the findings</h4>
+<h3 id="c25-reports">8.47.3 Four ways to share the findings</h3>
 <ol class="steps">
 <li><strong>Job page, Profile Results panel.</strong><p>Fast, but it lives in the UI.</p></li>
 <li><strong>PDF report.</strong><p>On the job page click <em>Report and Logs</em> and choose <em>Job Report</em>. Good for sending to a compliance officer. <em>Execution Log</em> is in the same menu.</p></li>
@@ -1273,13 +1269,13 @@
 <div class="callout note"><strong class="ctitle">Reading the confidence number</strong>
 <p>In the PDF screenshot the confidence is 80, from classifiers that carry strengths like 0.67 and 0.7. The API example in the docs shows 100 for some columns, without explaining how that arises. Do not treat these as probabilities you could audit; the docs say the combining formula may change. Use them to sort your review: look first at low-confidence findings.</p></div>
 
-<h3 id="c25-inventory-review">8.4.9 From findings to a reviewed inventory</h3>
+<h2 id="c25-inventory-review">8.48 From findings to a reviewed inventory</h2>
 <p>The profiler writes its decisions into the rule set's <dfn>inventory</dfn>. Reaching it takes one click: <strong>Environment &gt; Rule Sets tab &gt; click the rule set's name</strong>. The "Inventory" tab that older versions had was removed, and the banner in the screenshots says so <span class="badge doc">From docs</span>.</p>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_inventories.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_inventories.png" alt="Environment Rule Sets tab listing database and file rule sets with hyperlinked names" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Rule Sets tab (engine 22.0.0.0). Rule set names are links; clicking one opens its inventory. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p>A database inventory lists every column of every table. The number beside a table name is its column count. Primary key, foreign key and index flags appear under the column name, and data type and length are shown read-only. By default the visible columns are Table Name, Column Name, Data Type, Domain, Algorithm and File Format. For fixed-width and delimited files, fields are grouped under record types; see <a href="09-delphix-masking-files-labs.html#c9-s2">the file masking chapter</a>.</p>
 
-<h4 id="c25-edit-field">Correcting one column: the Edit dialog</h4>
+<h3 id="c25-edit-field">8.48.1 Correcting one column: the Edit dialog</h3>
 <ol class="steps">
 <li><strong>Click the pencil (Edit) icon in the Actions column of the column's row.</strong><p>The Edit Column (or Edit Field) dialog opens. From the inventory screen only the Masking section is editable.</p></li>
 <li><strong>Decide about <em>Enable Automatic Updates</em>.</strong><p>When ticked (the default), a profiling job may change this column's masking decision. When unticked, your choice wins over the profiler. If you are about to override the profiler, untick it first, otherwise the next profiling run may undo your work.</p></li>
@@ -1304,7 +1300,7 @@
 <div class="callout why"><strong class="ctitle">Why the checkbox matters in teams</strong>
 <p>A TDM engineer who fixes ten columns by hand, and a colleague who re-runs profiling the next day, are a common cause of "my changes disappeared". Untick automatic updates on every column you corrected deliberately, and let the profiler keep updating the rest.</p></div>
 
-<h3 id="c25-shopsphere-predictions">8.4.10 ShopSphere: what should the profiler flag?</h3>
+<h2 id="c25-shopsphere-predictions">8.49 ShopSphere: what should the profiler flag?</h2>
 <p>Before running the Day 52 lab, practise the skill a TDM engineer needs most: predicting the profiler's answer from the classifier definitions, so that you can spot a wrong result. Our ShopSphere tables are in <a href="01-welcome-why-tdm-and-data-basics.html#c1-s3">the data basics chapter</a>. I checked each column name against the published ASDD Standard PATH regexes (the 21.0.0.0 listing) using an ordinary regular-expression engine. The real engine also applies type checks, data sampling and its own matching options, so read the table as a <strong>prediction</strong>, not as engine output.</p>
 <div class="tablewrap"><table class="sample"><caption>Predicted ASDD Standard result for ShopSphere (illustrative prediction by the author, not engine output)</caption><thead><tr><th>Table.column</th><th>Expected domain</th><th>Why (evidence)</th><th>Human check</th></tr></thead><tbody>
 <tr><td>CUSTOMERS.customer_id</td><td>none</td><td>The Customer Number PATH rule wants "number", "num", "nbr" or "no" after "customer"; <code>customer_id</code> has none of them</td><td>Primary key. Usually left alone or masked consistently as a key, see <a href="08-delphix-connect-keys-profiling.html#c8-s3">the rule sets and keys chapter</a></td></tr>
@@ -1324,7 +1320,7 @@
 <p>The listing gives each TYPE classifier a <code>minimumLength</code> (for example 20 for email, 10 for first name). The documentation excerpt I had does not define it exactly; I read it as the declared length of the column. If that is right, a very short <code>first_name</code> column might be rejected. Do not take this as fact: run the job and look.</p></div>
 <p>If the prediction holds, 8 of the 9 CUSTOMERS columns and 3 price or amount columns (11 in total) will carry a domain after the first run. Three of those are false alarms and one real column (<code>customer_id</code>) is deliberately left alone. Learning to see that pattern is the point of the lab.</p>
 
-<h3 id="c25-lab">8.4.11 Lab: profile ShopSphere (Day 52, TDM_Handson5)</h3>
+<h2 id="c25-lab">8.50 Lab: profile ShopSphere (Day 52, TDM_Handson5)</h2>
 <div class="exercise"><h4 id="c8-lab-create-a-profiling-job-for-shopsphere-run-it-and-correct">Lab: Create a profiling job for ShopSphere, run it, and correct the inventory</h4>
 <p>Goal: scan the four ShopSphere tables with the ASDD Standard profile set, compare the result with the prediction table above, and fix what is wrong. This lab assumes you already created the environment, the connector and the rule set (all four tables) in <a href="08-delphix-connect-keys-profiling.html#c8-s2">the connectors chapter</a> and <a href="08-delphix-connect-keys-profiling.html#c8-s3">the rule sets chapter</a>. The data is fake; the screens follow the official documentation, but your engine version may differ slightly. The names I give (<code>ShopSphere_Profile_01</code>) are my own choices, not Delphix defaults.</p>
 <ol class="steps">
@@ -1351,7 +1347,7 @@
 </details>
 </div>
 
-<h3 id="c25-mistakes">8.4.12 Common mistakes and gotchas</h3>
+<h2 id="c25-mistakes">8.51 Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Watch out for these</strong>
 <ul>
 <li><strong>Treating profiling as the finish line.</strong> The output is a draft. Review every flagged and every unflagged column, especially free-text and oddly named ones.</li>
@@ -1365,7 +1361,7 @@
 <li><strong>Sharing the PDF report or CSV without thinking.</strong> They list table and column names with their domains, which tells a reader exactly where your sensitive data lives, so store them with care.</li>
 </ul></div>
 
-<h3 id="c25-recap">8.4.13 Recap</h3>
+<h2 id="c25-recap">8.52 Recap</h2>
 <div class="callout recap"><strong class="ctitle">Key points</strong>
 <ul>
 <li>Profiling scans a rule set with a profile set and writes domain and algorithm assignments into the inventory.</li>
@@ -1377,7 +1373,7 @@
 <li>For ShopSphere, expect the customer columns to be flagged and price or amount columns to be false alarms.</li>
 </ul></div>
 
-<section class="sources"><h3 id="c25-sources">Sources used in this section</h3>
+<section class="sources"><h4 id="c25-sources">Sources used in this section</h4>
 <ul>
 <li><a href="https://help.delphix.com/cc/current/content/managing_profiling_jobs.htm" target="_blank" rel="noopener">Managing profiling jobs</a>: create, edit, view, delete steps, fields, supported rule set types, ASDD memory rule.</li>
 <li><a href="https://help.delphix.com/cc/current/content/configuring_profile_sets.htm" target="_blank" rel="noopener">Configuring profile sets</a>: profile set dialogs, assignment threshold, legacy vs ASDD sets.</li>
@@ -1394,4 +1390,4 @@
 <li>Not found in the corpus or not read: the ASDD profile set import and export API page; default algorithms for the SSN, ZIP and TAX_ID domains (the Date Shift Discrete page does say it is the DOB default); exactly what the TYPE classifier's <code>minimumLength</code> compares.</li>
 </ul></section>
 
-<nav class="chapter-nav" aria-label="Previous and next chapter"><a href="07-genrocket-patterns-and-hands-on.html">← 7. GenRocket (2): data patterns and a hands-on build</a><a href="09-delphix-masking-files-labs.html">9. Delphix (2): algorithms, file masking and hands-on labs →</a></nav></article></div></main><footer class="sitefooter"><div class="wrap">© 2026 Saravan Kumar M K · <a href="https://saravankumar25.github.io/">Portfolio</a> · <a href="index.html">TDM Guide</a> · <a href="sources-and-limitations.html">Sources &amp; limitations</a> · Study notes: always confirm screen details against your own tool version.</div></footer><div id="search-modal" hidden><div class="search-box" role="dialog" aria-label="Search"><input id="search-input" type="search" placeholder="Search the whole guide (e.g. 'primary key', 'shuffle', 'receiver')…" autocomplete="off"><div id="search-results"></div><p class="search-hint">Esc to close · ↑↓ to move · Enter to open</p></div></div><script src="assets/guide.js" defer></script></body></html>
+<nav class="chapter-nav" aria-label="Previous and next chapter"><a href="07-genrocket-patterns-and-hands-on.html">← 7. GenRocket (2): data patterns and a hands-on build</a><a href="09-delphix-masking-files-labs.html">9. Delphix (2): algorithms, file masking and hands-on labs →</a></nav></article></div></main><footer class="sitefooter"><div class="wrap">© 2026 Saravan Kumar M K · <a href="https://saravankumar25.github.io/">Portfolio</a> · <a href="index.html">TDM Guide</a> · <a href="syllabus.html">Syllabus index</a> · <a href="sources-and-limitations.html">Sources &amp; limitations</a> · Study notes: always confirm screen details against your own tool version.</div></footer><div id="search-modal" hidden><div class="search-box" role="dialog" aria-label="Search"><input id="search-input" type="search" placeholder="Search the whole guide (e.g. 'primary key', 'shuffle', 'receiver')…" autocomplete="off"><div id="search-results"></div><p class="search-hint">Esc to close · ↑↓ to move · Enter to open</p></div></div><script src="assets/guide.js" defer></script></body></html>

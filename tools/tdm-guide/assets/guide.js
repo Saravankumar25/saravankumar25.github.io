@@ -12,9 +12,20 @@ addEventListener('scroll',prog,{passive:true});prog();
 d.querySelectorAll('pre').forEach(function(p){if(p.classList.contains('ascii'))return;var b=d.createElement('button');b.className='copy';b.type='button';b.textContent='Copy';b.addEventListener('click',function(){var t=(p.querySelector('code')||p).innerText;(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(function(){b.textContent='Copied';setTimeout(function(){b.textContent='Copy'},1400)},function(){b.textContent='Press Ctrl+C'})});p.appendChild(b)});
 // screenshots that fail to load fall back to their link text
 d.querySelectorAll('figure.shot img').forEach(function(im){im.addEventListener('error',function(){var f=im.closest('figure');if(f)f.classList.add('shot-missing');im.replaceWith(Object.assign(d.createElement('span'),{textContent:'Screenshot did not load here. Use the link below to open it on the official site.',style:'display:block;padding:18px;color:#555'}))})});
-// highlight current section in sidebar
-var links=[].slice.call(d.querySelectorAll('.section-list a'));
-if(links.length&&'IntersectionObserver' in window){var map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a});var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){links.forEach(function(a){a.classList.remove('current')});var a=map[e.target.id];if(a)a.classList.add('current')}})},{rootMargin:'-80px 0px -70% 0px'});d.querySelectorAll('.prose h2[id],.prose h3[id]').forEach(function(h){io.observe(h)})}
+// highlight the current section in the sidebar and keep only its topic group open
+var links=[].slice.call(d.querySelectorAll('.sidebar .section-list a'));
+var boxes=[].slice.call(d.querySelectorAll('.sidebar .section-list .grpbox'));
+if(links.length&&'IntersectionObserver' in window){
+  var map={};links.forEach(function(a){map[a.getAttribute('href').slice(1)]=a});
+  var boxOf={};boxes.forEach(function(b){if(b.getAttribute('data-grp'))boxOf[b.getAttribute('data-grp')]=b});
+  var openOnly=function(box){boxes.forEach(function(b){b.open=(b===box)})};
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(!e.isIntersecting)return;
+    var id=e.target.id,a=map[id],box=a?a.closest('.grpbox'):boxOf[id];
+    links.forEach(function(x){x.classList.remove('current')});if(a)a.classList.add('current');
+    if(box)openOnly(box);
+  })},{rootMargin:'-80px 0px -70% 0px'});
+  d.querySelectorAll('.prose h2[id],.prose .grp[id]').forEach(function(h){io.observe(h)});
+}
 // search
 var modal=d.getElementById('search-modal'),inp=d.getElementById('search-input'),res=d.getElementById('search-results'),docs=null,sel=0;
 function load(){if(docs)return Promise.resolve();return fetch('assets/search-index.json').then(function(r){return r.json()}).then(function(j){docs=j}).catch(function(){docs=[]})}

@@ -1,5 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 7: GenRocket (2): data patterns and a hands-on build | TDM Guide</title><meta name="description" content="Sequential, random, boundary, edge-case and null data, then a full lab generating 50 customer records."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/07-genrocket-patterns-and-hands-on.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 7: GenRocket (2): data patterns and a hands-on build | TDM Guide"><meta property="og:description" content="Sequential, random, boundary, edge-case and null data, then a full lab generating 50 customer records."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" aria-label="Chapter navigation"><a class="allchap" href="index.html">← Guide home &amp; curriculum map</a><details class="partbox"><summary>Foundations</summary><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a></div></details><details class="partbox"><summary>Informatica TDM</summary><div class="chapter-list"><a class="" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a></div></details><details class="partbox" open><summary>GenRocket</summary><div class="chapter-list"><a class="" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="current" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a></div></details><details class="partbox"><summary>Delphix</summary><div class="chapter-list"><a class="" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a></div></details><details class="partbox"><summary>Capstone and reference</summary><div class="chapter-list"><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, the capstone and the glossary</a></div></details><a class="" href="sources-and-limitations.html" style="margin-top:10px">About the sources</a><h3>On this page</h3><div class="section-list"><a class="l2" href="#c7-s1">7.1 GenRocket: data patterns for realistic and tricky test data</a><a class="l3" href="#c20-words">7.1.1 Words to know first</a><a class="l3" href="#c20-why-patterns">7.1.2 Why test data needs patterns</a><a class="l3" href="#c20-sequential">7.1.3 Sequential data</a><a class="l3" href="#c20-random">7.1.4 Random data and repeatable randomness</a><a class="l3" href="#c20-weights">7.1.5 Lists, weights and percentages</a><a class="l3" href="#c20-conditional">7.1.6 Linked and conditional generators</a><a class="l3" href="#c20-null-blank">7.1.7 Null and blank values</a><a class="l3" href="#c20-boundary">7.1.8 Boundary values and edge cases</a><a class="l3" href="#c20-datatype">7.1.9 Enforcing data type and size</a><a class="l3" href="#c20-dates">7.1.10 Dates and times</a><a class="l3" href="#c20-coverage">7.1.11 Pattern coverage table</a><a class="l3" href="#c20-mistakes">7.1.12 Common mistakes and gotchas</a><a class="l3" href="#c20-recap">7.1.13 Recap</a><a class="l3" href="#c20-sources">Sources used in this section</a><a class="l2" href="#c7-s2">7.2 Hands-on: generate 50 customer records with GenRocket</a><a class="l3" href="#c21-words">7.2.1 Words to know first</a><a class="l3" href="#c21-plan">7.2.2 Day 48: planning test data generation end to end</a><a class="l3" href="#c21-design">7.2.3 What we are building, and the design decisions</a><a class="l3" href="#c21-prereq">7.2.4 Before you start: the checklist</a><a class="l3" href="#c21-lab-steps">7.2.5 Lab: generate 50 customer records</a><a class="l3" href="#c21-output">7.2.6 What the output should look like</a><a class="l3" href="#c21-verify">7.2.7 Verification checks</a><a class="l3" href="#c21-troubleshoot">7.2.8 Troubleshooting</a><a class="l3" href="#c21-lab-extension">7.2.9 Extension lab: an email and a nullable column</a><a class="l3" href="#c21-lab-parent-child">7.2.10 Extension lab: customers with a varying number of orders</a><a class="l3" href="#c21-presentation">7.2.11 What you would explain in the final presentation</a><a class="l3" href="#c21-recap">7.2.12 Recap</a><a class="l3" href="#c21-sources">Sources used in this section</a></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">TDM GUIDE / GENROCKET / CHAPTER 7</p><h1>GenRocket (2): data patterns and a hands-on build</h1><div class="meta"><span>Saravan Kumar M K</span><span>2 sections</span></div><p class="chapter-summary">Sequential, random, boundary, edge-case and null data, then a full lab generating 50 customer records.</p></div><h2 id="c7-s1">7.1 GenRocket: data patterns for realistic and tricky test data</h2>
-<p><span class="day">Day 47</span></p>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 7: GenRocket (2): data patterns and a hands-on build | TDM Guide</title><meta name="description" content="Sequential, random, boundary, edge-case and null data, then a full lab generating 50 customer records."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/07-genrocket-patterns-and-hands-on.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 7: GenRocket (2): data patterns and a hands-on build | TDM Guide"><meta property="og:description" content="Sequential, random, boundary, edge-case and null data, then a full lab generating 50 customer records."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" aria-label="Chapter navigation"><a class="allchap" href="index.html">← All 10 chapters</a><h3>Chapters</h3><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a><a class="" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a><a class="" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="current" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a><a class="" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, the capstone and the glossary</a><a class="" href="sources-and-limitations.html"><span class="n">··</span> About the sources</a></div><h3>In this chapter</h3><div class="section-list"><details class="grpbox" open data-grp="c7-s1"><summary>GenRocket: data patterns for realistic and tricky test data</summary><div class="secs"><a href="#c20-words">7.1 Words to know first</a><a href="#c20-why-patterns">7.2 Why test data needs patterns</a><a href="#c20-sequential">7.3 Sequential data</a><a href="#c20-random">7.4 Random data and repeatable randomness</a><a href="#c20-weights">7.5 Lists, weights and percentages</a><a href="#c20-conditional">7.6 Linked and conditional generators</a><a href="#c20-null-blank">7.7 Null and blank values</a><a href="#c20-boundary">7.8 Boundary values and edge cases</a><a href="#c20-datatype">7.9 Enforcing data type and size</a><a href="#c20-dates">7.10 Dates and times</a><a href="#c20-coverage">7.11 Pattern coverage table</a><a href="#c20-mistakes">7.12 Common mistakes and gotchas</a><a href="#c20-recap">7.13 Recap</a></div></details><details class="grpbox" data-grp="c7-s2"><summary>Hands-on: generate 50 customer records with GenRocket</summary><div class="secs"><a href="#c21-words">7.14 Words to know first</a><a href="#c21-plan">7.15 Day 48: planning test data generation end to end</a><a href="#c21-design">7.16 What we are building, and the design decisions</a><a href="#c21-prereq">7.17 Before you start: the checklist</a><a href="#c21-lab-steps">7.18 Lab: generate 50 customer records</a><a href="#c21-output">7.19 What the output should look like</a><a href="#c21-verify">7.20 Verification checks</a><a href="#c21-troubleshoot">7.21 Troubleshooting</a><a href="#c21-lab-extension">7.22 Extension lab: an email and a nullable column</a><a href="#c21-lab-parent-child">7.23 Extension lab: customers with a varying number of orders</a><a href="#c21-presentation">7.24 What you would explain in the final presentation</a><a href="#c21-recap">7.25 Recap</a></div></details></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">TDM GUIDE / GENROCKET / CHAPTER 07 OF 10</p><h1>GenRocket (2): data patterns and a hands-on build</h1><div class="meta"><span>Saravan Kumar M K</span><span>Updated 2026-10-23</span><span>25 sections</span></div><p class="chapter-summary">Sequential, random, boundary, edge-case and null data, then a full lab generating 50 customer records.</p></div><details class="pagetoc"><summary>Contents of this chapter</summary><details class="grpbox" open data-grp="c7-s1"><summary>GenRocket: data patterns for realistic and tricky test data</summary><div class="secs"><a href="#c20-words">7.1 Words to know first</a><a href="#c20-why-patterns">7.2 Why test data needs patterns</a><a href="#c20-sequential">7.3 Sequential data</a><a href="#c20-random">7.4 Random data and repeatable randomness</a><a href="#c20-weights">7.5 Lists, weights and percentages</a><a href="#c20-conditional">7.6 Linked and conditional generators</a><a href="#c20-null-blank">7.7 Null and blank values</a><a href="#c20-boundary">7.8 Boundary values and edge cases</a><a href="#c20-datatype">7.9 Enforcing data type and size</a><a href="#c20-dates">7.10 Dates and times</a><a href="#c20-coverage">7.11 Pattern coverage table</a><a href="#c20-mistakes">7.12 Common mistakes and gotchas</a><a href="#c20-recap">7.13 Recap</a></div></details><details class="grpbox" data-grp="c7-s2"><summary>Hands-on: generate 50 customer records with GenRocket</summary><div class="secs"><a href="#c21-words">7.14 Words to know first</a><a href="#c21-plan">7.15 Day 48: planning test data generation end to end</a><a href="#c21-design">7.16 What we are building, and the design decisions</a><a href="#c21-prereq">7.17 Before you start: the checklist</a><a href="#c21-lab-steps">7.18 Lab: generate 50 customer records</a><a href="#c21-output">7.19 What the output should look like</a><a href="#c21-verify">7.20 Verification checks</a><a href="#c21-troubleshoot">7.21 Troubleshooting</a><a href="#c21-lab-extension">7.22 Extension lab: an email and a nullable column</a><a href="#c21-lab-parent-child">7.23 Extension lab: customers with a varying number of orders</a><a href="#c21-presentation">7.24 What you would explain in the final presentation</a><a href="#c21-recap">7.25 Recap</a></div></details></details><div class="grp" id="c7-s1"><span class="grplabel">GenRocket: data patterns for realistic and tricky test data</span><span class="day">Day 47</span></div>
 <p>So far in this part you have met the building blocks of GenRocket (<a href="06-genrocket-building-blocks.html#c6-s1">the overview</a>, <a href="06-genrocket-building-blocks.html#c6-s2">domains, attributes and generators</a>, <a href="06-genrocket-building-blocks.html#c6-s3">receivers and scenarios</a>). This section asks a sharper question: <em>which</em> values should a generator produce so that your tests find bugs?</p>
 <p>The bugs live at the edges: an order total of exactly 0.00 or 999999.99, a customer exactly 18 years old, an empty email, a phone number with a digit too few. Testers call these deliberate shapes <strong>data patterns</strong>. This section covers the Day 47 patterns: sequential, random, boundary and edge cases, and null. For each one you get a plain-words explanation with a ShopSphere example, then how GenRocket does it using only documented generators and parameters, then a pattern coverage table and a boundary-value lab. The <a href="07-genrocket-patterns-and-hands-on.html#c7-s2">next chapter</a> uses several of these patterns in a full hands-on lab.</p>
 <div class="callout recap"><strong class="ctitle">What you will learn</strong>
@@ -17,7 +16,7 @@
 <p>Every GenRocket-specific statement comes from pages of the official GenRocket help centre (genrocket.helpjuice.com) that I read in full; the full list with links is in the sources section at the end. The screenshots are the vendor's own, and I downloaded and looked at each one before writing its caption. The help centre changes over time, so a parameter name or default may differ in your version.</p>
 <p>Two honest gaps. First, the pages I had contain no generator whose name or description says "boundary value", so boundary data is something you assemble from other generators, and this section shows how. (The only "Boundary Values" entry I found is an SSN masking scenario on the Synthetic Data Replacement page.) Second, several generators are only named inside other pages (RandomDecimalGen, RangeDecimalGen, FlexiblePhoneNumberGen, RandomPhoneNumberGen, AlphabetGen, FillerGen, RangeConstantGen); where I use one I say so.</p></div>
 
-<h3 id="c20-words">7.1.1 Words to know first</h3>
+<h2 id="c20-words">7.1 Words to know first</h2>
 <dl class="defs">
 <div><dt>Positive test</dt><dd>A test that feeds the app data it should accept, to check it works. Example: a valid order of 49.99.</dd></div>
 <div><dt>Negative test</dt><dd>A test that feeds the app data it should reject or handle gracefully, to check it fails safely. Example: an order total of -5.00.</dd></div>
@@ -29,11 +28,11 @@
 <div><dt>Null</dt><dd>"No value at all" in a database column. Different from an empty string, which is a value that happens to contain zero characters.</dd></div>
 </dl>
 
-<h3 id="c20-why-patterns">7.1.2 Why test data needs patterns</h3>
+<h2 id="c20-why-patterns">7.2 Why test data needs patterns</h2>
 <p><span class="badge concept">General concept</span> A vending machine tested only with the exact price always passes. Bugs appear with one coin too few, one too many, or none. Software is the same: defects hide where rules change, at a limit, an empty field or a rare combination. So testing needs <strong>typical data</strong> (positive tests: looks real, proves the main flows) and <strong>tricky data</strong> (negative and edge tests: sits on the rules, proves the app rejects bad input safely). A production copy is poor at the second kind: it may contain no order of exactly 0.00 and no 17-year-old customer. Synthetic data fixes that, because you decide what exists.</p>
 <p><span class="badge doc">From docs</span> GenRocket's CI/CD page says its web platform can design "any form of test data (positive, negative, patterns, permutations, boundary values, dynamic, load, etc.)" for a data model (<a href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">Automating Data Generation using CI/CD Pipeline</a>).</p>
 
-<h4 id="c20-shopsphere-patterns">7.1.2.1 The ShopSphere patterns we will build</h4>
+<h3 id="c20-shopsphere-patterns">7.2.1 The ShopSphere patterns we will build</h3>
 <p>Throughout this section we use the fictional ShopSphere tables from earlier chapters. All data is invented. The table below lists the patterns we want and where each is built.</p>
 <div class="tablewrap"><table class="sample"><caption>ShopSphere data patterns and the section that builds each (requirements are illustrative, written for this guide)</caption>
 <thead><tr><th>Column</th><th>Pattern wanted</th><th>Example values</th><th>Built in</th></tr></thead>
@@ -48,11 +47,11 @@
 <tr><td><code>first_name</code> length</td><td>Mostly short, some longer than the column allows</td><td>"Asha"; a 12-letter name</td><td><a href="#c20-conditional">20.6</a></td></tr>
 </tbody></table></div>
 
-<h4 id="c20-how-genrocket-thinks">7.1.2.2 How GenRocket thinks about a pattern</h4>
+<h3 id="c20-how-genrocket-thinks">7.2.2 How GenRocket thinks about a pattern</h3>
 <p><span class="badge doc">From docs</span> In GenRocket a pattern is a <em>generator choice plus its parameters</em> on an attribute; there is no separate "pattern" switch. You pick a generator (see <a href="06-genrocket-building-blocks.html#c6-s2">the chapter on domains, attributes and generators</a>), set its parameters and read the Preview pane. Generators only create raw values; <a href="06-genrocket-building-blocks.html#c6-s3">receivers</a> format them. Three mechanisms cover this section: one generator with parameters (RangeGen, RandomGen, ListGen), several generators linked in one attribute, and attribute settings such as <code>% Null</code> that sit outside the generator. The help centre says GenRocket has over 765 generators, so we stay with the ones that map to the syllabus.</p>
 
-<h3 id="c20-sequential">7.1.3 Sequential data</h3>
-<h4 id="c20-sequential-plain">7.1.3.1 In plain words</h4>
+<h2 id="c20-sequential">7.3 Sequential data</h2>
+<h3 id="c20-sequential-plain">7.3.1 In plain words</h3>
 <p><span class="badge concept">General concept</span> Sequential data follows a fixed, predictable order: 1, 2, 3, 4, like numbered tickets at a bakery counter.</p>
 <p>Testers want sequential data in three places:</p>
 <ul>
@@ -62,7 +61,7 @@
 </ul>
 <p>Sequential data is easy to read when a test fails, but looks nothing like real life, so mix it with random data for other columns.</p>
 
-<h4 id="c20-rangegen">7.1.3.2 RangeGen: counting up (and down)</h4>
+<h3 id="c20-rangegen">7.3.2 RangeGen: counting up (and down)</h3>
 <p><span class="badge doc">From docs</span> The generator for counting is <strong>RangeGen</strong>. The help page says it "produces an increasing value from startRange to endRange", or to <code>long.MAX_VALUE</code> when no end range is given, and that "once the endRange has been reached, the value is reset to the startRange" (<a href="https://genrocket.helpjuice.com/en_US/rangegen-generators/how-do-i-use-the-rangegen-generator" target="_blank" rel="noopener">RangeGen help page</a>). The page also notes it can be set to start at a number other than 1, for example to continue a database's primary keys.</p>
 <div class="tablewrap"><table><caption>RangeGen parameters as documented (asterisk means required)</caption>
 <thead><tr><th>Parameter</th><th>What it does</th><th>ShopSphere use</th></tr></thead>
@@ -90,7 +89,7 @@
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777375057154/tv9i8JvxMZQMu2RMmiVyQU6ycLm5Gsc0uA.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777375057154/tv9i8JvxMZQMu2RMmiVyQU6ycLm5Gsc0uA.png" alt="Generator Parameter Errors box complaining that startRange -1 cannot be less than or equal to endRange 100" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The "Generator Parameter Errors" message shown when the start and end values contradict the sort order. It names the attribute and both values, so you can see which one to change. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/rangegen-generators/how-do-i-use-the-rangegen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
-<h4 id="c20-sequential-other">7.1.3.3 Other ways to get sequential values</h4>
+<h3 id="c20-sequential-other">7.3.3 Other ways to get sequential values</h3>
 <p>RangeGen is the main tool, but the documentation shows several more sequential patterns.</p>
 <ul>
 <li><strong>The domain id.</strong> <span class="badge doc">From docs</span> When a domain is created or imported it automatically gets an <code>id</code> attribute that "generates a unique ID for each test data record" (<a href="https://genrocket.helpjuice.com/en_US/attributes/attributes-overview" target="_blank" rel="noopener">Attributes Overview</a>). For many tests that is the primary key and you need do nothing.</li>
@@ -100,22 +99,22 @@
 </ul>
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777375189283/dvQFQPkRwF7tPfJhXH7jvNB1shuxrOXv5w.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777375189283/dvQFQPkRwF7tPfJhXH7jvNB1shuxrOXv5w.png" alt="Preview pane listing phone numbers from (800) 600-1000 upward" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The PhoneNumberGen preview: (800) 600-1000, (800) 600-1001, (800) 600-1002 and so on. Each row is the previous number plus one, the sequential pattern applied to phone numbers. The numbers are fake. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/user-generators/how-do-i-use-the-phonenumbergen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h4 id="c20-pk-after-max">7.1.3.4 Continuing after existing data</h4>
+<h3 id="c20-pk-after-max">7.3.4 Continuing after existing data</h3>
 <p><span class="badge doc">From docs</span> Sometimes the target database already has rows, and new primary keys must start after the largest existing one. The help centre shows a linked-generator recipe (<a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-primary-key-values-after-the-max-value-from-a-database-table" target="_blank" rel="noopener">primary key values after the max value</a>):</p>
 <ol class="steps">
 <li><strong>Add QueryOnceGen to the id attribute.</strong><p>It runs one query before generating. Set <code>resourceName</code> to the JDBC resource, <code>query</code> to <code>select max(id) + 1 from &lt;tableName&gt;</code> and give <code>sampleValue</code> (the page uses 5001) so the Preview pane has something to show.</p><p class="expect">gen1 holds "the next free id".</p></li>
 <li><strong>Add RangeGen after it.</strong><p>For <code>startRange</code>, double-click the field and choose the Attribute Generator tab, then pick <code>gen1</code> (it is written <code>#{self.gen1}</code>).</p><p class="expect">New ids begin after the largest existing id, so inserts will not collide with existing rows.</p></li>
 </ol>
-<p>RangeGen can reference QueryOnceGen only because QueryOnceGen sits to its left, a rule covered in <a href="#c20-conditional">section 7.1.6</a>.</p>
+<p>RangeGen can reference QueryOnceGen only because QueryOnceGen sits to its left, a rule covered in <a href="#c20-conditional">section 7.6</a>.</p>
 <div class="callout warn"><strong class="ctitle">Gotcha: a sequence that wraps is not unique</strong>
 <p>RangeGen goes back to <code>startRange</code> when it reaches <code>endRange</code>. If you set a small <code>endRange</code> on a primary key and generate more rows than the range holds, you create duplicate keys. Leave <code>endRange</code> empty for ids, or make sure the loop count is no larger than the range.</p></div>
 
-<h3 id="c20-random">7.1.4 Random data and repeatable randomness</h3>
-<h4 id="c20-random-plain">7.1.4.1 In plain words</h4>
+<h2 id="c20-random">7.4 Random data and repeatable randomness</h2>
+<h3 id="c20-random-plain">7.4.1 In plain words</h3>
 <p><span class="badge concept">General concept</span> Random data is data picked without a visible order. Random data is what makes a generated customer list look real: different names, ages and cities.</p>
 <p>Random data has one practical problem. If a test fails today with a random customer, and tomorrow's run creates different customers, you cannot reproduce the failure. The fix is the <strong>seed</strong>: a starting number for the random picker. The same seed gives the same "random" sequence every time. Random but repeatable is the best of both.</p>
 
-<h4 id="c20-randomgen">7.1.4.2 RandomGen: a random number in a range</h4>
+<h3 id="c20-randomgen">7.4.2 RandomGen: a random number in a range</h3>
 <p><span class="badge doc">From docs</span> <strong>RandomGen</strong> "randomly generates a number within a range"; the page's own example is random ages between 18 and 65 (<a href="https://genrocket.helpjuice.com/en_US/financial-generators/how-do-i-use-the-randomgen-generator" target="_blank" rel="noopener">RandomGen</a>).</p>
 <div class="tablewrap"><table><caption>RandomGen parameters as documented</caption>
 <thead><tr><th>Parameter</th><th>Meaning</th></tr></thead>
@@ -133,7 +132,7 @@
 <div class="callout warn"><strong class="ctitle">The error you get when uniqueness runs out</strong>
 <p>With <code>uniqueLimit</code> 1, range 1 to 20 and a loop count of 20, the page reports <em>"Exhausted attempts to find the next valid random value from range of 1 to 20"</em>. The fixes it lists: raise the loop count, widen <code>endRange</code> or raise <code>uniqueLimit</code>. The rule of thumb is that rows asked for must be no more than (range size times <code>uniqueLimit</code>). The same Java memory exhaustion can appear for very large unique sets: the troubleshooting page for "GC overhead limit exceeded" lists "generator parameters that limit the amount of data, such as a unique limit" as a cause (<a href="https://genrocket.helpjuice.com/en_US/scenarios-/error-javalangoutofmemoryerror-gc-overhead-limit-exceeded" target="_blank" rel="noopener">that error page</a>).</p></div>
 
-<h4 id="c20-random-others">7.1.4.3 Random names, lists and strings</h4>
+<h3 id="c20-random-others">7.4.3 Random names, lists and strings</h3>
 <ul>
 <li><strong>NameGen.</strong> Generates first, last, male or female names (<code>nameType</code>), cased as <code>capitalize</code>, <code>upperCase</code> or <code>lowerCase</code> (<code>caseType</code>), in <code>random</code>, <code>ascending</code> or <code>descending</code> order (<code>sortOrder</code>), with an optional <code>seed</code> and a <code>waitAmount</code>. Its pool (1,000 male, 3,000 female and 10,000 last names) gives 40,000,000 combinations.</li>
 <li><strong>ListGen.</strong> Set <code>random</code> to True to pick from a fixed list in random order (the page example picks one of five colours). Add <code>unique</code> True to use each list value only once; then the loop count must not exceed the number of values, or GenRocket throws an exception. ListGen supports up to 15 list items; for bigger lists the page recommends ListCSVV2Gen.</li>
@@ -142,7 +141,7 @@
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777375732097/szRnM__P7ni7RojP2O_mNMxoNh4ALxcHaQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777375732097/szRnM__P7ni7RojP2O_mNMxoNh4ALxcHaQ.png" alt="NameGen configured for firstName, capitalize, random" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> NameGen with <code>nameType</code> firstName, <code>caseType</code> capitalize, <code>sortOrder</code> random, an empty <code>seed</code> and <code>waitAmount</code> 1. This is the setting you will use for first names in the next chapter's lab. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/name-generators/how-do-i-use-the-namegen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
-<h4 id="c20-seeding">7.1.4.4 Seeding: random, but the same every time</h4>
+<h3 id="c20-seeding">7.4.4 Seeding: random, but the same every time</h3>
 <p><span class="badge doc">From docs</span> The help page "What is Seeding?" defines seeding as generating "the same set of random data for the same value of a seed". It says a seed can be entered in several places in GenRocket, including the domain's Global Seed variable and the generator's own <code>seed</code> parameter (<a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/-what-is-seeding" target="_blank" rel="noopener">What is Seeding?</a>). The page's example uses two attributes, <code>number1</code> and <code>number2</code>, both RandomGen from 1 to 25:</p>
 <ul>
 <li>No seed on <code>number1</code>: a different set of numbers every time the data is generated.</li>
@@ -159,8 +158,8 @@
 <div class="callout why"><strong class="ctitle">Why seeding matters for a TDM engineer</strong>
 <p>Without a seed, "random" test data differs each run, so a failing test is a ghost. With a fixed seed, a regression suite sees identical data every night, and a failure can be replayed on a developer's laptop. Seed attributes you want repeatable. Leave the seed empty on attributes where you want fresh variety each run, such as a load test.</p></div>
 
-<h3 id="c20-weights">7.1.5 Lists, weights and percentages</h3>
-<h4 id="c20-weights-plain">7.1.5.1 In plain words</h4>
+<h2 id="c20-weights">7.5 Lists, weights and percentages</h2>
+<h3 id="c20-weights-plain">7.5.1 In plain words</h3>
 <p><span class="badge concept">General concept</span> Real data is lumpy. In a real shop, most orders are Delivered, a few are Pending and a handful are Cancelled. If your generator gives each status the same share, your test data is unrealistic, and reports built on it (percentage cancelled, say) look wrong. A <strong>weighted</strong> pattern says "give value A to 70 percent of the rows and value B to 30 percent".</p>
 <p>There are two related ideas. A <strong>list</strong> is the set of allowed values (Pending, Shipped, Delivered). A <strong>weight</strong> says how often each list value should appear. Lists come first, weights shape them.</p>
 <div class="tablewrap"><table class="sample"><caption>A ShopSphere order-status mix we might want (illustrative)</caption>
@@ -172,15 +171,15 @@
 <tr><td>Cancelled</td><td>5 percent</td><td>Rare, but the app must handle it.</td></tr>
 </tbody></table></div>
 
-<h4 id="c20-listgen">7.1.5.2 ListGen: the allowed values</h4>
+<h3 id="c20-listgen">7.5.2 ListGen: the allowed values</h3>
 <p><span class="badge doc">From docs</span> <strong>ListGen</strong> "generates items in a provided list in sequential or random order" and is "a great choice when generating data from a fixed set of values (e.g., lookup table or categorical data)". Its documented parameters are <code>list</code> (one item per line), <code>random</code> (False by default), <code>unique</code>, <code>waitAmount</code>, <code>iterate</code>, <code>seed</code>, <code>resetIndex</code> and <code>setLoop</code>. It supports up to 15 items.</p>
 <p>One parameter deserves attention because the boundary lab at the end of this section uses it. <code>setLoop</code> "gives users the ability to OVERRIDE the loop count at the Scenario Level and ONLY produce the number of rows defined in this list". If the first generator of an attribute is a ListGen with <code>setLoop</code> True, the scenario's loop count is locked to the list length and shows as "N" with no edit pencil. The help page "Why can't I update the Loop Count Value from the Scenario?" explains that this lock is the reason (<a href="https://genrocket.helpjuice.com/en_US/scenarios-/-why-cant-i-update-the-loop-count-value-from-the-scenario" target="_blank" rel="noopener">link</a>).</p>
 
-<h4 id="c20-weightgen">7.1.5.3 WeightGen: a two-way split</h4>
+<h3 id="c20-weightgen">7.5.3 WeightGen: a two-way split</h3>
 <p><span class="badge doc">From docs</span> <strong>WeightGen</strong> "defines a percentage between 1 and 100 to determine how often values generated from variable1 will be selected over values generated from variable2". The parameters are <code>percentage*</code>, <code>variable1*</code>, <code>variable2*</code> and an optional <code>seed</code>. Variables can be constants or references to other generators or attributes (<a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-weightgen-generator" target="_blank" rel="noopener">WeightGen</a>).</p>
 <p>The page's example: <code>percentage</code> 70, <code>variable1</code> Pass, <code>variable2</code> Fail gave 7 Pass and 3 Fail in ten rows. WeightGen splits between exactly two things; for more use MultiWeightGen.</p>
 
-<h4 id="c20-multiweightgen">7.1.5.4 MultiWeightGen: any number of weighted values</h4>
+<h3 id="c20-multiweightgen">7.5.4 MultiWeightGen: any number of weighted values</h3>
 <p><span class="badge doc">From docs</span> <strong>MultiWeightGen</strong> "allows multiple values to be weighted to determine how often each value is generated". The page's own example is rental vehicle types: economy 50 percent, midsize 35 percent, luxury 15 percent (<a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-multiweightgen-generator" target="_blank" rel="noopener">MultiWeightGen</a>).</p>
 <div class="tablewrap"><table><caption>MultiWeightGen parameters as documented</caption>
 <thead><tr><th>Parameter</th><th>Meaning</th></tr></thead>
@@ -201,10 +200,10 @@
 
 <p>How to give each <em>parent</em> a different number of children by weight is covered by the help page "How to generate Children based on Weights (Percentages)", and you will build it in the <a href="07-genrocket-patterns-and-hands-on.html#c21-lab-parent-child">parent and child lab</a>.</p>
 
-<h3 id="c20-conditional">7.1.6 Linked and conditional generators</h3>
-<h4 id="c20-linked-plain">7.1.6.1 In plain words</h4>
+<h2 id="c20-conditional">7.6 Linked and conditional generators</h2>
+<h3 id="c20-linked-plain">7.6.1 In plain words</h3>
 <p><span class="badge concept">General concept</span> Sometimes a value depends on another value. A voting-age check depends on age. A "refund reason" only makes sense if the order is cancelled. In a spreadsheet you would write an IF formula. GenRocket has the same idea in two parts: <strong>linked generators</strong> (several generators chained in one attribute) and <strong>conditional logic generators</strong> (generators that choose one result by testing a condition).</p>
-<h4 id="c20-linked-rules">7.1.6.2 Linked generators: the left-to-right rule</h4>
+<h3 id="c20-linked-rules">7.6.2 Linked generators: the left-to-right rule</h3>
 <p><span class="badge doc">From docs</span> The "Linked Generators Overview" page gives the rules that every conditional recipe relies on (<a href="https://genrocket.helpjuice.com/en_US/linking-generators/linked-generators-overview" target="_blank" rel="noopener">Linked Generators Overview</a>):</p>
 <ul>
 <li>Linked generators run <strong>left to right</strong> (top to bottom in the table): the first generates first, the second next, and so on.</li>
@@ -218,7 +217,7 @@
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776589701352/cLHNc05IsErSv05Qf-5O_kowCqAfFX51Sg.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776589701352/cLHNc05IsErSv05Qf-5O_kowCqAfFX51Sg.png" alt="Rearrange Attributes dialog with drag handles and a Close button" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Rearrange Attributes dialog: a numbered list with a drag handle beside each attribute and a Close button, which saves the new order. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/attributes/when-can-an-attribute-not-reference-another-attribute" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
-<h4 id="c20-conditional-table">7.1.6.3 The conditional logic generators</h4>
+<h3 id="c20-conditional-table">7.6.3 The conditional logic generators</h3>
 <p><span class="badge doc">From docs</span> The page "Conditional Logic Generators" groups them into calculation, condition-based and percentage-based generators (<a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/conditional-logic-generators" target="_blank" rel="noopener">link</a>). The table below keeps the descriptions short; check the generator's own page for parameters.</p>
 <div class="tablewrap"><table><caption>Conditional logic generators and a ShopSphere use for each</caption>
 <thead><tr><th>Generator</th><th>What the docs say it does</th><th>ShopSphere use</th></tr></thead>
@@ -231,7 +230,7 @@
 </tbody></table></div>
 <p>The overview adds that G-Rules can hold the same logic with conditions and actions, which suits complex multi-condition data.</p>
 
-<h4 id="c20-evalcasegen">7.1.6.4 EvalCaseGen: if age is 18 or more</h4>
+<h3 id="c20-evalcasegen">7.6.4 EvalCaseGen: if age is 18 or more</h3>
 <p><span class="badge doc">From docs</span> <strong>EvalCaseGen</strong> takes an <code>equation</code> that uses <code>var1</code> to <code>var5</code>, plus <code>caseTrue</code> and <code>caseFalse</code>. Allowed operators include <code>&amp;&amp;</code>, <code>||</code>, <code>!</code>, <code>&gt;=</code>, <code>&lt;=</code>, <code>==</code>, <code>!=</code>, <code>&lt;</code>, <code>&gt;</code>, <code>%</code> and <code>/</code>. Two cautions from the page: put string comparisons in double quotes (for example <code>var1 == "Male"</code>), and for numbers of type long append a lower-case L (<code>var1l</code>) (<a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-evalcasegen-generator" target="_blank" rel="noopener">EvalCaseGen</a>).</p>
 <p>Its voting example is a perfect small boundary test. A domain <code>Voting</code> has an <code>age</code> attribute (RandomGen from 10 to 65) and an <code>allowedToVote</code> attribute using EvalCaseGen with <code>equation</code> <code>var1 &gt;= 18</code>, <code>var1</code> referencing the age attribute, <code>caseTrue</code> Yes and <code>caseFalse</code> No. Notice that the attribute order matters: <code>age</code> sits above <code>allowedToVote</code>.</p>
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777273734303/-KOCdGX17LwJdj0NEYiTQATCD62DttPCRg.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777273734303/-KOCdGX17LwJdj0NEYiTQATCD62DttPCRg.png" alt="EvalCaseGen with equation var1 >= 18, var1 referencing the age attribute, caseTrue Yes, caseFalse No" loading="lazy"></a>
@@ -239,7 +238,7 @@
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777273747156/Ou8qF-f3oIBQSMnP0BU_HF0HZAuxSDkC1g.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777273747156/Ou8qF-f3oIBQSMnP0BU_HF0HZAuxSDkC1g.png" alt="Output with id, age and allowedToVote showing Yes for 18 and above and No below 18" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The output: ages such as 29, 22, 46, 45 show Yes, while 14 and 11 show No. Ages 18 and above are accepted, below are rejected. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-evalcasegen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
-<h4 id="c20-edgecasegen">7.1.6.5 EdgeCaseGen: sneak in the tricky value</h4>
+<h3 id="c20-edgecasegen">7.6.5 EdgeCaseGen: sneak in the tricky value</h3>
 <p><span class="badge doc">From docs</span> <strong>EdgeCaseGen</strong> mixes a normal value with an edge-case value. It "generates edge case data useful for negative testing and testing edge cases". The page lists example edge cases: rounding issues in currency conversion, mismatched time zones, special characters in passwords, names longer than the character limit, names with invalid characters, uncommon file formats and validating a user's age (<a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-edgecasegen-generator" target="_blank" rel="noopener">EdgeCaseGen</a>).</p>
 <div class="tablewrap"><table><caption>EdgeCaseGen parameters as documented</caption>
 <thead><tr><th>Parameter</th><th>Meaning</th></tr></thead>
@@ -266,8 +265,8 @@
 <div class="callout note"><strong class="ctitle">G-Cases and permutations</strong>
 <p><span class="badge doc">From docs</span> A G-Case "modifies the components within a Scenario", so one scenario can produce typical data in one case and edge-heavy data in another, with categories such as Beta, Unit, Load and Negative (<a href="https://genrocket.helpjuice.com/en_US/test-data-cases-g-cases/test-data-cases-g-cases-overview" target="_blank" rel="noopener">G-Cases Overview</a>). PermutationGen "can generate all possible combinations of data for a given set of values" from a <code>list</code> parameter: my arithmetic, not the page's: drop-downs with 3, 4 and 2 choices give 24 combinations. Use boundary values for single fields and permutations for combinations of fields.</p></div>
 
-<h3 id="c20-null-blank">7.1.7 Null and blank values</h3>
-<h4 id="c20-null-plain">7.1.7.1 In plain words</h4>
+<h2 id="c20-null-blank">7.7 Null and blank values</h2>
+<h3 id="c20-null-plain">7.7.1 In plain words</h3>
 <p><span class="badge concept">General concept</span> Imagine a paper form with a "middle name" box. There are three different situations. The person wrote a name (a value). The person wrote nothing and left the box empty (blank). Or the box was crossed out because the question did not apply (not applicable). Databases make the same distinction.</p>
 <div class="tablewrap"><table class="sample"><caption>Four things an email column can hold (illustrative)</caption>
 <thead><tr><th>What is stored</th><th>Name</th><th>Typical bug it exposes</th></tr></thead>
@@ -279,7 +278,7 @@
 </tbody></table></div>
 <p>Applications treat these four differently, so test data needs all of them. GenRocket gives you three places to produce null and blank data.</p>
 
-<h4 id="c20-null-attribute">7.1.7.2 Place 1: the attribute's own null settings</h4>
+<h3 id="c20-null-attribute">7.7.2 Place 1: the attribute's own null settings</h3>
 <p><span class="badge doc">From docs</span> Every attribute has parameters on the Attribute Dashboard, above the generator. Four of them control nulls and visibility (<a href="https://genrocket.helpjuice.com/en_US/attributes/attribute-dashboard" target="_blank" rel="noopener">Attribute Dashboard</a>):</p>
 <div class="tablewrap"><table><caption>Attribute parameters that affect nulls and output, as documented</caption>
 <thead><tr><th>Parameter</th><th>What the docs say</th><th>Use</th></tr></thead>
@@ -293,7 +292,7 @@
 <figcaption><strong>Official screenshot:</strong> The Attribute Dashboard for a <code>firstName</code> attribute. The top-left block holds the fields from the table: <strong>% Null</strong> (0 here), <strong>Null Value</strong> (blank, with a star button for "empty string"), <strong>Output Condition</strong> (None) and the <strong>Visible</strong> and <strong>Primary</strong> checkboxes. The generator form (NameGen) is underneath and a Preview pane sits on the right. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/attributes/attribute-dashboard" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p>I found no worked example of <code>% Null</code> in the pages I had, so set it, save, and watch the Preview pane. It works for any generator because it sits on the attribute.</p>
 
-<h4 id="c20-null-generators">7.1.7.3 Place 2: generators that return null or blank</h4>
+<h3 id="c20-null-generators">7.7.3 Place 2: generators that return null or blank</h3>
 <p><span class="badge doc">From docs</span> The help centre shows two generators for this purpose, in the walk-through "Flat/Nested JSON: Hide an Attribute when Value is NULL or Blank" (<a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/flatnested-json-hide-an-attribute-when-value-is-null-or-blank" target="_blank" rel="noopener">link</a>):</p>
 <ul>
 <li><strong>NullGen</strong>: "generates a NULL value". The screenshot shows a single parameter, <code>nullType</code>, set to NULL. I did not find a page listing other <code>nullType</code> choices, so I only claim NULL.</li>
@@ -307,7 +306,7 @@
 <div class="callout note"><strong class="ctitle">BLANK versus EMPTY</strong>
 <p>The ConstantGen page lists them as separate examples ("Generate Blank Values" and "Generate an Empty String") but does not spell out the difference in what ends up in the file. Use each one in a test scenario, open the output, and see what your receiver writes. Do not assume.</p></div>
 
-<h4 id="c20-null-mix">7.1.7.4 Mixing normal, null and empty by percentage</h4>
+<h3 id="c20-null-mix">7.7.4 Mixing normal, null and empty by percentage</h3>
 <p>The JSON walk-through combines both ideas in one attribute. A tester wants an <code>address2</code> (apartment or suite) that is sometimes filled, sometimes null and sometimes empty. Four linked generators do it:</p>
 <ol>
 <li><code>gen1</code> ListGen: Apt A, Apt B, Suite A, Suite B.</li>
@@ -322,7 +321,7 @@
 <figcaption><strong>Official screenshot:</strong> The MultiWeightGen that mixes the three: <code>valueList</code> references <code>#{self.gen1}</code>, <code>#{self.gen2}</code>, <code>#{self.gen3}</code> and <code>percentList</code> is 60, 15, 25, with <code>exactPercentage</code> True. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/flatnested-json-hide-an-attribute-when-value-is-null-or-blank" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p>Choosing an <strong>Output Condition</strong> on the attribute leaves a null or blank <code>address2</code> out of the JSON for that record; the page's sample output omits the key on those rows. That matters for APIs that treat "missing key" and "null value" differently.</p>
 
-<h4 id="c20-null-receiver">7.1.7.5 Place 3: how the receiver writes a null</h4>
+<h3 id="c20-null-receiver">7.7.5 Place 3: how the receiver writes a null</h3>
 <p>A null is only a null inside GenRocket. The receiver decides how it is written to the file. The <code>DelimitedFileReceiver</code> documents a required parameter <code>nullValue</code> ("Represents a Null value") and a <code>booleanValue</code> format (<a href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-delimited-file-receiver" target="_blank" rel="noopener">DelimitedFileReceiver</a>). The screenshot of its form shows <code>nullValue</code> pre-filled with <code>(null)</code>. If a downstream loader expects the literal text NULL or an empty cell, change this parameter before you generate. A mismatch here is a classic source of "the data looks right in GenRocket but my load fails".</p>
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280315284/A4hcWBF_fX3v8lom_N3LZ4mA1_EB11Rp3A.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280315284/A4hcWBF_fX3v8lom_N3LZ4mA1_EB11Rp3A.png" alt="DelimitedFileReceiver parameters including nullValue (null) and includeHeader True" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The DelimitedFileReceiver form. Look at <code>nullValue</code>, pre-filled with <code>(null)</code>, together with <code>delimiter</code>, <code>quoteTextData</code>, <code>booleanValue</code>, <code>includeHeader</code> and <code>appendToFile</code>. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-delimited-file-receiver" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
@@ -334,8 +333,8 @@
 <li><strong>Referencing a generator to the right.</strong> In a linked set, the percentage generator must be rightmost, or it will see null values from generators that have not run yet.</li>
 </ul></div>
 
-<h3 id="c20-boundary">7.1.8 Boundary values and edge cases</h3>
-<h4 id="c20-bva-zero">7.1.8.1 Boundary value analysis, explained from zero</h4>
+<h2 id="c20-boundary">7.8 Boundary values and edge cases</h2>
+<h3 id="c20-bva-zero">7.8.1 Boundary value analysis, explained from zero</h3>
 <p><span class="badge concept">General concept</span> Suppose a form accepts an age from 18 to 65. You cannot test every possible number. Boundary value analysis (BVA) is a way to pick a handful of values that find most bugs. The idea comes from experience: programmers make "off by one" mistakes. They write <code>age &gt; 18</code> when they meant <code>age &gt;= 18</code>. Such a bug is invisible when you test age 40 and obvious when you test age 18.</p>
 <p>Here is the method in four steps.</p>
 <ol class="steps">
@@ -366,7 +365,7 @@
 <tr><td>1990-04-12</td><td>35</td><td>Accept</td><td>Typical adult (Asha Menon's fake date of birth).</td></tr>
 </tbody></table></div>
 
-<h4 id="c20-bva-genrocket">7.1.8.2 How GenRocket produces boundary data</h4>
+<h3 id="c20-bva-genrocket">7.8.2 How GenRocket produces boundary data</h3>
 <p>As noted at the start, the pages I had do not name a boundary generator. The documented building blocks combine into a few reliable recipes.</p>
 <div class="tablewrap"><table><caption>Recipes for boundary and edge data, all built from documented generators</caption>
 <thead><tr><th>Need</th><th>Recipe</th><th>Source page</th></tr></thead>
@@ -378,7 +377,7 @@
 </tbody></table></div>
 <p><strong>Why exact lists:</strong> a random generator might hit 999999.99 once in a million rows, or never; a boundary test must hit it every time.</p>
 
-<h4 id="c20-lab-boundary">7.1.8.3 Lab: a boundary-value suite for ShopSphere orders</h4>
+<h3 id="c20-lab-boundary">7.8.3 Lab: a boundary-value suite for ShopSphere orders</h3>
 <div class="exercise"><h4 id="c7-lab-generate-the-seven-order-total-boundary-rows">Lab: generate the seven order-total boundary rows</h4>
 <p>Goal: a small domain that produces exactly one row per boundary case, with the expected result next to each value, and a delimited file you can hand to a tester. This lab reuses the project setup steps from <a href="07-genrocket-patterns-and-hands-on.html#c21-lab-steps">the 50-record lab</a>, so if the click paths are new to you, read that lab's steps first. The lockstep behaviour of three ListGens in one domain is my design inference and you must confirm it in the Preview pane.</p>
 <ol class="steps">
@@ -403,11 +402,11 @@
 <p>Because the list holds text, 0.00 stays "0.00". You could compute <code>expected</code> with EvalCaseGen instead of a third list, but its page shows only whole-number comparisons, so test a decimal equation in Preview first.</p></details>
 </div>
 
-<h3 id="c20-datatype">7.1.9 Enforcing data type and size</h3>
-<h4 id="c20-datatype-plain">7.1.9.1 In plain words</h4>
+<h2 id="c20-datatype">7.9 Enforcing data type and size</h2>
+<h3 id="c20-datatype-plain">7.9.1 In plain words</h3>
 <p><span class="badge concept">General concept</span> Every database column has a type and a size. A <code>first_name VARCHAR(5)</code> column holds at most five characters. An <code>INT</code> column holds whole numbers up to about two billion. If your generator produces "Maximiliano" for that first-name column, the insert fails, and a hundred rows of perfectly good data are lost because one name was too long.</p>
 <p>There are two opposite needs. For <em>positive</em> data, the generated values must always fit the column, so loads never fail. For <em>negative</em> data (the long-name edge case in <a href="#c20-edgecasegen">20.6.5</a>) you deliberately break the size. GenRocket handles the first need with a switch called Enforce Type/Limit.</p>
-<h4 id="c20-enforce">7.1.9.2 Enforce Type/Limit</h4>
+<h3 id="c20-enforce">7.9.2 Enforce Type/Limit</h3>
 <p><span class="badge doc">From docs</span> The page "How to Enforce Data Type and Size in Generated Data" explains the option (<a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-enforce-data-type-and-size-in-generated-data" target="_blank" rel="noopener">link</a>):</p>
 <ul>
 <li>Value limits are enforced automatically when you import a DDL (database table definition) or an XTS file (GenRocket's extracted table schema). The option is switched on for every generator assigned during such an import.</li>
@@ -426,7 +425,7 @@
 <tr><td><code>bit</code> or <code>vbit</code></td><td>1</td></tr>
 </tbody></table></div>
 <p>Those numbers are useful boundary values in their own right. If a column is <code>smallint</code>, then 32767 is its maximum, 32768 is "just above maximum", and a good negative test sends exactly that.</p>
-<h4 id="c20-enforce-steps">7.1.9.3 Setting it by hand</h4>
+<h3 id="c20-enforce-steps">7.9.3 Setting it by hand</h3>
 <p>For a manually built domain: open the attribute, type a data type (<code>varchar</code>, <code>int</code>, <code>float</code>, <code>decimal</code>) in <strong>Type</strong> and the limit in <strong>Size</strong>, click Save, then tick <strong>Enforce Type/Limit</strong> in the generator form and save the generator. The Preview pane then shows values within the size.</p>
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776504254116/khAG-yOAo-x0x-1f1nNTGJUS-SW9hNrBRg%20(1).png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776504254116/khAG-yOAo-x0x-1f1nNTGJUS-SW9hNrBRg%20(1).png" alt="NameGen with the Enforce Type/Limit checkbox ticked" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The NameGen form with the <strong>Enforce Type/Limit</strong> checkbox ticked (arrow), nameType firstName, caseType capitalize and sortOrder random. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-enforce-data-type-and-size-in-generated-data" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
@@ -434,7 +433,7 @@
 <div class="callout warn"><strong class="ctitle">Turning it off for edge cases</strong>
 <p>Because it is on by default for imported models, a generator will not produce the too-long name a negative test wants. Switch it off on that generator, or use a separate generator for the edge value, and check Preview.</p></div>
 
-<h4 id="c20-numberformat">7.1.9.4 Decimal places and number formatting</h4>
+<h3 id="c20-numberformat">7.9.4 Decimal places and number formatting</h3>
 <p>Money needs a fixed number of decimal places: 49.9 and 49.90 are different text, and a <code>DECIMAL(8,2)</code> column expects two places.</p>
 <p><span class="badge doc">From docs</span> <strong>NumberFormatGen</strong> formats a referenced number: pad with leading zeros, fix the number of decimal places, fix the number of digits, add commas, include a sign. Parameters (<a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-numberformatgen-generator" target="_blank" rel="noopener">NumberFormatGen</a>):</p>
 <ul>
@@ -451,10 +450,10 @@
 <figcaption><strong>Official screenshot:</strong> The result of formatting those numbers to two places: <code>gen1</code> shows 53.8970 and <code>gen2</code> shows 53.90, 49.6710 and 49.67, and so on. This is the pattern for money columns. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-numberformatgen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <p>For the typical partition of <code>total_amount</code> use RandomDecimalGen from 1 to 5000 with a <code>seed</code>; by analogy with the screenshot's <code>#0.0000</code>, two decimals would be <code>#0.00</code> (check in Preview). Boundary rows come from <a href="#c20-lab-boundary">the boundary lab</a>.</p>
 
-<h3 id="c20-dates">7.1.10 Dates and times</h3>
-<h4 id="c20-dates-plain">7.1.10.1 In plain words</h4>
+<h2 id="c20-dates">7.10 Dates and times</h2>
+<h3 id="c20-dates-plain">7.10.1 In plain words</h3>
 <p><span class="badge concept">General concept</span> Dates are a rich source of bugs. A birth date that makes someone 17 versus 18, an order dated 29 February, a timestamp at midnight, a date written month-first in one system and day-first in another. Date test data needs three things: a <em>format</em> (how the date is written), a <em>range</em> (earliest and latest) and a <em>pattern</em> (sequential, random, or specific edge dates).</p>
-<h4 id="c20-flexibledaterange">7.1.10.2 FlexibleDateRangeGen</h4>
+<h3 id="c20-flexibledaterange">7.10.2 FlexibleDateRangeGen</h3>
 <p><span class="badge doc">From docs</span> GenRocket automatically picks <strong>FlexibleDateRangeGen</strong> for attributes whose imported data type is "date" or "time" (<a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/how-are-generators-assigned-to-domain-attributes" target="_blank" rel="noopener">How are Generators Assigned</a>). It generates dates from a start date, moving by a range and a jump (<a href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/how-do-i-use-the-flexibledaterangegen-generator" target="_blank" rel="noopener">FlexibleDateRangeGen</a>).</p>
 <div class="tablewrap"><table><caption>FlexibleDateRangeGen parameters as documented</caption>
 <thead><tr><th>Parameter</th><th>Meaning</th></tr></thead>
@@ -480,7 +479,7 @@
 <p>Example 2 contradicts itself: its <code>jumpBy</code> line says the year increases, but the title, records and screenshot go 1965 down to 1961. In the examples a cycle holds <code>endRange</code> minus <code>startRange</code> values (0 to 4 gives four dates). Change one parameter at a time and read the Preview pane.</p></div>
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777304767506/CYD18QqI23f4MODbfr1xK-O_5v85REVMCw.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777304767506/CYD18QqI23f4MODbfr1xK-O_5v85REVMCw.png" alt="Preview showing 01-01-1965 down to 01-01-1961, then restarting" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The preview for the negative-range example: 01-01-1965, 01-01-1964, 01-01-1963, 01-01-1962, 01-01-1961, then back to 01-01-1965. The decreasing order is what the screenshot shows. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/how-do-i-use-the-flexibledaterangegen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h4 id="c20-date-formats">7.1.10.3 Date formats</h4>
+<h3 id="c20-date-formats">7.10.3 Date formats</h3>
 <p><span class="badge doc">From docs</span> The "Date and Time format" page lists the pattern letters (<a href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/date-and-time-format" target="_blank" rel="noopener">link</a>). The ones you will use most:</p>
 <div class="tablewrap"><table><caption>Common date pattern letters from the documentation</caption>
 <thead><tr><th>Letter</th><th>Meaning</th><th>Example</th></tr></thead>
@@ -497,13 +496,13 @@
 <tr><td><code>z</code></td><td>Time zone (general)</td><td>PST</td></tr>
 </tbody></table></div>
 <p>Capital <code>M</code> is month and lower-case <code>m</code> is minute, so <code>yyyy-mm-dd</code> prints the minute where you wanted the month. Attributes also have a Date Format parameter that "defines the Date Format if the Attribute is generating a Date".</p>
-<h4 id="c20-datedelta">7.1.10.4 DateDeltaGen: the gap between two dates</h4>
+<h3 id="c20-datedelta">7.10.4 DateDeltaGen: the gap between two dates</h3>
 <p><span class="badge doc">From docs</span> <strong>DateDeltaGen</strong> "computes the delta between two dates", in days, months, years or hours. Parameters: <code>conversion*</code>, <code>formatOne*</code>, <code>formatTwo*</code>, <code>dateRefOne*</code>, <code>dateRefTwo*</code>. The page's example links two FlexibleDateRangeGen generators and subtracts their dates (<a href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/how-do-i-use-the-datedeltagen-generator" target="_blank" rel="noopener">DateDeltaGen</a>).</p>
 <p>That gives a way to check an age rule in the data itself: generate a <code>date_of_birth</code>, hold a reference date in a ConstantGen (the ConstantGen page lists dates such as an effective date as a valid constant), and use DateDeltaGen with <code>conversion</code> years between them. The pages do not say how partial years are rounded, so verify the 17 versus 18 rows by eye before trusting the computed age column.</p>
 <div class="callout example"><strong class="ctitle">Worked example: the 17 versus 18 rows</strong>
 <p>For the boundary rows, a ListGen with <code>setLoop</code> True holds <code>2008-01-02</code>, <code>2008-01-01</code>, <code>2007-12-31</code> and <code>1990-04-12</code>, the four rows of the age table in <a href="#c20-bva-zero">20.8.1</a>. For a realistic spread of adult birth dates use FlexibleDateRangeGen with <code>nextBy</code> Year, <code>randomize</code> true and a <code>seed</code>, and check the range cannot produce under-18 dates unless you want them.</p></div>
 
-<h3 id="c20-coverage">7.1.11 Pattern coverage table</h3>
+<h2 id="c20-coverage">7.11 Pattern coverage table</h2>
 <p>Each row is a pattern, how GenRocket produces it, and the documented generator and parameters to reach for first.</p>
 <div class="tablewrap"><table><caption>Data patterns, GenRocket mechanisms and ShopSphere examples</caption>
 <thead><tr><th>Pattern</th><th>GenRocket mechanism</th><th>Generators and parameters (documented)</th><th>ShopSphere example</th></tr></thead>
@@ -528,7 +527,7 @@
 <tr><td>Dates in a range</td><td>Date range</td><td>FlexibleDateRangeGen <code>format</code>, <code>startDate</code>, <code>nextBy</code>, <code>randomize</code></td><td>Birth dates</td></tr>
 </tbody></table></div>
 
-<h3 id="c20-mistakes">7.1.12 Common mistakes and gotchas</h3>
+<h2 id="c20-mistakes">7.12 Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Messages and mistakes the documentation names</strong>
 <div class="tablewrap"><table>
 <thead><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr></thead>
@@ -540,7 +539,7 @@
 <tr><td>Scenario loop count shows "N" and cannot be edited</td><td>First ListGen has <code>setLoop</code> True</td><td>Intended; set <code>setLoop</code> False to edit the count</td></tr>
 <tr><td><code>OutOfMemoryError: GC overhead limit exceeded</code></td><td>Unique limits, big files or big queries loaded into memory</td><td>Set <code>JAVA_OPTS</code>, loosen uniqueness, or use a batch-loading generator (the error page names CSVToMapGen)</td></tr>
 </tbody></table></div></div>
-<h3 id="c20-recap">7.1.13 Recap</h3>
+<h2 id="c20-recap">7.13 Recap</h2>
 <div class="callout recap"><strong class="ctitle">Recap</strong>
 <ul>
 <li>Test data needs patterns: typical data for positive tests, tricky data (boundary, edge, null) for negative tests.</li>
@@ -553,7 +552,7 @@
 <li>Enforce Type/Limit keeps values inside the column; NumberFormatGen fixes decimals; FlexibleDateRangeGen and DateDeltaGen cover dates. Verify uncertain behaviour in Preview.</li>
 </ul></div>
 
-<section class="sources"><h3 id="c20-sources">Sources used in this section</h3>
+<section class="sources"><h4 id="c20-sources">Sources used in this section</h4>
 <p>All pages are from the GenRocket help centre (genrocket.helpjuice.com), read in full; screenshots are the vendor's, embedded from the page named in each caption.</p>
 <ul>
 <li>Sequential and random: <a href="https://genrocket.helpjuice.com/en_US/rangegen-generators/how-do-i-use-the-rangegen-generator" target="_blank" rel="noopener">RangeGen</a>, <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-primary-key-values-after-the-max-value-from-a-database-table" target="_blank" rel="noopener">primary keys after the max value</a>, <a href="https://genrocket.helpjuice.com/en_US/financial-generators/how-do-i-use-the-randomgen-generator" target="_blank" rel="noopener">RandomGen</a>, <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/-what-is-seeding" target="_blank" rel="noopener">What is Seeding?</a>, <a href="https://genrocket.helpjuice.com/en_US/name-generators/how-do-i-use-the-namegen-generator" target="_blank" rel="noopener">NameGen</a>, <a href="https://genrocket.helpjuice.com/en_US/string-manipulation-generators/how-do-i-use-the-randomstringgen" target="_blank" rel="noopener">RandomStringGen</a>, <a href="https://genrocket.helpjuice.com/en_US/user-generators/how-do-i-use-the-phonenumbergen-generator" target="_blank" rel="noopener">PhoneNumberGen</a>, <a href="https://genrocket.helpjuice.com/en_US/attributes/attributes-overview" target="_blank" rel="noopener">Attributes Overview</a>.</li>
@@ -562,8 +561,7 @@
 <li>Size, numbers, dates, errors: <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-enforce-data-type-and-size-in-generated-data" target="_blank" rel="noopener">Enforce Type and Size</a>, <a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-numberformatgen-generator" target="_blank" rel="noopener">NumberFormatGen</a>, <a href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/how-do-i-use-the-flexibledaterangegen-generator" target="_blank" rel="noopener">FlexibleDateRangeGen</a>, <a href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/how-do-i-use-the-datedeltagen-generator" target="_blank" rel="noopener">DateDeltaGen</a>, <a href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/date-and-time-format" target="_blank" rel="noopener">Date and Time format</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/error-javalangoutofmemoryerror-gc-overhead-limit-exceeded" target="_blank" rel="noopener">GC overhead error</a>, <a href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">CI/CD pipeline page</a>.</li>
 </ul></section>
 
-<h2 id="c7-s2">7.2 Hands-on: generate 50 customer records with GenRocket</h2>
-<p><span class="day">Day 48, Days 49-50</span></p>
+<div class="grp" id="c7-s2"><span class="grplabel">Hands-on: generate 50 customer records with GenRocket</span><span class="day">Day 48, Days 49-50</span></div>
 <p>The previous chapters gave you the vocabulary (<a href="06-genrocket-building-blocks.html#c6-s1">the GenRocket overview</a>, <a href="06-genrocket-building-blocks.html#c6-s2">domains, attributes and generators</a>, <a href="06-genrocket-building-blocks.html#c6-s3">receivers and scenarios</a>) and the patterns (<a href="07-genrocket-patterns-and-hands-on.html#c7-s1">the data patterns chapter</a>). Now you do the work. The syllabus for Days 49 and 50 asks for one concrete deliverable: <strong>generate 50 records with the columns FirstName, LastName, Full Name (FirstName MiddleName LastName) and Phone Number</strong>. This section builds exactly that, click by click, explains why each click is needed, and shows what you should see.</p>
 <p>Before the lab there is a short planning section for Day 48, "end-to-end data generation plan development". Real work never starts at the keyboard. Someone decides what data is needed, tries a small proof first, checks the environment, and plans how the data generation will run every week. The 50-record lab is, in miniature, the proof-of-concept step of that plan.</p>
 <div class="callout recap"><strong class="ctitle">What you will learn</strong>
@@ -580,7 +578,7 @@
 <p>All GenRocket steps come from pages of the official help centre (genrocket.helpjuice.com) that I read in full; the sources section at the end lists each page. The screenshots are the vendor's own. I downloaded and viewed every one before writing its caption. Several screenshots come from the help pages of other examples (a <code>User</code> domain or <code>Customer</code> domain), so names in the pictures differ from ours; the caption says what to look at. The planning section for Day 48 is general good practice, anchored to GenRocket pages where I could, and I mark which is which.</p>
 <p>What I could not verify: I did not run GenRocket. The sample output below is illustrative and labelled as such. The documentation does not name a dedicated middle-name generator, so the lab uses NameGen for it and says why. The 50-record lab needs a GenRocket account and an installed Runtime that I do not have, so every step is documented-by-page, not tested by me.</p></div>
 
-<h3 id="c21-words">7.2.1 Words to know first</h3>
+<h2 id="c21-words">7.14 Words to know first</h2>
 <dl class="defs">
 <div><dt>TDG (test data generation)</dt><dd>Creating test data from scratch with a tool instead of copying production. The syllabus uses the abbreviation. In this section it means doing it with GenRocket.</dd></div>
 <div><dt>POC (proof of concept)</dt><dd>A small, quick trial that shows an approach can work before you commit to the full effort.</dd></div>
@@ -592,7 +590,7 @@
 <div><dt>User profile</dt><dd>A small file downloaded from GenRocket Cloud that links your computer to your licence. It goes in a <code>.genrocket</code> folder and is needed to run a scenario.</dd></div>
 </dl>
 
-<h3 id="c21-plan">7.2.2 Day 48: planning test data generation end to end</h3>
+<h2 id="c21-plan">7.15 Day 48: planning test data generation end to end</h2>
 <p><span class="badge concept">General concept</span> A TDG plan answers four questions in order. Each stage ends with something you can show, so a reviewer can say "go" or "stop".</p>
 <div class="flow">
 <div class="node"><b>1. Use cases</b>what data, for which tests</div><div class="arrow">→</div>
@@ -600,7 +598,7 @@
 <div class="node"><b>3. Assessment</b>application and data environment</div><div class="arrow">→</div>
 <div class="node"><b>4. Deployment plan</b>run it every week</div>
 </div>
-<h4 id="c21-plan-usecases">7.2.2.1 Stage 1: identify the TDG use cases</h4>
+<h3 id="c21-plan-usecases">7.15.1 Stage 1: identify the TDG use cases</h3>
 <p>A use case is a reason someone needs generated data. Ask each team what they test and what breaks today.</p>
 <div class="tablewrap"><table class="sample"><caption>Illustrative ShopSphere TDG use cases (written for this guide)</caption>
 <thead><tr><th>Use case</th><th>Who needs it</th><th>Data needed</th><th>Pattern (see the patterns chapter)</th></tr></thead>
@@ -612,7 +610,7 @@
 <tr><td>Demo or training environment</td><td>Support</td><td>Realistic but fake customers</td><td>Random names, weighted values</td></tr>
 </tbody></table></div>
 <p><span class="badge doc">From docs</span> GenRocket's CI/CD page lists four facts you need before you can generate anything: the <em>object</em> (for example User or Customer), the <em>properties</em> of it (name, phone number), <em>what data</em> each property should hold, and the <em>format</em> to deliver it in (CSV, JSON, XML) (<a href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">Automating Data Generation using CI/CD Pipeline</a>). Those map straight onto GenRocket's domain, attributes, generators and receiver. Collect those four answers for every use case. Our lab: object Customer, properties FirstName, LastName, FullName and PhoneNumber, generators NameGen, ConcatGen and PhoneNumberGen, format CSV.</p>
-<h4 id="c21-plan-poc">7.2.2.2 Stage 2: the proof of concept</h4>
+<h3 id="c21-plan-poc">7.15.2 Stage 2: the proof of concept</h3>
 <p>A POC picks one narrow use case and builds it end to end, so you learn the tool and find surprises early. A good POC:</p>
 <ul>
 <li>Uses <strong>one domain</strong>, a few attributes and a small row count (the 50-record lab fits).</li>
@@ -621,7 +619,7 @@
 <li>Records <strong>what was hard</strong>: licence, runtime install, access to the output folder.</li>
 </ul>
 <p><span class="badge doc">From docs</span> The documentation frames GenRocket's own method as Model, Design, Deploy, Manage (<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/the-genrocket-methodology" target="_blank" rel="noopener">The GenRocket Methodology</a>, whose text is a title and a video that I could not watch, and the CI/CD page above that spells the four steps out). The POC exercises the first three: you model a Customer domain, design its attributes and scenario, and deploy by running the scenario. "Manage" is stage 4.</p>
-<h4 id="c21-plan-assess">7.2.2.3 Stage 3: assess the application and data environment</h4>
+<h3 id="c21-plan-assess">7.15.3 Stage 3: assess the application and data environment</h3>
 <p>Before you scale up, look at what is around the data. The table gives the questions and the documented facts that help you answer them.</p>
 <div class="tablewrap"><table><caption>Environment assessment checklist</caption>
 <thead><tr><th>Question</th><th>Why it matters</th><th>Documented anchor</th></tr></thead>
@@ -635,7 +633,7 @@
 <tr><td>Can the machine reach GenRocket for licence checks?</td><td>Setup "requires access to the firewall for license verification".</td><td>Runtime Overview.</td></tr>
 <tr><td>Is any real data involved?</td><td>Synthetic data contains none, which removes the masking step.</td><td>Why Synthetic Test Data page.</td></tr>
 </tbody></table></div>
-<h4 id="c21-plan-deploy">7.2.2.4 Stage 4: the deployment plan</h4>
+<h3 id="c21-plan-deploy">7.15.4 Stage 4: the deployment plan</h3>
 <p>The deployment plan says how generation becomes routine.</p>
 <ul>
 <li><strong>Roles.</strong> The documentation names the "Power User, a Test Data Engineer (or TDE)" as the start of the workflow (<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/test-data-workflow" target="_blank" rel="noopener">Test Data Workflow</a>, again a title and a video). That is your target role. Decide who models, who approves, who runs.</li>
@@ -648,7 +646,7 @@
 <div class="callout why"><strong class="ctitle">Why plan before you click</strong>
 <p>Teams that start with the tool often generate data nobody asked for, in a format nobody can load. A one-page plan with the four stages prevents that. For the final presentation, a clear plan plus a working POC is a much stronger story than the POC alone.</p></div>
 
-<h3 id="c21-design">7.2.3 What we are building, and the design decisions</h3>
+<h2 id="c21-design">7.16 What we are building, and the design decisions</h2>
 <p>The syllabus deliverable is four columns and 50 rows. Here is the target, with each column's source.</p>
 <div class="tablewrap"><table class="sample"><caption>Target file layout and how each column is produced</caption>
 <thead><tr><th>Column header</th><th>Attribute</th><th>Generator</th><th>Notes</th></tr></thead>
@@ -670,7 +668,7 @@
 <div class="callout warn"><strong class="ctitle">What the docs do not say about phone format</strong>
 <p>The PhoneNumberGen page describes a sequence "100-1000, 100-1001, ..., 999-9999" and its preview screenshot shows numbers like <code>(800) 600-1000</code>. It does not list a format option. If your project needs 10 plain digits like ShopSphere's sample phone <code>9876543210</code>, the documented route is a second linked generator such as StringRemoveGen (parameters <code>reference</code>, <code>valueToRemove</code>, <code>removalType</code>) or StringReplacementGen (<code>value</code>, <code>fromText</code>, <code>toText</code>) to strip punctuation. See the extension ideas in <a href="#c21-lab-extension">21.9</a>.</p></div>
 
-<h3 id="c21-prereq">7.2.4 Before you start: the checklist</h3>
+<h2 id="c21-prereq">7.17 Before you start: the checklist</h2>
 <p>The lab has two halves. The <strong>design half</strong> happens in the GenRocket web platform in your browser. The <strong>run half</strong> happens on a computer with the GenRocket Runtime installed (see <a href="06-genrocket-building-blocks.html#c6-s1">the overview chapter</a> for what the Runtime is). You need both.</p>
 <ul>
 <li><strong>A GenRocket login</strong> with permission to create projects. If the New Project button is missing, the project page says you lack that permission and must ask the organization admin.</li>
@@ -681,7 +679,7 @@
 </ul>
 <p>If any of this is missing, ask your trainer. I did not have an account, so I could not test the install part.</p>
 
-<h3 id="c21-lab-steps">7.2.5 Lab: generate 50 customer records</h3>
+<h2 id="c21-lab-steps">7.18 Lab: generate 50 customer records</h2>
 <div class="exercise"><h4 id="c7-lab-50-customers-with-firstname-lastname-full-name-and-phone">Lab: 50 customers with FirstName, LastName, Full Name and Phone Number</h4>
 <p>Goal: a comma-delimited file with a header row and exactly 50 data rows. Every step says what to do, why, and what you should see. Screenshots are the vendor's, from the help page named in each caption.</p>
 <ol class="steps">
@@ -768,7 +766,7 @@
 </ol>
 </div>
 
-<h3 id="c21-output">7.2.6 What the output should look like</h3>
+<h2 id="c21-output">7.19 What the output should look like</h2>
 <p>Your file will contain different names, but the shape must match. This is an <strong>illustrative sample</strong> I wrote to show the shape (names are invented combinations; it is not captured from a real run). The phone format follows the vendor's PhoneNumberGen preview screenshot.</p>
 <div class="tablewrap"><table class="sample"><caption>Illustrative first 5 data rows of Customers.csv (plus the header)</caption>
 <thead><tr><th>FirstName</th><th>LastName</th><th>Full Name</th><th>Phone Number</th></tr></thead>
@@ -781,7 +779,7 @@
 </tbody></table></div>
 <p>In the raw file each row is one comma-separated line, for example <code>Venice,Brough,Venice Alecia Brough,(800) 600-1000</code>. Notice that the Full Name's first word equals FirstName and its last word equals LastName. That relationship is the proof that the reference approach worked.</p>
 
-<h3 id="c21-verify">7.2.7 Verification checks</h3>
+<h2 id="c21-verify">7.20 Verification checks</h2>
 <p>A file that "looks fine" in the first few rows can still be wrong in row 37. Check it deliberately. The commands below are general shell commands (macOS, Linux or Git Bash on Windows), not from the GenRocket documentation; a spreadsheet can do the same with COUNTA, LEN and conditional formatting.</p>
 <div class="tablewrap"><table><caption>Checks, how to run them and what you expect</caption>
 <thead><tr><th>Check</th><th>Command</th><th>Expected</th></tr></thead>
@@ -807,7 +805,7 @@
 <div class="callout why"><strong class="ctitle">Why verify at all?</strong>
 <p>Test data is an input to other tests. If the data silently has 49 rows or an empty phone, every test that uses it can fail for reasons that have nothing to do with the application. A five-minute check protects hours of debugging.</p></div>
 
-<h3 id="c21-troubleshoot">7.2.8 Troubleshooting</h3>
+<h2 id="c21-troubleshoot">7.21 Troubleshooting</h2>
 <div class="tablewrap"><table><caption>Problems, causes and fixes (documentation-based unless marked)</caption>
 <thead><tr><th>Symptom</th><th>Likely cause and fix</th></tr></thead>
 <tbody>
@@ -825,7 +823,7 @@
 <tr><td><code>OutOfMemoryError: GC overhead limit exceeded</code></td><td>Unlikely at 50 rows; for large runs set <code>JAVA_OPTS</code> and avoid tight uniqueness limits (<a href="https://genrocket.helpjuice.com/en_US/scenarios-/error-javalangoutofmemoryerror-gc-overhead-limit-exceeded" target="_blank" rel="noopener">error page</a>).</td></tr>
 </tbody></table></div>
 
-<h3 id="c21-lab-extension">7.2.9 Extension lab: an email and a nullable column</h3>
+<h2 id="c21-lab-extension">7.22 Extension lab: an email and a nullable column</h2>
 <div class="exercise"><h4 id="c7-lab-add-email-and-a-nullable-alternate-phone">Lab: add Email and a nullable Alternate Phone</h4>
 <p>Goal: the same 50 rows with two more columns, one of them sometimes empty. This puts the null pattern from <a href="07-genrocket-patterns-and-hands-on.html#c20-null-blank">the null and blank section of the patterns chapter</a> into practice.</p>
 <ol class="steps">
@@ -838,7 +836,7 @@
 <p>ShopSphere's sample phones are 10 plain digits. Make <code>phoneNumber</code> a linked set: <code>gen1</code> PhoneNumberGen, <code>gen2</code> StringReplacementGen with <code>value</code> <code>#{self.gen1}</code>, <code>fromText</code> <code>\D</code> and <code>toText</code> empty. The StringReplacementGen page says a match with no replacement is removed, and lists <code>\D</code> as "any non-decimal digit" (<a href="https://genrocket.helpjuice.com/en_US/string-manipulation-generators/how-do-i-use-the-stringreplacementgen" target="_blank" rel="noopener">StringReplacementGen</a>). Expect 8006001000 for the first row, 10 characters, but check the Preview. For a nullable phone, EmailGen-style: use <code>% Null</code> as above.</p></details>
 </div>
 
-<h3 id="c21-lab-parent-child">7.2.10 Extension lab: customers with a varying number of orders</h3>
+<h2 id="c21-lab-parent-child">7.23 Extension lab: customers with a varying number of orders</h2>
 <p>Real data has parents and children: one customer, several orders. GenRocket models this with a parent domain and a child domain, and each domain "has one parent but many siblings" (<a href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-manually-set-parentchild-relationships-between-domains" target="_blank" rel="noopener">manual parent and child relationships</a>). This lab follows the vendor's page "How to generate Children based on Weights (Percentages)" (<a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-children-based-on-weights-percentages" target="_blank" rel="noopener">link</a>), with ShopSphere names.</p>
 <div class="exercise"><h4 id="c7-lab-10-customers-each-with-1-2-or-3-orders">Lab: 10 customers, each with 1, 2 or 3 orders</h4>
 <p>Goal: 10 customers; 5 of them (50 percent) have 2 orders, 2 (20 percent) have 3 and 3 (30 percent) have 1. Total orders: 19.</p>
@@ -859,10 +857,10 @@
 <details class="sol"><summary>Show a foreign key column and notes</summary>
 <p>To carry the customer id into each order, the vendor's design is a placeholder at domain level and a real reference at scenario level. <span class="badge doc">From docs</span> The ProxyReferenceGen page says it is "a proxy (or placeholder) to reference another value", that attributes can only talk to parent or sibling domains within a scenario, and that it should then be replaced by a ReferenceGen, which is assigned automatically for imported domains. It gives separate manual steps for hand-built parent and child domains (its "Use Case Example 2"), referencing the parent's primary key (<a href="https://genrocket.helpjuice.com/en_US/misc-generators/how-do-i-use-the-proxyreferencegen-generator" target="_blank" rel="noopener">ProxyReferenceGen</a>; <a href="https://genrocket.helpjuice.com/en_US/misc-generators/how-do-i-use-the-referencegen-generator" target="_blank" rel="noopener">ReferenceGen</a>). I did not run this step, so follow that page and check the Preview.</p></details>
 </div>
-<h4 id="c21-lab-boundary">7.2.10.1 Third lab: the boundary suite</h4>
+<h3 id="c21-lab-boundary">7.23.1 Third lab: the boundary suite</h3>
 <p>The third lab is in the patterns chapter: <a href="07-genrocket-patterns-and-hands-on.html#c20-lab-boundary">a boundary-value suite for ShopSphere orders</a>. It reuses steps 11 to 16 here (receiver, scenario, download, run) with a ListGen whose <code>setLoop</code> is True, so the row count is the number of boundary cases, not 50. Run it, then check that you get exactly seven rows.</p>
 
-<h3 id="c21-presentation">7.2.11 What you would explain in the final presentation</h3>
+<h2 id="c21-presentation">7.24 What you would explain in the final presentation</h2>
 <ol>
 <li><strong>The problem:</strong> why testing needs data that is safe, plentiful and shaped for tests, and why copying production fails (<a href="01-welcome-why-tdm-and-data-basics.html#c1-s2">the chapter on why TDM exists</a>).</li>
 <li><strong>The plan:</strong> the four stages of 21.2, with one use case per stage and this lab as the POC.</li>
@@ -874,7 +872,7 @@
 <li><strong>Next steps:</strong> import the real data model, add parent and child domains, schedule through a pipeline or G-Repository, and move to <a href="08-delphix-connect-keys-profiling.html#c8-s1">Delphix</a> for the masking half of the story.</li>
 </ol>
 
-<h3 id="c21-recap">7.2.12 Recap</h3>
+<h2 id="c21-recap">7.25 Recap</h2>
 <div class="callout recap"><strong class="ctitle">Recap</strong>
 <ul>
 <li>A TDG plan has four stages: use cases, proof of concept, environment assessment and deployment plan. The 50-record lab is a POC.</li>
@@ -887,7 +885,7 @@
 <li>Extensions: EmailGen and <code>% Null</code> for a nullable column; MultiWeightGen for child counts; ListGen with <code>setLoop</code> for boundary rows.</li>
 </ul></div>
 
-<section class="sources"><h3 id="c21-sources">Sources used in this section</h3>
+<section class="sources"><h4 id="c21-sources">Sources used in this section</h4>
 <p>All from the GenRocket help centre (genrocket.helpjuice.com), read in full; screenshots are the vendor's, embedded from the page named in each caption. The Day 48 planning section is general practice, anchored to the pages marked.</p>
 <ul>
 <li>Planning: <a href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">CI/CD pipeline page</a>, <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/the-genrocket-methodology" target="_blank" rel="noopener">Methodology</a>, <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/test-data-workflow" target="_blank" rel="noopener">Test Data Workflow</a>, <a href="https://genrocket.helpjuice.com/en_US/genrocket-runtime/genrocket-runtime-overview" target="_blank" rel="noopener">Runtime Overview</a>, <a href="https://genrocket.helpjuice.com/en_US/test-data-projects/how-do-i-create-a-test-data-project" target="_blank" rel="noopener">creating a project</a>.</li>
@@ -896,4 +894,4 @@
 <li>Extensions and errors: <a href="https://genrocket.helpjuice.com/en_US/user-generators/how-do-i-use-the-emailgen-generator" target="_blank" rel="noopener">EmailGen</a>, <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-children-based-on-weights-percentages" target="_blank" rel="noopener">children by weights</a>, <a href="https://genrocket.helpjuice.com/en_US/string-manipulation-generators/how-do-i-use-the-stringreplacementgen" target="_blank" rel="noopener">StringReplacementGen</a>, <a href="https://genrocket.helpjuice.com/en_US/misc-generators/how-do-i-use-the-referencegen-generator" target="_blank" rel="noopener">ReferenceGen</a>, <a href="https://genrocket.helpjuice.com/en_US/genrocket-runtime/genrocket-runtime-setup-warnings-and-errors" target="_blank" rel="noopener">Runtime errors</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/error-could-not-find-the-required-profile-grxxxxxxxprofilegrp" target="_blank" rel="noopener">profile error</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/error-javalangoutofmemoryerror-gc-overhead-limit-exceeded" target="_blank" rel="noopener">GC overhead error</a>.</li>
 </ul></section>
 
-<nav class="chapter-nav" aria-label="Previous and next chapter"><a href="06-genrocket-building-blocks.html">← 6. GenRocket (1): the building blocks</a><a href="08-delphix-connect-keys-profiling.html">8. Delphix (1): connecting, keys and profiling →</a></nav></article></div></main><footer class="sitefooter"><div class="wrap">© 2026 Saravan Kumar M K · <a href="https://saravankumar25.github.io/">Portfolio</a> · <a href="index.html">TDM Guide</a> · <a href="sources-and-limitations.html">Sources &amp; limitations</a> · Study notes: always confirm screen details against your own tool version.</div></footer><div id="search-modal" hidden><div class="search-box" role="dialog" aria-label="Search"><input id="search-input" type="search" placeholder="Search the whole guide (e.g. 'primary key', 'shuffle', 'receiver')…" autocomplete="off"><div id="search-results"></div><p class="search-hint">Esc to close · ↑↓ to move · Enter to open</p></div></div><script src="assets/guide.js" defer></script></body></html>
+<nav class="chapter-nav" aria-label="Previous and next chapter"><a href="06-genrocket-building-blocks.html">← 6. GenRocket (1): the building blocks</a><a href="08-delphix-connect-keys-profiling.html">8. Delphix (1): connecting, keys and profiling →</a></nav></article></div></main><footer class="sitefooter"><div class="wrap">© 2026 Saravan Kumar M K · <a href="https://saravankumar25.github.io/">Portfolio</a> · <a href="index.html">TDM Guide</a> · <a href="syllabus.html">Syllabus index</a> · <a href="sources-and-limitations.html">Sources &amp; limitations</a> · Study notes: always confirm screen details against your own tool version.</div></footer><div id="search-modal" hidden><div class="search-box" role="dialog" aria-label="Search"><input id="search-input" type="search" placeholder="Search the whole guide (e.g. 'primary key', 'shuffle', 'receiver')…" autocomplete="off"><div id="search-results"></div><p class="search-hint">Esc to close · ↑↓ to move · Enter to open</p></div></div><script src="assets/guide.js" defer></script></body></html>
