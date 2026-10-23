@@ -1,0 +1,142 @@
+
+<h2 id="c9-story">9.7 An end-to-end ShopSphere story: profile, subset, mask, load, test</h2>
+<p><strong>The request.</strong> The ShopSphere QA team needs a test copy of "Customer Orders" for a release. They need customers who ordered on 20 October 2026, with all of their orders and items. The compliance officer adds one rule: no real SSN, phone, email, tax id, name, date of birth or exact zip code may reach the test database. You are the TDM engineer. Here is the plan, with every step labelled as ETL-style or TDM-specific.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Step</th><th>What happens</th><th>ETL-style?</th><th>TDM-specific part</th></tr></thead>
+<tbody>
+<tr><td>1. Profile</td><td>Scan CUSTOMERS columns for SSN-like and phone-like patterns</td><td>Partly (source profiling)</td><td>Classifying columns as sensitive; steward approval</td></tr>
+<tr><td>2. Subset</td><td>Choose the customers with an order on 2026-10-20</td><td>Yes (filtered extract)</td><td>Children and parents must travel together</td></tr>
+<tr><td>3. Mask</td><td>Replace names, email, phone, SSN, tax id, birth date and zip</td><td>Yes (transformation)</td><td>Deterministic, format-preserving, nothing real left</td></tr>
+<tr><td>4. Load</td><td>Insert customers, then orders, then items into the test tables</td><td>Yes (load, parents first)</td><td>Target must be a non-production system</td></tr>
+<tr><td>5. Test</td><td>No orphans, no leaked values, counts match, rerun gives same output</td><td>Reconciliation is ETL-style</td><td>The leak check is TDM-specific</td></tr>
+</tbody></table></div>
+<p>The SQL below is a hand-made miniature of the pipeline. A tool would do the same work from rules and plans, with logging; the goal here is to see each stage with your own eyes. Mark which statements are extract, transform and load as you go.</p>
+<div class="exercise"><h4>Lab: run the ShopSphere TDM pipeline by hand</h4>
+<p>Goal: profile, subset, mask, load and verify, and confirm that the test tables contain no original SSN or email. Use an empty SQLite database (or adapt the function names for another database). All data is fake. <span class="badge concept">Illustrative data, not from vendor docs</span></p>
+<ol class="steps">
+<li><strong>Create the fake production tables, the staging helper, a name dictionary and empty test tables.</strong><p>Production stays read only for the whole lab; we only ever select from it.</p><pre><code>-- "Production" (fake data, as in the shared ShopSphere example)
+CREATE TABLE customers (customer_id INTEGER PRIMARY KEY, first_name TEXT, last_name TEXT, email TEXT,
+  phone TEXT, ssn TEXT, date_of_birth TEXT, zip_code TEXT, tax_id TEXT);
+INSERT INTO customers VALUES
+ (1001, 'Asha',  'Menon', 'asha.menon@example.com', '9876543210', '123-45-6789', '1990-04-12', '560001', 'AAAPM1234C'),
+ (1002, 'Ravi',  'Kumar', 'ravi.k@example.com',     '9123456780', '234-56-7890', '1985-11-02', '600017', 'BBBPK5678D'),
+ (1003, 'Meera', 'Nair',  'meera.n@example.com',    '9988776655', '345-67-8901', '1999-07-23', '682001', 'CCCPN9012E');
+CREATE TABLE orders (order_id INTEGER PRIMARY KEY, customer_id INTEGER REFERENCES customers,
+  order_date TEXT, total_amount REAL);
+INSERT INTO orders VALUES
+ (5001, 1001, '2026-10-20', 1499.00), (5002, 1002, '2026-10-20', 250.50),
+ (5003, 1001, '2026-10-21', 75.00),   (5004, 1003, '2026-10-21', 100.00);
+CREATE TABLE order_items (item_id INTEGER PRIMARY KEY, order_id INTEGER REFERENCES orders,
+  product_code TEXT, quantity INTEGER, unit_price REAL);
+INSERT INTO order_items VALUES
+ (1, 5001, 'P-100', 1, 1499.00), (2, 5002, 'P-200', 2, 100.00), (3, 5002, 'P-300', 1, 50.50),
+ (4, 5003, 'P-400', 1, 75.00),   (5, 5004, 'P-200', 1, 100.00);
+-- Staging area, test target and a dictionary of fake first names
+CREATE TABLE subset_keys (customer_id INTEGER PRIMARY KEY);
+CREATE TABLE mask_names (slot INTEGER PRIMARY KEY, first_name TEXT);
+INSERT INTO mask_names VALUES (0,'Anil'), (1,'Bina'), (2,'Chitra'), (3,'Dev');
+CREATE TABLE t_customers AS SELECT * FROM customers WHERE 0;
+CREATE TABLE t_orders AS SELECT * FROM orders WHERE 0;
+CREATE TABLE t_order_items AS SELECT * FROM order_items WHERE 0;</code></pre><p class="expect">No output. <code>SELECT COUNT(*) FROM customers;</code> returns 3.</p></li>
+<li><strong>Profile.</strong><p>Count values that match an SSN pattern and a 10-digit phone pattern. Real profilers do this across all columns and also check column names.</p><p class="expect">Both counts are 3, which tells you these columns are fully populated with sensitive-looking data.</p></li>
+<li><strong>Extract the subset keys.</strong><p>The driver is customers with an order on 2026-10-20. The keys go into a small table that later steps join to; that is our staging area.</p><p class="expect">Customers 1001 and 1002. Customer 1003 is not selected, since their only order is on the 21st.</p></li>
+<li><strong>Transform and load customers.</strong><p>Each sensitive column gets a rule built from the customer id, so the same input always produces the same output. The name comes from a four-name dictionary chosen by <code>customer_id % 4</code>.</p><p class="expect">Two masked rows, for example 1001 becomes Bina Tester1001, user1001@example.test, SSN 900-00-1001, zip 560000.</p></li>
+<li><strong>Extract and load the children.</strong><p>Orders of the subset customers, then items of those orders. Parents were loaded first.</p><p class="expect">Orders 5001, 5002 and 5003. Customer 1001 brings order 5003 although it is dated the 21st: the subset follows the customer, not the date.</p></li>
+<li><strong>Test.</strong><p>Check for orphans, leaks and counts.</p><p class="expect">Orphans 0, leaked SSNs 0, leaked emails 0, and counts 2 customers, 3 orders, 4 items.</p></li>
+<li><strong>Repeatability.</strong><p>A deterministic rule gives identical output on every run, which lets a refresh produce the same masked values.</p><p class="expect">The query returns 1 (true).</p></li>
+</ol>
+<p>Run steps 2 to 7 as one script:</p>
+<pre><code>-- STEP 1 (profile): which columns look sensitive?
+SELECT COUNT(*) AS ssn_like_values FROM customers
+WHERE ssn GLOB '[0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9]';
+SELECT COUNT(*) AS phone_like_values FROM customers
+WHERE phone GLOB '[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]';
+-- STEP 2 (extract a subset): choose the driver rows
+INSERT INTO subset_keys SELECT DISTINCT customer_id FROM orders WHERE order_date = '2026-10-20';
+SELECT * FROM subset_keys;
+-- STEP 3 (transform = mask, and load customers)
+INSERT INTO t_customers
+SELECT c.customer_id,
+       m.first_name,
+       'Tester' || c.customer_id,
+       'user' || c.customer_id || '@example.test',
+       '90000' || SUBSTR('00000' || c.customer_id, -5),
+       '900-00-' || SUBSTR('0000' || c.customer_id, -4),
+       SUBSTR(c.date_of_birth, 1, 4) || '-01-01',
+       SUBSTR(c.zip_code, 1, 3) || '000',
+       'MASK' || SUBSTR('000000' || c.customer_id, -6)
+FROM customers c
+JOIN subset_keys k ON k.customer_id = c.customer_id
+JOIN mask_names m ON m.slot = c.customer_id % 4;
+SELECT * FROM t_customers;
+-- STEP 4 (extract and load the children that belong to the subset)
+INSERT INTO t_orders SELECT o.* FROM orders o JOIN subset_keys k ON k.customer_id = o.customer_id;
+INSERT INTO t_order_items SELECT i.* FROM order_items i JOIN t_orders o ON o.order_id = i.order_id;
+SELECT * FROM t_orders;
+-- STEP 5 (test the result): no orphans, no leaked values, no lost rows
+SELECT COUNT(*) AS orphan_orders FROM t_orders o
+LEFT JOIN t_customers c ON c.customer_id = o.customer_id WHERE c.customer_id IS NULL;
+SELECT COUNT(*) AS leaked_ssn FROM t_customers t JOIN customers c ON c.ssn = t.ssn;
+SELECT COUNT(*) AS leaked_email FROM t_customers t JOIN customers c ON c.email = t.email;
+SELECT (SELECT COUNT(*) FROM t_customers) AS customers,
+       (SELECT COUNT(*) FROM t_orders) AS orders,
+       (SELECT COUNT(*) FROM t_order_items) AS items;
+-- STEP 6 (repeatability): the same input gives the same masked output
+SELECT 'Tester' || 1001 = last_name AS same_as_first_run FROM t_customers WHERE customer_id = 1001;</code></pre>
+<details class="sol"><summary>Show a worked answer</summary>
+<p>Expected output, in order: SSN-like 3; phone-like 3; subset keys 1001 and 1002; two masked customers (1001: Bina, Tester1001, user1001@example.test, 9000001001, 900-00-1001, 1990-01-01, 560000, MASK001001; 1002: Chitra, Tester1002, user1002@example.test, 9000001002, 900-00-1002, 1985-01-01, 600000, MASK001002); three orders; orphans 0; leaked SSN 0; leaked email 0; counts 2, 3, 4; repeatability 1.</p>
+<p>Which statements were ETL-style? The subset insert and the child inserts are filtered extracts and loads; the masking select is a transformation; the final counts are reconciliation. Challenge: change the subset rule to "customers whose zip code starts with 560" and re-run. Expect one customer, 1001, with orders 5001 and 5003.</p>
+<p>Limitation of this miniature: the masks here are formula-based and easy to reverse for anyone who knows the formula and the id. Real tools use lookups, hashing or keyed algorithms; see the masking chapters.</p>
+</details></div>
+
+<h2 id="c9-pitfalls">9.8 Pitfalls: where ETL habits hurt TDM</h2>
+<h3 id="c9-pit-order">9.8.1 Masking after load instead of before</h3>
+<p>The ETL reflex "land the raw data, then clean it" is wrong for sensitive data. Between the load and the end of masking, real values sit in an environment with wide access, and a failure leaves them there. Prefer on-the-fly or pre-load masking, or in-place masking inside a protected staging environment that testers cannot reach, and copy onward only after verification. Informatica's plan masks data inside the same workflow that loads the target, with subset first (p.275); Delphix on-the-fly jobs never write unmasked rows to the target; GenRocket G-Subset replaces sensitive values in the dump file before insertion. <span class="badge doc">From docs</span></p>
+<h3 id="c9-pit-consistency">9.8.2 Consistency across ETL and masking</h3>
+<p>When keys are masked, they must be masked identically wherever they appear. I tested this with the three ShopSphere customers and four orders by adding 70000 to the key.</p>
+<pre><code>-- Customer keys masked, order keys left alone: the join breaks
+SELECT COUNT(*) FROM ord o JOIN (SELECT customer_id + 70000 AS customer_id FROM cust) c
+  ON c.customer_id = o.customer_id;                        -- returns 0
+
+-- The same rule applied to both tables: the join works
+SELECT COUNT(*) FROM (SELECT order_id, customer_id + 70000 AS customer_id FROM ord) o
+  JOIN (SELECT customer_id + 70000 AS customer_id FROM cust) c
+  ON c.customer_id = o.customer_id;                        -- returns 4</code></pre>
+<p>Two further consistency risks come from ETL-style staging. First, if the same person appears in two systems (CRM and billing) and each is masked by a separate job with a random rule, the person gets two different fake identities and cross-system tests fail. Use deterministic rules and share the algorithm and its key across jobs. Delphix algorithms differ in this respect: some are non-deterministic and "cannot guarantee the same output for the same input across masking jobs", while others are fixed (Delphix algorithm documentation excerpt); the terminology page also notes that a secure lookup can collide, which matters when a column must stay unique. <span class="badge doc">From docs</span> Second, a <em>reversible</em> method such as tokenization (the only algorithm type that allows reversing, per the terminology page) is a deliberate exception, not a default.</p>
+<h3 id="c9-pit-performance">9.8.3 Performance</h3>
+<p>Masking adds work to every row, and subsetting adds joins. Plan for it as you would for ETL: choose commit sizes, parallelism and index handling, and expect trade-offs. Delphix's guidance includes number of streams, update threads (reduce them if you see database deadlocks), and the option to drop indexes during a job; Informatica allows up to eight workflows at once. A subset reduces volume, which is usually the biggest performance win, so extract less before you optimise anything else. <span class="badge doc">From docs</span></p>
+<h3 id="c9-pit-audit">9.8.4 Audit trails</h3>
+<p>An ordinary ETL log says whether the job ran. A TDM log must also help answer: who masked this, with which rules, and when? What the tools provide, from the pages I read: <span class="badge doc">From docs</span></p>
+<ul>
+<li><strong>Informatica:</strong> an Audit Trail Report listing recent activities in Test Data Manager (type of activity, object, user, date and time, with filters and CSV download), a Data Masking Report listing columns with their assigned rules and policies, a Plan Audit Report, and a Row Count Report (User Guide 10.5.10, pp.321 to 322, 324). The Monitor view shows job types such as Generate Workflow, Execute Workflow and Reset Data Set from Test Data Warehouse (p.316).</li>
+<li><strong>Delphix:</strong> audit logs record user actions in the UI or REST API: the action, user and time, with action categories such as Create, Edit, Run, Login; the UI page is for admin users and can export a PDF. <a href="https://help.delphix.com/cc/current/content/audit_logs.htm" target="_blank" rel="noopener">Audit logs ↗</a></li>
+<li><strong>GenRocket:</strong> the pages I read do not describe an audit log for the G-Subset feature, so check your version.</li>
+</ul>
+<div class="callout warn"><strong class="ctitle">Other gotchas</strong>
+<ul>
+<li><strong>Treating the exit code as proof.</strong> A job can finish and still have left a column unmasked. Always run the leak check.</li>
+<li><strong>Masking only some copies of a value.</strong> The same SSN in a notes column or a file export remains. Profile every column and every file.</li>
+<li><strong>Letting a rerun double-load.</strong> Use truncate, upsert or a reset path so a rerun does not duplicate rows.</li>
+<li><strong>Overwriting masked data with a refresh by accident.</strong> Name and version data sets, as the test data warehouse does.</li>
+</ul></div>
+
+<h2 id="c9-recap">9.9 Recap</h2>
+<div class="callout recap"><strong class="ctitle">Recap</strong>
+<ul>
+<li>A TDM job is an ETL job with a different purpose: safe, small, consistent test data. Informatica TDM is built on a PowerCenter ETL engine.</li>
+<li>The seven differences: purpose, direction and shape, output consistency, privacy, size, repeatability, and who uses it.</li>
+<li>Overlaps: masking is a transformation, subsetting is a filtered extract, provisioning is a load, generation is a source.</li>
+<li>Reference pipeline: profile, extract subset, mask, load, verify, supported by a rules repository, an orchestrator, logs and a test data store. Mask before data lands where testers can read it.</li>
+<li>Informatica: plan to generated PowerCenter workflow. Delphix: connector, rule set, inventory, then an in-place or on-the-fly job. GenRocket: generators feed receivers; G-Subset extracts into dump files, replaces sensitive values and loads.</li>
+<li>Keys must be masked identically everywhere; use deterministic algorithms.</li>
+<li>Verify leaks as well as counts, and keep audit evidence.</li>
+</ul></div>
+
+<section class="sources"><h2 id="c9-sources">Sources used in this chapter</h2>
+<ul>
+<li>Informatica TDM 10.5.10 User Guide (February 2026): chapter 1 pp.25 to 29; chapter 6 pp.112 to 122; chapter 7 pp.135 to 150; chapter 11 pp.236 to 238; chapter 13 pp.274 to 285 and 308; chapter 14 pp.315 to 317; chapter 15 pp.321 to 324.</li>
+<li>Delphix Continuous Compliance 2026.5: <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">terminology</a>, <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">jobs</a>, <a href="https://help.delphix.com/cc/current/content/running_and_stopping_jobs.htm" target="_blank" rel="noopener">running and stopping jobs</a>, <a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">rule sets</a>, <a href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">inventories</a>, <a href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">job monitoring</a>, <a href="https://help.delphix.com/cc/current/content/audit_logs.htm" target="_blank" rel="noopener">audit logs</a>.</li>
+<li>GenRocket: <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/receivers-overview" target="_blank" rel="noopener">Receivers Overview</a>, <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-five-key-components" target="_blank" rel="noopener">Five Key Components</a>, <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-overview-formerly-g-migration" target="_blank" rel="noopener">G-Subset Overview</a>, <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/what-is-synthetic-data-replacement-sdr" target="_blank" rel="noopener">SDR</a>, <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">General FAQ</a>, <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-data-column-profiling-steps-for-pii-discovery" target="_blank" rel="noopener">G-Subset column profiling</a>.</li>
+<li>Not used as sources: the YouTube videos (transcripts could not be retrieved). I did not read the GenRocket Runtime or monitoring pages, so no claims are made about GenRocket job monitoring.</li>
+<li>All ShopSphere data, SQL and results are my own illustrations, executed in SQLite 3.45.</li>
+</ul></section>
