@@ -1,0 +1,77 @@
+<p>Profiling told you <em>which</em> columns are sensitive. Masking is the step that actually changes them. In Delphix the work is split in two: an <dfn>algorithm</dfn> decides how one value becomes another, and a <dfn>masking job</dfn> applies the assigned algorithms to every row of a rule set. This chapter covers both halves. First the idea of algorithms (frameworks, instances, keys, lookup files, uniqueness), then a catalogue of every algorithm framework the documentation lists, then a close look at the algorithms you need for the syllabus: first name, SSN, alphanumeric text and telephone number. The second half explains how to build, run, monitor and tune a masking job.</p>
+<p>It ends with two labs: TDM_Handson7 (mask FirstName, Day 55) and TDM_Handson8 (mask alphanumeric text, SSN and telephone number, Day 56), using the ShopSphere tables. Before this chapter you should know how rule sets and inventories work (<a href="24-delphix-rule-sets-and-keys.html">the rule sets and keys chapter</a>, <a href="25-delphix-profiling.html">the profiling chapter</a>). For the generic ideas behind masking see <a href="06-masking-concepts.html">the masking concepts chapter</a>, and for the Informatica equivalent see <a href="14-informatica-data-masking.html">the Informatica data masking chapter</a>. Masking files is the topic of <a href="27-delphix-file-masking.html">the file masking chapter</a>, and the full lab walkthrough set is in <a href="28-delphix-hands-on-labs.html">the Delphix hands-on labs chapter</a>.</p>
+<div class="callout recap"><strong class="ctitle">What you will learn</strong>
+<ul>
+<li>What an algorithm framework, an algorithm instance and an algorithm key are, and why masked output is repeatable.</li>
+<li>What a lookup file is, and how Secure Lookup, Name, Character Mapping and Segment Mapping differ in uniqueness.</li>
+<li>All 25 algorithm frameworks listed in the documentation, each with one plain sentence and an example.</li>
+<li>Which algorithm to use for first names, SSNs, alphanumeric text and telephone numbers, and what each does to a ShopSphere value.</li>
+<li>How to create, run, stop and monitor a masking job: in-place versus on-the-fly, update threads, commit size, streams, row limit, memory, pre and post SQL scripts.</li>
+<li>How to read non-conformant data warnings, use the performance log, and verify a masked table with SQL.</li>
+</ul></div>
+<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
+<p>Delphix Continuous Compliance documentation, version 2026.5 (last published October 16, 2026). Pages read in full: <a href="https://help.delphix.com/cc/current/content/algorithms.htm" target="_blank" rel="noopener">Algorithms</a>, <a href="https://help.delphix.com/cc/current/content/algorithm_frameworks.htm" target="_blank" rel="noopener">Algorithm frameworks</a>, <a href="https://help.delphix.com/cc/current/content/out_of_the_box_algorithm_instances.htm" target="_blank" rel="noopener">Out of the box algorithm instances</a>, <a href="https://help.delphix.com/cc/current/content/configuring_algorithms.htm" target="_blank" rel="noopener">Configuring algorithms</a>, <a href="https://help.delphix.com/cc/current/content/managing_algorithm_usage.htm" target="_blank" rel="noopener">Managing algorithm usage</a>, <a href="https://help.delphix.com/cc/current/content/algorithm_syncability.htm" target="_blank" rel="noopener">Algorithm syncability</a>, <a href="https://help.delphix.com/cc/current/content/managing_jobs.htm" target="_blank" rel="noopener">Managing jobs</a>, <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs</a> (the masking job parts here), <a href="https://help.delphix.com/cc/current/content/performance_logging_for_masking_jobs.htm" target="_blank" rel="noopener">Performance logging for masking jobs</a> and <a href="https://help.delphix.com/cc/current/content/best_practices_for_delphix_data_masking.htm" target="_blank" rel="noopener">Best practices for Delphix data masking</a>. For the catalogue I read each framework page (Secure Lookup, Name, Full Name, Character Mapping, Segment Mapping, Mapping, Tokenization, Email, Date Shift, Dependent Date Shift, Date Replacement, Min Max Number, Min Max Date, Payment Card, Regex Decompose, Free Text Redaction, Numeric Expression, Data Cleansing, Character Replacement, Binary Lookup, Checkdigit, BR - Financial ID, String Algorithm Chain, Multi Column Address, Multi Column Condition) and the instance pages for FirstName, LastName, FullName, FirstNameLookup, LastNameLookup, FullNMLookup, Phone Unique, Phone US, CM Alpha-Numeric, CM Digits, CM Numeric, Email Unique, Email SL, Credit Card, Date Shift Discrete, Fixed and Variable, SecureShuffle, NullValueLookup, RepeatFirstDigit and several lookup instances. Job pages: <a href="https://help.delphix.com/cc/current/content/running_and_stopping_jobs.htm" target="_blank" rel="noopener">Running and stopping jobs</a>, <a href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">Job monitoring</a> and the <a href="https://help.delphix.com/cc/current/content/masking_api_client.htm" target="_blank" rel="noopener">Masking API client</a> for defaults.</p>
+<p>The fourth link the learner supplied (<code>.../content/create</code>) was truncated and returns 404; the intended page is almost certainly <code>create__view__edit__delete__verify_jobs.htm</code>, used here for the masking job part. Screenshots come from engine versions 22.0.0.0 to 26.0.0.0 as shown in their banners. Every before and after value in the ShopSphere tables below is <strong>illustrative</strong>: I chose them to show the behaviour that the documentation describes, and your engine will produce different values because the output depends on the algorithm key and lookup file.</p></div>
+
+<h2 id="c26-words">26.1 Words to know first</h2>
+<dl class="defs">
+<div><dt>Algorithm (instance)</dt><dd>A named, ready-to-use masking recipe with its configuration, such as <code>dlpx-core:FirstName</code>. You assign instances to columns.</dd></div>
+<div><dt>Algorithm framework</dt><dd>A kind of algorithm that you can configure to create new instances, such as Secure Lookup or Segment Mapping. "FIRST NAME SL" is an instance of the Secure Lookup framework.</dd></div>
+<div><dt>Out-of-the-box instance</dt><dd>An instance that ships with the engine. These cannot be edited or deleted; you create your own from a framework instead.</dd></div>
+<div><dt>Algorithm key</dt><dd>A secret value inside most algorithms. Changing it changes the output, so the same input masks to something different.</dd></div>
+<div><dt>Deterministic</dt><dd>Same input, same algorithm, same key, same configuration gives the same output every time. This keeps joins working across tables and across runs.</dd></div>
+<div><dt>Lookup file</dt><dd>A plain text file with one replacement value per line (no header). The algorithm picks a line based on the input, so the output is always something from your file.</dd></div>
+<div><dt>Collision</dt><dd>Two different inputs masked to the same output. Fine for names, harmful in a unique column.</dd></div>
+<div><dt>Non-conformant data</dt><dd>A value that does not fit the format an algorithm expects, such as letters in a numeric-only algorithm. By default it is left unmasked and a warning is recorded.</dd></div>
+<div><dt>Masking job</dt><dd>A saved set of options saying "apply the inventory of this rule set", with a method (in-place or on-the-fly), threads, memory and scripts.</dd></div>
+<div><dt>In-place / on-the-fly</dt><dd>In-place changes the data where it sits. On-the-fly reads from a source and writes masked data to a different target.</dd></div>
+<div><dt>Stream</dt><dd>One parallel lane of work. More streams let the engine mask several tables at once.</dd></div>
+</dl>
+
+<h2 id="c26-big-picture">26.2 The big picture: from domain to masked row</h2>
+<p>The previous chapter ended with an inventory: every sensitive column carries a domain and an algorithm. The masking job reads that inventory, takes each row from the source, runs each assigned algorithm on the matching value, and writes the result.</p>
+<div class="flow">
+<div class="node"><b>Inventory</b>column → algorithm</div><div class="arrow">→</div>
+<div class="node"><b>Masking job</b>method, threads, memory</div><div class="arrow">→</div>
+<div class="node"><b>Algorithms</b>value in, masked value out</div><div class="arrow">→</div>
+<div class="node"><b>Target data</b>safe copy</div><div class="arrow">→</div>
+<div class="node"><b>Verify</b>counts, joins, formats</div>
+</div>
+<p>Where do the algorithms live? Open <strong>Settings &gt; Algorithms</strong>. The grid shows Algorithm Name, Framework Name, Mask Type and Owner; sortable by name, framework and mask type, filterable by name, framework, mask type and owner <span class="badge doc">From docs</span>. The "+ Algorithm" button creates new instances.</p>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/algorithms.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/algorithms.png" alt="Settings, Algorithms screen listing algorithm names, framework, mask type and owner" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The Settings &gt; Algorithms screen (engine 23.0.0.0, 138 algorithms on that test engine). I viewed this image: rows such as "ACCOUNT SL" (framework Secure Lookup, mask type STRING, owner System) next to user-made ones like "ACCOUNT_TK" (Tokenization, owner admin) and "ALG_JRTIYFXL" (Dependent Date Shift, mask type GENERIC_DATA_ROW). A "+ Algorithm" button and an "Extension Support Policy" link are top right. <a class="badge-link" href="https://help.delphix.com/cc/current/content/algorithms.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>The Owner column tells you which instances are yours: <em>System</em> rows ship with the engine. The docs say system-defined instances and those from algorithm plugins can only be viewed, never edited or deleted. Administrators and users with the EDIT Algorithm permission can edit any user-defined one, but the name and framework cannot change after creation <span class="badge doc">From docs</span>.</p>
+
+<h2 id="c26-what-is-algorithm">26.3 What an algorithm is, in five ideas</h2>
+<h3 id="c26-idea-framework">Idea 1: framework versus instance</h3>
+<p>Think of a framework as a recipe template ("replace each value with one chosen from a list") and an instance as a filled-in recipe ("...using this list of first names, ignoring case"). The documentation's own example: "FIRST NAME SL" is an instance of the Secure Lookup framework <span class="badge doc">From docs</span>. The analogy stops being accurate in one place: a framework is not something you assign to a column. Only instances are assigned.</p>
+<h3 id="c26-idea-key">Idea 2: the key makes output repeatable but secret</h3>
+<p>Most algorithms include a key. If <code>FirstNameLookup</code> masks "Michelle" to "Rachael", changing the key might make it "Ben" instead <span class="badge doc">From docs</span>. The key can be randomised through an API call (<code>PUT /algorithms/{algorithmName}/randomize-key</code>). Two consequences:</p>
+<ul>
+<li>Within one key, repeatable output means the same customer name masks the same way in every table and every run, so test data stays internally consistent.</li>
+<li>Whoever knows the key and the algorithm might be able to rebuild mappings, so treat the key like a password and do not casually re-key production algorithms, because every later run would produce different test data.</li>
+</ul>
+<h3 id="c26-idea-unique">Idea 3: unique versus non-unique</h3>
+<p>Some algorithms may give two inputs the same output (collisions). Others guarantee that different inputs give different outputs. The docs are consistent about which is which:</p>
+<div class="tablewrap"><table><thead><tr><th>Property</th><th>Frameworks</th><th>Use it for</th></tr></thead><tbody>
+<tr><td>Collisions possible (non-unique)</td><td>Secure Lookup, Name, Full Name, Date Shift Discrete or Variable, Free Text Redaction, Min Max</td><td>Names, cities, comments: values that repeat naturally in real data</td></tr>
+<tr><td>No collisions (unique)</td><td>Character Mapping, Segment Mapping, Mapping, Tokenization</td><td>Keys and identifiers: primary keys, foreign keys, SSN, account numbers</td></tr>
+</tbody></table></div>
+<p>Caveat from the docs: even Character Mapping can collide for numeric data types, because "001" and "1" are the same number once stored in a numeric column <span class="badge doc">From docs</span>.</p>
+<h3 id="c26-idea-lookup">Idea 4: a lookup file is just a list</h3>
+<p>Lookup-based algorithms (Secure Lookup, Name and their out-of-the-box instances such as FirstNameLookup, LastNameLookup and FullNMLookup) hold a list of fake values. The engine hashes the input, uses the hash to choose a line, and returns that line. The file has one value per line, no header, in ASCII or UTF-8 <span class="badge doc">From docs</span>. For example, a tiny file for cities could be:</p>
+<pre><code>Smallville
+Clarkville
+Farmville
+Townville</code></pre>
+<p>With a hash method of SHA256 (the default) the same input always chooses the same line. The framework also offers LEGACY (to mimic old behaviour) and RANDOMIZE, which picks a random line each time and therefore does <em>not</em> keep referential integrity. RANDOMIZE suits things like gender, where you want a statistical spread rather than consistency <span class="badge doc">From docs</span>.</p>
+<h3 id="c26-idea-reversible">Idea 5: masking versus tokenization</h3>
+<p>Almost all masking is one-way. Tokenization is the one family that can be reversed, which is why it exists: mask data, send it to an outside vendor, and later re-identify the vendor's findings <span class="badge doc">From docs</span>. It is covered in the framework catalogue below.</p>
+<div class="callout note"><strong class="ctitle">Generic technique names and their Delphix counterparts</strong>
+<p>Your syllabus (Day 44) names substitution, shuffle, key masking and encryption. This mapping is my own reading, marked <span class="badge concept">General concept</span>:</p>
+<ul>
+<li><strong>Substitution</strong>: Secure Lookup, Name, Mapping (replace a value with another real-looking value).</li>
+<li><strong>Shuffle</strong>: SecureShuffle (moves existing values between rows).</li>
+<li><strong>Key masking</strong>: Character Mapping and Segment Mapping (keyed permutation that keeps uniqueness).</li>
+<li><strong>Encryption</strong>: Tokenization (AES-128 in the framework description, reversible).</li>
+</ul></div>

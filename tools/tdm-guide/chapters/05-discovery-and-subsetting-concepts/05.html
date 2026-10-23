@@ -1,18 +1,7 @@
 <h2 id="c5-reduced-vs-full">5.11 Reduced copies and full copies</h2>
 <p>A subset is one way to make a test copy small. There are other ways to get a test copy, and each has a place. The comparison below is a general guide, with the Delphix statements marked.</p>
-<div class="tablewrap"><table><caption>Full copy, subset, and virtual copy compared</caption>
-<thead><tr><th></th><th>Full physical copy</th><th>Subset (reduced copy)</th><th>Virtual copy</th></tr></thead>
-<tbody>
-<tr><th>What you get</th><td>Every row, as a separate physical database</td><td>A chosen slice, consistent and much smaller</td><td>A full-looking, read-write copy that shares storage with its source</td></tr>
-<tr><th>Storage and time</th><td>Highest</td><td>Lowest</td><td>Low storage, fast to create</td></tr>
-<tr><th>Realism</th><td>Highest: real volumes and rare cases</td><td>Lower: rare cases may be missing</td><td>Same as the full copy it is made from</td></tr>
-<tr><th>Privacy exposure before masking</th><td>All the data</td><td>Only the slice</td><td>All the data, so masking is still needed</td></tr>
-<tr><th>Best for</th><td>Performance and volume tests</td><td>Functional tests, fast refresh, training</td><td>Many parallel environments that each need a full data set</td></tr>
-</tbody></table></div>
+<p>A full physical copy is the most realistic but the slowest and most exposed. A subset is small and quick to refresh but may miss rare cases. A virtual copy looks full but shares storage with its source, so it is cheap to create, but it still holds all the data and needs masking. <span class="badge concept">General concept</span></p>
 <p><span class="badge doc">From docs</span> Delphix describes virtualization as producing "a functioning database or filesystem copy that is lightweight and ephemeral" (terminology page), and its introduction claims that ten virtual copies can fit into the space of one physical copy. The pages I read do not describe a subsetting feature for Delphix, so treat "virtual copy" and "subset" as two different answers to the same cost problem: Delphix makes full copies cheap; Informatica and GenRocket make copies small.</p>
-<div class="callout tip"><strong class="ctitle">A rule of thumb</strong>
-<p>Use a subset when the test is about <em>behaviour</em> (does checkout work for this customer?). Use a full or virtual copy when the test is about <em>scale</em> (does the nightly report finish in time?). Whichever you choose, protect the data before testers see it.</p></div>
-
 <h2 id="c5-masking-and-subsetting">5.12 How masking and subsetting combine</h2>
 <p>You rarely do one without the other: subsetting shrinks the set of real records, and masking changes what remains. Three orders are possible. <span class="badge concept">General concept</span></p>
 <div class="tablewrap"><table><caption>Possible orders of subsetting and masking</caption>

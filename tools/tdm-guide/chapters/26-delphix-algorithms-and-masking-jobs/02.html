@@ -1,0 +1,124 @@
+<h2 id="c26-catalogue">26.4 Every algorithm framework, in one table</h2>
+<p>The documentation lists 25 frameworks (the <a href="https://help.delphix.com/cc/current/content/algorithm_frameworks.htm" target="_blank" rel="noopener">Algorithm frameworks</a> index). Each row below gives one plain sentence and an example taken from that framework's own page <span class="badge doc">From docs</span>. Bold names are the ones the syllabus labs need.</p>
+<div class="tablewrap"><table><thead><tr><th>Framework</th><th>What it does</th><th>Example from the docs</th></tr></thead><tbody>
+<tr><td>Binary Lookup</td><td>Replaces whole files stored in a column (such as images) with a fictional file you supply</td><td>Scanned cheque image becomes a stock image</td></tr>
+<tr><td>BR - Financial ID</td><td>Masks Brazilian CPF and CNPJ numbers and keeps the check digits valid</td><td>"842.262.714-08" to "209.674.029-05"</td></tr>
+<tr><td><strong>Character Mapping</strong></td><td>Keyed one-to-one swap of characters inside groups you define; unlisted characters are kept</td><td>"999-12-3456" to "453-71-6283" with group [0-9]</td></tr>
+<tr><td>Character Replacement</td><td>Wraps another string algorithm and swaps listed characters before or after it (API only)</td><td>Replace "@" and "#" with "." in the output</td></tr>
+<tr><td>Checkdigit</td><td>Masks the digits and recomputes a valid check digit</td><td>Japan My Number, Brazil CPF</td></tr>
+<tr><td>Data Cleansing</td><td>Not masking: standardises spellings from a lookup file before masking</td><td>"Arizona", "Ariz" and "Az" all become "AZ"</td></tr>
+<tr><td>Date Replacement</td><td>Replaces a date with one from a min to max range</td><td>"1995-03-05 13:25:00" to "2020-01-02 00:00:00"</td></tr>
+<tr><td>Date Shift</td><td>Moves a date by a number of days, months or years inside a range, never back onto itself</td><td>3 to 5 days: "2021-02-03" to "2021-02-06"</td></tr>
+<tr><td>Dependent Date Shift</td><td>Masks two related dates together, keeping their order and a chosen interval</td><td>Admission and discharge dates</td></tr>
+<tr><td>Email</td><td>Splits at "@" and masks name and domain separately</td><td>"bob@gmail.com" to "E.Duboise@example.com" (Email SL)</td></tr>
+<tr><td>Free Text Redaction</td><td>Blanks out listed words and pattern matches inside notes columns</td><td>"Bob Jones" to "XXXX XXXX"</td></tr>
+<tr><td>Full Name</td><td>Splits a full name into first and last parts and masks each with chained algorithms</td><td>"Manuel Maria Saxe-Coburgo-Gotha" to "Nimisha Kum Mcneish"</td></tr>
+<tr><td>Mapping</td><td>You supply the fake values; each input gets one distinct output, recorded encrypted</td><td>David always becomes Raj</td></tr>
+<tr><td>Min Max Number / Min Max Date</td><td>Pulls extreme values (CEO salary, very old age) into a chosen range</td><td>Age under 18: min 0, max 18</td></tr>
+<tr><td>Multi Column Address</td><td>Masks several address columns together to one consistent address from your CSV</td><td>Street, city, zip in separate columns</td></tr>
+<tr><td>Multi Column Condition</td><td>Applies different algorithms to columns depending on the value of a key column</td><td>Key "FN" selects one algorithm set</td></tr>
+<tr><td><strong>Name</strong></td><td>Lookup-based first or last name masking with case, accent and particle options</td><td>"Ann-Marie M." to "Boris S."</td></tr>
+<tr><td>Numeric Expression</td><td>Masks a number with a one-line Java expression</td><td><code>input * 0.5</code></td></tr>
+<tr><td>Payment Card</td><td>Keeps the first digits and the card's Luhn validity, masks the rest</td><td>"5419033646326699" to "5419036803270758"</td></tr>
+<tr><td>Regex Decompose</td><td>Applies redact or preserve actions to the parts of a value matched by a pattern</td><td>"12345-abc" to "XXXXX-abc"</td></tr>
+<tr><td>Secure Lookup</td><td>Replaces a value with a line from a lookup file chosen by hashing the input</td><td>"Tom" and "Peter" may both become "Matt"</td></tr>
+<tr><td><strong>Segment Mapping</strong></td><td>Splits a value into segments (up to 10, each up to 6 characters) and masks each as you configure; no collisions</td><td>"AB1234" to "DL9148"</td></tr>
+<tr><td>String Algorithm Chain</td><td>Runs two to eight string algorithms one after another</td><td>Clean, then mask</td></tr>
+<tr><td>Tokenization</td><td>Reversible masking with AES-128 and Base64; the output is longer than the input</td><td>"Erasmus" becomes a long Base64 token</td></tr>
+</tbody></table></div>
+<p>Out-of-the-box instances are ready-made algorithms built on these frameworks. The 2026.5 algorithms page lists them; the families are:</p>
+<div class="tablewrap"><table><thead><tr><th>Family</th><th>Instances (not exhaustive for the lookup list)</th></tr></thead><tbody>
+<tr><td>Secure Lookup</td><td>FirstNameLookup, LastNameLookup, FullNMLookup, AddrLookup, EmailLookup, AccNoLookup, CommentLookup, USCitiesLookup, Age SL, Gender SL, RandomValueLookup and about twenty more</td></tr>
+<tr><td>Name and Full Name</td><td>dlpx-core:FirstName, dlpx-core:LastName, dlpx-core:FullName</td></tr>
+<tr><td>Character Mapping</td><td>dlpx-core:CM Alpha-Numeric, dlpx-core:CM Digits, dlpx-core:CM Numeric</td></tr>
+<tr><td>Email</td><td>dlpx-core:Email Unique, dlpx-core:Email SL</td></tr>
+<tr><td>Dates</td><td>Date Shift Discrete, Date Shift Fixed, Date Shift Variable</td></tr>
+<tr><td>Others</td><td>Credit Card, Phone Unique, Phone US, SecureShuffle, NullValueLookup, Redact Digits-Zero, RepeatFirstDigit (zip+4), TimeRange, Lat_Long Coordinates, Japan and Brazil check-digit instances</td></tr>
+</tbody></table></div>
+<p>The docs say the older lookup instances such as FirstNameLookup, LastNameLookup and FullNMLookup are superseded by the Name and Full Name frameworks (introduced in 6.0.8.0), which they call the preferred way to mask name values <span class="badge doc">From docs</span>. Use the dlpx-core instances for new work.</p>
+
+<h2 id="c26-firstname">26.5 Deep dive: masking a first name</h2>
+<p>The default tool is <code>dlpx-core:FirstName</code>, an instance of the Name framework. It needs String input. If the value is null, empty or only spaces, it comes back unchanged. Words joined by a hyphen count as one word, a single letter is treated as an initial and masks to a single letter, and by default at most two names are masked and extra ones dropped. It raises no non-conformant data errors, and it can occasionally mask a name to itself <span class="badge doc">From docs</span>.</p>
+<div class="tablewrap"><table class="sample"><caption>dlpx-core:FirstName behaviour (documented examples)</caption><thead><tr><th>Input</th><th>Output</th><th>Lesson</th></tr></thead><tbody>
+<tr><td>(null) / "" / " "</td><td>unchanged</td><td>Nothing to mask</td></tr>
+<tr><td>M</td><td>S</td><td>Initials stay initials</td></tr>
+<tr><td>M.</td><td>S.</td><td>Dot is kept</td></tr>
+<tr><td>Ann- Marie</td><td>Boris</td><td>Hyphenated names are one word</td></tr>
+<tr><td>Ann-Marie M.</td><td>Boris S.</td><td>Two words, two masked parts</td></tr>
+<tr><td>Ann-Marie Jane Jill</td><td>Boris Shelby</td><td>Only two names kept</td></tr>
+</tbody></table></div>
+<p>To build your own instance you open <em>+ Algorithm</em>, pick the Name framework and configure these options <span class="badge doc">From docs</span>:</p>
+<div class="tablewrap"><table><thead><tr><th>Option</th><th>Default</th><th>Meaning</th></tr></thead><tbody>
+<tr><td>Case Sensitive Lookup</td><td>off</td><td>Off means "Peter" and "peter" mask to the same name</td></tr>
+<tr><td>Filter Accent</td><td>on</td><td>"Adrián" and "Adrian" mask alike</td></tr>
+<tr><td>Output (Masked) Case</td><td>Preserve Input Case</td><td>All caps in, all caps out; mixed case uses the lookup file's case</td></tr>
+<tr><td>Maximum Number of Names</td><td>2 (range 1 to 4)</td><td>Names beyond this are dropped</td></tr>
+<tr><td>Maximum Masked Name Length</td><td>0 (unlimited)</td><td>Output is trimmed; the engine also respects the destination column length when it can detect it</td></tr>
+<tr><td>Lookup File</td><td>required</td><td>One name per line, ASCII or UTF-8</td></tr>
+<tr><td>Particles to Preserve / Remove</td><td>optional</td><td>Words like "von" kept or removed before masking</td></tr>
+</tbody></table></div>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/name_algo1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/name_algo1.png" alt="Add Algorithm wizard configuration step for the Name framework" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The Name framework configuration. I viewed this image: Case Sensitive Lookup (clear), Filter Accent (ticked), Output (Masked) Case "Preserve Input Case", Maximum Number of Names 2, Maximum Masked Name Length 0, and three file pickers (Lookup File, Particles to Preserve, Particles to Remove) with a framework description on the right. <a class="badge-link" href="https://help.delphix.com/cc/current/content/name__algorithm_frameworks_.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>Behind this sits the lookup-file idea from earlier in this chapter: hash the input, pick a line. The older Secure Lookup framework adds hash method, whitespace trimming options and a warning worth remembering: if a masked value is longer than the column, the job can fail or, worse, referential integrity can break when two columns have different lengths.</p>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/secure_lookup1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/secure_lookup1.png" alt="Add Algorithm wizard configuration step for Secure Lookup" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The Secure Lookup configuration. I viewed this image: Hash Method SHA256, an uploaded lookup file (temp.txt, "Successfully uploaded file"), Case sensitive lookup (clear), Trim whitespace in lookup file (ticked), Trim whitespace from inputs (clear) and Output (Masked) Case "Preserve Input Case". <a class="badge-link" href="https://help.delphix.com/cc/current/content/secure_lookup__algorithm_frameworks_.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<div class="tablewrap"><table class="sample"><caption>ShopSphere CUSTOMERS.first_name before and after (illustrative, values invented by the author)</caption><thead><tr><th>customer_id</th><th>Before</th><th>After</th></tr></thead><tbody>
+<tr><td>1001</td><td>Asha</td><td>Nimisha</td></tr>
+<tr><td>1002</td><td>Ravi</td><td>Boris</td></tr>
+<tr><td>1003</td><td>Meera</td><td>Simeon</td></tr>
+</tbody></table></div>
+
+<h2 id="c26-alnum">26.6 Deep dive: alphanumeric text with Character Mapping</h2>
+<p>Character Mapping swaps each maskable character for another one <em>from the same group</em>, using a key. You define groups such as <code>[0-9]</code> and <code>[a-zA-Z]</code>; a digit becomes a digit and a letter a letter; anything not in a group (dashes, spaces) is left alone. Every maskable position affects every other, no two text inputs share an output, and a masked value never equals the original if at least one character is masked. That makes it suitable for keys and identifiers <span class="badge doc">From docs</span>.</p>
+<p>Three ready instances cover most needs:</p>
+<div class="tablewrap"><table><thead><tr><th>Instance</th><th>Masks</th><th>Use on</th><th>Documented example</th></tr></thead><tbody>
+<tr><td>dlpx-core:CM Alpha-Numeric</td><td>Digits, lower and upper case letters, some Latin and Cyrillic</td><td>Text columns only</td><td>"ABCxyz123" to "HANwhp391"</td></tr>
+<tr><td>dlpx-core:CM Digits</td><td>Only ASCII digits; letters and symbols stay</td><td>Text columns holding numbers (codes, ids)</td><td>"ABCxyz123" to "ABCxyz391"</td></tr>
+<tr><td>dlpx-core:CM Numeric</td><td>Digits, keeps digit count; first digit never 0</td><td>Numeric database columns</td><td>"99" to "75"</td></tr>
+</tbody></table></div>
+<p>If no character at all is masked (say, CM Digits on "ABC"), the engine records non-conformant data. CM Numeric also ignores database numeric limits, so on DB2 INTEGER or SQL Server INT columns a masked value can exceed the range and cause a conversion error.</p>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/character_mapping2.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/character_mapping2.png" alt="Character Groups editor with groups [a-zA-Z] and [0-9]" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The character group editor for a custom Character Mapping algorithm. I viewed this image: two groups, "[a-zA-Z]" and "[0-9]", each with + and delete icons. Because they are separate groups, letters only become letters and digits only digits. <a class="badge-link" href="https://help.delphix.com/cc/current/content/character_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<div class="tablewrap"><table class="sample"><caption>ShopSphere CUSTOMERS.tax_id with CM Alpha-Numeric (illustrative; the values are invented by the author)</caption><thead><tr><th>customer_id</th><th>Before</th><th>After</th><th>What to notice</th></tr></thead><tbody>
+<tr><td>1001</td><td>ABCDE1234F</td><td>KMQTR6021Z</td><td>Same shape: 5 letters, 4 digits, 1 letter</td></tr>
+<tr><td>1002</td><td>PQRST5678K</td><td>HWBNL3947C</td><td>Different input, different output</td></tr>
+</tbody></table></div>
+
+<h2 id="c26-ssn">26.7 Deep dive: SSN with Segment Mapping (or Character Mapping)</h2>
+<p>An SSN has structure (3 digits, dash, 2 digits, dash, 4 digits) and often serves as a lookup key, so you want unique, format-preserving output. The Segment Mapping page names Social Security Numbers as a typical use and describes exactly the controls you need <span class="badge doc">From docs</span>:</p>
+<ul>
+<li>Up to 10 segments, each up to 6 characters, each treated as <em>Mask alpha-numeric</em>, <em>Mask numeric</em>, <em>Preserve</em> or <em>Mask with a constant value</em>.</li>
+<li><em>Ignore characters</em> (such as the dash) are removed before masking and put back afterwards, so "123-45-6789" and "123456789" mask alike.</li>
+<li>Numeric segments are masked as whole numbers, alpha-numeric ones character by character.</li>
+<li>Values must match the segment pattern; data longer than the pattern passes through unmasked, and short numeric segments are reported as non-conformant unless you choose "Mask partial segments".</li>
+</ul>
+<div class="tablewrap"><table><thead><tr><th>Setting for the ShopSphere SSN algorithm (my design)</th><th>Value</th></tr></thead><tbody>
+<tr><td>Segment 1</td><td>Length 3, Mask numeric</td></tr>
+<tr><td>Segment 2</td><td>Length 2, Mask numeric</td></tr>
+<tr><td>Segment 3</td><td>Length 4, Mask numeric</td></tr>
+<tr><td>Ignore Characters</td><td>Ignore specific characters: <code>-</code></td></tr>
+<tr><td>Short Numeric Segment Handling</td><td>Report nonconforming data (default)</td></tr>
+</tbody></table></div>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/segment_mapping1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/segment_mapping1.png" alt="Add Algorithm wizard configuration step for Segment Mapping" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The Segment Mapping configuration. I viewed this image: a "Segments" list (empty here, with a pencil to edit), Short Numeric Segment Handling "Report nonconforming data", Ignore Characters "Ignore specific characters", a Specific Characters box, Ignore Commas, a CTRL button and "Process Preserve Segments Before Ignore Characters". The right panel describes the framework. <a class="badge-link" href="https://help.delphix.com/cc/current/content/segment_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>Two alternatives exist. <strong>CM Digits</strong> (or CM Alpha-Numeric) masks every digit and keeps the dashes automatically, with no setup: the docs' example turns "999-12-3456" into "453-71-6283" and "999-12-3456." into "668-23-1138." with CM Alpha-Numeric. <strong>Redact Digits-Zero</strong> turns every digit into 0 ("999-12-3456." to "000-00-0000."), which is not unique: many different SSNs become the same value.</p>
+<div class="callout warn"><strong class="ctitle">Accuracy flags for SSN</strong>
+<p>The documentation excerpt I had does not say which algorithm the SSN domain uses by default; look at Settings &gt; Domains on your engine. It also does not promise that a masked SSN follows real issuing rules (the profiler's patterns exclude area numbers 000 and 666, for example). If your application validates SSNs, test the output, and consider restricting a numeric segment's mask value range.</p></div>
+<div class="tablewrap"><table class="sample"><caption>ShopSphere CUSTOMERS.ssn (illustrative values invented by the author)</caption><thead><tr><th>customer_id</th><th>Before</th><th>After (CM Digits style)</th></tr></thead><tbody>
+<tr><td>1001</td><td>123-45-6789</td><td>804-27-1956</td></tr>
+<tr><td>1002</td><td>234-56-7890</td><td>561-30-4728</td></tr>
+<tr><td>1003</td><td>345-67-8901</td><td>719-85-2043</td></tr>
+</tbody></table></div>
+
+<h2 id="c26-phone">26.8 Deep dive: telephone numbers</h2>
+<p>Two instances target phones, and both keep every non-digit character in place <span class="badge doc">From docs</span>:</p>
+<div class="tablewrap"><table><thead><tr><th>Instance</th><th>What changes</th><th>Documented example</th></tr></thead><tbody>
+<tr><td>dlpx-core:Phone Unique</td><td>The last 7 digits are replaced by a hash of the digits; everything before them stays</td><td>"(123)456-7890" to "(123)012-3901"</td></tr>
+<tr><td>dlpx-core:Phone US</td><td>The last 4 digits are hashed and the 3 digits before them become "555"</td><td>"(123)456-7890" to "(123)555-3085"</td></tr>
+</tbody></table></div>
+<p>Both accept at most 30 symbols and need at least one digit; "CALL-ME-FLOWERS" is returned unchanged with a non-conformant data event. ShopSphere's ten-digit numbers have no separators, so Phone Unique keeps the first three digits (987 in 9876543210) and masks the last seven. The page does not guarantee that Phone Unique never gives two inputs the same output, so verify with a distinct count, as the lab queries later in this chapter do.</p>
+<div class="tablewrap"><table class="sample"><caption>ShopSphere CUSTOMERS.phone with Phone Unique (illustrative values invented by the author)</caption><thead><tr><th>customer_id</th><th>Before</th><th>After</th></tr></thead><tbody>
+<tr><td>1001</td><td>9876543210</td><td>9874120685</td></tr>
+<tr><td>1002</td><td>9123456780</td><td>9120719342</td></tr>
+<tr><td>1003</td><td>9988776655</td><td>9987203518</td></tr>
+</tbody></table></div>

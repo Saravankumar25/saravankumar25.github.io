@@ -88,33 +88,22 @@
 
 <h3 id="c15-t-adv">15.9.10 Advanced</h3>
 <p><span class="badge doc">From docs</span> A combination of techniques that fills one or several target columns from one or more input, variable and output ports (pp.199, 212). Use it when one column needs two techniques, or the value depends on other columns. You can generate string, numeric and date data.</p>
-<ul>
-<li><strong>Input port:</strong> optional; takes a target column or a parameter file value. If you tick Parameterize Input Port and give a name, you need not map it to a column.</li>
-<li><strong>Variable port:</strong> a work field for intermediate values. Its technique is either <em>Conditional</em> or <em>Generation Rule Set</em> (rules with distribution percentages, optionally grouping records by foreign key). A variable can depend on another variable.</li>
-<li><strong>Output port:</strong> the column that receives data; needs an <strong>Expression</strong> built from inputs and variables.</li>
-</ul>
-<p>Port names need not match column names; you map them at assignment time (p.199). Port properties: Column Name, Column Type, Datatype (string, numeric or date), Precision, Scale (pp.214-215).</p>
+<p>An <strong>input port</strong> (optional) takes a target column or a parameter. A <strong>variable port</strong> holds intermediate values and uses either <em>Conditional</em> or <em>Generation Rule Set</em> (rules with distribution percentages, optionally grouping records by foreign key). An <strong>output port</strong> receives the data and needs an Expression built from the inputs and variables. Port names need not match column names; you map them when you assign the rule (pp.199, 214-215).</p>
 <div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.200, figure "advanced rule parameters". I rendered this page. It shows "New Generation Rule: Step 2 of 2" with a Columns pane listing one input column (Ip_1, string, 10), a variable column (Var_1) with Configure Rule and two default numeric sequence rules, and one output column (Out_1), plus a Properties pane showing the output expression CONCAT(Ip_1,Var_1). What to look for: the three port groups stacked in one list.</div>
-<p>The guide gives two examples. One makes 50 invoice ids and 50 order ids ("Invoice-1" to "Invoice-50", "Order-1" to "Order-50") by concatenating an input prefix with a conditional numeric sequence (pp.199-200). The other builds email ids: input <code>in_FirstName</code>, variable <code>var_Domain</code> from a rule set of two domains, output <code>CONCAT(CONCAT(in_FirstName,'@'),var_Domain)</code> (p.213).</p>
+<p>The guide also shows 50 "Invoice-n" plus 50 "Order-n" ids built from a conditional sequence (pp.199-200).</p>
 <div class="callout example"><strong class="ctitle">ShopSphere: realistic emails (my adaptation of the guide's example)</strong>
 <p>Input <code>in_FirstName</code> mapped to <code>first_name</code>. Variable <code>var_Domain</code> with a Generation Rule Set: <code>example.com</code> 50 percent, <code>example.org</code> 50 percent. Output <code>out_Email</code> with the expression above. Result: Asha@example.com, Ravi@example.org.</p>
-<p>The limit, shared with the guide's own example: two customers called Asha get the same email. If <code>email</code> must be unique, add a second input (for example the customer id) to the expression, then test it. The guide does not say whether an input port reads the value <em>generated</em> for another column in the same run, so check that <code>first_name</code> is generated before the email. <span class="badge unverified">Verify in your version</span></p></div>
+<p>Two customers called Asha get the same email, as in the guide's own example. The guide does not say whether an input port reads the value <em>generated</em> for another column in the same run, so check that <code>first_name</code> is generated before the email. <span class="badge unverified">Verify in your version</span></p></div>
 
 <h3 id="c15-t-custom">15.9.11 Custom</h3>
 <p><span class="badge doc">From docs</span> A global rule built from a PowerCenter <strong>mapplet</strong>. You import it, and mark at least one input and one output column as required. Works for string, numeric and date (pp.196, 211). Use it when you need PowerCenter transformations (SQL, Stored Procedure) or logic that the built-in techniques cannot express.</p>
-<p>Imported columns have these properties: Column Name, Column Type (input or output), Data Type, Precision, Mandatory, Group Name (p.212). Assignment maps your table columns to the mapplet's input ports and its output ports to your target columns (p.204). The guide's example: standard rules make first and last names, and a custom rule combines them into a full name.</p>
-<p><strong>ShopSphere:</strong> a mapplet that takes first and last name and returns "Asha Menon" for a <code>display_name</code> column. A custom rule is heavier than an expression rule, so use it only when an expression cannot do the job. Building mapplets is covered in <a href="14-informatica-data-masking.html">the Informatica masking chapter</a>.</p>
+<p>You map your table columns to the mapplet's input ports and its output ports to target columns (p.204).</p>
+<p><strong>ShopSphere:</strong> a mapplet that takes first and last name and returns "Asha Menon" for a <code>display_name</code> column. Building mapplets is covered in <a href="14-informatica-data-masking.html">the Informatica masking chapter</a>.</p>
 
 <h2 id="c15-cond-constraint">15.10 Conditional constraints: rules between columns</h2>
 <p>Techniques fill one column at a time. A <strong>conditional constraint</strong> is a table-level rule that restricts what may appear in a column based on another column. It becomes part of the target table's metadata (User Guide 10.5.10, p.201).</p>
 <p>The guide's example: a flight table with <code>From_City</code> and <code>To_City</code> both filled by the same dictionary rule, plus the constraint <code>To_City != From_City</code> so no ticket flies from a city to itself (p.202). A ShopSphere analogue with hypothetical columns: <code>delivery_date &gt; order_date</code>.</p>
-<ol class="steps">
-<li><strong>In the project, open Discover &gt; Tables and click the table.</strong><p>Constraints belong to a table, not a rule.</p></li>
-<li><strong>Open the Constraints tab and click Create New Constraint.</strong><p>This is the same dialog used for foreign keys.</p></li>
-<li><strong>Name it, set the constraint type to Conditional, click Next.</strong><p>Conditional is the type reserved for data generation.</p></li>
-<li><strong>Build the expression in the Expression Builder and click Finish.</strong><p>The Expression Builder offers columns, functions, variables and operators.</p><p class="expect">The constraint is listed on the table, and generation plans that include that table honour it.</p></li>
-</ol>
-<p><em>Steps from User Guide 10.5.10, pp.110-111.</em></p>
+<p>To create one, open Discover &gt; Tables, click the table, open the Constraints tab, choose Create New Constraint, set the type to Conditional and build the expression in the Expression Builder (pp.110-111).</p>
 <p><strong>Where the constraint cannot be used:</strong> numeric sequence, date sequence and random data patterns (p.201). On XSD sources you cannot constrain an element that allows more than one child per parent (p.201).</p>
 <div class="callout warn"><strong class="ctitle">When the rule and the constraint disagree, the rule wins</strong>
 <p>The guide's example: both <code>Created_Date</code> and <code>Modified_Date</code> use a random date rule ending 31 July 2014, with the constraint <code>Modified_Date &gt; Created_Date</code>. When Created_Date is 31 July 2014 no later date is allowed, so TDM writes a date within the rule's range anyway and <strong>generates warning messages</strong> (p.202). The constraint was broken, quietly. Read the warnings in the Monitor logs (<a href="16-informatica-plans-workflows-and-warehouse.html">the plans, workflows and warehouse chapter</a>) and loosen the rule's range, not just the constraint.</p></div>
@@ -124,24 +113,16 @@
 <caption>One reasonable rule set for the four ShopSphere tables (my design; techniques are from the guide)</caption>
 <thead><tr><th>Column</th><th>Technique</th><th>Parameters</th><th>Why</th></tr></thead>
 <tbody>
+<tr><td>first_name, last_name</td><td>Dictionary</td><td>one names dictionary, two columns</td><td>Looks like a name</td></tr>
+<tr><td>ids, dates, amounts, quantities</td><td>Sequence or Random</td><td>keys from a sequence; ranges for amounts and dates</td><td>Valid, plausible values</td></tr>
 <tr><td>CUSTOMERS.customer_id</td><td>Sequence (numeric)</td><td>start 1001, increment 1</td><td>Primary key: never repeats</td></tr>
-<tr><td>first_name</td><td>Dictionary</td><td>names dictionary, first-name column</td><td>Looks like a name</td></tr>
-<tr><td>last_name</td><td>Dictionary</td><td>same dictionary, last-name column</td><td>As above</td></tr>
 <tr><td>email</td><td>Advanced</td><td>first name + domain rule set</td><td>Depends on another column</td></tr>
 <tr><td>phone</td><td>Random (numeric pattern)</td><td><code>(6|7|8|9)\d{9}</code>, 10 percent null</td><td>Right shape, some nulls for negative tests</td></tr>
 <tr><td>ssn</td><td>Random (string pattern)</td><td><code>\d{3}-\d{2}-\d{4}</code></td><td>SSN-like, not guaranteed valid</td></tr>
-<tr><td>date_of_birth</td><td>Random (date)</td><td>1950-01-01 to 2005-12-31</td><td>Plausible adult birth dates</td></tr>
 <tr><td>zip_code</td><td>Set of Values</td><td>three codes, 40/35/25</td><td>Small, known list</td></tr>
 <tr><td>tax_id</td><td>Random (string pattern)</td><td><code>[A-Z]{3}\d{6}</code></td><td>Fixed shape</td></tr>
-<tr><td>ORDERS.order_id</td><td>Sequence</td><td>start 5001</td><td>Key</td></tr>
 <tr><td>ORDERS.customer_id</td><td>Entity relationship (or Reference Lookup)</td><td>min 1, max 3 children</td><td>Must match a real customer</td></tr>
-<tr><td>order_date</td><td>Random (date) or date Sequence</td><td>year 2026</td><td>Valid dates</td></tr>
-<tr><td>total_amount</td><td>Random (numeric)</td><td>min 100, max 5000</td><td>Plausible amounts</td></tr>
-<tr><td>ORDER_ITEMS.item_id</td><td>Sequence</td><td>start 9001</td><td>Key</td></tr>
 <tr><td>order_id</td><td>Entity relationship</td><td>min 1, max 4 children</td><td>Must match a real order</td></tr>
 <tr><td>product_code</td><td>Reference Lookup or Set of Values</td><td>codes that exist in PRODUCTS</td><td>Must match a real product</td></tr>
-<tr><td>quantity</td><td>Random (numeric)</td><td>min 1, max 5</td><td>Small whole numbers</td></tr>
-<tr><td>unit_price</td><td>Random (numeric)</td><td>min 5, max 2000</td><td>Plausible price</td></tr>
 </tbody></table></div>
-<div class="callout note"><strong class="ctitle">A gap in my example</strong>
-<p>In real data <code>order_items.unit_price</code> comes from <code>PRODUCTS.price</code> and <code>total_amount</code> equals the sum of its items. The techniques above do not make those totals agree automatically. To keep them consistent you would need a reference lookup for price and a post-load SQL step, or you accept inconsistent amounts for this test. Say which you chose in your test notes.</p></div>
+

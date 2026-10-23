@@ -1,0 +1,34 @@
+<h2 id="c26-configure">26.9 Creating, choosing and managing algorithms</h2>
+<h3 id="c26-create-algorithm">Create your own instance</h3>
+<ol class="steps">
+<li><strong>Settings &gt; Algorithms &gt; <em>+ Algorithm</em>.</strong><p>Your instances are called user-defined algorithms; once saved they are available to all users.</p></li>
+<li><strong>Enter a unique Algorithm Name, a Description and choose the Framework, then Next.</strong><p>Name and framework are locked after creation, so choose carefully. The wizard shows the framework's Mask Type (for Date Shift it showed LOCAL_DATE_TIME).</p></li>
+<li><strong>Fill in the framework's configuration, then Next.</strong><p>The panel on the right explains each field. The frameworks in the catalogue each have their own options.</p></li>
+<li><strong>Check the Summary and Save.</strong><p class="expect">The algorithm appears in the grid. Creating and editing are asynchronous tasks; a "Run in background" option may appear if it takes time.</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/algorithms1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/algorithms1.png" alt="Add Algorithm wizard Details step with Name, Description and Framework Name Date Shift" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The Details step of the Add Algorithm wizard. I viewed this image: Name "test_algo", Description, Framework Name "Date Shift", Mask Type LOCAL_DATE_TIME and a short framework description; steps Details, Configuration and Summary on the left. <a class="badge-link" href="https://help.delphix.com/cc/current/content/algorithms.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>To use a new algorithm in a profiling job you must first attach it to a domain as that domain's default (see <a href="25-delphix-profiling.html">the profiling chapter</a>). If you build the inventory by hand, no domain is needed <span class="badge doc">From docs</span>.</p>
+<h3 id="c26-choose-framework">Choosing between Character Mapping and Segment Mapping</h3>
+<p>The docs say Character Mapping is intended to replace Segment Mapping in many cases, but not all <span class="badge doc">From docs</span>.</p>
+<div class="compare"><div><h4>Prefer Character Mapping when</h4>
+<ul>
+<li>Data is dirty or inconsistently formatted: it keeps non-masked characters automatically</li>
+<li>You need Unicode (first plane) rather than just a-z and 0-9</li>
+<li>Inputs differ in length and you want to preserve the last characters (reverse preserve ranges)</li>
+<li>You want every position to influence every other</li>
+</ul></div>
+<div><h4>Prefer Segment Mapping when</h4>
+<ul>
+<li>Parts of the value must be masked differently by position</li>
+<li>You need to map input ranges to different output ranges (A-D to W-Z)</li>
+<li>You need numeric segments limited to a value range (up to 6 digits)</li>
+</ul></div></div>
+<h3 id="c26-multi-column">Multi-column algorithms</h3>
+<p>A multi-column algorithm (for example Dependent Date Shift or Multi Column Address) is assigned once but spans several columns, each filling a <em>logical field</em>. It is meant for coordinated masking, such as two dates that must keep their interval. Each non-optional logical field must be assigned for every Algorithm Group number, and incomplete assignments may only be noticed when the job runs. They only work where whole rows are processed together, and cannot be called by other algorithms through chaining <span class="badge doc">From docs</span>.</p>
+<h3 id="c26-usage-sync">Usage and syncability (engine administration)</h3>
+<ul>
+<li><strong>Usage.</strong> <code>GET algorithm/{algorithmName}/usage</code> lists every column, file field, domain and other algorithm that uses it. <code>PUT</code> on the same path with <code>replacementAlgorithmName</code> swaps it everywhere, with optional environment and rule set filters. The docs warn that this can change many inventories and is hard to undo, so first GET usage for both algorithms and export global settings and affected environments <span class="badge doc">From docs</span>.</li>
+<li><strong>Syncability.</strong> Algorithms are fully syncable between engines (<code>GET /syncable-objects?object_type=USER_ALGORITHM</code>). Non-deterministic ones (all Secure Lookup Random algorithms, DateShiftVariable, Gender SL, SexualOrientation SL, SecureShuffle) cannot give the same output twice, so they cannot be used for syncable masking. DateShiftFixed and RepeatFirstDigit are listed as fixed. Syncing an out-of-the-box instance updates its key but does not replace its files <span class="badge doc">From docs</span>.</li>
+</ul>
+<p>Why this matters to a TDM engineer: if two engines mask the same source, identical output on both needs the same keys, which is what syncing delivers. The consistency argument is my reasoning, not a quote.</p>

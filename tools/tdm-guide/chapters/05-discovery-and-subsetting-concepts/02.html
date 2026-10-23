@@ -14,44 +14,21 @@
 <tr><td>Delphix</td><td>"Column-level" profiling uses regular expressions on column names (metadata). "Data-level" profiling uses regular expressions on the actual data. In the classifier model, PATH and TYPE work at column level, REGEX and LIST at data level.</td><td>Delphix "Introduction to Delphix Masking" and "Discovering your sensitive data"</td></tr>
 <tr><td>GenRocket</td><td>Data Column Profiling scans column headers only, not the actual data, so GenRocket does not need to read production values.</td><td>GenRocket "PII Discovery with Data Column Profiling"</td></tr>
 </tbody></table></div>
-<div class="callout tip"><strong class="ctitle">A sensible order of work</strong>
-<p>Start with metadata profiling: it is quick and touches no real values. Review the results with a data steward. Then run data profiling on the tables that remain unclear, using a limited number of rows. Informatica's default for the maximum rows to profile in a data domain profile is 1,000 (p.95), which is a small look rather than a full scan.</p></div>
 <h3 id="c5-sampling">Sampling: a look, not a census</h3>
 <p>Scanning every row of a table with 80 million rows would be slow, so profiles often sample. <dfn>Sampling</dfn> means reading only some rows. That is efficient, but it has a catch: a value that appears in only 1 row in 10,000 may not be in the sample. If a few rows of a mostly-clean column hold real phone numbers, a small sample may miss them. Informatica reflects this with options such as "Maximum Rows to Profile" and "Minimum Conformance Percent" (p.95): the second one is the share of profiled rows that must match the pattern before the column is claimed for the domain.</p>
 <h2 id="c5-keys">5.4 Finding keys and relationships</h2>
 <p>Subsetting needs to know which tables are parents and which are children. Ideally the database declares its primary and foreign keys and the tool simply reads them. In practice many databases declare few or none (for performance, or because the application enforces the links). GenRocket's documentation says this directly: custom referential integrity is added "when referential integrity does not exist between tables in the source database" but the user still needs to subset (GenRocket "How to Add Custom Referential Integrity to Imported Table Schemas"). <span class="badge doc">From docs</span> Discovery fills that gap by inferring the links.</p>
 <h3 id="c5-pk-discovery">Primary key discovery</h3>
 <p>A primary key candidate is a column, or a small set of columns, whose values are unique. Informatica's primary key profile reports the percentage of unique values and lets you limit how hard it searches (User Guide 10.5.10, pp.92 to 93). <span class="badge doc">From docs</span></p>
-<div class="tablewrap"><table><caption>Informatica primary key profile options and defaults (User Guide 10.5.10, p.93)</caption>
-<thead><tr><th>Option</th><th>Meaning</th><th>Default</th></tr></thead>
-<tbody>
-<tr><td>Primary Key Rows</td><td>Maximum number of columns the profile may combine to form a key</td><td>3</td></tr>
-<tr><td>Max Rows</td><td>Maximum number of rows to profile</td><td>1,000</td></tr>
-<tr><td>Conformance Criteria</td><td>Minimum percentage (or maximum number) of key violations allowed</td><td>minimum 99 percent</td></tr>
-</tbody></table></div>
+<p>Its options and defaults: the maximum number of columns combined into a key (3), the maximum rows to profile (1,000) and a conformance criterion, the minimum percentage of unique values allowed (99 percent) (p.93).</p>
+
 <p>Why would you allow less than 100 percent? Because real data is messy. If 99.8 percent of values are unique and a few rows are duplicates, the column is probably meant to be a key and the duplicates are data-quality bugs. Informatica notes that a primary key profile is useful to find such non-unique rows (p.92). The result table shows, per candidate, the table, the column or combination of columns, the uniqueness percentage, whether it is verified, any existing constraint and a status of verified, approved or rejected (pp.103 to 104). When you approve a candidate, TDM adds it as a key to the table in its repository, not in the source database. Rejecting a candidate does not affect the subset (p.104). <span class="badge doc">From docs</span></p>
-<div class="tablewrap"><table class="sample"><caption>Illustrative primary key profile result for CUSTOMERS (values are made up; layout follows the fields on p.103)</caption>
-<thead><tr><th>Table</th><th>Column(s)</th><th>Uniqueness</th><th>Existing constraint</th><th>Status</th></tr></thead>
-<tbody>
-<tr><td>CUSTOMERS</td><td>customer_id</td><td>100%</td><td>Primary key</td><td>Approved</td></tr>
-<tr><td>CUSTOMERS</td><td>ssn</td><td>100%</td><td>none</td><td>Rejected</td></tr>
-<tr><td>CUSTOMERS</td><td>email</td><td>99.7%</td><td>none</td><td>Rejected</td></tr>
-<tr><td>CUSTOMERS</td><td>phone</td><td>96.1%</td><td>none</td><td>Rejected</td></tr>
-</tbody></table></div>
 <div class="callout warn"><strong class="ctitle">Unique does not mean a good key</strong>
 <p><code>ssn</code> is 100 percent unique in the table above, yet it would be a poor primary key: it is sensitive, so masking will change it, and every table that used it as a link would need identical treatment. A human picks <code>customer_id</code>, the "meaningless but stable" identifier. Uniqueness tells you what <em>can</em> be a key. A person decides what <em>should</em> be.</p></div>
 <h3 id="c5-fk-discovery">Foreign key and entity discovery</h3>
 <p>To find parent-child links, Informatica's entity profile "returns a list of possible entities by comparing column names in the source tables" (p.93). In the guide's example, Employee, Employee_Detail and Employee_Address all contain an EmpID column, so the profile suggests Employee as an entity with two child tables. When you later subset, a filter on EmpID applies to every table in that relationship. <span class="badge doc">From docs</span></p>
 <p>The profile options show what matters when matching columns (p.94): whether to compare using the datatypes the tool inferred or the documented ones, whether comparison is case sensitive, whether to trim spaces first, the maximum number of foreign key results to return and the minimum confidence percent (the share of foreign key values that match). A coincidental match is the risk: two unrelated integer columns can overlap by chance, so discovery proposes and a person approves.</p>
 <p>One practical detail: if you choose the entity profile type and the physical database has no primary keys, the profile returns nothing. Run the profile as primary key and entity together, and it can discover both the primary and foreign keys even when the database declares none (p.93). <span class="badge doc">From docs</span></p>
-<div class="tablewrap"><table class="sample"><caption>Illustrative relationship candidates for ShopSphere (the evidence column is our explanation)</caption>
-<thead><tr><th>Child column</th><th>Parent column</th><th>Evidence</th><th>Verdict</th></tr></thead>
-<tbody>
-<tr><td><code>ORDERS.customer_id</code></td><td><code>CUSTOMERS.customer_id</code></td><td>Same name, same type, every child value exists in the parent</td><td>Accept</td></tr>
-<tr><td><code>ORDER_ITEMS.order_id</code></td><td><code>ORDERS.order_id</code></td><td>Same name and type, all values found</td><td>Accept</td></tr>
-<tr><td><code>ORDER_ITEMS.product_code</code></td><td><code>PRODUCTS.product_code</code></td><td>Same name and type, all values found</td><td>Accept</td></tr>
-<tr><td><code>ORDER_ITEMS.quantity</code></td><td>some small-integer column elsewhere</td><td>Values 1 to 9 overlap by chance, names differ</td><td>Reject</td></tr>
-</tbody></table></div>
 <p>Delphix says its masking keeps referential integrity by scanning metadata and data to identify and preserve the primary and foreign key relationships between elements, so that data is masked the same way across tables and databases (Delphix "Introduction to Delphix Masking"). <span class="badge doc">From docs</span> How keys are defined in a Delphix rule set is covered in <a href="24-delphix-rule-sets-and-keys.html">the Delphix rule sets and keys chapter</a>.</p>
 <h2 id="c5-human-review">5.5 Reading the results: false positives, false negatives and human review</h2>
 <p>A profile is a set of educated guesses. Every guess can be wrong in two ways:</p>
@@ -67,11 +44,10 @@
 <li><strong>Sort the results by confidence.</strong><p>Informatica shows % data conformance and whether the column name matched (p.105). High on both is easy to accept.</p><p class="expect">A short list of obvious accepts and a longer list that needs thought.</p></li>
 <li><strong>Look at the actual values for doubtful rows.</strong><p>Names alone mislead. Five sample values usually settle it.</p></li>
 <li><strong>Ask the data steward about anything ambiguous.</strong><p>"Is <code>tax_id</code> a personal or a company number?" is not something a tool can answer.</p></li>
-<li><strong>Scan the unflagged columns too.</strong><p>Check free-text columns, columns with generic names and any table the profile skipped. A profile only covers the tables you gave it (Delphix says this explicitly: it covers only objects in the rule set).</p><p class="expect">A short list of columns added by hand.</p></li>
-<li><strong>Record your decisions.</strong><p>Write down accepted, rejected and manual additions. Re-profiling later will not remember your reasons.</p></li>
+<li><strong>Scan the unflagged columns too, and record your decisions.</strong><p>Check free-text and generically named columns. A profile only covers the tables it was given, and re-profiling will not remember your reasons.</p><p class="expect">A short list of columns added by hand, and a written list of accepted and rejected findings.</p></li>
 </ol>
 <h3 id="c5-column-profile">The fourth type: the column profile</h3>
-<p>One Informatica profile type has nothing to do with masking or subsetting: the <strong>column profile</strong> measures data characteristics, namely the range of values, the list of values, and patterns, to infer rules you can reuse for generating test data (p.97). The defaults for its sampling options (p.98): minimum conformance percentage for patterns 5, maximum rows to profile "All", minimum data coverage to show a list of values 80 percent, maximum values in the list 20. It runs on Oracle and Microsoft SQL Server databases only (p.97). <span class="badge doc">From docs</span> We return to this when generating data in <a href="07-test-data-classification-and-generation-concepts.html">the test data classification and generation chapter</a>.</p>
+<p>Informatica's <strong>column profile</strong> measures range, list of values and patterns of columns, mainly to infer rules for generating test data; it runs on Oracle and Microsoft SQL Server databases (p.97). <span class="badge doc">From docs</span> It returns in <a href="07-test-data-classification-and-generation-concepts.html">the test data classification and generation chapter</a>.</p>
 <div class="exercise"><h4>Lab: profile three mystery columns by hand</h4>
 <p>Goal: practise what a profile computes. The columns come from a ShopSphere table whose column names were lost. Compute for each: the share of nulls, the number of distinct values, the pattern, and your best guess of the data domain.</p>
 <div class="tablewrap"><table class="sample"><caption>Five rows from a table with cryptic column names</caption>

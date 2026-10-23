@@ -12,9 +12,6 @@
 <tr><td>Focus</td><td>You can pick exactly the data a test needs, such as one region or one bug scenario.</td><td>All customers who bought in March and returned something.</td></tr>
 <tr><td>Cost of masking</td><td>Masking effort and runtime grow with row count.</td><td>Masking 2 million rows beats masking 200 million.</td></tr>
 </tbody></table></div>
-<p>(The sizes and times in the table are illustrative figures chosen for this guide, not measurements.)</p>
-<div class="callout why"><strong class="ctitle">Why it is more than a speed trick</strong>
-<p>A small copy is also a safer copy. Subsetting is the partner of masking: one reduces <em>how much</em> real data leaves production, the other changes <em>what it looks like</em>. A mature TDM design usually does both.</p></div>
 <h3 id="c5-subset-not-sample">A subset is not just "the first 1,000 rows"</h3>
 <p>Beginners sometimes subset by taking the first N rows of each table. That breaks the data: the first 1,000 orders belong to customers that may not be in the first 1,000 customers. The result is orphans: orders with no customer, items with no order. A real subset starts from a choice (a set of customers, a time window) and then follows the relationships so that every kept row has all the parents it points to. Everything in the next sections is about doing that correctly.</p>
 
@@ -35,14 +32,9 @@
 </tbody></table></div>
 <div class="callout note"><strong class="ctitle">A percentage limit is not automatically a random sample</strong>
 <p>"Keep 25 percent of the rows" says <em>how many</em>, not <em>which</em>. Whether the tool takes every fourth row, the first quarter, or random rows depends on the tool and is not stated in the pages I read. If statistical representativeness matters (for example, performance testing that needs a realistic mix), check the product documentation and look at the result. GenRocket's own example uses a contiguous block: start at customer 251 and take 100 rows, with their related records, ending at customer 350.</p></div>
-<h3 id="c5-random-targeted">Random versus targeted: which to choose</h3>
-<div class="compare"><div><h4>Random sample (general concept)</h4>
-<ul><li>Resembles the whole data set, so average behaviour and performance feel realistic.</li><li>Easy to explain to others.</li><li>May miss rare cases (a customer with 500 orders, a 1-in-10,000 data quirk).</li></ul></div>
-<div><h4>Targeted subset (general concept)</h4>
-<ul><li>Built around what tests need: a region, a date range, customers who returned items.</li><li>Covers rare cases on purpose.</li><li>Can be unrepresentative: statistics from it will not match production.</li></ul></div></div>
-<p>Most teams combine them: a targeted core for known scenarios plus a modest random slice for variety. For rare cases that production simply does not contain, the answer is not subsetting at all but generating data, which is the subject of <a href="07-test-data-classification-and-generation-concepts.html">the test data classification and generation chapter</a>.</p>
-<h3 id="c5-parameters">Same recipe, different values</h3>
-<p><span class="badge doc">From docs</span> Informatica lets you write the filter with a <em>criteria parameter</em> instead of a fixed value, so you can reuse one entity and one workflow and just change the parameter's value to get a new subset. Its example: instead of typing 100 into the filter "EMPID greater than 100", you refer to a parameter named CRITERIAVALUE and put the value in a parameter file; to get EMPID above 500, change the file and run the same workflow (User Guide 10.5.10, p.118). The idea applies to any recurring test need: "this month's orders" or "region = Bengaluru" become inputs instead of rebuilt jobs.</p>
+<p>In short: a random sample resembles the whole (realistic averages) but may miss rare cases; a targeted subset covers chosen scenarios but is unrepresentative statistically. <span class="badge concept">General concept</span> Most teams combine them. For cases production lacks entirely, generate data instead (<a href="07-test-data-classification-and-generation-concepts.html">the test data classification and generation chapter</a>).</p>
+
+<p><span class="badge doc">From docs</span> Informatica filters can use a <em>criteria parameter</em> instead of a fixed value, so one entity and workflow can produce different subsets by changing the parameter file (for example EMPID greater than 100, then 500) (User Guide 10.5.10, p.118).</p>
 
 <h2 id="c5-driver-tables">5.8 Driver tables and child rows</h2>
 <p>Now the core mechanic. Every subset has a <strong>starting point</strong>: a table and a condition. The tool picks the matching rows there, then <em>follows the relationships</em> to select related rows in other tables.</p>
@@ -81,12 +73,5 @@
 <li><strong>Traverse Full Hierarchy enabled:</strong> it also brings the <em>other children</em> of those ancestors: Project (2 rows), and Address, Attendance and Qualification rows for the same 10 employees.</li>
 </ul>
 <p>The same page notes that the option is only available when a subsetting condition has been added to a table, and that masking rules you set for those extra tables are applied to them too.</p>
-<div class="tablewrap"><table><caption>Two directions of "related" rows, in one place</caption>
-<thead><tr><th>Direction</th><th>Meaning</th><th>Why it is needed</th></tr></thead>
-<tbody>
-<tr><td>Up to parents</td><td>For each kept child row, also keep the parent rows it points to</td><td>No orphans: an order must have its customer</td></tr>
-<tr><td>Down to children</td><td>For each kept parent row, also keep its child rows</td><td>The test needs the full story of the chosen entity: a customer without orders is useless to an order test</td></tr>
-<tr><td>Sideways (other children of the ancestors)</td><td>Bring the siblings' rows that belong to the same ancestors</td><td>Wanted only if tests need them. This is what GenRocket's Traverse Full Hierarchy option adds</td></tr>
-</tbody></table></div>
 <div class="callout tip"><strong class="ctitle">Choose the driving table by the test question</strong>
 <p>If the test is "does the customer page show the right orders?", drive from <code>CUSTOMERS</code>. If the test is "does the monthly report add up?", drive from <code>ORDERS</code> with a date filter and let the parents (customers) and children (items) follow. The table you drive from decides which rows are complete and which are partial.</p></div>

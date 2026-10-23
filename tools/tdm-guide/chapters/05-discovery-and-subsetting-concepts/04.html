@@ -19,14 +19,6 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 <tr><td>One-way</td><td>Applies criteria on individual tables and pushes them downward only; tables above the top-most filtered table are included in full.</td><td>More than Two-way</td><td>Aims for the smallest subset that does not break referential integrity while including all data from tables above the filtered one.</td></tr>
 </tbody></table></div>
 <p>The guide also says cyclic and self-referencing relationships (a table that points to itself, such as employees pointing to managers) need a staging connection for recursive evaluation (pp.114 and 122). <span class="badge doc">From docs</span></p>
-<h3 id="c5-ri-example">The difference, on ShopSphere rows</h3>
-<p>Say the criteria is "orders placed in March 2026", on the sample data shown in the next section: orders 5006 to 5010, belonging to customers 1005, 1007, 1006, 1004 and 1008. Customer 1004 also has an earlier order, 5005 (February).</p>
-<ul>
-<li><strong>Referential integrity only:</strong> keep orders 5006 to 5010 and their five customers. Every order has its customer, so there are no orphans. But customer 1004 appears with one order (5009) although they have two. A test "show all orders for this customer" would silently give a wrong answer.</li>
-<li><strong>Transactional integrity:</strong> order 5009 pulls customer 1004, who pulls all of their orders, so order 5005 joins the subset. Result: six orders (5005 to 5010) and the same five customers. Now every kept customer is complete.</li>
-</ul>
-<p>The first is smaller, the second is more trustworthy. Choose by what the tests need. (This is our illustration of the guide's description. The exact rows a real tool returns depend on how the entity and relationships are configured, so verify on your own data.)</p>
-
 <h2 id="c5-worked-example">5.10 Worked example: a ShopSphere subset, before and after</h2>
 <p>Requirement from the test lead: "Give me the Bengaluru customers (zip code starting with 560), with all of their orders, items and the products those items use." The driving table is <code>CUSTOMERS</code>; the filter is <code>zip_code</code> starting with 560. All rows are fictional. Only the columns we need are shown, and customers 1004 to 1008 are extra rows added for this example (1001 to 1003 are the shared sample rows).</p>
 <h3 id="c5-before">Before: the full source</h3>
