@@ -1,0 +1,139 @@
+<h3 id="c13-integrity">The four data integrity options</h3>
+<p>The entity says how tables are connected.
+The <strong>data integrity option</strong> in the plan says how aggressively TDM follows those connections at run time.
+This lets you reuse one entity to produce different subsets.
+You choose it in the Advanced Settings area of the Plan Settings page when you create the plan; the field is called Data Integrity for Subset and its default is Transactional Integrity for Major Relation Type (User Guide 10.5.10, p.121, p.287) <span class="badge doc">From docs</span>.</p>
+<p>Two terms first.
+<strong>Referential integrity</strong> means no child row points at a missing parent.
+<strong>Transactional integrity</strong> goes further: if a parent is in the subset, <em>all</em> of its children are too, so a business transaction (a customer with all their orders) is complete.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Option</th><th>What it does (guide, p.122 to 123)</th><th>Size of result</th><th>Needs / caveats</th></tr></thead>
+<tbody>
+<tr><td>Transactional Integrity for Major Relation Type (default)</td><td>Follows major constraints both ways in a loop until no more related rows. Applies criteria to the entity as a whole, not each table. Several criteria are ANDed.</td><td>Can be large</td><td>Recursive evaluation (cycles, more than one major parent) needs a staging connection. If criteria hit mutually exclusive tables the result can be empty; you can switch to OR at plan time (Advanced on the Custom tab).</td></tr>
+<tr><td>Referential Integrity Only</td><td>Picks the fewest rows needed to keep foreign keys valid. A parent may arrive without all of its children.</td><td>Smaller</td><td>Meant for an entity with one criterion. With more than one criterion TDM uses the Transactional option anyway. Self-cyclic relations or objects with more than one major parent also fall back to Transactional.</td></tr>
+<tr><td>Two-way</td><td>Criteria propagate downward, then upward, alternately, until every table is covered; the upward step uses OR. Every table that meets the criteria has some data in the result.</td><td>Larger than the first two</td><td>Needs a staging connection (it may or may not be used). Ignores optimized or manually changed relationship types. Not available with custom Advanced or Limit criteria. With a cyclic relationship it falls back to Transactional.</td></tr>
+<tr><td>One-way</td><td>Applies criteria to individual tables, not the entity as a whole, and propagates downward only. Tables above the topmost filtered table are included in full.</td><td>More than Two-way</td><td>Same caveats as Two-way about optimization and custom criteria. Falls back to Transactional for cyclic relationships. Recursive evaluation for self-cyclic relations needs a staging connection.</td></tr>
+</tbody></table></div>
+<div class="callout note"><strong class="ctitle">A wording puzzle in the guide</strong>
+<p>The One-way description (p.123, repeated in the plan settings table on p.287) says One-way returns more data than Two-way, and in the same breath recommends it for "the smallest required subset that does not break referential integrity". Those two statements only fit together if "smallest" means "smallest among the ways that keep every row of the tables above the filtered table". When size matters, run a trial plan and count rows rather than trust the labels.</p></div>
+<h3 id="c13-choose-option">Which option for ShopSphere?</h3>
+<ul>
+<li><strong>One criterion on CUSTOMERS, want complete customer histories:</strong> keep the default Transactional option.
+Every order and line of a selected customer comes along.</li>
+<li><strong>Same criterion, want the smallest consistent database for a quick smoke test:</strong> Referential Integrity Only.
+You may get a customer with only some of their orders.
+For a test that checks "order total equals sum of lines" that is fine; for one that counts "all orders for this customer" it is not.</li>
+<li><strong>Criteria on both CUSTOMERS and ORDERS (for example zip code and order value):</strong> consider Two-way so that both tables end up with data, or edit the criteria to OR (see the table).</li>
+</ul>
+<p>These are my suggestions built on the guide's descriptions, <span class="badge concept">General concept</span>. Always verify on a trial run.</p>
+
+<h3 id="c13-optimize">Optimizing relations</h3>
+<p>Because every relationship starts as major (p.119), a subset can pick up more rows than you need.
+<strong>Optimize Relations</strong> asks TDM to analyse the entity and propose which relationships can be minor while still reaching every table.
+The guide's procedure (User Guide 10.5.10, p.119 to 120) <span class="badge doc">From docs</span>:</p>
+<ol class="steps">
+<li><strong>Make sure the entity already has a criterion.</strong><p>TDM raises an error if you optimize an entity with no criteria at entity level (p.119).</p></li>
+<li><strong>Open the entity and click Actions > Optimize Relations.</strong><p>TDM analyses the constraints.
+The Optimize Relationships page lists each parent and child with the current and the proposed type.</p></li>
+<li><strong>Optional: Download Optimizations.</strong><p>Saves the proposal as a CSV so you can review it with a colleague.</p></li>
+<li><strong>Click Optimize to accept all proposals.</strong><p>You cannot accept some and reject others (the guide says results cannot be applied selectively).
+A list of plans that include the entity appears; regenerate and rerun them.</p></li>
+<li><strong>Click Continue.</strong><p class="expect">The entity is updated. You can still edit single constraints by hand afterwards.</p></li>
+</ol>
+<p>You can also optimize at run time in the plan (the "Optimize Relationship Type for Entities" setting, p.283).
+That changes the run, not the saved entity, and it also requires criteria at the plan level (p.283).
+When you choose Two-way or One-way integrity, optimization is ignored (p.122 to 123).</p>
+
+<h3 id="c13-enable-disable">Disabling and enabling relationships</h3>
+<p>Sometimes you do not want TDM to follow a link at all, for example a link to a huge audit table.
+In the Entity Map or the Relationships view you can disable a relationship (p.120) <span class="badge doc">From docs</span>.
+In the map, choose to view all relationships and show excluded tables; enabled links are solid, disabled links are dotted.
+Click the link, then Disable Relationship or Enable Relationship.
+If a table loses every link to the entity this way, it is excluded from the subset database (p.115).
+If you still want its data, put it in a group.</p>
+
+<h3 id="c13-review-changes">When constraints change after you built the entity</h3>
+<p>Entities do not update themselves.
+If you add a constraint after building the entity, the entity list marks it as having a change impact.
+Open it, click <strong>Review Changes</strong>, accept the relationship changes you want, then use Actions > Mark Changes Review as Complete so the notice goes away (p.120 to 121) <span class="badge doc">From docs</span>.
+The guide's figure on p.121 shows a dialog with Added, Changed and Deleted groups and an Accepted action.</p>
+
+<h2 id="c13-choosing-rows">13.7 Choosing rows: criteria, operators, parameters and limits</h2>
+<h3 id="c13-criteria-ops">Entity filter criteria and operators</h3>
+<p>You met entity criteria while creating an entity (13.4).
+A criterion is: a column, an <em>attribute</em> (Value or Parameter), an <em>operator</em>, and the value or parameter.
+The guide's examples use "greater than", "equals" and "IN" (p.118, p.119, p.127).
+The excerpt I had does not print the full list of operators in the drop-down, so do not assume more than those three; look at your own dialog.</p>
+<div class="callout example"><strong class="ctitle">ShopSphere examples (illustrative)</strong>
+<ul>
+<li><code>customer_id &lt;= 1002</code>: keeps the first two customers. Easy to predict, good for a lab.</li>
+<li><code>zip_code = '560001'</code>: keeps all customers in one postal area, a "region" subset like the guide's financial-data-for-one-region example.</li>
+<li><code>customer_id &gt; $$CRITERIAVALUE</code>: the same, but the number comes from a parameter (next section).</li>
+</ul></div>
+
+<h3 id="c13-parameters">Subset with parameters</h3>
+<p>Typing the value into the entity means editing the entity every time the requirement changes.
+A <strong>criteria parameter</strong> lets you change the value when you run the workflow.
+The guide (User Guide 10.5.10, p.113, p.118, p.57) <span class="badge doc">From docs</span> says:</p>
+<ul>
+<li>Create criteria parameters in the project (Projects, open the project, Parameters tab, Add) or use <em>global</em> parameters an administrator created.
+Global ones show an asterisk (*) in lists, and you can import one into the project first (p.57 to 58).</li>
+<li>Parameter types are criteria, connection and owner.
+Criteria parameter names begin with <code>$$</code>, connection ones with <code>$DBConnection</code>, owner ones with <code>$Param</code>.
+Data types are String, Numeric or Date.
+For a Date parameter you enter an expression that says how it is used, for example <code>TO_DATE($$CRIT1,'MM-DD-YYYY')</code> (p.57).</li>
+<li>You choose a default value and whether overriding is allowed. If you do not allow override, you cannot change the value when you run the workflow (p.57).</li>
+<li>Values can live in the project or in an external <strong>parameter file</strong>.
+The guide's example: a parameter <code>CRITERIAVALUE</code>, a parameter file line <code>$$CRITERIAVALUE=100</code>, and an entity criterion <code>EMPID &gt; CRITERIAVALUE</code>.
+To get EMPID greater than 500, change the file to 500 and run the same workflow (p.118).</li>
+<li>For a string or date parameter on a relational source, put the value in <strong>single quotes</strong> in the parameter file (p.118).</li>
+</ul>
+<p><strong>Ignore flags.</strong> If you keep values in a parameter file you create yourself, add a flag for each criteria parameter, for example <code>$$CRITERIAVALUE_IGNORE</code>. "N" means use the criterion, "Y" means the workflow skips it.
+A file created from Test Data Manager already contains the flags, set to "N" (p.118, p.309 to 310).</p>
+<p>To make the plan accept parameter values, tick <strong>Treat the subset criteria as a variable</strong> in the plan's connection options and give the parameter file name and path (p.279) <span class="badge doc">From docs</span>.
+At run time, in the Execute Workflow window, you choose where values come from (p.310 to 311): the default file named in the plan settings, a parameter file you browse to, or <em>Add Parameter Values</em> from the project.
+Criteria parameters do not appear in that list by default: click Select Parameter and add them, because "a workflow does not include parameters that do not appear in the list" (p.311).</p>
+<div class="callout warn"><strong class="ctitle">Two silent ways to get the wrong subset</strong>
+<p>(1) You forget to select the criteria parameter in the Execute Workflow window, so the criterion is not included.
+(2) You edit a parameter that was created without "allow override": the change does not take effect and the workflow uses the default value and logs an error (p.311).
+Check the workflow log if the row counts look wrong.</p></div>
+
+<h3 id="c13-db-functions">Database functions in entity criteria</h3>
+<p>You may want a date rule such as "hired in the last three months". The guide (p.118 to 119) <span class="badge doc">From docs</span> warns that writing a database function directly in the criterion makes workflow generation fail, because TDM does not recognise it as a function and cannot pass it on.
+The documented workaround: choose the operator <strong>IN</strong> and write a SELECT query in the Value field, for example <code>select HIREDATE from &lt;table&gt; where HIREDATE &gt; add_months(current_date, -3)</code>.
+TDM then passes the query to the database.
+The ShopSphere version of this idea would be a query on <code>ORDERS.order_date</code>.</p>
+
+<h3 id="c13-plan-level">Filtering again inside the plan</h3>
+<p>You can also set criteria in the plan itself without editing the entity (User Guide 10.5.10, p.294, p.304) <span class="badge doc">From docs</span>.
+In the plan's component list you pick a subset component, then a column in the Criteria panel.
+TDM shows existing criteria, which you can change or add to.
+You then choose a method:</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Method</th><th>Option</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td>Custom</td><td>Basic</td><td>A simple expression with an operator and an operand. You can use parameters.</td></tr>
+<tr><td>Custom</td><td>Advanced</td><td>An expression typed in the Expression Editor. It can use several columns, functions and parameters, including global ones (a global parameter inside an expression is written without the asterisk).</td></tr>
+<tr><td>Limit</td><td>(a limit type)</td><td>Limit the subset result by <strong>percentage</strong>, by <strong>absolute value</strong> or by an <strong>interval of rows</strong> to write to the target.</td></tr>
+</tbody></table></div>
+<p>The plan creation steps put it like this: "To limit the subset results, click Limit and choose to limit by percentage, by absolute value, or by defining an interval of rows to create" (p.304).
+You cannot override the subset criteria of an XSD component in the plan (p.304).</p>
+<div class="callout note"><strong class="ctitle">What the guide does not tell you about Limit</strong>
+<p>The excerpt I had names the three limit types and nothing more.
+It does not say which table the percentage applies to, how rows are chosen (first N, random?), what the "interval" arithmetic is (every Nth row? a range?), or how a Limit interacts with parent-child pulling.
+So I describe the three types by their names only: percentage means a share of rows, absolute value means a fixed row count, interval means "a set of rows defined by an interval". Test on a small table and count the result before relying on it.
+The guide also says Two-way and One-way integrity are not available when a plan uses custom Advanced or Limit criteria (p.123).</p></div>
+<ul>
+<li><strong>Percentage:</strong> for example 10 percent. Natural fit for the ShopSphere goal, but check how TDM applies it to related tables.</li>
+<li><strong>Absolute value:</strong> for example 500 rows. Handy when the test environment has a hard size cap.</li>
+<li><strong>Interval:</strong> a defined interval of rows. The guide gives no example.</li>
+</ul>
+<p>Syllabus link: Day 44 "types of subset". In practice, the guide supports these ways of choosing rows: by <em>condition</em> (entity criteria and plan Basic/Advanced criteria), by <em>parameterised condition</em>, and by <em>quantity</em> (Limit).
+I label this grouping as my own summary, <span class="badge concept">General concept</span>, not a list taken from the guide.</p>
+
+<h3 id="c13-subset-plus-mask">Subset and masking in one plan</h3>
+<p>A plan can hold both subset components and masking components.
+The guide says the subset component gets priority: TDM does the subset first, then applies masking rules to the columns of the subset data.
+Masking is not applied to source data that is outside the subset, "even if the data is part of a cascade" (User Guide 10.5.10, p.275) <span class="badge doc">From docs</span>.
+You can also keep them in separate plans (p.304).
+<a href="14-informatica-data-masking.html">the Informatica masking chapter</a> covers the masking half.</p>

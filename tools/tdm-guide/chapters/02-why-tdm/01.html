@@ -1,5 +1,5 @@
 <p>Every tool in this guide exists to solve one problem: software has to be tested, testing needs data, and the obvious source of data (the live system) is the one place you must not copy carelessly. This chapter builds that argument from zero. By the end you will understand why a whole discipline, Test Data Management, grew up around what looks like a small chore.</p>
-<p>It is the first chapter of the programme syllabus (Day 43: "Importance of test data in testing, COTS product overview, partnership, Cog IPs, TDM architecture"). The architecture of each tool comes later; here we deal with the importance of test data and the product landscape. Read <a href="01-start-here.html">Chapter 1</a> first if you have not yet met ShopSphere, the fictional company used throughout.</p>
+<p>It is the first chapter of the programme syllabus (Day 43: "Importance of test data in testing, COTS product overview, partnership, Cog IPs, TDM architecture"). The architecture of each tool comes later; here we deal with the importance of test data and the product landscape. Read <a href="01-start-here.html">the start-here chapter</a> first if you have not yet met ShopSphere, the fictional company used throughout.</p>
 
 <div class="callout recap">
 <strong class="ctitle">What you will learn</strong>
@@ -27,7 +27,7 @@
 <div><dt>Environment</dt><dd>A complete running copy of the application with its own servers and its own database. Different environments serve different purposes.</dd></div>
 <div><dt>Production (prod)</dt><dd>The live environment used by real customers. It holds real data.</dd></div>
 <div><dt>Non-production</dt><dd>Every environment that is not production: dev, QA, UAT, staging and so on.</dd></div>
-<div><dt>Sensitive data</dt><dd>Information that would harm a person or the company if leaked: names with ID numbers, health records, card numbers. Chapter 4 covers it fully.</dd></div>
+<div><dt>Sensitive data</dt><dd>Information that would harm a person or the company if leaked: names with ID numbers, health records, card numbers. <a href="04-sensitive-data-and-regulations.html">The sensitive data and regulations chapter</a> covers it fully.</dd></div>
 <div><dt>Refresh</dt><dd>Replacing the data in a test environment with a newer copy.</dd></div>
 <div><dt>Edge case</dt><dd>An unusual but possible input, such as an empty name, a very long address or a date on 29 February.</dd></div>
 <div><dt>COTS</dt><dd>Commercial off-the-shelf: software you buy ready-made from a vendor and configure, instead of building it yourself.</dd></div>
@@ -35,7 +35,7 @@
 </dl>
 
 <h2 id="c2-testing-needs-data">2.2 What software testing is, and why it needs data</h2>
-<h3 id="c2-testing">Testing in one minute</h3>
+<h3 id="c2-testing">Testing in brief</h3>
 <p>Imagine ShopSphere's developers have just changed how discounts are calculated. Before the change reaches real shoppers, someone has to check it. They log into a copy of the app, place an order, and look at the total. If the discount is wrong, they report a bug. That checking is <dfn>software testing</dfn>.</p>
 <p>Testing is not a single activity. Teams run many kinds: a developer checks one function, a QA engineer clicks through a whole purchase, a performance tester sends thousands of orders at once, a business user confirms the app does what the business asked. They all share one need.</p>
 <h3 id="c2-data">An application without data does nothing</h3>
@@ -125,3 +125,23 @@
 <li>An automation engineer needs the same data every night so the automated tests are repeatable.</li>
 </ul>
 <p>Five people, five different requirements. If nobody manages this, each one solves it alone, usually in the least safe way. That is the next section.</p>
+
+<h3 id="c2-testing-types">Types of testing and the data each one wants</h3>
+<p>The word "testing" covers several activities. They need different data, which is why one dataset rarely suits everyone.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Kind of testing</th><th>What it checks</th><th>Data it wants</th></tr></thead>
+<tbody>
+<tr><td>Unit testing</td><td>One small piece of code, by the developer.</td><td>A handful of hand-made values, often created inside the test and thrown away.</td></tr>
+<tr><td>Integration testing</td><td>Whether separate parts (web app, database, payment service) work together.</td><td>Consistent data across all the systems involved, so the same customer exists everywhere.</td></tr>
+<tr><td>System / functional testing</td><td>Whole features from the user's point of view.</td><td>A broad mix of customers, products and order states.</td></tr>
+<tr><td>Regression testing</td><td>That old features still work after a change.</td><td>The same data every run, so results can be compared.</td></tr>
+<tr><td>Performance / load testing</td><td>Speed and stability under heavy use.</td><td>Very large volumes with realistic shape.</td></tr>
+<tr><td>User acceptance testing</td><td>Whether the business accepts it.</td><td>Believable data that business users recognise as "like ours".</td></tr>
+<tr><td>Security testing</td><td>Whether the app resists attacks.</td><td>Data that includes hostile input such as unusual characters; it must not include real people's data.</td></tr>
+</tbody>
+</table></div>
+<span class="badge concept">General concept</span>
+<div class="callout why">
+<strong class="ctitle">Why this matters</strong>
+<p>"Give QA a copy of production" cannot satisfy this table. Unit tests want tiny throw-away data, performance tests want enormous data, and regression tests want frozen data. A TDM engineer's first job is often to ask which of these rows a request really is.</p>
+</div>

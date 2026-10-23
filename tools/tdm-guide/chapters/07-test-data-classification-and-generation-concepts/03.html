@@ -1,0 +1,167 @@
+
+<h2 id="c7-how-generation-works">7.7 How generation works: rules, generators, seeds and distributions</h2>
+<p><strong>Concept.</strong> A generation job has three layers. The <em>target</em> says which tables and columns to fill. A <em>rule</em> (Informatica's word) or an assigned <em>generator</em> (GenRocket's word) says how to fill each column. A <em>run</em> says how many rows and where to put them.</p>
+<div class="flow">
+<div class="node"><b>1. Target shape</b>tables, columns, types, keys
+</div>
+<div class="arrow">→
+</div>
+<div class="node"><b>2. Rule per column</b>sequence, random, list, formula
+</div>
+<div class="arrow">→
+</div>
+<div class="node"><b>3. Run settings</b>how many rows, seed, output
+</div>
+<div class="arrow">→
+</div>
+<div class="node"><b>4. Output</b>database, file, message
+</div>
+</div>
+<h3 id="c7-generator-kinds">7.7.1 The common kinds of generator</h3>
+<p>Almost every column in a business table can be filled by one of about eight ideas. The table shows each idea, then the names the two tools use for it. Names come from the pages I read; I list only what those pages state.</p>
+<div class="tablewrap"><table><thead>
+<tr><th>Idea</th><th>ShopSphere column</th><th>Informatica technique</th><th>GenRocket generator named in its docs</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>Count up in steps</td>
+<td><code>customer_id</code></td>
+<td>Sequence (numeric or date)</td>
+<td><code>RangeGen</code> (FAQ: starts a sequence from 1)</td></tr>
+<tr>
+<td>Random in a range</td>
+<td><code>zip_code</code>, <code>quantity</code></td>
+<td>Random</td>
+<td><code>RandomGen</code> (seeding page: random numbers 1 to 25)</td></tr>
+<tr>
+<td>Pick from a list of real-looking words</td>
+<td><code>first_name</code></td>
+<td>Dictionary</td>
+<td><code>NameGen</code>, <code>ListGen</code></td></tr>
+<tr>
+<td>Pick from a small fixed set</td>
+<td><code>order_status</code></td>
+<td>Set of Values</td>
+<td><code>ListGen</code> (list generators)</td></tr>
+<tr>
+<td>Follow a pattern</td>
+<td>An order reference such as 4 digits plus "St."</td>
+<td>Random with a regular expression pattern</td>
+<td><code>SimplePatternGen</code> (default fallback, appends a number to the attribute name)</td></tr>
+<tr>
+<td>Combine other columns</td>
+<td><code>email</code> from first name plus domain</td>
+<td>Advanced rule, or Expression</td>
+<td><code>EmailGen</code>, <code>ConcatGen</code>; "Linked Generators" chain several</td></tr>
+<tr>
+<td>Copy from another table</td>
+<td><code>ORDERS.customer_id</code></td>
+<td>Reference Lookup</td>
+<td><code>ReferenceGen</code> (with <code>ProxyReferenceGen</code> at domain level)</td></tr>
+<tr>
+<td>Depends on a condition</td>
+<td><code>age_group</code>: "adult" or "minor"</td>
+<td>Conditional</td>
+<td>Conditional Logic Generators, G-Rules</td></tr>
+</tbody>
+</table>
+</div>
+<p>Sources: Informatica technique list (User Guide 10.5.10, p.209) and ad hoc, standard and global rule types (pp.192 to 193); GenRocket "Generators Overview", "How are Generators Assigned to Domain Attributes?", "What is Seeding?", the General FAQ, and the "What is the difference between the ProxyReferenceGen and ReferenceGen?" page. <span class="badge doc">From docs</span> Both tools offer more techniques than these. The <a href="15-informatica-data-generation.html">Informatica data generation chapter</a> and the <a href="18-genrocket-domains-attributes-generators.html">GenRocket generators chapter</a> list them.</p>
+<div class="callout note"><strong class="ctitle">Same idea, different packaging</strong>
+<p>Informatica separates the <em>rule</em> (reusable, named, stored in the Policies area) from its <em>assignment</em> to a column (User Guide 10.5.10, pp.191 to 193). GenRocket attaches a <em>generator</em> directly to each attribute and picks a default for you from the attribute and domain name, the project's industry type and usage patterns (GenRocket "How are Generators Assigned to Domain Attributes?"). In both, you can replace what was picked. <span class="badge doc">From docs</span></p>
+</div>
+
+<h3 id="c7-seeds">7.7.2 Seeds: making "random" repeatable</h3>
+<p><strong>Concept.</strong> Computers do not produce truly random numbers. They run a formula that produces a long, random-looking list, starting from a number called the <dfn>seed</dfn>. Same seed, same list.</p>
+<p><strong>Why it matters.</strong> Suppose a test fails on Tuesday because customer 2003 had a zip code with a leading zero. If the data is regenerated on Wednesday with different random values, you may never see that customer again. With a fixed seed you can rebuild exactly Tuesday's data and debug it. The opposite is also useful: change the seed on purpose to get a fresh data set when you want fresh coverage.</p>
+<p>GenRocket describes this directly: seeding generates the same set of random data for the same seed value every time, a seed can be set on the domain (a global seed variable) or in an attribute's generator configuration, and two attributes using the same generator and same seed produce the same random series. It also notes that GenRocket can generate the same data as previous runs through a seed on a domain or generator (FAQ). <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/-what-is-seeding" target="_blank" rel="noopener">What is Seeding? ↗</a></p>
+<p>The snippet below is my own illustration of the principle in plain Python, not a vendor tool. It builds the 50 customers and orders designed in section 7.10. Run it twice with seed 42 and you get identical data; run it with seed 7 and you get different data.</p>
+<pre><code>import random
+
+def generate(seed):
+    rnd = random.Random(seed)              # the seed lives here
+    first = ["Asha","Ravi","Meera","Kiran","Divya","Arjun","Sana","Vikram"]
+    last  = ["Menon","Kumar","Nair","Iyer","Rao","Shah","Das","Pillai"]
+    customers = []
+    for i in range(50):
+        cid = 2001 + i                     # sequential: 2001, 2002, ...
+        customers.append((cid, rnd.choice(first), rnd.choice(last),
+                          "%06d" % rnd.randint(560001, 560099)))   # random
+    # exact distribution: 10 customers get 0 orders, 20 get 1, 15 get 2, 5 get 5
+    counts = [0]*10 + [1]*20 + [2]*15 + [5]*5
+    rnd.shuffle(counts)                    # random WHO, exact HOW MANY
+    orders, oid = [], 9001
+    for cust, n in zip(customers, counts):
+        for _ in range(n):
+            orders.append((oid, cust[0], rnd.randint(1, 4)))  # parent id, items
+            oid += 1
+    return customers, orders
+
+c1, o1 = generate(42)
+c2, o2 = generate(42)
+c3, o3 = generate(7)
+print(len(c1), len(o1), sum(x[2] for x in o1))   # 50 75 179
+print(c1 == c2 and o1 == o2, c1 == c3)           # True False</code></pre>
+<p class="expect">Expected result when I ran it (Python 3.13): the first print shows <code>50 75 179</code> and the second shows <code>True False</code>. The first three customers with seed 42 were <code>(2001, 'Ravi', 'Menon', '560095')</code>, <code>(2002, 'Divya', 'Iyer', '560029')</code> and <code>(2003, 'Meera', 'Kumar', '560087')</code>. The item total 179 and these exact names depend on the random generator inside your Python version, so yours may differ. What must hold on your machine is <code>True False</code>.</p>
+
+<h3 id="c7-distributions">7.7.3 Distributions: how values are spread</h3>
+<p>If every customer got exactly two orders, the data would be repeatable but unrealistic. Real shops have many customers with none, most with one or two, and a few with many. The snippet above states this on purpose: 10, 20, 15 and 5 customers get 0, 1, 2 and 5 orders. That is a <em>distribution</em>.</p>
+<p>Both tools let you state percentages rather than writing a loop:</p>
+<ul>
+<li>Informatica's random technique lets a regular expression create a fixed percentage of the generated values, and pattern percentages must total 100 (User Guide 10.5.10, p.220). Null and invalid-value rows are also set as percentages (pp.210 to 211). <span class="badge doc">From docs</span></li>
+<li>GenRocket's <code>MultiWeightGen</code> assigns weights (a percentage and a value) so that, for example, 50% of parents have 2 children, 20% have 3 and 30% have 1. With <code>exactPercentage</code> set to true, ten parents give exactly five, two and three parents of each type. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-children-based-on-weights-percentages" target="_blank" rel="noopener">Generate Children based on Weights ↗</a></li>
+</ul>
+<div class="callout tip"><strong class="ctitle">Exact or approximate?</strong>
+<p>With "10% of rows null", you can ask for roughly 10% (each row has a 10% chance) or exactly 10% (5 of 50). For small data sets such as 50 customers, always choose exact, otherwise a run can produce zero nulls and your null test silently tests nothing.</p>
+</div>
+
+<h3 id="c7-dependencies">7.7.4 Rules that link columns</h3>
+<p>Some values only make sense in combination. A shipped date must come after the order date. A flight cannot leave and arrive at the same airport. Informatica's guide has both examples. It describes a <em>conditional constraint</em>: an expression such as <code>To_City != From_City</code> that restricts values in one column based on another (User Guide 10.5.10, pp.201 to 202). When the rule's own limits make the constraint impossible (for example a modified date that must be later than a created date of 31 July 2014, the last date the rule allows), the rule wins and the tool generates data with warning messages. <span class="badge doc">From docs</span> The lesson for your own designs: when two rules fight, decide which one is the boss, and expect warnings from the other.</p>
+
+<h2 id="c7-parent-child">7.8 Generating parent and child tables so every key is valid</h2>
+<p><strong>Concept.</strong> A child row needs a parent that exists. If you generate ORDERS first and pick <code>customer_id</code> values at random, some will point at customers that do not exist, and the database (or the application's joins) will fail.</p>
+<p><strong>Simple explanation.</strong> You cannot write a library card for a member who has not been registered. So you register members first, then issue cards that carry a registered member's number.</p>
+<figure class="diagram"><svg viewBox="0 0 800 250" role="img" aria-label="Three boxes in a row: CUSTOMERS with 50 rows generated first, ORDERS with 75 rows generated second pointing back to a customer id, ORDER_ITEMS with about 179 rows generated third pointing back to an order id.">
+<rect x="20" y="60" width="210" height="110" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="125" y="95" text-anchor="middle" fill="currentColor" font-weight="bold">CUSTOMERS</text>
+<text x="125" y="120" text-anchor="middle" fill="currentColor" font-size="13">customer_id (PK)</text>
+<text x="125" y="145" text-anchor="middle" fill="currentColor" font-size="13">50 rows, made first</text>
+<rect x="295" y="60" width="210" height="110" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="400" y="95" text-anchor="middle" fill="currentColor" font-weight="bold">ORDERS</text>
+<text x="400" y="120" text-anchor="middle" fill="currentColor" font-size="13">order_id (PK), customer_id (FK)</text>
+<text x="400" y="145" text-anchor="middle" fill="currentColor" font-size="13">75 rows, made second</text>
+<rect x="570" y="60" width="210" height="110" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="675" y="95" text-anchor="middle" fill="currentColor" font-weight="bold">ORDER_ITEMS</text>
+<text x="675" y="120" text-anchor="middle" fill="currentColor" font-size="13">item_id (PK), order_id (FK)</text>
+<text x="675" y="145" text-anchor="middle" fill="currentColor" font-size="13">179 rows, made third</text>
+<path d="M295 115 L232 115" stroke="var(--accent)" stroke-width="2" fill="none"/>
+<polygon points="232,115 242,110 242,120" fill="var(--accent)"/>
+<path d="M570 115 L507 115" stroke="var(--accent)" stroke-width="2" fill="none"/>
+<polygon points="507,115 517,110 517,120" fill="var(--accent)"/>
+<text x="263" y="105" text-anchor="middle" fill="currentColor" font-size="12">copies an existing id</text>
+<text x="538" y="105" text-anchor="middle" fill="currentColor" font-size="12">copies an existing id</text>
+<text x="400" y="215" text-anchor="middle" fill="currentColor" font-size="13">Generation order: left to right. Arrows show which table each foreign key points at.</text>
+</svg>
+<figcaption>Original diagram: parents are generated before children, and every foreign key copies an id that already exists. Row counts are from the design in section 7.10.</figcaption>
+</figure>
+<h3 id="c7-two-ways">7.8.1 Two common ways to keep keys valid</h3>
+<div class="compare">
+<div>
+<h4>A. Child picks from existing parents</h4>
+<p>Generate the whole parent table first. Then, for each child row, choose a parent id from the finished list.</p>
+<p>Informatica calls this a <em>reference lookup</em> rule: you name the parent table and assign parent columns to child columns (User Guide 10.5.10, p.229). <span class="badge doc">From docs</span></p>
+<p>Good when the parent table already exists, for example loading new orders against real or masked customers.</p>
+</div>
+<div>
+<h4>B. Children are made inside each parent</h4>
+<p>Loop over parents. For each parent, decide how many children it has, then create exactly that many, stamping the parent's id on each.</p>
+<p>GenRocket works this way: a parent domain's loop count and the child's count per parent drive the output, and it generates data sequentially along the relationships (see its "Parent, Child, and Sibling Relationships" page). <span class="badge doc">From docs</span></p>
+<p>Good when both tables are being created together, and when you want a controlled number of children per parent.</p>
+</div>
+</div>
+<p>GenRocket's page also says every domain has an id or primary attribute that is used to guarantee referential integrity between domains, and its FAQ says it can generate synthetic data with full referential integrity. It introduces a "sibling" idea: a table that merely describes another (the page's example is a role table describing a user table) is marked as a sibling instead of a parent, to avoid generating unnecessary data. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/domains-overview/parent-child-and-sibling-relationships" target="_blank" rel="noopener">Parent, Child, and Sibling Relationships ↗</a></p>
+<h3 id="c7-children-per-parent">7.8.2 How many children per parent?</h3>
+<p>Informatica's plan settings for data generation include a <strong>minimum and maximum number of child records for each parent record, each with a default of 1</strong>, and percentages for "parent records without children" and "child records without parent" for self-cyclic tables and reference lookup rules (User Guide 10.5.10, p.285). <span class="badge doc">From docs</span> Those last two settings exist because sometimes you <em>want</em> a customer with no orders (a null-style condition) or, rarely, a deliberately orphaned child (for a data-quality test). Do this only on purpose and label it, so nobody mistakes it for a bug.</p>
+<div class="callout warn"><strong class="ctitle">Self-referencing tables</strong>
+<p>A table whose foreign key points at itself (an employee table with a manager id) has no "parents first" order. The tool needs a special rule: the first rows have no parent, later rows point back at earlier ones. Informatica's setting names self-cyclic tables specifically (p.285). ShopSphere has none, so we do not build one here.</p>
+</div>

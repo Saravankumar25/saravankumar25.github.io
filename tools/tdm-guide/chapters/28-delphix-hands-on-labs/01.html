@@ -1,0 +1,120 @@
+<p>The earlier Delphix chapters taught the parts one at a time: what the engine is, how a connector reaches a database, what a rule set and an inventory are, how profiling finds sensitive columns, which algorithms mask which kinds of value, and how files differ from tables. This chapter is where you put the parts together. You will run five labs, in order, on one small data set (ShopSphere), and each lab leaves behind something the next lab needs.</p>
+<p>The labs match the syllabus hands-on list for Days 51 to 56: TDM_Handson4 (a connector to a VDB), TDM_Handson5 (connections and data profiling), TDM_Handson6 (masking files), TDM_Handson7 (masking FirstName) and TDM_Handson8 (masking alphanumeric text, SSN and telephone number). The concepts are not re-taught here. Where a lab needs one, it links to the chapter that owns it, so you can jump out, read, and come back.</p>
+<div class="callout recap">
+<strong class="ctitle">What you will learn</strong>
+<ul>
+<li>How to prepare the same fake ShopSphere data in a database and in two file formats so that all five labs connect.</li>
+<li>Lab 4: create an environment and a database connector that points at a VDB, and prove it works with Test Connection.</li>
+<li>Lab 5: build a rule set, run a profiling job, read the results and correct them in the inventory.</li>
+<li>Lab 6: mask a delimited and a fixed-width file with a file connector, file formats and a file rule set.</li>
+<li>Labs 7 and 8: assign and verify algorithms for FirstName, alphanumeric text, SSN and telephone number, with before/after queries.</li>
+<li>How to fill in a one-page lab checklist and an evidence pack that a reviewer can sign off.</li>
+</ul>
+</div>
+<div class="callout note">
+<strong class="ctitle">What this chapter is based on</strong>
+<p>Every UI step is built from the Delphix Continuous Compliance 2026.5 documentation (last published October 16, 2026): the pages on managing environments, connectors, rule sets, profiling jobs, inventories, jobs, job monitoring, file formats and the algorithm pages. The sources list at the end names each page. The ShopSphere data, the lab ordering, the expected results for the sample rows and the verification queries are <strong>my own illustrative design</strong>, not from the documentation, and are marked <span class="badge concept">General concept</span> or called "design" where it matters.</p>
+<p><span class="badge doc">From docs</span> marks a step or fact taken from a documentation page. The official screenshots are taken from different engine releases: the corner label in the images I opened reads 21.0.0.0, 22.0.0.0, 24.0.0.0, 26.0.0.0 and, in one, a development build number. Your engine will not look identical. Menu names, button order and extra fields can differ by version, so treat every screenshot as "what to look for", and trust your own screen for the exact labels.</p>
+<p>Your trainer's lab may differ from the setup assumed here (database type, whether files sit on a mount or an SFTP server, whether login uses LDAP). Where I do not know, I say so instead of guessing.</p>
+</div>
+<h2 id="c28-words">28.1 Words to know first</h2>
+<dl class="defs">
+<div><dt>Masking engine</dt><dd>The Delphix Continuous Compliance engine: the web application where you define connectors, rule sets, profiling jobs and masking jobs. The docs also call it the Compliance Engine.</dd></div>
+<div><dt>VDB (virtual database)</dt><dd>A full read-and-write copy of source data that Delphix Continuous Data provisions from a dSource or another VDB. To the masking engine it is just another database to connect to. See <a href="22-delphix-overview-and-terminology.html">the Delphix overview and terminology chapter</a>.</dd></div>
+<div><dt>Application</dt><dd>A tag assigned to one or more environments, ideally named after the real application. Here: ShopSphere.</dd></div>
+<div><dt>Environment</dt><dd>A container that groups connectors, rule sets and jobs for one set of data sources. Its purpose is Mask or Tokenize/Re-Identify.</dd></div>
+<div><dt>Connector</dt><dd>The saved connection details the engine uses to reach one database or one file location. Lab 4 builds one. <a href="23-delphix-connectors-and-vdb.html">The connectors and VDB chapter</a> explains the types.</dd></div>
+<div><dt>Rule set</dt><dd>The list of tables (or files) in one data source that you want to profile or mask. Its inventory records, per column or field, the domain and algorithm. See <a href="24-delphix-rule-sets-and-keys.html">the rule sets and keys chapter</a>.</dd></div>
+<div><dt>Profiling job</dt><dd>A job that inspects the rule set and assigns a domain, and with it a default algorithm, to columns that look sensitive. See <a href="25-delphix-profiling.html">the Delphix profiling chapter</a>.</dd></div>
+<div><dt>Domain</dt><dd>A named kind of sensitive data (FIRST_NAME, SSN, ZIP) that carries one default masking algorithm.</dd></div>
+<div><dt>Inventory</dt><dd>The table of "which column gets which algorithm" for one rule set.</dd></div>
+<div><dt>In-place and on-the-fly</dt><dd>In-place masking updates the data where it sits. On-the-fly masking reads from a source and writes masked values to a different target. Both are job settings, explained in <a href="26-delphix-algorithms-and-masking-jobs.html">the algorithms and masking jobs chapter</a>.</dd></div>
+<div><dt>Non-conformant data</dt><dd>A value that does not fit the format an algorithm expects. By default it is left unmasked and the job records a warning, so a "successful" job can still leave data unmasked.</dd></div>
+</dl>
+<h2 id="c28-series">28.2 How the five labs chain together</h2>
+<p>Think of the labs as one conveyor belt. Lab 4 gets the engine talking to a database. Lab 5 asks the engine which columns are sensitive. Lab 6 repeats the idea for files. Labs 7 and 8 then fix algorithm choices and run real masking jobs. If a lab fails, the later labs starve, so do not skip the verification section of each lab.</p>
+<div class="flow">
+<div class="node"><b>Lab 4</b>Connector to the VDB</div>
+<div class="arrow">→</div>
+<div class="node"><b>Lab 5</b>Rule set and profiling</div>
+<div class="arrow">→</div>
+<div class="node"><b>Lab 6</b>Mask two files</div>
+<div class="arrow">→</div>
+<div class="node"><b>Lab 7</b>FirstName</div>
+<div class="arrow">→</div>
+<div class="node"><b>Lab 8</b>Text, SSN, phone</div>
+</div>
+<div class="tablewrap"><table>
+<thead><tr><th>Syllabus item</th><th>Lab here</th><th>Day</th><th>Concepts you may need to reread</th></tr></thead>
+<tbody>
+<tr><td>TDM_Handson4: connector to a VDB from the masking engine</td><td>Lab 4</td><td>51</td><td><a href="23-delphix-connectors-and-vdb.html">Connectors and VDB</a>, <a href="03-data-basics.html">data basics</a> (primary and foreign keys)</td></tr>
+<tr><td>TDM_Handson5: connections and data profiling</td><td>Lab 5</td><td>52</td><td><a href="24-delphix-rule-sets-and-keys.html">Rule sets and keys</a>, <a href="25-delphix-profiling.html">Delphix profiling</a></td></tr>
+<tr><td>TDM_Handson6: data masking for files</td><td>Lab 6</td><td>53</td><td><a href="27-delphix-file-masking.html">File masking</a></td></tr>
+<tr><td>TDM_Handson7: data masking for FirstName</td><td>Lab 7</td><td>55</td><td><a href="26-delphix-algorithms-and-masking-jobs.html">Algorithms and masking jobs</a></td></tr>
+<tr><td>TDM_Handson8: alphanumeric text, SSN, telephone number</td><td>Lab 8</td><td>56</td><td><a href="26-delphix-algorithms-and-masking-jobs.html">Algorithms and masking jobs</a>, <a href="06-masking-concepts.html">masking concepts</a></td></tr>
+</tbody></table></div>
+<p>The syllabus puts file masking on Day 53 and FirstName on Day 55, with other work on Day 54. The labs follow the hands-on numbering, so they do not leave gaps.</p>
+<h2 id="c28-setup-data">28.3 Setup data for every lab</h2>
+<p>All five labs use the ShopSphere tables from the guide's running example. The data is entirely fake. Everything below is my design for the lab, not something Delphix provides.</p>
+<h3 id="c28-setup-db">The database side</h3>
+<p>Ask your trainer which database holds the lab copy. The masking engine needs a database it is allowed to change, so the lab copy should be a VDB or another disposable copy, never <code>SHOPSPHERE_PROD</code>. The docs recommend a VDB as the masking target and call it the best security practice because the database runs in a sandboxed environment (<a href="https://help.delphix.com/cc/current/content/preparing_data.htm" target="_blank" rel="noopener">Preparing data</a>).</p>
+<p>The VDB holds the four ShopSphere tables. Three customer rows are enough to see every effect, and the lab adds the tax and zip columns used by later labs:</p>
+<div class="tablewrap"><table class="sample">
+<caption>CUSTOMERS in the lab VDB (fake data; tax_id values invented for this lab)</caption>
+<thead><tr><th>customer_id</th><th>first_name</th><th>last_name</th><th>email</th><th>phone</th><th>ssn</th><th>date_of_birth</th><th>zip_code</th><th>tax_id</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>Asha</td><td>Menon</td><td>asha.menon@example.com</td><td>9876543210</td><td>123-45-6789</td><td>1990-04-12</td><td>560001</td><td>98-7654321</td></tr>
+<tr><td>1002</td><td>Ravi</td><td>Kumar</td><td>ravi.k@example.com</td><td>9123456780</td><td>234-56-7890</td><td>1985-11-02</td><td>600017</td><td>87-6543210</td></tr>
+<tr><td>1003</td><td>Meera</td><td>Nair</td><td>meera.n@example.com</td><td>9988776655</td><td>345-67-8901</td><td>1999-07-23</td><td>682001</td><td>76-5432109</td></tr>
+</tbody></table></div>
+<p>Add two or three ORDERS rows for each customer, a few ORDER_ITEMS rows and a handful of PRODUCTS, using the keys from the running example. The labs only mask CUSTOMERS, but the other tables prove that primary and foreign keys survive.</p>
+<h3 id="c28-setup-files">The file side</h3>
+<p>Lab 6 needs two flat files that carry the same customers. Create them on the file location your trainer gives you (a mounted folder, SFTP or object storage, see Lab 6). A pipe-delimited file, <code>customers.dat</code>, with no header line:</p>
+<pre><code>1001|Asha|Menon|123-45-6789|9876543210
+1002|Ravi|Kumar|234-56-7890|9123456780
+1003|Meera|Nair|345-67-8901|9988776655</code></pre>
+<p>A fixed-width file, <code>customers_fixed.txt</code>, with the layout customer_id 4 characters, first_name 10, last_name 10, ssn 11, phone 10 (45 characters per line, no separators):</p>
+<pre><code>1001Asha      Menon     123-45-67899876543210
+1002Ravi      Kumar     234-56-78909123456780
+1003Meera     Nair      345-67-89019988776655</code></pre>
+<div class="callout warn">
+<strong class="ctitle">Keep the originals</strong>
+<p>Copy both files to a folder named <code>original</code> before any masking job. Lab 6 ends with a comparison of original and masked files, and an in-place job overwrites the file it masks.</p>
+</div>
+<h3 id="c28-setup-names">Names used in the labs</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Object</th><th>Name used here</th><th>Created in</th></tr></thead>
+<tbody>
+<tr><td>Application</td><td>ShopSphere</td><td>Lab 4</td></tr>
+<tr><td>Environment</td><td>ShopSphere_DB_Mask</td><td>Lab 4</td></tr>
+<tr><td>Database connector</td><td>SS_VDB_Conn</td><td>Lab 4</td></tr>
+<tr><td>Database rule set</td><td>SS_DB_RS</td><td>Lab 5</td></tr>
+<tr><td>Profiling job</td><td>SS_Profile_DB</td><td>Lab 5</td></tr>
+<tr><td>Environment for files</td><td>ShopSphere_File_Mask</td><td>Lab 6</td></tr>
+<tr><td>File connectors, formats, rule sets, jobs</td><td>SS_Delim_Conn, SS_Fixed_Conn, ss_delim.fmt, ss_fixed.fmt, SS_Delim_RS, SS_Fixed_RS, SS_Mask_Delim, SS_Mask_Fixed</td><td>Lab 6</td></tr>
+<tr><td>Database masking jobs</td><td>SS_Mask_FirstName, SS_Mask_Sensitive</td><td>Labs 7 and 8</td></tr>
+</tbody></table></div>
+<p>Job names must be unique across the whole engine according to the docs, so add your initials if several learners share one engine.</p>
+<h3 id="c28-prereq">Prerequisites for the whole series</h3>
+<ul>
+<li>A login to the masking engine with a role that can add environments, connectors, rule sets, inventories and jobs, and run jobs. The docs describe roles such as Administrator, DBA, SME and Operator; ask your trainer which one you hold (<a href="https://help.delphix.com/cc/current/content/users_and_roles.htm" target="_blank" rel="noopener">Users and roles</a>).</li>
+<li>Network access from the engine to the database host and port, and a database user created for masking. The docs recommend a separate masking user with read, write, update and, if you use those job options, index, trigger and constraint rights (<a href="https://help.delphix.com/cc/current/content/database_user_permissions_for_executing_masking_and_profiling_job.htm" target="_blank" rel="noopener">Database user permissions</a>). Profiling alone needs only schema view and read rights.</li>
+<li>A SQL client that can query the VDB, so you can compare data before and after masking.</li>
+<li>A way to read the two files (a text editor or <code>cat</code>) and to compare them (<code>diff</code> or a spreadsheet).</li>
+</ul>
+<p>The "before" snapshot belongs in the evidence pack, so take it now. Run these once and save the output:</p>
+<pre><code>SELECT customer_id, first_name, last_name, phone, ssn, zip_code, tax_id
+FROM   customers
+ORDER  BY customer_id;
+
+SELECT COUNT(*) AS customers FROM customers;
+SELECT COUNT(*) AS orders    FROM orders;
+SELECT COUNT(*) AS items     FROM order_items;
+SELECT COUNT(*) AS orphans
+FROM   orders o LEFT JOIN customers c ON c.customer_id = o.customer_id
+WHERE  c.customer_id IS NULL;</code></pre>
+<p>The last query counts orders whose customer does not exist. It must return 0 before and after masking. If it is not 0 before you start, the lab data is already broken and the later "keys survived" check means nothing.</p>
+<div class="callout tip">
+<strong class="ctitle">Why take a "before" snapshot at all?</strong>
+<p>A masking job reports success even when a column was never masked (non-conformant data is skipped with a warning by default). Only a comparison of the data itself proves the job did its work. The snapshot is the proof's left-hand side.</p>
+</div>

@@ -1,0 +1,89 @@
+
+<h2 id="c17-tda">17.4 Test Data Automation and "Model, Design, Deploy, Manage"</h2>
+<p><span class="badge doc">From docs</span> GenRocket calls its platform a <em>Test Data Automation</em> platform. The CI/CD page explains the idea with a short list of things any generator of data must know, and then shows how GenRocket captures each one:</p>
+<div class="tablewrap"><table>
+<thead><tr><th>What the generator must be told</th><th>Where GenRocket records it</th></tr></thead>
+<tbody>
+<tr><td>The object to create (a User, a Customer)</td><td>Domain</td></tr>
+<tr><td>The properties of the object (name, id number, phone)</td><td>Attributes</td></tr>
+<tr><td>What each property should look like (Swedish names, a national id)</td><td>Generators</td></tr>
+<tr><td>The format of the result (CSV, JSON, XML)</td><td>Receivers</td></tr>
+<tr><td>How many, in what order</td><td>Scenario</td></tr>
+<tr><td>Something to carry out the instructions</td><td>GenRocket Runtime</td></tr>
+</tbody></table></div>
+<p>Notice that the runtime has now joined the list as a sixth piece. The five components are the <em>design</em>; the runtime is the <em>engine</em> that executes it. The docs describe the runtime as a secure Java program that executes encrypted scenarios inside the customer's firewalled environment.</p>
+<h3 id="c17-four-steps">17.4.1 The four steps</h3>
+<p>The course syllabus for Day 46 says "Data generation: model, design, deploy, manage". GenRocket's Methodology page says the product uses exactly this "Model, Design, Deploy, Manage" methodology, and the CI/CD page gives each step a plain meaning.</p>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280852430/1tZBhQ3jEFMfbEvEmfYjekf9iBFxY-1XRQ%20(1).png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280852430/1tZBhQ3jEFMfbEvEmfYjekf9iBFxY-1XRQ%20(1).png" alt="A circular arrow diagram titled Synthetic Data Lifecycle with four segments in order: Model, Design, Deploy, Manage" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The vendor's "Synthetic Data Lifecycle" ring: Model, Design, Deploy and Manage chase each other in a circle. The circle matters: after Manage, the next release of your application sends you back to Model. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<div class="tablewrap"><table>
+<thead><tr><th>Step</th><th>What the docs say</th><th>Where it happens in the product</th><th>ShopSphere version</th></tr></thead>
+<tbody>
+<tr><td><strong>Model</strong></td><td>Import the data model. Done in the web platform (many import and create methods) or by API at runtime.</td><td>Project Dashboard: <em>New Domain</em> menu (import from DDL, XTS, CSV, JSON and others) or manual creation</td><td>Import the CUSTOMERS, ORDERS and ORDER_ITEMS definitions as three domains</td></tr>
+<tr><td><strong>Design</strong></td><td>Create test data designs that match each test case: how much data, which variations. Self-service features exist for positive, negative, pattern, permutation, boundary, dynamic and load data.</td><td>Generators, receivers, scenarios, and the self-service "Test Data Case" family</td><td>Pick generators per column, a CSV receiver, a scenario for "50 customers"</td></tr>
+<tr><td><strong>Deploy</strong></td><td>Generate and deliver the data in real time. Over 100 receivers format and deliver it. Triggered from a CI/CD script or a REST request to a GenRocket server component.</td><td>Download the scenario, run it with the runtime</td><td>A pipeline job runs the scenario before the order tests start</td></tr>
+<tr><td><strong>Manage</strong></td><td>Manage multiple releases of test data projects with version control. A repository component keeps managed artifacts in sync.</td><td>Project versions, categories, G-Repository</td><td>Release 2.0 of the shop gets its own project version</td></tr>
+</tbody></table></div>
+<p>The Deploy row says "more than 100 receivers", while the receivers overview page says "120+" and the architecture is described in terms of a growing list. Treat all such counts as <em>approximate and growing</em>; I quote them only to show scale.</p>
+<div class="callout tip"><strong class="ctitle">How to answer "what is Model, Design, Deploy, Manage?" in an interview</strong>
+<p>Say it as a story, not a list: "Model is describing the tables. Design is deciding what data each test needs and how it will be formatted. Deploy is running the generation into the test system, often from a pipeline. Manage is keeping versions of all that as the application changes." Then give one ShopSphere example per step. That connects the syllabus phrase to something you could actually do.</p></div>
+<p>The same page also lists the self-service vocabulary used in the Design step, in a table from the vendor's screenshot below. These names matter later (<a href="20-genrocket-data-patterns.html">data patterns chapter</a>), so recognise them now.</p>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280956208/6kkMc7lls1qoiSbQ_0Fm0PZkwo-7f9reqQ%20(2).png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280956208/6kkMc7lls1qoiSbQ_0Fm0PZkwo-7f9reqQ%20(2).png" alt="A table of five GenRocket terms: Test Data Case, Test Data Rule, Test Data Query, Test Data Stories and Test Data Epics, each with a think-of-it-like description and an example" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The vendor's table of design-time terms. A Test Data Case specifies the exact data one test needs (for example 100 customers), a Rule filters the data to what you want, a Query pulls specific production values to blend with generated data, Stories combine cases, and Epics combine stories. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<div class="callout warn"><strong class="ctitle">Do not confuse the stages with the five components</strong>
+<p>Model, Design, Deploy and Manage are <em>phases of work</em>. Domain, attribute, generator, receiver and scenario are <em>things in the product</em>. Several components appear in more than one phase: generators are chosen while designing, but a generator's output is only produced while deploying.</p></div>
+
+<h2 id="c17-architecture">17.5 Architecture: a cloud for design, your machine for generation</h2>
+<p><span class="badge doc">From docs</span> The Architecture page says GenRocket is built on a <em>hybrid</em> architecture. The <strong>cloud component</strong> is where synthetic data is <em>modelled and designed</em>. The <strong>on-premise component</strong> is where synthetic data is <em>generated locally</em>. The cloud itself is offered as a Virtual Private Cloud (VPC) or a Dedicated Private Cloud (DPC).</p>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776181447455/GZ-nDabqmM24HFcOz3iiRzMwmdgDbOm5Og.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776181447455/GZ-nDabqmM24HFcOz3iiRzMwmdgDbOm5Og.png" alt="An architecture diagram with a green AWS Virtual Private Cloud box at the top containing GenRocket Cloud and Test Data Cases marked No Customer Data Stored, and blue customer premise boxes below containing G-Repository, a Dev/Test machine running GenRocket Runtime and output formats SQL, XML, JSON, PDF and Excel" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The architecture diagram. Top: the GenRocket cloud, where test data cases are designed, marked "No Customer Data Stored". Bottom: your premises (and your own cloud facilities), behind your firewall, where the GenRocket Runtime on a dev or test machine produces SQL, XML, JSON, PDF or Excel output. Connections are labelled HTTPS with TLS 1.2, and users (Org Admin, Dev User, Test User) reach the web platform over HTTPS 443. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-architecture" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>Read the diagram from top to bottom. A designer logs in to the web platform and builds the design. The design is then sent to the customer side as an encrypted scenario file. On the customer side, the runtime runs it and writes data into databases and files that never leave your network.</p>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280832838/fNkpBefxmV67yurA6lLPSZ6QsalKRlro-A%20(1).png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280832838/fNkpBefxmV67yurA6lLPSZ6QsalKRlro-A%20(1).png" alt="A three-step graphic titled Virtual Private Cloud: 1 Create Test Data Designs in the GenRocket Cloud, 2 Download Test Data Designs over Transport Layer Security, 3 Generate Synthetic Data On-Premise with GenRocket Runtime behind a firewall, on Windows, Mac or Linux" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The same idea as three steps: create designs in the cloud, download them securely, generate synthetic data on your premises on Windows, Mac or Linux. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<div class="callout why"><strong class="ctitle">Why it matters</strong>
+<p>For a bank or hospital, the question "does our data leave the building?" decides whether a tool may be used at all. In this design, the cloud holds only the <em>design</em> (a data model and rules, not data). The only place rows are created is on a machine you control. Compare this with a masking tool (<a href="14-informatica-data-masking.html">Informatica masking chapter</a>), where real data is read and transformed.</p></div>
+<p>The Architecture page links onward to security, team permissions, the runtime overview and "G-Repository", the component that keeps scenarios and configuration files synchronised across a company's machines. There is also a downloadable PDF, "Components and Ports Configuration Guide", which the docs call a vital resource for core components, diagrams, port configurations and deployment advice. I did not open that PDF; if your organisation deploys GenRocket, that is the document to ask for.</p>
+
+<h2 id="c17-runtime">17.6 The GenRocket Runtime</h2>
+<h3 id="c17-runtime-what">17.6.1 What it is</h3>
+<p><span class="badge doc">From docs</span> The runtime is a set of Java jar files, downloaded from GenRocket Cloud and installed wherever data generation is needed: a laptop, a shared machine, a server, a virtual machine or a container. The pages list these jars.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Jar</th><th>Job (docs wording, shortened)</th></tr></thead>
+<tbody>
+<tr><td><code>genrocket.jar</code></td><td>Reads the command line, checks the user's licence, launches the engine</td></tr>
+<tr><td><code>gr-engine.jar</code></td><td>The core engine that runs scenarios (and supports components such as the multi-user server)</td></tr>
+<tr><td><code>gr-generators.jar</code></td><td>The generator classes</td></tr>
+<tr><td><code>gr-receivers.jar</code></td><td>The receiver classes</td></tr>
+<tr><td><code>gr-grepository-servers.jar</code></td><td>Creates and runs a G-Repository server</td></tr>
+<tr><td><code>gr-grepository-clients.jar</code></td><td>Creates a G-Repository client</td></tr>
+</tbody></table></div>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776334756551/UuYih06hvxqImcNpDA7SiEaa0Xnf575CxQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776334756551/UuYih06hvxqImcNpDA7SiEaa0Xnf575CxQ.png" alt="The same hybrid architecture drawing used on the runtime overview page, showing GenRocket Cloud with Test Data Cases at the top and, below it, G-Repository and GenRocket Runtime on a dev/test machine in the customer premise producing JSON, PDF and Excel" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The runtime overview page's picture: the runtime sits "in the customer environment" (the blue box), next to the machine that needs the data. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/genrocket-runtime/genrocket-runtime-overview" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>The page advises installing the runtime as close as possible to where the data is needed. Three setup styles are listed: a <strong>local user machine</strong>, a <strong>shared central machine</strong> where many people log in, and a <strong>local or remote server</strong>, including one used for automated testing in CI/CD.</p>
+<h3 id="c17-runtime-req">17.6.2 What it needs (as the docs state)</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Item</th><th>Documented value</th></tr></thead>
+<tbody>
+<tr><td>Operating system</td><td>64-bit Linux (recommended), Mac OS or Windows</td></tr>
+<tr><td>CPU and memory</td><td>At least 4 CPUs; at least 8 GB RAM (16 GB recommended)</td></tr>
+<tr><td>Disk</td><td>At least 500 GB SSD (this is the page's "recommended hardware")</td></tr>
+<tr><td>Java</td><td>8 (except 1.8u20), 11, 17, 21 or 24. Check with <code>java -version</code></td></tr>
+<tr><td>Browser for the web platform</td><td>Chrome, Microsoft Edge, Firefox or Safari</td></tr>
+<tr><td>Rights</td><td>Admin rights, to set environment variables, install the runtime and install Java</td></tr>
+<tr><td>Network</td><td>Port 443 (HTTPS) open from the machine to GenRocket Cloud, used for licence checking. The page also says URL or IP allow-listing may be needed</td></tr>
+</tbody></table></div>
+<p>The runtime needs a few environment variables (settings your operating system hands to programs). The overview page names <code>GENROCKET_HOME</code>, <code>PATH</code>, <code>JAVA_HOME</code> and <code>JAVA_OPTS</code>. A small warning from my own reading: the overview table writes the first one as <code>GENROCKET_HOME</code>, while the Windows setup and troubleshooting pages use <code>GEN_ROCKET_HOME</code>. I cannot tell which is correct for your version. Follow the setup article for your operating system and copy the spelling it uses.</p>
+<h3 id="c17-profiles">17.6.3 Profiles: how the runtime knows who you are</h3>
+<p>A scenario file is encrypted and tied to your organisation. To run it, the runtime must find a <em>profile</em> file (extension <code>.grp</code>) in a hidden folder named <code>.genrocket</code> in your home directory. The profile ties the machine to a GenRocket licence.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Profile</th><th>Used for</th></tr></thead>
+<tbody>
+<tr><td>User Profile</td><td>Every person who runs the runtime. It matches the scenario to your organisation and checks that you have an enabled account</td></tr>
+<tr><td>Server Profile</td><td>A server with no particular person, typically a CI/CD machine. An organisation administrator must first add the server in the web platform</td></tr>
+</tbody></table></div>
+<p>Both are downloaded from the web platform. Whenever a resource value changes, the docs say you must download your profile again and replace the old one.</p>
+<h3 id="c17-ports">17.6.4 Port 443, online mode and the offline certificate</h3>
+<p><span class="badge doc">From docs</span> The runtime runs in <em>online mode</em> by default: when you run a scenario, it contacts GenRocket Cloud over port 443 to confirm the licence. The "Verify Port 443" page gives a quick test: open <code>https://app.genrocket.com/license/check</code> in a browser, or run <code>curl</code> on the same address. If the port is open you see a short JSON message saying a valid user or server was not found. That odd-looking "failure" is the proof that the connection works.</p>
+<p>If your company blocks that port, the docs offer an <em>offline certificate</em>: download a file from the web platform, put it in the <code>.genrocket</code> folder, and run scenarios without internet. The certificate is specific to one organisation and lasts 24 hours, so you download a fresh one each day.</p>
+<div class="callout warn"><strong class="ctitle">Offline certificate pitfall from the docs</strong>
+<p>If the home directory stored in your <code>resource.home.directory</code> resource does not match the machine's real home directory, you get "Unable to validate license". The fix on the page is: correct the resource value, download the certificate again and retry.</p></div>

@@ -1,0 +1,104 @@
+<h2 id="c11-project-management">11.10 Managing projects</h2>
+<p>When you create a project you become its <strong>owner</strong> and have access to its folder by default. You can edit its name, description, folder location and associated sources, and the place where its logs are stored (User Guide 10.5.10, p.53). You can also export a project, with its components, to an XML file and import it elsewhere. People do this to back a project up or to move it from a development system to a production system.</p>
+
+<h3 id="c11-create-project">Creating a project</h3>
+<div class="exercise">
+<h4>Task: create the "Customer Orders" project</h4>
+<p>Goal: make an empty workspace for the ShopSphere work. The steps and field list are from the guide (pp.53-54). The project name and values we choose are illustrative.</p>
+<ol class="steps">
+<li><strong>Click Projects.</strong>
+<p>The Projects view lists existing projects. Always check here first that a project for this job does not already exist.</p>
+<p class="expect">A list of projects appears.</p></li>
+<li><strong>Click Actions &gt; New.</strong>
+<p>This opens the Create Project dialog.</p></li>
+<li><strong>Fill in the properties.</strong>
+<p>Use the table below. For ShopSphere: Name <code>CustomerOrders</code> (no spaces, which the guide requires if you will use Hadoop sources), a short description, keep the default Folder (the project name), and keep the default Target Conflict Resolution Strategy (Rename) unless your team says otherwise.</p></li>
+<li><strong>Click OK.</strong>
+<p class="expect">The project opens in a new page.</p></li>
+</ol>
+<details class="sol"><summary>Show the property table</summary>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Meaning in the guide</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Name</td>
+<td>The project name. Must not contain spaces if you plan TDM operations on Hadoop data sources.</td>
+</tr>
+<tr>
+<td>Description</td>
+<td>The project description.</td>
+</tr>
+<tr>
+<td>PowerCenter Repository</td>
+<td>The PowerCenter repository that stores the project folder.</td>
+</tr>
+<tr>
+<td>Folder</td>
+<td>The project folder in the repository. Default is the project name; you can choose another.</td>
+</tr>
+<tr>
+<td>Owner</td>
+<td>The user who owns the folder, with all permissions on it. Default is the creator; you can pick another user.</td>
+</tr>
+<tr>
+<td>Target Conflict Resolution Strategy</td>
+<td>What to do about duplicate target table definitions made when you regenerate a plan: <em>Rename</em> (rename and create another definition), <em>Replace</em> (overwrite the definition and use it in the mapping), <em>Reuse</em> (reuse the existing definition; a workflow fails if the target table metadata changed). Default Rename.</td>
+</tr>
+<tr>
+<td>Target Empty Value</td>
+<td>Optional. A value to use in place of empty values in target non-null columns. A workflow fails if that non-null column is also a unique column.</td>
+</tr>
+</tbody></table></div></details>
+</div>
+
+<h3 id="c11-edit-project">Editing a project</h3>
+<ol class="steps">
+<li><strong>Click Projects and click the project name.</strong>
+<p>It opens in its own tab, with properties and data sources.</p></li>
+<li><strong>Click Edit, change options, click Save.</strong>
+<p>You can change name, description, folder, owner, target conflict resolution strategy and target empty value (the PowerCenter Repository field is not in the edit list). <strong>You cannot remove a source that entities or groups in the project use.</strong> (pp.54-55)</p></li>
+</ol>
+
+<h3 id="c11-default-config">Project default property configuration</h3>
+<p>An administrator with the <strong>Manage Preferences</strong> privilege can add extra default fields to every project of the same Test Data Manager Service. They appear on the project creation page. You find this on the Project Configuration tab of Administrator &gt; Preferences (p.55). The guide gives two examples.</p>
+<div class="tablewrap"><table>
+<thead>
+<tr>
+<th>Default field</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Enable Old Dictionary Optimization</code> (True or False)</td>
+<td>Version 10.5 uses a newer algorithm for optimising dictionary use in substitution masking. Set True in a project where you used the optimisation before and want the <em>same masked output</em> as the old algorithm gave. Set False, or leave unset, to use the new one (pp.55-56).</td>
+</tr>
+<tr>
+<td><code>Target Empty Value</code></td>
+<td>Adds the field for a replacement value used where source empty strings would break a non-null target column. The guide's scenarios: resetting a data set made on an Oracle test data warehouse to a Microsoft SQL Server database, or source characters the PowerCenter Integration Service cannot process (they become nulls). The workflow still fails if the target column is also unique (p.56).</td>
+</tr>
+</tbody></table></div>
+
+<h3 id="c11-copy-delete">Copying and deleting a project</h3>
+<ol class="steps">
+<li><strong>To copy:</strong> in Projects, click a project <em>description</em> to select it without opening it, then Actions &gt; Duplicate. Edit the name and description in the Copy dialog and click Save.
+<p>Test Data Manager copies the project but <strong>does not import the metadata or objects</strong> of the project (p.56). So a copy starts as an empty shell with the same settings.</p></li>
+<li><strong>To delete:</strong> in Projects, select the project by clicking its Description or Created On column (do not open it), then Actions &gt; Delete, then Yes in Confirm Delete.
+<p><strong>All sources associated with the project are deleted</strong> (p.57). The guide says nothing about an undo.</p></li>
+</ol>
+
+<h3 id="c11-export-import">Exporting and importing a project</h3>
+<p>An exported project is an XML file containing source information, connections, constraints, data domains and assignments (p.59).</p>
+<ol class="steps">
+<li><strong>Export:</strong> Projects, click a project, Actions &gt; Export, choose the XML file name and path, OK.</li>
+<li><strong>Import:</strong> Projects, Actions &gt; Import, browse for the XML file, click Finish.
+<p><strong>Before importing, import all the global components that the project assigns</strong> (policies, domains and rules; see <a href="#c11-policies">the policies section</a>). Otherwise the project refers to objects the target repository does not have (p.59).</p>
+<p class="expect">Test Data Manager imports the project.</p></li>
+</ol>
+<div class="callout real"><strong class="ctitle">Real-world use</strong>
+<p>ShopSphere has a development TDM and a production-like TDM. The engineer builds and checks the project in development, exports it to XML, imports the global policy first in the other system, then imports the project. This is the "move from development to production" case the guide names (p.53). The two-system setup is our illustration.</p></div>

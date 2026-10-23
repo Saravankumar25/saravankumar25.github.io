@@ -1,0 +1,148 @@
+
+<h2 id="c7-data-patterns">7.4 The syllabus "data patterns" on the map</h2>
+<p>The course syllabus (Day 47) lists five data patterns: <strong>boundary conditions, sequential, random, edge cases and null</strong>. They are not a separate classification. They are <em>ways of shaping values</em>, and each one serves one or more of the purposes in 7.3.3. <a href="20-genrocket-data-patterns.html">the GenRocket data patterns chapter</a> shows them in GenRocket; here we place them on the map.</p>
+<div class="tablewrap"><table><thead>
+<tr><th>Pattern</th><th>What the values look like</th><th>Mainly serves purpose</th><th>ShopSphere example</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>Boundary conditions</td>
+<td>Values on and just either side of every limit</td>
+<td>Boundary</td>
+<td>Ages 17, 18, 19; <code>quantity</code> 0, 1, max, max+1</td></tr>
+<tr>
+<td>Sequential</td>
+<td>Values that count up (or down) in a fixed step</td>
+<td>Valid, volume, unique keys</td>
+<td><code>customer_id</code> 2001, 2002, 2003 ...</td></tr>
+<tr>
+<td>Random</td>
+<td>Values picked unpredictably from a range or list</td>
+<td>Valid, volume, realism</td>
+<td>First names picked from a list; zip codes in a range</td></tr>
+<tr>
+<td>Edge cases</td>
+<td>Unusual but possible values, placed on purpose</td>
+<td>Edge case, negative</td>
+<td>A negative age every fifth record; names over the length limit 25% of the time</td></tr>
+<tr>
+<td>Null</td>
+<td>Missing, empty or blank values</td>
+<td>Null / empty</td>
+<td>5 customers with no phone</td></tr>
+</tbody>
+</table>
+</div>
+<p>The two documented tools describe these same shapes in their own words. This is the evidence for the table above:</p>
+<ul>
+<li><strong>GenRocket</strong> has a page on <em>Synthetic Data Replacement</em> that lists test scenarios for one column (a Social Security Number): sequential replacement (<code>001-00-0001</code>, <code>001-00-0002</code>), valid-format replacement, character sets that inject invalid characters, boundary values such as <code>000-00-0000</code> and <code>999-99-9999</code>, missing or null data, illegal-format testing and volume stress testing. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/what-is-synthetic-data-replacement-sdr" target="_blank" rel="noopener">What is SDR? ↗</a></li>
+<li>GenRocket's <code>EdgeCaseGen</code> page gives a story where the valid age range is 1 to 120, and a negative age is produced on every fifth record by cycling between a normal-range source and an edge-case source. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-edgecasegen-generator" target="_blank" rel="noopener">EdgeCaseGen ↗</a></li>
+<li><strong>Informatica</strong> rules have an "exception test data" section where you pick how many rows should be null and how many should hold values that break the rule, each as a percentage with up to two decimal places (User Guide 10.5.10, pp.210 to 211). <span class="badge doc">From docs</span> A rule can also use a sequence technique for ordered numbers or dates and a random technique for random strings, numbers and dates (pp.209 and 220).</li>
+</ul>
+<div class="callout example"><strong class="ctitle">Worked example: one rule, five patterns</strong>
+<p>Rule: "a customer must be at least 18 years old on the day of registration". Today, in the test, is 2026-10-23. Here is the same <code>date_of_birth</code> column shaped five ways.</p>
+</div>
+<div class="tablewrap"><table class="sample">
+<caption>Illustrative date_of_birth values for the 18+ rule (my example, not from a vendor document)</caption><thead>
+<tr><th>Pattern</th><th>Values</th><th>Expected application result</th></tr>
+</thead>
+<tbody>
+<tr>
+<td>Boundary</td>
+<td>2009-10-24 (17 years, 364 days), 2008-10-23 (exactly 18), 2008-10-22 (18 years, 1 day)</td>
+<td>Reject, accept, accept</td></tr>
+<tr>
+<td>Sequential</td>
+<td>1980-01-01, 1980-01-02, 1980-01-03 ...</td>
+<td>All accepted; useful for volume and unique ordering</td></tr>
+<tr>
+<td>Random</td>
+<td>Any date between 1950-01-01 and 2008-10-22</td>
+<td>All accepted; realistic age spread</td></tr>
+<tr>
+<td>Edge case</td>
+<td>1900-01-01, 2024-02-29 (a leap day)</td>
+<td>Application decides: accept, or reject as implausible</td></tr>
+<tr>
+<td>Null</td>
+<td>empty</td>
+<td>Reject with a "date of birth required" message</td></tr>
+</tbody>
+</table>
+</div>
+<p>Notice the boundary row. A boundary test needs <em>three</em> values per limit: just inside, on, and just outside. Many bugs are off-by-one mistakes (using "greater than" where "greater than or equal" was meant), and only the exact boundary value catches them. Random data hits the exact boundary almost never. That is the main reason boundary data must be <em>designed</em>, not left to chance.</p>
+
+<h2 id="c7-what-is-synthetic">7.5 What synthetic data is</h2>
+<p><strong>Concept.</strong> Synthetic data is data created by a program following rules you set. No row in it was ever a real person's record.</p>
+<p><strong>Simple explanation.</strong> A film set looks like a street, but nobody lives in the houses. Synthetic data looks like customers, but no customer exists. It is built to be <em>good enough to exercise the application</em>, which is a different goal from being a copy of reality.</p>
+<p>The analogy stops being accurate in one place. A film set is built once and looks right from one angle. Synthetic data must stay correct from every angle the application looks at it: the foreign keys must join, the dates must be in order, and the totals must add up.</p>
+<p><strong>What the tools say.</strong></p>
+<ul>
+<li>GenRocket: "Synthetic Test Data" is data manufactured or generated by an algorithm rather than real-world events. Its stated benefit is that companies can maximise test coverage by testing all permutations and combinations. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/why-synthetic-test-data" target="_blank" rel="noopener">Why Synthetic Test Data? ↗</a></li>
+<li>Informatica: data generation creates realistic test data for test environments, using generation rules that hold the logic. You import the metadata (table and column definitions) so the tool knows which columns to fill, assign rules to columns, then create a plan and run it (User Guide 10.5.10, p.190). <span class="badge doc">From docs</span></li>
+</ul>
+<p>Note what both descriptions have in common. The tool needs to know the <em>shape</em> of the target (the metadata) and a <em>rule</em> for each column. It does not need to see any real customer.</p>
+<div class="callout real"><strong class="ctitle">A real-world example from the Informatica guide</strong>
+<p>The guide's own example is an airline that sells plane tickets. Rules load dictionary values such as names into the customer tables, create random number strings for ticket numbers, create a numeric sequence for identification numbers, and use a reference lookup for values such as airport codes (User Guide 10.5.10, p.191). <span class="badge doc">From docs</span> Map that to ShopSphere and you get: a name dictionary for <code>first_name</code>, a sequence for <code>customer_id</code>, random strings for order references, and a lookup of valid <code>product_code</code> values.</p>
+</div>
+
+<h2 id="c7-synthetic-vs-masked">7.6 Synthetic data versus masked production data</h2>
+<p>Neither is "better". They solve different problems, and mature teams use both. The table compares them on the dimensions that matter. The ratings are general experience, so each column heading carries the "General concept" badge rather than a product claim. <span class="badge concept">General concept</span></p>
+<div class="tablewrap"><table><thead>
+<tr><th>Question</th><th>Masked production data</th><th>Synthetic data</th></tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Realism</strong></td>
+<td>High. Real shapes, real mess, real correlations between columns</td>
+<td>As good as your rules. Looks real only for the properties you modelled</td></tr>
+<tr>
+<td><strong>Coverage of rare or future cases</strong></td>
+<td>Only cases that already happened in production</td>
+<td>Any case you can describe, including ones that never happened, and boundary or invalid values on demand</td></tr>
+<tr>
+<td><strong>Privacy</strong></td>
+<td>Depends on masking quality. Weak masking, or unmasked columns, can still identify people</td>
+<td>No real person behind any row, so there is nothing to re-identify</td></tr>
+<tr>
+<td><strong>Setup effort</strong></td>
+<td>Discovery, masking rules, consistency checks</td>
+<td>Modelling the tables, writing rules for each column and relationship</td></tr>
+<tr>
+<td><strong>Cost to refresh</strong></td>
+<td>Re-run extract and mask, which grows with production size</td>
+<td>Re-run the generator; speed depends on the rows asked for, not on production size</td></tr>
+<tr>
+<td><strong>Referential integrity</strong></td>
+<td>Comes from the real data, but masking must keep keys matching across tables</td>
+<td>Must be designed: parent rows first, children point at existing parents (section 7.8)</td></tr>
+<tr>
+<td><strong>Distributions</strong></td>
+<td>Real distributions come free</td>
+<td>You must state them (for example 20% of customers with no orders)</td></tr>
+<tr>
+<td><strong>Repeatability</strong></td>
+<td>Same snapshot until refreshed</td>
+<td>Same output every run if you use a seed</td></tr>
+<tr>
+<td><strong>Volume on demand</strong></td>
+<td>Limited by what production holds</td>
+<td>As many rows as the target can hold</td></tr>
+<tr>
+<td><strong>Main risk</strong></td>
+<td>A leaked or unmasked column</td>
+<td>A model that is too tidy and misses real-world mess</td></tr>
+</tbody>
+</table>
+</div>
+<p>GenRocket's SDR page makes one claim worth noticing, which I report as the vendor's view: synthetic data "can produce edge cases that do not currently exist in production" and "can yield more accurate data patterns than exist in production". <span class="badge doc">From docs</span> That is a statement about coverage, and it is true for any generator that supports designed edge cases. It does not mean synthetic data is automatically more realistic than production, which it is not.</p>
+<h3 id="c7-choosing">7.6.1 Which one should you choose?</h3>
+<ol class="steps">
+<li><strong>Is a realistic mix of messy data essential, such as for a new analytics report or a migration rehearsal?</strong><p>Lean towards masked production, because the real mess is the thing being tested.</p><p class="expect">Result: use the subsetting and masking techniques from the <a href="05-discovery-and-subsetting-concepts.html">subsetting</a> and <a href="06-masking-concepts.html">masking</a> concept chapters.</p></li>
+<li><strong>Is the system new, so there is no production data yet, or are you testing a feature with no history?</strong><p>Generate. There is nothing to copy.</p><p class="expect">Result: use rules from this chapter.</p></li>
+<li><strong>Do you need exact boundary, negative or very large data sets?</strong><p>Generate. Production rarely holds the 51st item in an order or a customer aged exactly 18 today.</p></li>
+<li><strong>Do you need both realism and designed edge cases?</strong><p>Use a hybrid: masked subset as the base, generated rows added on top, with generated keys chosen so they never clash with the real ones.</p></li>
+</ol>
+<div class="callout warn"><strong class="ctitle">Generated is not the same as safe by default</strong>
+<p>If a generator copies a real value (for example, picks names from an unmasked production table as its dictionary) the result is no longer purely synthetic. Always check where a generator's source list came from. Dictionaries should be made-up or public lists, never an export of real customers.</p>
+</div>

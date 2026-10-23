@@ -1,0 +1,207 @@
+<h2 id="c4-finding">4.7 How sensitive data is found</h2>
+<p>A real production database can have hundreds of tables and tens of thousands of columns. Nobody can read them all, and column names are often cryptic (<code>COL_17</code>, <code>FLD_X2</code>). So tools look for sensitive data automatically. At concept level they all rely on a small set of signals. The full hands-on process is the subject of <a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>, <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a> and <a href="25-delphix-profiling.html">the Delphix profiling chapter</a>. Here we only need the ideas.</p>
+
+<h3 id="c4-three-signals">Three signals</h3>
+<div class="tablewrap"><table><caption>The three detection signals (general concept, with where each tool uses it)</caption>
+<thead><tr><th>Signal</th><th>What it checks</th><th>Strength</th><th>Weakness</th></tr></thead>
+<tbody>
+<tr><td><strong>Column name (metadata)</strong></td><td>Does the name look like <code>ssn</code>, <code>email</code>, <code>phone</code>?</td><td>Fast, needs no data access</td><td>Misses cryptic names. Flags harmless columns with unlucky names.</td></tr>
+<tr><td><strong>Data pattern</strong></td><td>Do the values <em>look like</em> an SSN, a phone number, an email?</td><td>Works even when the name is useless</td><td>Slower, reads real data. Nine digits may be an SSN or an order code.</td></tr>
+<tr><td><strong>Dictionary or list of values</strong></td><td>Are the values found in a list, such as common first names or country names?</td><td>Finds things with no fixed shape, such as names</td><td>Lists are language-specific and never complete.</td></tr>
+</tbody></table></div>
+<p>A fourth signal, <strong>data type and length</strong>, is used to rule things out: an SSN cannot live in a column that holds one-character flags.</p>
+
+<h3 id="c4-informatica-patterns">What Informatica does: data patterns and metadata patterns</h3>
+<p><span class="badge doc">From docs</span> Informatica describes a <em>data domain</em> using regular expressions. A <dfn>regular expression</dfn> (regex) is a compact text recipe for a pattern, for example "three digits, a hyphen, two digits, a hyphen, four digits". The guide separates two kinds (User Guide 10.5.10, pp.74 to 75):</p>
+<ul>
+<li>A <strong>data pattern</strong> matches the values. Its example for Social Security numbers is <code>[0-9]{3}-[0-9]{2}-[0-9]{4}</code>.</li>
+<li>A <strong>metadata pattern</strong> matches column names. Its examples for Social Security numbers are <code>.*SSN*</code>, <code>.*SOCIAL*</code> and <code>.*SECURITY*</code>.</li>
+</ul>
+<p>A column joins the data domain if it matches <em>any</em> expression in the domain. When you run a data domain profile you choose to search the data only, the column name only, or both, how many rows to read (default 1,000) and a minimum conformance percent, since not every row has to match the pattern (pp.95 and 100). <span class="badge doc">From docs</span></p>
+<pre><code>Data pattern     [0-9]{3}-[0-9]{2}-[0-9]{4}     matches   123-45-6789
+Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
+</code></pre>
+
+<h3 id="c4-delphix-classifiers">What Delphix does: profile sets, classifiers and domains</h3>
+<p><span class="badge doc">From docs</span> Delphix calls the detection step <em>profiling</em>. A profiling job examines metadata (column names and types) and possibly the data itself, and when it decides a column is sensitive it assigns the matching domain and that domain's default masking algorithm. It only covers the tables and files in the chosen rule set (Delphix "Discovering your sensitive data", <a class="badge-link" href="https://help.delphix.com/cc/current/content/discovering_your_sensitive_data.htm" target="_blank" rel="noopener">source page ↗</a>).</p>
+<p>The logic is packaged in <strong>classifiers</strong>, grouped into <strong>profile sets</strong>. Four classifier frameworks exist, and they map neatly to our signals:</p>
+<div class="tablewrap"><table><caption>Delphix classifier frameworks (Delphix "Discovering your sensitive data")</caption>
+<thead><tr><th>Framework</th><th>What it examines</th><th>Level</th></tr></thead>
+<tbody>
+<tr><td><code>PATH</code></td><td>The path to the data; for a database that means table and column name. Uses regex or exact match.</td><td>Column</td></tr>
+<tr><td><code>TYPE</code></td><td>Data type and length. Used to reject domain matches. Types: String, Number, Date, Binary.</td><td>Column</td></tr>
+<tr><td><code>REGEX</code></td><td>The data itself, using regular expressions to match or reject a domain.</td><td>Data</td></tr>
+<tr><td><code>LIST</code></td><td>Whether data values appear in a list of values, to match or reject a domain.</td><td>Data</td></tr>
+</tbody></table></div>
+<p>The recommended built-in profile set, the "ASDD Standard" set, includes list classifiers that can detect domains such as FIRST_NAME and LAST_NAME even when column names are meaningless, though data-level detection is limited to English values (Delphix "Out of the box profiling settings"). <span class="badge doc">From docs</span></p>
+
+<h3 id="c4-delphix-ssn">One real example: how Delphix recognises an SSN</h3>
+<p>The ASDD Standard listing (Delphix "ASDD standard profile set", <a class="badge-link" href="https://help.delphix.com/cc/current/content/asdd_standard_profile_set.htm" target="_blank" rel="noopener">source page ↗</a>) shows the SSN domain is defined by three classifiers. In our words:</p>
+<ol class="steps">
+<li><strong>A PATH classifier.</strong><p>A regex on the column path catches names like <code>ssn</code> or <code>social security number</code> with variants such as <code>social_security_no</code>. Its match strength is listed as 0.67.</p></li>
+<li><strong>A REGEX classifier on the data.</strong><p>Patterns for the nine-digit format. The dashed or spaced form (123-45-6789) is listed with match strength 0.7, while nine bare digits are listed with only 0.1.</p><p class="expect">The lower number for bare digits fits the idea in the weaknesses table above: nine digits in a row are far more likely to be something other than an SSN.</p></li>
+<li><strong>A TYPE classifier.</strong><p>The column must be a Number or String of at least 9 characters. This rejects tiny columns.</p></li>
+</ol>
+<p>The excerpt I had does not explain how the strengths are combined into a final decision, so read the product page for your version before relying on the numbers. What matters for a beginner is the design: several weak clues, each with a weight, are combined to decide.</p>
+
+<h3 id="c4-genrocket-names">What GenRocket does: column names only</h3>
+<p><span class="badge doc">From docs</span> GenRocket's "Data Column Profiling" scans column <em>headers</em>, not the data. It checks whether each column name contains a keyword from a list: 102 built-in names plus any your organisation adds (for example <code>user_email</code> matches <code>email</code>, <code>client_ssn</code> matches <code>ssn</code>). It then shows you the matches to choose from (GenRocket "PII Discovery with Data Column Profiling", <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/pii-discovery-with-data-column-profiling-identify-sensitive-data-columns" target="_blank" rel="noopener">source page ↗</a>). It is the "column name" signal on its own. The upside is that the tool never needs to read real values.</p>
+
+<h3 id="c4-shopsphere-detection">ShopSphere example: what each signal finds</h3>
+<div class="tablewrap"><table class="sample"><caption>Illustrative: how the three signals would treat ShopSphere columns</caption>
+<thead><tr><th>Column</th><th>Name signal</th><th>Data signal</th><th>Verdict</th></tr></thead>
+<tbody>
+<tr><td><code>ssn</code></td><td>Strong (<code>ssn</code>)</td><td>Strong (999-99-9999)</td><td>Sensitive, easy</td></tr>
+<tr><td><code>email</code></td><td>Strong</td><td>Strong (text@text.text)</td><td>Sensitive, easy</td></tr>
+<tr><td><code>phone</code></td><td>Strong</td><td>Medium: ten digits, many things are ten digits</td><td>Sensitive</td></tr>
+<tr><td><code>first_name</code></td><td>Medium (contains "name")</td><td>List of first names finds Asha, Ravi, Meera</td><td>Sensitive</td></tr>
+<tr><td><code>tax_id</code></td><td>Depends on the tool: Delphix's ASDD Standard set has a Tax ID name pattern, a short keyword list may not</td><td>Country-specific formats</td><td>Found by some tools, missed by others: verify</td></tr>
+<tr><td><code>zip_code</code></td><td>Strong</td><td>Six digits, ambiguous</td><td>Indirect identifier, needs a human decision</td></tr>
+<tr><td><code>order_id</code></td><td>None</td><td>Pure number, could resemble anything</td><td>Possible false alarm</td></tr>
+</tbody></table></div>
+<div class="callout warn"><strong class="ctitle">Automatic does not mean finished</strong>
+<p>Detection produces <em>candidates</em>. A person must review them: remove false alarms and add the misses (a column like <code>tax_id</code> is caught by a tool whose pattern list includes it and missed by one whose list does not). Informatica builds this review into its workflow: profile results show columns and proposed domains, and a user approves the ones to use (User Guide 10.5.10, p.105). The <a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a> covers false positives and false negatives in detail.</p></div>
+
+<h2 id="c4-policies">4.8 Policies, rules and data domains</h2>
+<p>Now the vocabulary promised at the start. A TDM tool needs one place that records the answer to "what is sensitive here, and how do we protect each kind?". Informatica calls that place a <strong>policy</strong>. The structure is worth learning exactly, because it explains many menus you will see later. <span class="badge doc">From docs</span> (User Guide 10.5.10, p.71)</p>
+<figure class="diagram"><svg viewBox="0 0 800 300" role="img" aria-label="Nested boxes: a Policy contains Data domains; each Data domain contains patterns and preferred rules; each rule is a masking technique with parameters">
+<rect x="10" y="10" width="780" height="280" rx="10" fill="none" stroke="currentColor" stroke-width="2"/>
+<text x="26" y="36" fill="currentColor" font-size="16" font-weight="bold">POLICY  (example: ShopSphere_Customer_PII)</text>
+<rect x="30" y="52" width="350" height="226" rx="8" fill="var(--surface)" stroke="currentColor"/>
+<text x="44" y="76" fill="currentColor" font-size="14" font-weight="bold">DATA DOMAIN: Social Security Number</text>
+<text x="44" y="102" fill="currentColor" font-size="12">Data pattern:  [0-9]{3}-[0-9]{2}-[0-9]{4}</text>
+<text x="44" y="122" fill="currentColor" font-size="12">Metadata pattern:  .*SSN*  .*SOCIAL*</text>
+<text x="44" y="142" fill="currentColor" font-size="12">Sensitivity level: set by the Administrator's list</text>
+<rect x="44" y="160" width="322" height="104" rx="6" fill="none" stroke="currentColor" stroke-dasharray="5 3"/>
+<text x="56" y="184" fill="currentColor" font-size="12" font-weight="bold">RULE (default): SSN masking technique</text>
+<text x="56" y="204" fill="currentColor" font-size="12">+ parameters (repeatable output, seed ...)</text>
+<text x="56" y="228" fill="currentColor" font-size="12">Other preferred rules can sit beside it</text>
+<text x="56" y="248" fill="currentColor" font-size="12">One of them is marked default</text>
+<rect x="410" y="52" width="360" height="226" rx="8" fill="var(--surface)" stroke="currentColor"/>
+<text x="424" y="76" fill="currentColor" font-size="14" font-weight="bold">DATA DOMAIN: Email Address</text>
+<text x="424" y="102" fill="currentColor" font-size="12">Data pattern: text@text.text shape</text>
+<text x="424" y="122" fill="currentColor" font-size="12">Metadata pattern: .*EMAIL*</text>
+<rect x="424" y="160" width="332" height="104" rx="6" fill="none" stroke="currentColor" stroke-dasharray="5 3"/>
+<text x="436" y="184" fill="currentColor" font-size="12" font-weight="bold">RULE (default): Email masking technique</text>
+<text x="436" y="204" fill="currentColor" font-size="12">+ parameters (domain, dictionary ...)</text>
+<text x="436" y="228" fill="currentColor" font-size="12">Columns found by profiling receive</text>
+<text x="436" y="248" fill="currentColor" font-size="12">this rule automatically</text>
+</svg><figcaption>Original diagram: the Informatica structure (policy contains data domains, a data domain holds patterns and preferred rules). The patterns, rule names and parameter lists inside are illustrative, drawn for ShopSphere.</figcaption></figure>
+<h3 id="c4-policy-definitions">What each piece is</h3>
+<dl class="defs">
+<div><dt>Policy (Informatica)</dt><dd>"A data masking component that describes the methods to maintain the privacy of specific types of source data". It contains data domains. You assign a policy to a data source in a project, and one policy can serve several projects (p.71).</dd></div>
+<div><dt>Data domain (Informatica)</dt><dd>Describes the functional meaning of a column based on its data or its name. It carries data patterns, metadata patterns, a sensitivity level, a status (enabled or disabled) and, optionally, preferred masking and generation rules (pp.73 to 75).</dd></div>
+<div><dt>Rule (Informatica)</dt><dd>"A logic to mask sensitive data or to generate test data": a technique plus its parameters. Rules exist for string, numeric and date data (p.72).</dd></div>
+<div><dt>Preferred rule and default rule</dt><dd>When you attach several rules to a domain they are "preferred rules", and one is the default, applied to all columns in the domain unless you pick another. The guide's example: a Last_Name domain with a shuffle rule as default and a substitution rule as another preferred rule (p.73).</dd></div>
+<div><dt>Policy pack</dt><dd>A ready-made policy shipped with TDM. There are three: PII, PHI and PCI, visible after installation (p.77).</dd></div>
+</dl>
+<p>The order of work does not matter. The guide says you can create policies, rules and domains in any order, then connect them: create masking rules, define domains, assign rules to domains, create a policy, assign domains to it (p.72). <span class="badge doc">From docs</span></p>
+<div class="callout example"><strong class="ctitle">Illustrative ShopSphere policy</strong>
+<p>ShopSphere's TDM engineer, with the compliance officer's approval, builds a policy <code>ShopSphere_Customer_PII</code> from these domains. The domain names echo the PII pack; the rule choices are our example.</p></div>
+<div class="tablewrap"><table class="sample"><caption>Illustrative ShopSphere policy: domains, how found, default rule (technique names are Informatica techniques from the masking concepts chapter)</caption>
+<thead><tr><th>Data domain</th><th>Found by</th><th>Columns it should catch</th><th>Default rule (example)</th></tr></thead>
+<tbody>
+<tr><td>First Name</td><td>Name pattern, list</td><td><code>CUSTOMERS.first_name</code></td><td>Substitution from a dictionary</td></tr>
+<tr><td>Last Name</td><td>Name pattern, list</td><td><code>CUSTOMERS.last_name</code></td><td>Substitution from a dictionary</td></tr>
+<tr><td>Email Address</td><td>Data and name pattern</td><td><code>CUSTOMERS.email</code></td><td>Email masking</td></tr>
+<tr><td>Phone</td><td>Data and name pattern</td><td><code>CUSTOMERS.phone</code></td><td>Phone masking</td></tr>
+<tr><td>Social Security Number</td><td>Data and name pattern</td><td><code>CUSTOMERS.ssn</code></td><td>SSN masking</td></tr>
+<tr><td>Birth Date</td><td>Name pattern</td><td><code>CUSTOMERS.date_of_birth</code></td><td>Random masking with date blurring</td></tr>
+</tbody></table></div>
+<h3 id="c4-delphix-vocab">The same ideas in Delphix words</h3>
+<p><span class="badge doc">From docs</span> Delphix splits the same job differently. Use this table to translate when you move between chapters (Delphix "Discovering your sensitive data", "Managing domains" and "Delphix masking terminology").</p>
+<div class="tablewrap"><table><caption>Vocabulary translation. Matching rows are close, not identical.</caption>
+<thead><tr><th>Idea</th><th>Informatica</th><th>Delphix</th><th>GenRocket</th></tr></thead>
+<tbody>
+<tr><td>Named kind of sensitive data</td><td>Data domain</td><td>Domain (a category plus the way to secure it, with one default masking algorithm)</td><td>Data profile name (a keyword, no domain object described in the page I read)</td></tr>
+<tr><td>How a column is recognised</td><td>Data and metadata patterns on the domain</td><td>Classifiers, grouped into profile sets, each tied to a domain</td><td>Column-header keywords</td></tr>
+<tr><td>Bundle of "what to protect and how"</td><td>Policy (with policy packs PII, PHI, PCI)</td><td>Profile set plus the domains' default algorithms</td><td>Chosen per table in a G-Subset configuration</td></tr>
+<tr><td>The change applied to a value</td><td>Rule (technique plus parameters)</td><td>Algorithm instance (an algorithm framework plus configuration)</td><td>Synthetic Data Replacement</td></tr>
+<tr><td>The set of tables to work on</td><td>Project and plan</td><td><strong>Rule set</strong> (a group of tables or files)</td><td>Tables added to a configuration</td></tr>
+</tbody></table></div>
+<div class="callout warn"><strong class="ctitle">The word "rule" means different things</strong>
+<p>In Informatica a <em>rule</em> changes data. In Delphix a <em>rule set</em> is only a list of tables or files that a profiling or masking job runs against (Delphix "Delphix masking terminology"). Mixing these up is the most common vocabulary mistake when someone switches tools.</p></div>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_domain.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_domain.png" alt="Delphix Continuous Compliance Settings, Domains page listing domain names such as ACCOUNT_NO, ADDRESS, AGE and BLOOD_TYPE with their owner and masking method" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> Settings, Domains in Delphix Continuous Compliance. Each row is a domain (ACCOUNT_NO, ADDRESS, AGE ...) with its owner and its default masking method, and the grid shows 10 of 69 domains in this build. This is the "domain equals category plus default algorithm" idea in one picture. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_domains.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>Two behaviours from the Delphix "Managing domains" page are worth knowing: each domain has a single default masking algorithm, so you need a separate domain for each distinct algorithm you want the profiler to assign, and changing a domain's default algorithm only affects future profiling runs, not assignments that already exist in rule sets. <span class="badge doc">From docs</span></p>
+<p>Both tools use the domain idea for a consistency reason as well. Delphix says the domain mechanism helps ensure the same masking algorithm is applied consistently across rule sets whenever a particular type of sensitive data is discovered. Informatica says all columns in a domain are masked with the same rule, so "SSN" and "SOCIAL_SECURITY" in different tables end up masked the same way (p.73). Consistency across tables is a major theme of <a href="06-masking-concepts.html">the masking concepts chapter</a>.</p>
+
+<h2 id="c4-owners">4.9 Who owns what?</h2>
+<p><span class="badge concept">General concept</span> Tools do not decide what is sensitive. People do. Titles differ between companies, but these roles appear in most TDM programmes:</p>
+<div class="tablewrap"><table><caption>Typical roles around sensitive data (organisation-specific; confirm yours)</caption>
+<thead><tr><th>Role</th><th>Owns</th><th>Typical question they answer</th></tr></thead>
+<tbody>
+<tr><td>Compliance officer</td><td>Which laws and internal rules apply, what "sensitive" means for this company, sign-off on the masking approach.</td><td>"Is a masked copy that keeps birth year acceptable under our rules?"</td></tr>
+<tr><td>Data steward</td><td>Meaning, quality and correct use of a data set. Knows what each column holds.</td><td>"Is <code>tax_id</code> a person's ID or a company's?"</td></tr>
+<tr><td>TDM engineer</td><td>Turning decisions into a working policy, running discovery, masking and subsetting, checking results.</td><td>"Which rule fits this column, and did the job keep keys consistent?"</td></tr>
+<tr><td>Database administrator</td><td>Source and target databases, access, performance.</td><td>"Can the TDM tool read this schema, and what is the load window?"</td></tr>
+<tr><td>QA engineer / developer</td><td>Needs usable test data.</td><td>"After masking, do my scenarios still work?"</td></tr>
+<tr><td>Security team</td><td>Access control and logging for the TDM tool and test environments.</td><td>"Who may run a masking job or see the unmasked source?"</td></tr>
+</tbody></table></div>
+<p>The tools reflect the split of duties. <span class="badge doc">From docs</span> In Informatica, you need the <em>View Policies</em> and <em>Manage Policies</em> privileges to view and work with policies (User Guide 10.5.10, p.77), and the Administrator defines the list of sensitivity levels (p.75). Delphix has roles too: an "Editing a user-defined algorithm" permission is described on its algorithms page, and a separate best-practice page covers defining masking roles.</p>
+<div class="callout real"><strong class="ctitle">Keep a written record</strong>
+<p>A good habit: when the compliance officer and data steward decide how a column is handled, write the decision down next to the column name (a spreadsheet is fine) and reference it from the policy. Both tools can attach descriptions. Informatica also lets you link Informatica Business Glossary terms to policies, domains and rules, so people can look up what a term means from one central place (User Guide 10.5.10, p.82). <span class="badge doc">From docs</span></p></div>
+
+<div class="exercise"><h4>Lab: classify the ShopSphere columns</h4>
+<p>Goal: on paper or in a spreadsheet, decide the sensitivity level and the family (PII, PHI, PCI, none) for each ShopSphere column, and name the signal you would expect a tool to use to find it.</p>
+<ol class="steps">
+<li><strong>List every column of the four tables from the shared schema.</strong><p>Use <code>CUSTOMERS</code>, <code>ORDERS</code>, <code>ORDER_ITEMS</code> and <code>PRODUCTS</code>.</p></li>
+<li><strong>For each column, assign Public, Internal, Confidential or Restricted using the table in section 4.6.</strong><p>Ask the three-question test from section 4.2.</p></li>
+<li><strong>Mark the family and the detection signal.</strong><p>Is it found by name, by data pattern, by a list, or only by a human?</p><p class="expect">You should end with a list of about nine sensitive columns and at least one that some tools would miss.</p></li>
+<li><strong>Flag columns that are indirect identifiers.</strong><p>Which combinations could single out a customer?</p></li>
+</ol>
+<details class="sol"><summary>Show a worked answer</summary>
+<div class="tablewrap"><table class="sample"><caption>One reasonable answer (yours may differ: ask what the compliance officer would say)</caption>
+<thead><tr><th>Column</th><th>Level</th><th>Family</th><th>Likely signal</th></tr></thead>
+<tbody>
+<tr><td>CUSTOMERS.customer_id</td><td>Internal</td><td>none, but a key</td><td>Not sensitive; needs consistent handling (see <a href="06-masking-concepts.html">the masking concepts chapter</a>)</td></tr>
+<tr><td>first_name, last_name</td><td>Confidential</td><td>PII</td><td>Name pattern plus list of names</td></tr>
+<tr><td>email</td><td>Confidential</td><td>PII</td><td>Name and data pattern</td></tr>
+<tr><td>phone</td><td>Confidential</td><td>PII</td><td>Name and data pattern</td></tr>
+<tr><td>ssn</td><td>Restricted</td><td>PII</td><td>Name and data pattern</td></tr>
+<tr><td>date_of_birth</td><td>Restricted</td><td>PII, indirect identifier</td><td>Name pattern; date type</td></tr>
+<tr><td>zip_code</td><td>Confidential</td><td>PII, indirect identifier</td><td>Name pattern; human review</td></tr>
+<tr><td>tax_id</td><td>Restricted</td><td>PII</td><td>By name where the tool has a tax-ID pattern; otherwise a person must add it</td></tr>
+<tr><td>ORDERS.order_date, total_amount</td><td>Internal</td><td>none</td><td>Not flagged. A rare huge total could still stand out.</td></tr>
+<tr><td>ORDERS.order_id, ORDER_ITEMS.*, PRODUCTS.*</td><td>Public or Internal</td><td>none</td><td>Not flagged</td></tr>
+</tbody></table></div></details></div>
+
+<h2 id="c4-mistakes">Common mistakes and gotchas</h2>
+<div class="callout warn"><strong class="ctitle">Mistakes beginners make</strong>
+<ul>
+<li><strong>"We removed the names, so it is anonymous."</strong> Birth date plus zip plus gender can identify people (section 4.4).</li>
+<li><strong>Trusting automatic discovery.</strong> It gives candidates. Review them, and add what it misses.</li>
+<li><strong>Forgetting free-text columns.</strong> Notes, comments and descriptions can hold names and ID numbers that no column name reveals.</li>
+<li><strong>Ticking "sensitive" and stopping.</strong> In Informatica the flag is only a label. A masking rule must still be assigned (p.89).</li>
+<li><strong>Assuming a law's definition fits every country.</strong> Ask your compliance officer which regimes apply to your data subjects.</li>
+<li><strong>Mixing up Delphix "rule set" with Informatica "rule".</strong></li>
+<li><strong>Treating PCI as a law.</strong> It is an industry standard, enforced through payment contracts.</li>
+<li><strong>Copying documentation sample values into tests.</strong> Samples like card numbers can be real by accident.</li>
+</ul></div>
+
+<h2 id="c4-recap">Recap</h2>
+<div class="callout recap"><strong class="ctitle">Remember</strong><ul>
+<li>Sensitive data is whatever could harm a person or the company if leaked. PII identifies people, PHI ties health facts to a person, PCI covers payment card data.</li>
+<li>Direct identifiers point to one person. Indirect identifiers (zip, birth date, gender) identify when combined, so deleting names is not enough.</li>
+<li>GDPR and HIPAA, in plain words, say: have a lawful purpose, use the minimum necessary, secure it, and de-identify where you can. This is the legal case for subsetting and masking. This guide is not legal advice.</li>
+<li>Classification gives each column a sensitivity level, and each level maps to an action.</li>
+<li>Tools find sensitive columns by column names, data patterns and value lists, plus type checks. The output is candidates for human review.</li>
+<li>An Informatica policy contains data domains. A domain holds patterns, a sensitivity level and preferred rules. A rule is a technique plus parameters. Delphix uses domains, classifiers, profile sets and algorithm instances for the same ideas.</li>
+<li>People decide: the compliance officer sets what is sensitive, the data steward explains the data, the TDM engineer builds and runs the policy.</li>
+</ul></div>
+
+<h2 id="c4-quiz">Check yourself</h2>
+<details class="quiz"><summary>1. ShopSphere deletes names, emails, phones and SSNs from an extract but keeps date of birth, zip code and gender. Is the extract safely anonymous?</summary><p>Not necessarily. Birth date, zip and gender are indirect identifiers. Combined with an outside list that holds the same facts plus a name, they can single out individuals. Anonymity has to be judged on combinations, not only on direct identifiers.</p></details>
+<details class="quiz"><summary>2. What is the difference between a data pattern and a metadata pattern in an Informatica data domain?</summary><p>A data pattern is a regular expression that matches the values in a column (for example <code>[0-9]{3}-[0-9]{2}-[0-9]{4}</code> for an SSN). A metadata pattern matches column names (for example <code>.*SSN*</code>). A column belongs to the domain if it matches any expression.</p></details>
+<details class="quiz"><summary>3. A colleague says "I marked the SSN column Sensitive in TDM, so it will be masked." What is wrong?</summary><p>In Informatica the Sensitive flag is reference only and does not affect processing. Masking needs a rule assigned to the column (directly or through a data domain) and a plan that runs it.</p></details>
+<details class="quiz"><summary>4. Which legal idea justifies subsetting, and which justifies masking?</summary><p>Minimum necessary or data minimisation justifies subsetting: copy only the data the test needs. De-identification or anonymisation justifies masking: make the copy no longer identify anyone.</p></details>
+<details class="quiz"><summary>5. In Delphix, what is a rule set?</summary><p>A group of tables or flat files in a data source on which profiling, masking or tokenization jobs run. It is not a masking rule. Delphix's masking logic lives in algorithm instances attached to domains.</p></details>
+
+<section class="sources"><h2 id="c4-sources">Sources used in this chapter</h2><ul>
+<li>Informatica TDM 10.5.10 User Guide (PDF, February 2026), chapter 4 "Policies", pp.71 to 85: policy, data domain, rule, data and metadata patterns, sensitivity level, preferred and default rules, PII/PHI/PCI policy packs (pp.77 to 80), business glossary links, privileges.</li>
+<li>Informatica TDM 10.5.10 User Guide, chapter 5 "Data Discovery", pp.86 to 106 (read for): Sensitive and Restricted column properties (p.89), data domain profile sampling options (p.95), profile results and approval (p.105); chapter 8, p.158 (credit card example number).</li>
+<li>Delphix Continuous Compliance 2026.5 docs: <a href="https://help.delphix.com/cc/current/content/discovering_your_sensitive_data.htm" target="_blank" rel="noopener">Discovering your sensitive data</a> (profile set, domain, classifier frameworks); <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a> (domain, rule set, outlier example); <a href="https://help.delphix.com/cc/current/content/managing_domains.htm" target="_blank" rel="noopener">Managing domains</a> (and its screenshot); <a href="https://help.delphix.com/cc/current/content/out_of_the_box_profiling_settings.htm" target="_blank" rel="noopener">Out of the box profiling settings</a>; <a href="https://help.delphix.com/cc/current/content/asdd_standard_profile_set.htm" target="_blank" rel="noopener">ASDD standard profile set</a> (SSN classifiers); <a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a> (regulation mentions); <a href="https://help.delphix.com/cc/current/content/identifying_sensitive_data.htm" target="_blank" rel="noopener">Identifying sensitive data</a> (section index).</li>
+<li>GenRocket help: <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/pii-discovery-with-data-column-profiling-identify-sensitive-data-columns" target="_blank" rel="noopener">PII Discovery with Data Column Profiling</a> (column-header keyword scanning, 102 built-in names).</li>
+<li>General concepts, not from tool sources: summaries of GDPR, HIPAA, PCI DSS, CCPA and India's DPDP Act, the re-identification discussion, the four-level classification scheme and the roles table. Not legal advice.</li>
+<li>Next chapters: <a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a> (discovery and subsetting), <a href="06-masking-concepts.html">the masking concepts chapter</a> (masking).</li>
+</ul></section>

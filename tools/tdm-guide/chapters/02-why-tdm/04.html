@@ -1,0 +1,234 @@
+<h2 id="c2-roles">2.9 Roles in a TDM effort</h2>
+<p>TDM is a team activity. Titles vary by company, and one person may wear several hats, but the responsibilities are consistent.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Role</th><th>What they do in TDM</th><th>ShopSphere example</th></tr></thead>
+<tbody>
+<tr><td><strong>QA engineer / tester</strong></td><td>Defines what data the tests need and consumes it. Reports when data is wrong.</td><td>"I need 200 orders in a 'returned' state."</td></tr>
+<tr><td><strong>Developer</strong></td><td>Needs small, resettable data to debug and build features.</td><td>"I need one customer with an order total of exactly 0.01."</td></tr>
+<tr><td><strong>TDM engineer</strong></td><td>Builds and runs the process: discovers sensitive data, designs subsets, configures masking and generation, schedules refreshes, fixes failures. This is your target role.</td><td>Sets up the masking job that turns <code>SHOPSPHERE_PROD</code> into safe QA data every week.</td></tr>
+<tr><td><strong>Data steward / data owner</strong></td><td>Knows what each data item means, which is sensitive, how it may be used; approves rules.</td><td>Confirms that <code>tax_id</code> is sensitive and must be masked.</td></tr>
+<tr><td><strong>Compliance / privacy officer</strong></td><td>Ensures practice meets laws and internal policy; reviews evidence.</td><td>Asks: "Prove no real SSN exists in UAT."</td></tr>
+<tr><td><strong>Database administrator (DBA)</strong></td><td>Gives access to source and target databases, helps with performance and storage.</td><td>Creates the account the TDM tool uses to read production.</td></tr>
+<tr><td><strong>Tool administrator</strong></td><td>Installs, upgrades and manages the TDM product and its users.</td><td>Sets which users may run masking jobs.</td></tr>
+<tr><td><strong>Release / environment manager</strong></td><td>Plans which environment gets which data and when.</td><td>Schedules the Monday refresh of QA.</td></tr>
+</tbody>
+</table></div>
+<span class="badge concept">General concept</span>
+<p>The tool documentation uses a few role names too. GenRocket's Test Data Workflow page says the workflow begins with the Power User, a Test Data Engineer (TDE). Delphix's terminology page describes separate interfaces for system administrators (Delphix Setup), product administrators (Delphix Management) and project teams, developers and testers (Delphix Self-Service). Informatica says its administrator manages user roles and privileges that decide who can do which TDM tasks (User Guide 10.5.10, p.23). <span class="badge doc">From docs</span></p>
+<div class="callout tip">
+<strong class="ctitle">A good habit for the TDM engineer</strong>
+<p>Ask the requester for the test case, not just "some data". "I need customers" is vague; "I need a customer with two failed payments and one successful order" can be delivered, checked and repeated.</p>
+</div>
+
+<h3 id="c2-day-one">Day-one questions for a new TDM engineer</h3>
+<p>When you join a project, these questions shape everything that follows. You do not need the answers yet; you need to know to ask.</p>
+<ul>
+<li><strong>Where does the data live?</strong> Databases, flat files, mainframe files, cloud stores? Which versions?</li>
+<li><strong>Which environments need data, and how often?</strong> Weekly refreshes and nightly resets are very different workloads.</li>
+<li><strong>What is sensitive here, and who decided?</strong> Is there a written policy, or is it in people's heads?</li>
+<li><strong>Which laws or standards apply?</strong> The answer depends on the business and the countries involved. The regulations are introduced in <a href="04-sensitive-data-and-regulations.html">the sensitive data and regulations chapter</a>.</li>
+<li><strong>Do the tests need real-looking data, or only valid data?</strong> Valid but fake is enough for many tests, and it is cheaper.</li>
+<li><strong>Who approves access to production data for the TDM tool itself?</strong> The tool has to read production once to mask it; that access needs controlling.</li>
+<li><strong>How will we prove it worked?</strong> Reports, logs and sample checks that a compliance officer accepts.</li>
+</ul>
+<span class="badge concept">General concept</span>
+
+<h3 id="c2-myths">Five myths about test data</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Myth</th><th>What is actually true</th></tr></thead>
+<tbody>
+<tr><td>"Test data is a small job; testers can sort it out."</td><td>It is a recurring process with privacy, storage and timing consequences, which is why it earned its own discipline.</td></tr>
+<tr><td>"Production data is the best test data."</td><td>It is the most realistic, but it is unsafe, stale on arrival and lacks the unusual cases tests need.</td></tr>
+<tr><td>"Masked data is always safe."</td><td>Only the columns that were found and masked are protected. Discovery and verification are part of the job.</td></tr>
+<tr><td>"Synthetic data is fake, so it is not good enough."</td><td>It is created to follow rules you define, so it can be as realistic as the rules make it, and it can cover cases real data never contained.</td></tr>
+<tr><td>"A tool will do it all for us."</td><td>A tool carries out the rules; people still decide what is sensitive, what a test needs and who may have what.</td></tr>
+</tbody>
+</table></div>
+<span class="badge concept">General concept</span>
+
+<h2 id="c2-scenarios">2.10 Real-world scenarios at ShopSphere</h2>
+<p>Four short stories, each choosing a different mix of the six capabilities.</p>
+
+<div class="callout real">
+<strong class="ctitle">Scenario 1: weekly QA refresh</strong>
+<p><strong>Situation.</strong> QA tests every Monday and needs realistic data, but production holds real customers.</p>
+<p><strong>Approach.</strong> Each Friday night a job reads production, picks the last 12 months of customers and their orders (<em>subset</em>), replaces names, emails, phones, SSNs and dates of birth with fake but consistent values (<em>mask</em>), and loads the result into QA (<em>provision</em>). Discovery was done once, and its results are re-checked when the schema changes.</p>
+<p><strong>Outcome.</strong> QA gets fresh, safe, small data every Monday without anyone touching production data by hand.</p>
+</div>
+
+<div class="callout real">
+<strong class="ctitle">Scenario 2: a new loyalty-points feature</strong>
+<p><strong>Situation.</strong> ShopSphere adds loyalty points. No production data has points yet.</p>
+<p><strong>Approach.</strong> Nothing to copy, so the team <em>generates</em> 10,000 customers with random point balances, including zero, the maximum and a negative balance that the app must reject.</p>
+<p><strong>Outcome.</strong> The feature is tested before launch, including the edge cases, with no personal data involved.</p>
+</div>
+
+<div class="callout real">
+<strong class="ctitle">Scenario 3: performance test before the holiday sale</strong>
+<p><strong>Situation.</strong> The company expects ten times normal traffic and needs 50 million orders in the performance environment.</p>
+<p><strong>Approach.</strong> Real production does not have that many. The TDM engineer <em>generates</em> the volume, and <em>masks</em> a real sample so that distributions (how many items per order, typical prices) match the real shape.</p>
+<p><strong>Outcome.</strong> The load test runs at realistic scale, safely.</p>
+</div>
+
+<div class="callout real">
+<strong class="ctitle">Scenario 4: a regulator asks for proof</strong>
+<p><strong>Situation.</strong> A privacy audit asks: "Does the QA database contain real SSNs?"</p>
+<p><strong>Approach.</strong> The TDM engineer shows the discovery report (which columns were sensitive), the masking job log (which algorithms ran), and the sign-off record. This is <em>governance</em>.</p>
+<p><strong>Outcome.</strong> The question is answered with evidence in an hour, not a week of arguing.</p>
+</div>
+
+<div class="exercise">
+<h4>Lab: choose the capabilities (thinking lab, no tool needed)</h4>
+<p>Goal: practise mapping a testing problem to the six capabilities.</p>
+<p>For each situation, write down which of discover, subset, mask, generate, provision and govern you would use, and in what order.</p>
+<ol class="steps">
+<li><strong>The UAT team complains the database is too slow to refresh and takes 6 TB.</strong><p>Think about size and speed.</p></li>
+<li><strong>A developer wants to test what happens when a customer's email is blank.</strong><p>Think about whether such a record exists in production.</p></li>
+<li><strong>ShopSphere acquires another retailer whose database has unfamiliar columns and nobody knows what is sensitive.</strong><p>Think about what must come first.</p></li>
+</ol>
+<details class="sol"><summary>Show a worked answer</summary>
+<p><strong>1.</strong> Subset first (cut the size). Mask what remains, then provision. If a virtual-copy product is available, that also speeds provisioning (Delphix describes this; <a href="22-delphix-overview-and-terminology.html">the Delphix overview and terminology chapter</a>).</p>
+<p><strong>2.</strong> Generate. A blank email is probably rare or absent in real data and may be rejected by production's own form, so create it on purpose.</p>
+<p><strong>3.</strong> Discover first. Until you know which columns hold sensitive data you cannot decide what to mask or subset. Then mask, then provision, and govern by recording the decisions.</p>
+</details>
+</div>
+
+<h2 id="c2-benefits">2.11 Benefits and trade-offs</h2>
+<div class="compare">
+<div>
+<h4>Benefits</h4>
+<ul>
+<li>Lower privacy and compliance risk.</li>
+<li>Faster test cycles because data is ready.</li>
+<li>Smaller storage and infrastructure cost.</li>
+<li>Better test coverage through generated edge cases.</li>
+<li>Repeatable tests on known data.</li>
+<li>Fewer false bug reports from bad data.</li>
+</ul>
+</div>
+<div>
+<h4>Trade-offs and costs</h4>
+<ul>
+<li>Set-up effort: discovery, rules and approvals take time up front.</li>
+<li>Licence and infrastructure cost for commercial tools.</li>
+<li>Masked data is never exactly real data; some production-only bugs may not reproduce.</li>
+<li>Generated data is only as good as its rules; it can miss real-world quirks you did not think of.</li>
+<li>New skills and a new process for the team to learn.</li>
+<li>Ongoing upkeep as the schema and the regulations change.</li>
+</ul>
+</div>
+</div>
+<span class="badge concept">General concept</span>
+<div class="callout note">
+<strong class="ctitle">Masked and generated data compared</strong>
+<p>Masking starts from real data and hides the identifying parts, so it keeps real-world shape and messiness. Generation starts from rules, so it is safe by construction and covers cases you design, but only the cases you thought of. Many teams use both: masked data for realism, generated data for edge cases and volume. <a href="07-test-data-classification-and-generation-concepts.html">the classification and generation concepts chapter</a> compares them in detail.</p>
+</div>
+
+<h2 id="c2-maturity">2.12 TDM maturity: from ad hoc to self-service</h2>
+<p>Organisations do not jump straight to full TDM. A common way to describe the journey is a ladder of stages. This is a teaching model, not an official standard; names and numbers of levels vary between authors.</p>
+<span class="badge concept">General concept</span>
+<div class="tablewrap"><table>
+<thead><tr><th>Stage</th><th>How data is obtained</th><th>Typical pain</th></tr></thead>
+<tbody>
+<tr><td><strong>1. Ad hoc</strong></td><td>Each team copies production or types data by hand, whenever it can.</td><td>Privacy risk, inconsistent data, long waits.</td></tr>
+<tr><td><strong>2. Scripted</strong></td><td>Someone writes scripts to subset or mask. Works, but depends on a few people.</td><td>Scripts break when the schema changes; knowledge sits in heads.</td></tr>
+<tr><td><strong>3. Managed</strong></td><td>A TDM team uses a tool with defined rules: discovery, masking, subsetting, scheduled refreshes, approvals.</td><td>Requests still go through the team, which becomes a bottleneck.</td></tr>
+<tr><td><strong>4. Self-service and automated</strong></td><td>Testers request or refresh data themselves through a portal or API, often inside the build pipeline; governance is automatic.</td><td>Needs investment and discipline to keep rules current.</td></tr>
+</tbody>
+</table></div>
+<p>The product documentation points toward the top of the ladder. Informatica mentions a self-service portal for users who use test data warehouse data but do not create it (User Guide 10.5.10, p.22). Delphix describes a self-service service where testers can refresh, rewind, bookmark and share copies. <span class="badge doc">From docs</span> Both are vendor views of what later stages look like, not proof of how any particular organisation works.</p>
+<div class="callout why">
+<strong class="ctitle">Why maturity matters to you</strong>
+<p>When you join a project, find out which stage it is in. A stage 1 team needs convincing and a small pilot. A stage 3 team needs a good TDM engineer to keep the machine running. The final syllabus days on "end-to-end plan development" and "assessment on a particular LOB" (line of business) are about exactly this: understanding where a client is and what to do next (<a href="29-planning-real-engagements.html">the planning real engagements chapter</a>).</p>
+</div>
+
+<h2 id="c2-landscape">2.13 The commercial TDM product landscape</h2>
+<h3 id="c2-cots">What "COTS" means</h3>
+<p><dfn>COTS</dfn> stands for commercial off-the-shelf. It means software that a vendor builds once and sells to many customers, as opposed to custom software written for one company. You buy a licence, install it, and configure it with your own rules.</p>
+<span class="badge concept">General concept</span>
+<p>In TDM there are three broad ways to get the capabilities from section 2.6:</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Approach</th><th>Strengths</th><th>Weaknesses</th></tr></thead>
+<tbody>
+<tr><td><strong>Home-grown scripts</strong></td><td>Cheap to start; tailored to your database.</td><td>Hard to maintain; usually weak on discovery, governance and audit evidence; depends on key people.</td></tr>
+<tr><td><strong>Open-source tools</strong></td><td>No licence fee; community knowledge.</td><td>You assemble and support it yourself; coverage varies.</td></tr>
+<tr><td><strong>COTS products</strong></td><td>Many capabilities in one supported product; connectors to many databases; auditing and role-based access; vendor support.</td><td>Licence cost; training; you follow the vendor's way of working; version upgrades.</td></tr>
+</tbody>
+</table></div>
+<p>The comparison is general; real products vary, so evaluate with a proof of concept (a small trial on your own data). <a href="29-planning-real-engagements.html">The planning real engagements chapter</a> shows how.</p>
+
+<h3 id="c2-programme-tools">The three products in this programme</h3>
+<p>The programme teaches three COTS products. <a href="01-start-here.html">The start-here chapter</a> introduced them; here is the one-line version again with where each fits.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Product</th><th>Strongest fit, from its docs</th><th>Chapters</th></tr></thead>
+<tbody>
+<tr><td>Informatica TDM</td><td>One web client for discovery, subset, masking and generation, plus a test data warehouse for versions of test data. Works with PowerCenter.</td><td><a href="10-informatica-overview-and-architecture.html">Informatica chapters</a></td></tr>
+<tr><td>GenRocket</td><td>Synthetic test data: generating data from rules built on Domain, Attribute, Generator, Receiver and Scenario.</td><td><a href="17-genrocket-overview.html">GenRocket chapters</a></td></tr>
+<tr><td>Delphix</td><td>Profiling and masking sensitive data; virtual copies of databases and files.</td><td><a href="22-delphix-overview-and-terminology.html">Delphix chapters</a></td></tr>
+</tbody>
+</table></div>
+<p>There are other TDM products on the market. This guide does not cover them and makes no claim about how they compare.</p>
+
+<h3 id="c2-partnership-cogips">"Partnership" and "Cog IPs"</h3>
+<p>The Day 43 syllabus row mentions "partnership" and "Cog IPs". These are specific to the organisation running the programme, and I have no source for them. I will not guess. <strong>Ask your trainer</strong> what the partnership is, and what the "Cog IPs" are and how they relate to the three COTS tools. When you learn, add it to your notebook from <a href="01-start-here.html">the start-here chapter</a>'s lab.</p>
+<span class="badge unverified">Unverified</span>
+
+<h2 id="c2-mistakes">2.14 Common mistakes and gotchas</h2>
+<div class="callout warn">
+<strong class="ctitle">"We mask it, so it is safe"</strong>
+<p>Masking only protects the columns you masked. If discovery missed a column, or a free-text "notes" field contains names, sensitive data survives. Discovery and verification matter as much as the masking itself.</p>
+</div>
+<div class="callout warn">
+<strong class="ctitle">Treating TDM as a one-off project</strong>
+<p>Production changes every day: new columns, new data, new rules. A TDM set-up that is never maintained goes stale just like a copied database.</p>
+</div>
+<div class="callout warn">
+<strong class="ctitle">Using one technique for everything</strong>
+<p>Masking is not always right. If no real data exists for the case, or real data cannot be used at all, generate. If the problem is only size or speed, subset or virtualise.</p>
+</div>
+<div class="callout warn">
+<strong class="ctitle">Ignoring relationships</strong>
+<p>Any change to the data (subset, mask, generate) must keep related tables consistent. <a href="03-data-basics.html">The data basics chapter</a> explains how; skipping it leads to the "orders with no customer" bug.</p>
+</div>
+<div class="callout warn">
+<strong class="ctitle">Believing tool names are the concepts</strong>
+<p>"Plan", "rule set", "scenario" and "domain" mean different things in different products. Learn the concept, then learn each tool's word for it.</p>
+</div>
+
+<h2 id="c2-recap">2.15 Recap</h2>
+<div class="callout recap">
+<strong class="ctitle">Recap</strong>
+<ul>
+<li>Testing needs data; good test data is realistic, consistent, complete, right-sized, safe, available and repeatable.</li>
+<li>Copying production gives real data but causes privacy leaks, huge size, slow refreshes, stale data, missing edge cases, broken relationships, cost and loss of control.</li>
+<li>TDM is the set of processes, roles and tools that deliver safe, right-sized, realistic test data on demand.</li>
+<li>Its six capabilities are discover, subset, mask, generate, provision and govern; most projects use several.</li>
+<li>Roles include testers, developers, the TDM engineer, data steward, compliance officer, DBA and administrators.</li>
+<li>Maturity runs from ad hoc, through scripted and managed, to self-service and automated.</li>
+<li>COTS means commercial off-the-shelf; the programme uses Informatica TDM, GenRocket and Delphix. Ask the trainer about "partnership" and "Cog IPs".</li>
+</ul>
+</div>
+
+<h2 id="c2-check">2.16 Check yourself</h2>
+<details class="quiz"><summary>1. Name four things that go wrong when you copy production into a test environment.</summary>
+<p>Any four of: privacy and security leaks, huge size, slow refreshes, stale data, missing edge cases, broken relationships when the copy is trimmed by hand, cost, and lack of repeatability or control. The first is the most serious because real people's data ends up in weakly controlled environments.</p></details>
+<details class="quiz"><summary>2. Which TDM capability would you use to give a developer a customer with a 300-character last name, and why?</summary>
+<p>Generate. A 300-character name probably does not exist in production, so there is nothing to copy or mask; it has to be created from rules.</p></details>
+<details class="quiz"><summary>3. What is the difference between masking and encryption, according to the Delphix introduction?</summary>
+<p>Masking replaces sensitive values with fictitious but realistic ones and is irreversible, so it protects downstream environments. Encryption scrambles data so it can be recovered with the right credentials; the page says it suits data in motion or at rest but is ill-suited to protecting non-production environments.</p></details>
+<details class="quiz"><summary>4. Why must subsetting keep primary and foreign key relationships?</summary>
+<p>If an order survives but its customer is dropped, the application sees an order that points to nobody and fails for reasons unrelated to the code under test. Informatica's guide says a subset retains primary and foreign key relations so the data is referentially intact.</p></details>
+<details class="quiz"><summary>5. What does COTS mean, and which two items in the Day 43 syllabus row can this guide not explain?</summary>
+<p>Commercial off-the-shelf: ready-made vendor software that you configure. The two items are "partnership" and "Cog IPs", which are organisation-specific; ask the trainer.</p></details>
+
+<section class="sources"><h2 id="c2-sources">Sources used in this chapter</h2>
+<ul>
+<li>Informatica TDM 10.5.10 User Guide (PDF, February 2026), Chapter 1: "Test Data Management Overview" (pp.21-22), "Test Data Management Use Cases" (pp.23-24). Used for the tool use-case table, key-preserving subsets, test data warehouse versions, the self-service portal and role privileges.</li>
+<li><a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Delphix: Introduction to Delphix Masking</a>. Used for the challenge and solution, masking versus encryption, virtual copies, the four services and the platform diagram.</li>
+<li><a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>. Used for the definition of Continuous Compliance and the three user interfaces.</li>
+<li><a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/why-synthetic-test-data" target="_blank" rel="noopener">GenRocket: Why Synthetic Test Data?</a>. Used for the definition and coverage argument.</li>
+<li><a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/the-genrocket-methodology" target="_blank" rel="noopener">GenRocket: The GenRocket Methodology</a>. Used for "Model, Design, Deploy, Manage".</li>
+<li><a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/test-data-workflow" target="_blank" rel="noopener">GenRocket: Test Data Workflow</a>. Used for the Power User / Test Data Engineer role.</li>
+<li>Programme syllabus, Day 43 row. Used for the "partnership" and "Cog IPs" mentions (not described).</li>
+<li>General concept sections (testing, environments, maturity, COTS) are my own explanation, not taken from a vendor page.</li>
+</ul></section>

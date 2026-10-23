@@ -1,0 +1,134 @@
+<h3 id="c11-policy-packs">Policy packs: PII, PHI and PCI</h3>
+<p>You do not have to start from an empty Policies view. TDM includes three ready-made <strong>policy packs</strong>: PII, PHI and PCI. After installation they are visible in the Policies view, with the data and metadata patterns of their domains, so you can read the actual regular expressions (User Guide 10.5.10, p.77). To view and work with policies you need the Test Data Manager Service <strong>View Policies</strong> and <strong>Manage Policies</strong> privileges, and without View Policies you cannot see policies at all.</p>
+<p>The three names are explained in <a href="04-sensitive-data-and-regulations.html">the sensitive data and regulations chapter</a>: PII is personally identifiable information, PHI is protected health information, PCI is payment card information.</p>
+<div class="tablewrap"><table>
+<caption>Policy packs and their data domains with default rules (pp.78-80)</caption>
+<thead>
+<tr>
+<th>Pack</th>
+<th>Industry focus (guide)</th>
+<th>Data domains (each has a default rule of a matching name)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PII</td>
+<td>Personal information</td>
+<td>Age; Birth Date; Birth Place; Country; Credit Card; Drivers License Number; Email Address; First Name; Full Address UPPER; Full Name; Gender; Grades; IP Address; Job Position; Last Name; Organization Name; Passport; Phone; Salary; School Name; Social Security Number; State; Street Name; UK National Identifier; Vehicle Registration Number; ZIP</td>
+</tr>
+<tr>
+<td>PHI</td>
+<td>Healthcare and pharmaceutical</td>
+<td>Account Number; Birth Date; Certificate License Number; Device Identifier Serial Number; Email Address; First Name; Health Plan Beneficiary Number; IP Address; Last Name; Medical Record Number; Phone; Primary Account Number; Social Security Number; State; Unique Identifier; Web URL; ZIP</td>
+</tr>
+<tr>
+<td>PCI</td>
+<td>Banking and finance</td>
+<td>Account Number; Birth Date; Credit Card; Expiration Date; First Name; Last Name</td>
+</tr>
+</tbody></table></div>
+<p>Look at how this fits ShopSphere. The PII pack already has First Name, Last Name, Email Address, Phone, Social Security Number, Birth Date and ZIP, which cover almost every personal column in <code>CUSTOMERS</code> (<code>first_name</code>, <code>last_name</code>, <code>email</code>, <code>phone</code>, <code>ssn</code>, <code>date_of_birth</code>, <code>zip_code</code>). Nothing in the packs obviously covers <code>tax_id</code>: that is a case where you would add your own domain or assign one manually. The guide's pack tables do not list a "tax ID" domain.</p>
+<div class="callout note"><strong class="ctitle">A small oddity in the guide's tables</strong>
+<p>The PHI and PCI tables label their columns "Policy Pack" and "Description" instead of "Data Domain Name" and "Default Rule", but the content is clearly domain and default rule, matching the PII table (pp.79-80). I read them as the same layout.</p></div>
+
+<h3 id="c11-import-export">Importing and exporting policy components</h3>
+<p>You can export policies, domains and rules to XML files and import them into another TDM repository (pp.80-81). The details matter:</p>
+<ul>
+<li>Exporting a <strong>policy</strong> exports <em>references</em> to its domains. Exporting domains exports references to rules. Neither exports the referenced objects unless you choose to export them as well.</li>
+<li>Policies, domains and rules go into <strong>separate XML files</strong>, each with a default name and a date number such as <code>Policy_121112141309.xml</code> or <code>Domain_121112141309.xml</code>. You can rename them.</li>
+<li>If a rule or policy in the target TDM already <strong>has assignments</strong>, you cannot import the file. Clear the assignment or change the name in the file first.</li>
+<li>If the object already exists, import <strong>overwrites</strong> it.</li>
+</ul>
+<ol class="steps">
+<li><strong>Export:</strong> in the Policies view tick the objects, click Actions &gt; Export, then Open or Save. Test Data Manager prompts once for each type of file.</li>
+<li><strong>Import:</strong> in the Policies view click Actions &gt; Import, browse for the XML file, click Finish.</li>
+</ol>
+
+<h4 id="c11-import-domains">Importing data domains from the Model repository</h4>
+<p>Data domains created in the Informatica Developer tool live in the Model repository. Import them <strong>before</strong> you import a data domain profile (pp.81-82).</p>
+<ol class="steps">
+<li><strong>Click Policies, then Actions &gt; Import Data Domains.</strong>
+<p class="expect">A window lists data domains in the Model repository.</p></li>
+<li><strong>Select the domains, set a sensitivity level for each in the Sensitivity Level column, click Save, then Import.</strong>
+<p>If a same-name domain exists, you can overwrite or cancel.</p></li>
+</ol>
+<p>What comes across: <strong>name, description and links to business terms</strong>. What does <em>not</em>: data patterns, metadata patterns and preferred rules. So an imported domain is a shell that you finish in Test Data Manager. If you overwrite, TDM updates the description and linked terms but keeps the patterns and rules you set in TDM. Linked business terms are merged, and a term deleted in Developer is kept in TDM until you delete it by hand (p.81).</p>
+
+<h3 id="c11-glossary">Linking Business Glossary terms</h3>
+<p>You can link Informatica Business Glossary terms to global objects: policies, domains, masking rules and generation rules (p.82). A business term has a business definition and examples of use, stored centrally so people can look things up. Link a term to a TDM object and you can see the object from the term in the Analyst tool. You need an Analyst Service configured in the Test Data Manager Service properties, as the <a href="10-informatica-overview-and-architecture.html">Informatica architecture chapter</a> listed.</p>
+<ol class="steps">
+<li><strong>In Policies, select the object</strong> (policy, domain, masking rule or generation rule) and open the <strong>Linked Business Terms</strong> tab.
+<p>The tab lists the term, its glossary and a description.</p></li>
+<li><strong>Click Add</strong>, choose the glossary on the Link Asset to Business Term page, select terms and click OK.
+<p>You need Manage privileges on the object.</p></li>
+<li><strong>To remove a link:</strong> select the term on the tab, click Delete, then Yes. You can also delete it from the Business Glossary UI (p.83).</li>
+</ol>
+<p>Side effects: deleting the TDM object deletes the link; renaming a linked object shows the new name in the glossary; deleting a term from a glossary deletes the link.</p>
+<div class="callout real"><strong class="ctitle">ShopSphere use</strong>
+<p>The data steward owns a glossary term "Customer Government ID". Linking it to the Customer_SSN domain lets anyone reading the glossary jump to how that data is masked in test. This is our illustration of a use the guide describes in general terms.</p></div>
+
+<h3 id="c11-policy-management">Policy management: create, copy, edit, delete</h3>
+<p>You can create a policy before or after you define rules and domains, and add domains later. A copy contains the rules and domains of the original, and a policy can be exported to XML and imported elsewhere (p.83).</p>
+<div class="exercise">
+<h4>Task: create the ShopSphere customer-data policy</h4>
+<p>Goal: one policy holding the domains your project will mask. Steps are from the guide (p.83); the policy and domain choices are ours.</p>
+<ol class="steps">
+<li><strong>In the Policies view, click Actions &gt; New &gt; Policy.</strong>
+<p class="expect">The New Policy dialog box appears.</p></li>
+<li><strong>Enter a name and optional description, click Next.</strong>
+<p>For example <code>ShopSphere_Customer_PII</code>, "Personal data in customer tables". A clear name matters because projects choose policies by name.</p></li>
+<li><strong>Click Add Data Domains and select domains from the list.</strong>
+<p>Choose First Name, Last Name, Email Address, Phone, Social Security Number, Birth Date and ZIP from the PII pack, plus your own Customer_SSN domain if you made one.</p></li>
+<li><strong>Click Finish.</strong>
+<p class="expect">The policy appears in the Policies view. Select it and look at its Data Domains tab to confirm the list.</p></li>
+</ol>
+<details class="sol"><summary>Show a worked answer</summary>
+<p>You should see one policy with about eight domains. If you add the same pack domain and your own custom SSN domain, both will compete for <code>ssn</code>; decide which one you want and remove the other, or mark clear default rules. That judgement call is yours (not covered by the guide).</p></details>
+</div>
+<ul>
+<li><strong>Copy a policy:</strong> in Policies, click the policy <em>description</em> (do not open it), Actions &gt; Duplicate, change name and description, Save (p.84).</li>
+<li><strong>Edit a policy:</strong> click the name, Actions &gt; Edit; change name, description or status; on the Data Domains tab click Add, select, OK, then Save. Deleting a domain that has rule assignments shows Impacted Objects, with Export for a CSV and Continue to proceed. Regenerate and run affected plans afterwards (p.84).</li>
+<li><strong>Delete a policy:</strong> open it, Actions &gt; Delete, confirm. The domains and rules inside are <strong>not</strong> deleted, but all assignments made through the policy <strong>are</strong>. If assignments exist you see Impacted Objects; Export, then Continue (pp.84-85).</li>
+</ul>
+
+<h2 id="c11-mistakes">11.14 Common mistakes and gotchas</h2>
+<div class="callout warn"><strong class="ctitle">Watch out</strong>
+<ul>
+<li><strong>Opening a project when you meant to select it.</strong> For Copy and Delete, select the row by clicking its Description or Created On column and do not open it (pp.56-57).</li>
+<li><strong>Expecting a project copy to contain the tables.</strong> Copy does not import metadata or objects (p.56).</li>
+<li><strong>Setting log directories that do not exist.</strong> TDM will not create them, and a wrong workflow log directory makes the workflow fail without an error log (p.59).</li>
+<li><strong>Changing a policy, domain or rule and forgetting to regenerate the plan.</strong> The guide repeats "generate and run the plan again" after every such change.</li>
+<li><strong>Importing a project before its policies.</strong> Import global components first (p.59).</li>
+<li><strong>Importing a Model repository data domain and expecting patterns.</strong> Patterns and preferred rules do not come across (p.81).</li>
+<li><strong>Using a connection parameter for a staging connection.</strong> Not allowed, so batch updates for in-place masking are unavailable with connection parameters (p.52).</li>
+<li><strong>Assuming Search finds connections.</strong> It does not (p.39).</li>
+<li><strong>Treating a policy pack as complete.</strong> Check that columns like <code>tax_id</code> are covered.</li>
+</ul></div>
+
+<h2 id="c11-recap">11.15 Recap</h2>
+<div class="callout recap"><strong class="ctitle">Key points</strong>
+<ul>
+<li>Test Data Manager has seven views: Overview, Policies, Data Sets, Projects, Monitor, Parameters and Administrator, with search, quick links, preferences, an Actions menu, a data filter and an Expression Builder on top.</li>
+<li>You log in with an Informatica domain user at <code>http(s)://host:port/tdm/</code>; the guide's defaults are ports 6643 (TLS) and 6605.</li>
+<li>A project holds data sources, entities, groups, parameters, plans, policy and rule assignments and profiles, and has six views including Permissions.</li>
+<li>Create a project with Actions &gt; New; copy it without its metadata; export and import it as XML after importing global components.</li>
+<li>Import metadata with Actions &gt; Import Metadata from PowerCenter, the Model repository or a database; importing does not copy rows.</li>
+<li>Permissions are Read, Write and Execute, and each task also needs a minimum privilege.</li>
+<li>A policy is a set of data domains; a domain finds columns by data patterns and metadata patterns (regular expressions) and carries preferred masking and generation rules, one marked default.</li>
+<li>PII, PHI and PCI policy packs come ready-made.</li>
+</ul></div>
+
+<h2 id="c11-quiz">11.16 Check yourself</h2>
+<details class="quiz"><summary>You copied a project. Why are there no tables in it?</summary><p>Copying a project does not import the metadata or objects of the original (User Guide 10.5.10, p.56). Import the metadata again with Actions &gt; Import Metadata.</p></details>
+<details class="quiz"><summary>What is the difference between a data pattern and a metadata pattern?</summary><p>A data pattern is a regular expression for what the values look like; a metadata pattern is for what the column name looks like (p.74). A column belongs in the domain if any expression of either kind matches.</p></details>
+<details class="quiz"><summary>A QA engineer must re-run an existing plan but must not change it. Which project permission fits?</summary><p>Execute, which allows running workflows (p.69). Write is for building (generate workflows, assign rules, run profiles). The person also needs the Execute project privilege.</p></details>
+<details class="quiz"><summary>You delete a policy. What happens to its data domains and rules, and to column assignments?</summary><p>Data domains and rules are not deleted, but the assignments made through the policy are removed (p.84). That is why Impacted Objects appears, and why you regenerate affected plans.</p></details>
+<details class="quiz"><summary>An imported Model repository data domain shows no patterns. Is something broken?</summary><p>No. Import brings the name, description and linked business terms only; data patterns, metadata patterns and preferred rules must be added in Test Data Manager (p.81).</p></details>
+
+<section class="sources"><h2 id="c11-sources">Sources used in this chapter</h2>
+<ul>
+<li>Informatica Test Data Management 10.5.10 User Guide (PDF, February 2026, 455 pages): chapter 2 "Test Data Manager" (PDF pages 37 to 48), chapter 3 "Projects" (pages 49 to 70) and chapter 4 "Policies" (pages 71 to 85). Read in full. Page figures on pp.38, 41, 43, 45, 47 and 49 were viewed to describe them in the visual reference boxes.</li>
+<li>Pages 25 to 36 of the same guide (the architecture and parameterization topics) for the cross references to the <a href="10-informatica-overview-and-architecture.html">Informatica architecture chapter</a>.</li>
+<li>Not read: the Informatica Transformation Language Reference (the guide points to it for expression syntax) and the regular-expression tutorial the guide mentions. The regex primer in this chapter uses only the pieces the guide lists.</li>
+<li>ShopSphere examples, sketches and regular expression ideas marked as illustrative: original to this guide.</li>
+</ul></section>

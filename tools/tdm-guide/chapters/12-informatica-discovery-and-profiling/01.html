@@ -1,0 +1,79 @@
+<p>Before you can protect data you have to know where it is. ShopSphere's <code>CUSTOMERS</code> table has nine columns, and it is easy to see that <code>ssn</code> is sensitive. But the real production database has hundreds of tables, and a Social Security number can hide in a column called <code>NOTES</code>. <dfn>Data discovery</dfn> is Informatica's name for the automatic search that finds sensitive columns and table relationships so you do not have to read every column by eye.</p>
+<p>This chapter covers everything the guide says about discovery and profiling in Test Data Manager: the four kinds of profile, how to create and run them, how to review and approve their results, how primary keys and logical relationships fit in, and the three syllabus hands-on exercises (TDM and data profiling, profiling and masking, profiling and subset) built as labs on ShopSphere. It builds on <a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>, <a href="03-data-basics.html">the data basics chapter</a> (for keys), and the project and policy tour in <a href="11-informatica-tdm-tour.html">the guided tour of Test Data Manager</a>.</p>
+
+<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
+<p>The <strong>Informatica Test Data Management 10.5.10 User Guide, PDF, February 2026, 455 pages</strong>, chapter 5 "Data Discovery" (PDF pages 86 to 111), read in full, with supporting facts from chapter 1 (pp.30-34), chapter 3 (pp.60, 88) and chapter 4 (pp.73-75). I viewed the figures on pp.88 and 103 to 106. Citations look like <em>(User Guide 10.5.10, p.93)</em>.</p>
+<p>The guide's figures have no image address, so I use <strong>visual reference</strong> boxes. <strong>All ShopSphere numbers and results are illustrative</strong>, invented to explain the screens, and are labelled so. The syllabus gives only the titles of the three hands-on exercises, so the labs below are my reconstruction and mark which steps come from the guide.</p></div>
+
+<div class="callout recap"><strong class="ctitle">What you will learn</strong>
+<ul>
+<li>What data discovery is for and the four profile types: primary key, entity (foreign key), data domain and column.</li>
+<li>What a primary key is, why subsetting and masking need keys, and how to discover and approve them.</li>
+<li>How data domain discovery finds sensitive columns, and what the sampling options mean.</li>
+<li>How to review results, approve or reject them, and assign domains by hand or by CSV.</li>
+<li>Constraints and relationships: logical keys, major and minor severity, and value cascades.</li>
+<li>Tips from the guide that affect profile speed and accuracy.</li>
+<li>Three labs that match the syllabus items TDM_Handson1, TDM_Handson2 and TDM_Handson3.</li>
+</ul></div>
+
+<h2 id="c12-words">12.1 Words to know first</h2>
+<dl class="defs">
+<div><dt>Profile</dt>
+<dd>A saved search definition: which tables, which kind of analysis, which sampling limits. You can run it again later.</dd></div>
+<div><dt>Profiling</dt>
+<dd>Reading the data (or the column names) to describe it: which columns are unique, which look like SSNs, how many are empty.</dd></div>
+<div><dt>Primary key (PK)</dt>
+<dd>A column, or combination of columns, whose values uniquely identify each row. No empty values, no duplicates. Like a library card number.</dd></div>
+<div><dt>Foreign key (FK)</dt>
+<dd>A column in a child table that holds the primary key value of a parent row, such as <code>ORDERS.customer_id</code> pointing to <code>CUSTOMERS.customer_id</code>.</dd></div>
+<div><dt>Referential integrity</dt>
+<dd>The rule that every foreign key value has a matching parent row. Without it you get orphan orders.</dd></div>
+<div><dt>Logical key or constraint</dt>
+<dd>A key relationship defined only inside TDM, not in the real database. The guide stresses that TDM does not update the source tables.</dd></div>
+<div><dt>Entity</dt>
+<dd>A set of related parent and child tables, used to define a subset.</dd></div>
+<div><dt>Uniqueness percentage</dt>
+<dd>The share of values in a column that are unique. 100 means no duplicates.</dd></div>
+<div><dt>Conformance</dt>
+<dd>The percentage of rows that fit a rule or pattern. A threshold lets a few rows disagree.</dd></div>
+<div><dt>Curation (review)</dt>
+<dd>Looking at suggested profile results and approving or rejecting each one.</dd></div>
+</dl>
+
+<h2 id="c12-overview">12.2 What data discovery is for</h2>
+<p>The guide's overview (User Guide 10.5.10, p.86): you run profiles to discover source data for <strong>masking</strong> and <strong>subset</strong>. Before masking, you discover which columns to mask with the same rule. Before building a subset, you discover relationships between tables and the entities that shape the subset database. You can then <em>apply the results</em> instead of configuring entities by hand or applying a masking rule one column at a time.</p>
+<div class="callout why"><strong class="ctitle">Why it matters</strong>
+<p>Discovery turns "someone remembers which columns are sensitive" into a repeatable, reviewable record. A compliance officer can see which columns were found, with what confidence, and who approved them. It also supplies the keys that subsetting needs when the database does not declare them.</p></div>
+
+<h3 id="c12-profile-types">The profile types</h3>
+<p>The guide names four types on p.86-87. In the screens you will see three of them listed as the options when you create a profile (primary key, entity, data domain) plus column. Note a naming wrinkle: the overview calls the relationship profile "Foreign key", while the creation steps and result screens call it an <strong>entity</strong> profile. They describe the same relationship discovery.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Profile</th><th>Question it answers</th><th>What you get</th><th>Used for</th></tr></thead>
+<tbody>
+<tr><td>Primary key</td><td>Which column (or combination) could uniquely identify rows?</td><td>Candidate keys with a uniqueness percentage. You approve those you want, and TDM adds them to the table in the TDM repository, not to the source database.</td><td>Subset, relationships</td></tr>
+<tr><td>Foreign key / entity</td><td>Which tables are related, and which could be entities?</td><td>Possible entities and logical constraints; you select entities and approve constraints. TDM stores logical constraints in its repository and does not apply them to source tables.</td><td>Subset with referential integrity</td></tr>
+<tr><td>Data domain</td><td>Which columns hold data of a given kind (SSN, phone, name)?</td><td>Column-to-domain suggestions based on column values or names.</td><td>Masking, sensitive-data inventory</td></tr>
+<tr><td>Column</td><td>What do the values in this column look like (range, patterns, lists)?</td><td>Inferred rules (range, pattern, list of values) you can reuse to generate data.</td><td>Data generation</td></tr>
+</tbody></table></div>
+<p>You can run data domain and primary key profiles at the same time, and you can import and run profiles you built in Informatica Developer (p.87).</p>
+<div class="flow">
+<div class="node"><b>Source tables</b>imported into project</div><div class="arrow">→</div>
+<div class="node"><b>Profile</b>PK, entity, domain or column</div><div class="arrow">→</div>
+<div class="node"><b>Results</b>candidates with percentages</div><div class="arrow">→</div>
+<div class="node"><b>You review</b>approve or reject</div><div class="arrow">→</div>
+<div class="node"><b>Applied</b>keys, constraints, domain assignments</div>
+</div>
+
+<h3 id="c12-sources">Which sources can be profiled</h3>
+<p>Profiles run on <strong>relational sources</strong>: Oracle, Microsoft SQL Server, IBM DB2 for Linux, UNIX and Windows, MySQL, Sybase and Teradata. Use ODBC to connect to MySQL, Sybase and Teradata. Data domain profiles also run on Hive and HDFS sources (p.87). Rules from the guide (pp.87-88):</p>
+<ul>
+<li><strong>Not nonrelational sources.</strong> You cannot run a discovery profile on them. You can run profiles in PowerCenter or Informatica Data Quality, export the results, and import them into the TDM repository.</li>
+<li>You can view imported results of profiles that use the Enterprise Discovery Profile and Profile options. For Hadoop, import results from the Developer client with the Enterprise Discovery Profile option.</li>
+<li>You can import results of discovery done with mapplets that use <strong>simple regular expressions</strong>, but not mapplets that use labeler, tokenizer, content set or reference tables.</li>
+<li>Importing data domains from the Model repository does not bring data patterns, metadata patterns or preferred rules.</li>
+<li>A table must have the <strong>same connection</strong> in the profile as when you imported it, or results may be unexpected.</li>
+<li><strong>Two tables with the same name</strong> cannot be in one profile. If a project has two EMPLOYEE tables with different owners, make a separate profile for each.</li>
+<li>If you import a MySQL source from PowerCenter, unique key constraints appear as primary keys on the Discover &gt; Tables &gt; Columns tab.</li>
+<li>You cannot run primary key and entity profiles on Hive data sources, and you cannot run profiles on Avro or Parquet formats (pp.61, 94).</li>
+</ul>
+<p>ShopSphere's relational source qualifies. Note the "same table name" rule: if ShopSphere had a <code>CUSTOMERS</code> table in two schemas in one project, you would need two profiles.</p>

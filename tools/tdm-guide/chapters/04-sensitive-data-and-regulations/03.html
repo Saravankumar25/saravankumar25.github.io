@@ -1,0 +1,106 @@
+<h2 id="c4-regulations">4.5 Privacy laws and standards in plain words</h2>
+<div class="callout warn"><strong class="ctitle">This is not legal advice</strong>
+<p>Everything in this section is a plain-language orientation <span class="badge concept">General concept</span>, written so you can follow a meeting and ask good questions. Laws change, have exceptions, and apply differently depending on where your company and your customers are. Treat every statement here as "roughly true, check with legal". The tool documentation does not teach law, so none of this comes from the tool sources, except where marked.</p></div>
+<p>Why should a tester care about laws? Because when a court or regulator looks at a data leak, they do not ask "was it production or test?". They ask "was personal data properly protected?". A copy in a test database is still personal data.</p>
+
+<h3 id="c4-gdpr">GDPR in plain words</h3>
+<p><span class="badge concept">General concept</span> The <dfn>GDPR</dfn> (General Data Protection Regulation) is a European Union law that has applied since May 2018.</p>
+<ul>
+<li><strong>What it protects:</strong> "personal data", meaning any information about an identifiable person. That is broader than a name and number: online identifiers and location data can count.</li>
+<li><strong>Who it applies to:</strong> organisations that handle the personal data of people in the EU, even if the organisation sits outside Europe. A ShopSphere with customers in Germany would be in scope no matter where its servers are.</li>
+<li><strong>Ideas behind it:</strong> there must be a lawful reason to use the data (consent is one such reason); use it only for the purpose it was collected for; collect and keep no more than needed ("data minimisation"); keep it secure; let people see and delete their data.</li>
+<li><strong>Fines at a high level:</strong> the most serious breaches can lead to fines of up to 20 million euros or 4 percent of worldwide yearly turnover, whichever is higher. Lesser breaches have a lower ceiling.</li>
+</ul>
+<p><strong>The consequence for test data.</strong> Two GDPR ideas hit TDM directly. First, <em>purpose</em>: a customer who gave details so ShopSphere could deliver an order did not necessarily agree to have them copied into a test lab. Second, <em>minimisation and security</em>: copying a whole production database to a loosely guarded test server is hard to justify when a small, masked copy would do. The law also treats truly anonymous data (nobody can be identified any more) as outside its scope, which is one reason masking and subsetting are popular. Whether a particular masked data set counts as anonymous is a question for your compliance officer.</p>
+
+<h3 id="c4-hipaa">HIPAA in plain words</h3>
+<p><span class="badge concept">General concept</span> <dfn>HIPAA</dfn> is a United States law from 1996 that, through its Privacy and Security Rules, protects health information.</p>
+<ul>
+<li><strong>What it protects:</strong> PHI, health information that identifies a person (section 4.3).</li>
+<li><strong>Who it applies to:</strong> "covered entities" (health plans, healthcare providers, healthcare clearinghouses) and their "business associates", meaning vendors who handle PHI for them. A software company testing a hospital's billing system is typically a business associate.</li>
+<li><strong>Minimum necessary:</strong> people and systems should receive only the least PHI they need for their job. Testers rarely need the real thing.</li>
+<li><strong>De-identification:</strong> HIPAA describes two accepted ways to de-identify health data so it is no longer treated as PHI. One removes a defined list of 18 kinds of identifiers (names, detailed locations, most date elements except the year, phone numbers, record numbers and so on). The other has a qualified expert certify that the risk of identifying anyone is very small. This is why Delphix has a domain called HIPAA_DATE and why dates and ZIP codes feature so heavily in PHI discussions.</li>
+<li><strong>Penalties at a high level:</strong> civil penalties in tiers depending on how careless the organisation was, and criminal penalties for knowing misuse.</li>
+</ul>
+<p><span class="badge doc">From docs</span> Both tools mention these regimes only briefly. Delphix's introduction lists HIPAA, PCI and GDPR as examples of mandates organisations must stay compliant with, and Informatica packages its PHI and PCI policy packs for healthcare and banking respectively (User Guide 10.5.10, pp.79 to 80). GenRocket's column-profiling page says that identifying PII early helps organisations meet requirements "such as HIPAA".</p>
+
+<h3 id="c4-hipaa-18">HIPAA's identifier list, mapped to TDM domains</h3>
+<p>The first de-identification method above (remove a fixed list of identifiers) is useful to a TDM engineer because the list reads like a checklist of columns to look for. <span class="badge concept">General concept</span> The table below gives the commonly cited 18 kinds of identifiers in our own words (check the exact wording in the official HIPAA text) and, where the tool documentation lists a matching domain, which one. The domain names are taken from the Informatica PHI and PII policy packs (User Guide 10.5.10, pp.78 to 79) and the Delphix ASDD standard domain list. <span class="badge doc">From docs</span> A dash means I found no clearly matching domain in the pages I read.</p>
+<div class="tablewrap"><table><caption>HIPAA-style identifier list and the closest domains in the two tools</caption>
+<thead><tr><th>#</th><th>Kind of identifier (general concept)</th><th>Informatica pack domain</th><th>Delphix domain</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Names</td><td>First Name, Last Name</td><td>FIRST_NAME, LAST_NAME, FULL_NAME</td></tr>
+<tr><td>2</td><td>Locations smaller than a state (street, city, ZIP)</td><td>ZIP (PHI), Street Name and Full Address UPPER (PII)</td><td>ADDRESS, CITY, ZIP</td></tr>
+<tr><td>3</td><td>Dates tied to a person, except the year</td><td>Birth Date</td><td>DOB, HIPAA_DATE</td></tr>
+<tr><td>4</td><td>Phone numbers</td><td>Phone</td><td>TELEPHONE_NO</td></tr>
+<tr><td>5</td><td>Fax numbers</td><td>-</td><td>-</td></tr>
+<tr><td>6</td><td>Email addresses</td><td>Email Address</td><td>EMAIL</td></tr>
+<tr><td>7</td><td>Social security numbers</td><td>Social Security Number</td><td>SSN</td></tr>
+<tr><td>8</td><td>Medical record numbers</td><td>Medical Record Number</td><td>RECORD_NO</td></tr>
+<tr><td>9</td><td>Health plan beneficiary numbers</td><td>Health Plan Beneficiary Number</td><td>BENEFICIARY_NO</td></tr>
+<tr><td>10</td><td>Account numbers</td><td>Account Number</td><td>ACCOUNT_NO</td></tr>
+<tr><td>11</td><td>Certificate or licence numbers</td><td>Certificate License Number</td><td>CERTIFICATE_NO</td></tr>
+<tr><td>12</td><td>Vehicle identifiers and licence plates</td><td>Vehicle Registration Number (PII pack)</td><td>PLATE_NO, VIN_NO</td></tr>
+<tr><td>13</td><td>Device identifiers and serial numbers</td><td>Device Identifier Serial Number</td><td>SERIAL_NO</td></tr>
+<tr><td>14</td><td>Web addresses (URLs)</td><td>Web URL</td><td>WEB</td></tr>
+<tr><td>15</td><td>IP addresses</td><td>IP Address</td><td>IP ADDRESS</td></tr>
+<tr><td>16</td><td>Biometric identifiers (fingerprints, voiceprints)</td><td>-</td><td>BIOMETRIC</td></tr>
+<tr><td>17</td><td>Full-face photographs</td><td>-</td><td>No domain, but the Binary Lookup algorithm can replace image objects with a fictional image</td></tr>
+<tr><td>18</td><td>Any other unique identifying number or code</td><td>Unique Identifier</td><td>-</td></tr>
+</tbody></table></div>
+<p>Two lessons. First, the vendors' packs line up well with the legal checklist, which is why they are good starting points. Second, the gaps (fax numbers, photographs) show where a human must step in. Delphix's own documentation notes that its engine cannot change data within images, such as the name on an X-ray or driver's licence, and can only swap the whole image for a fictional one that the data owner provides (Delphix "Delphix masking terminology", Binary Lookup). <span class="badge doc">From docs</span></p>
+
+<h3 id="c4-others">Other regimes, kept general</h3>
+<div class="tablewrap"><table><caption>Other privacy rules you will hear about (very general; verify details with your compliance team)</caption>
+<thead><tr><th>Name</th><th>Where</th><th>One-line idea</th></tr></thead>
+<tbody>
+<tr><td><strong>PCI DSS</strong></td><td>Worldwide, by card-brand contract</td><td>Security standard for anyone handling payment card data. An industry standard rather than a law.</td></tr>
+<tr><td><strong>CCPA</strong> (California Consumer Privacy Act, later amended)</td><td>California, USA</td><td>Gives California residents rights over personal information held by businesses, such as knowing what is held and asking for deletion.</td></tr>
+<tr><td><strong>DPDP Act</strong> (Digital Personal Data Protection Act, 2023)</td><td>India</td><td>Consent-centred law on processing digital personal data of people in India. Rules and start dates are phased in, so check the current status before relying on any detail.</td></tr>
+</tbody></table></div>
+<p>There are many more (sector rules for banks, national laws in dozens of countries, contract terms from clients). The practical lesson is the same everywhere: personal data in test environments is a liability, and the standard defence is to make sure the test copy no longer identifies anyone.</p>
+
+<h3 id="c4-ideas">Four ideas that repeat across laws</h3>
+<div class="tablewrap"><table><caption>Recurring ideas and what they mean for a TDM engineer</caption>
+<thead><tr><th>Idea</th><th>Plain meaning</th><th>What it changes in TDM work</th></tr></thead>
+<tbody>
+<tr><td>Consent / lawful purpose</td><td>People agree, or the law allows, use for a stated purpose.</td><td>Testing is a different purpose from running the shop, so real data in test is hard to defend.</td></tr>
+<tr><td>Minimum necessary / minimisation</td><td>Use only as much data as the job needs.</td><td>This is the legal argument for <strong>subsetting</strong> (see <a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>): do not copy 100 percent when 2 percent will do.</td></tr>
+<tr><td>De-identification / anonymisation</td><td>Make the data no longer point to a person.</td><td>This is the legal argument for <strong>masking</strong> (see <a href="06-masking-concepts.html">the masking concepts chapter</a>).</td></tr>
+<tr><td>Security safeguards</td><td>Protect what you keep with access control and logging.</td><td>Applies to the TDM tool itself and to any unmasked staging copy.</td></tr>
+</tbody></table></div>
+<div class="callout example"><strong class="ctitle">Putting it together at ShopSphere</strong>
+<p>ShopSphere sells in India and Germany, and plans to add pharmacy items. A compliance officer would say: names, emails, phones and SSN/tax IDs are personal data under privacy laws; card details are covered by PCI DSS; prescription data is health information and needs the strictest handling. The TDM engineer's job is not to interpret those laws. It is to translate the compliance officer's decisions into a policy a tool can run (section 4.8).</p></div>
+
+<h2 id="c4-classification">4.6 Data classification: how sensitive is each column?</h2>
+<p><dfn>Data classification</dfn> means labelling data by how much damage a leak could do, so that you can apply protection in proportion. Organisations choose their own scheme. A typical four-level scheme <span class="badge concept">General concept</span> looks like this:</p>
+<div class="tablewrap"><table><caption>A typical four-level classification (illustrative; your organisation's levels may differ)</caption>
+<thead><tr><th>Level</th><th>Meaning</th><th>ShopSphere example</th><th>Typical test-data action</th></tr></thead>
+<tbody>
+<tr><td>Public</td><td>Safe for anyone to see</td><td><code>PRODUCTS.product_name</code>, <code>PRODUCTS.price</code></td><td>Copy as is</td></tr>
+<tr><td>Internal</td><td>Fine inside the company, not outside</td><td><code>ORDERS.order_date</code>, <code>ORDERS.total_amount</code></td><td>Copy as is, or lightly vary</td></tr>
+<tr><td>Confidential</td><td>Harms people or the business if leaked</td><td><code>CUSTOMERS.email</code>, <code>phone</code>, <code>first_name</code>, <code>last_name</code>, <code>zip_code</code></td><td>Mask with realistic replacements</td></tr>
+<tr><td>Restricted</td><td>Serious legal or financial harm</td><td><code>CUSTOMERS.ssn</code>, <code>tax_id</code>, <code>date_of_birth</code>, card numbers</td><td>Mask strongly, or never move to test</td></tr>
+</tbody></table></div>
+<p>Two things are worth noticing. First, classification is about <em>columns</em> (and sometimes whole tables), not rows. Second, the result of classifying is a plan: each level maps to an action. A column with no label gets no action, so unlabelled sensitive data is the dangerous kind.</p>
+
+<h3 id="c4-classification-in-tools">How the tools record sensitivity</h3>
+<ul>
+<li><span class="badge doc">From docs</span> <strong>Informatica.</strong> When you create a data domain you set a <em>sensitivity level</em> for all its columns, chosen from levels that the Administrator defines (User Guide 10.5.10, p.75). Separately, each column in a project has a <em>Sensitive</em> flag. The guide says the flag is "for reference only" and does not affect processing, and that assigning a data domain to a column marks it sensitive automatically (p.89). A different property, <em>Restricted</em>, does change behaviour: the integration service does not write a restricted column's value to the target (p.89).</li>
+<li><span class="badge doc">From docs</span> <strong>Delphix.</strong> A <em>domain</em> ties a category of sensitive data (the terminology page's example is social security numbers) to the way it should be secured. The profiler assigns the domain to a column and, with it, the domain's default masking algorithm (Delphix "Discovering your sensitive data").</li>
+</ul>
+<div class="callout tip"><strong class="ctitle">Sensitive flag versus masking rule</strong>
+<p>In Informatica, marking a column "sensitive" does not mask it. It documents your decision. Masking happens only when a rule is assigned to the column and a plan runs (see <a href="14-informatica-data-masking.html">the Informatica data masking chapter</a>). Beginners often tick "sensitive" and think the job is done.</p></div>
+<h3 id="c4-special-categories">Special categories: data that is sensitive even without an ID number</h3>
+<p><span class="badge concept">General concept</span> Many privacy laws (GDPR is the well-known example) single out certain kinds of personal data for stricter treatment because misuse can lead to discrimination or serious harm: racial or ethnic origin, political opinions, religious beliefs, trade union membership, health, sex life or orientation, and genetic or biometric data. Treat these as Restricted by default and expect the compliance officer to ask extra questions before any of them reaches a test system.</p>
+<p><span class="badge doc">From docs</span> You can see the same idea in the tool: the Delphix ASDD Standard profile set includes domains named ETHNICITY, RELIGIOUS_ORIEN, POLITICAL_ORIEN, SEXUAL_ORIENTATION, UNION_MEMBERSHIP_NO, BIOMETRIC, NATIONAL_ORIGIN, MARITAL_STATUS, BLOOD_TYPE, MEDICAL_CODES and MEDICAL_DRUG (Delphix "ASDD standard profile set" listing). In the Delphix screenshot later in this chapter you can spot BIOMETRIC and BLOOD_TYPE among the domains, and the default masking method for BIOMETRIC is shown as NullValueLookup, a method that, by its name, suppresses the value rather than faking one. Hiding a value entirely is often the right answer for the most delicate data, because a realistic fake adds risk without adding test value.</p>
+<div class="tablewrap"><table><caption>Sensitivity beyond the obvious (general concept, with Delphix domain names as evidence of what a tool looks for)</caption>
+<thead><tr><th>Category</th><th>Why it is delicate</th><th>Delphix domain examples</th></tr></thead>
+<tbody>
+<tr><td>Health</td><td>Diagnoses and drugs reveal conditions</td><td>MEDICAL_CODES, MEDICAL_DRUG, BLOOD_TYPE</td></tr>
+<tr><td>Beliefs and affiliations</td><td>Can expose a person to discrimination</td><td>RELIGIOUS_ORIEN, POLITICAL_ORIEN, UNION_MEMBERSHIP_NO</td></tr>
+<tr><td>Origin and personal status</td><td>Ethnicity and national origin; marital status</td><td>ETHNICITY, NATIONAL_ORIGIN, MARITAL_STATUS</td></tr>
+<tr><td>Biometrics</td><td>Cannot be changed if leaked, unlike a password</td><td>BIOMETRIC</td></tr>
+<tr><td>Credentials</td><td>Direct route into accounts</td><td>PASSWORD, SECURITY_CODE, USER_ID</td></tr>
+</tbody></table></div>
+<p>ShopSphere's schema has none of these today. When someone adds a "preferred language" or "marital status" column next year, this table is a reminder to ask whether it is special.</p>
