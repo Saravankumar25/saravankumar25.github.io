@@ -1,0 +1,1473 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 2: The core techniques: discover, subset, mask and generate | TDM Guide</title><meta name="description" content="The four things a TDM engineer actually does, explained in plain words before any tool appears: finding sensitive data, shrinking data, hiding it safely, and making synthetic data."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/02-core-techniques.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 2: The core techniques: discover, subset, mask and generate | TDM Guide"><meta property="og:description" content="The four things a TDM engineer actually does, explained in plain words before any tool appears: finding sensitive data, shrinking data, hiding it safely, and making synthetic data."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" aria-label="Chapter navigation"><a class="allchap" href="index.html">← Guide home &amp; curriculum map</a><details class="partbox" open><summary>Foundations</summary><div class="chapter-list"><a class="" href="01-welcome-why-tdm-data-and-privacy.html"><span class="n">01</span> Welcome: why TDM exists, the data it handles and the rules around it</a><a class="current" href="02-core-techniques.html"><span class="n">02</span> The core techniques: discover, subset, mask and generate</a><a class="" href="03-etl-and-tdm.html"><span class="n">03</span> ETL from scratch, and how it meets TDM</a></div></details><details class="partbox"><summary>Informatica TDM</summary><div class="chapter-list"><a class="" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a></div></details><details class="partbox"><summary>GenRocket</summary><div class="chapter-list"><a class="" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a></div></details><details class="partbox"><summary>Delphix</summary><div class="chapter-list"><a class="" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a></div></details><details class="partbox"><summary>Putting it together</summary><div class="chapter-list"><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, the capstone and the glossary</a></div></details><a class="" href="sources-and-limitations.html" style="margin-top:10px">About the sources</a><h3>On this page</h3><div class="section-list"><a class="l2" href="#c2-s1">2.1 Discovery, profiling and subsetting: the concepts</a><a class="l3" href="#c5-words-to-know">2.1.1 Words to know first</a><a class="l3" href="#c5-discovery">2.1.2 Data discovery and profiling</a><a class="l3" href="#c5-metadata-vs-data">2.1.3 Metadata profiling and data profiling</a><a class="l3" href="#c5-keys">2.1.4 Finding keys and relationships</a><a class="l3" href="#c5-human-review">2.1.5 Reading the results: false positives, false negatives and human review</a><a class="l3" href="#c5-subsetting">2.1.6 What is data subsetting?</a><a class="l3" href="#c5-types">2.1.7 Types of subset</a><a class="l3" href="#c5-driver-tables">2.1.8 Driver tables and child rows</a><a class="l3" href="#c5-referential-integrity">2.1.9 Keeping referential integrity</a><a class="l3" href="#c5-worked-example">2.1.10 Worked example: a ShopSphere subset, before and after</a><a class="l3" href="#c5-reduced-vs-full">2.1.11 Reduced copies and full copies</a><a class="l3" href="#c5-masking-and-subsetting">2.1.12 How masking and subsetting combine</a><a class="l3" href="#c5-mistakes">Common mistakes and gotchas</a><a class="l3" href="#c5-recap">Recap</a><a class="l3" href="#c5-sources">Sources used in this section</a><a class="l2" href="#c2-s2">2.2 Data masking: the concepts</a><a class="l3" href="#c6-words-to-know">2.2.1 Words to know first</a><a class="l3" href="#c6-compare-terms">2.2.2 Masking and its neighbours</a><a class="l3" href="#c6-goals">2.2.3 What good masked data looks like</a><a class="l3" href="#c6-techniques">2.2.4 Common masking techniques</a><a class="l3" href="#c6-deterministic">2.2.5 Same input, same output: deterministic masking and referential integrity</a><a class="l3" href="#c6-irreversible">2.2.6 Irreversibility, uniqueness and collisions</a><a class="l3" href="#c6-modes">2.2.7 Static or dynamic, in-place or on-the-fly</a><a class="l3" href="#c6-risks">2.2.8 Risks and what goes wrong</a><a class="l3" href="#c6-choosing">2.2.9 Choosing a technique</a><a class="l3" href="#c6-validate">2.2.10 Validating masked data</a><a class="l3" href="#c6-mistakes">Common mistakes and gotchas</a><a class="l3" href="#c6-recap">Recap</a><a class="l3" href="#c6-sources">Sources used in this section</a><a class="l2" href="#c2-s3">2.3 Test data classification and synthetic data generation</a><a class="l3" href="#c7-words">2.3.1 Words to know first</a><a class="l3" href="#c7-why-classify">2.3.2 Why classify test data at all?</a><a class="l3" href="#c7-three-axes">2.3.3 Three ways to classify test data</a><a class="l3" href="#c7-data-patterns">2.3.4 The syllabus &quot;data patterns&quot; on the map</a><a class="l3" href="#c7-what-is-synthetic">2.3.5 What synthetic data is</a><a class="l3" href="#c7-synthetic-vs-masked">2.3.6 Synthetic data versus masked production data</a><a class="l3" href="#c7-how-generation-works">2.3.7 How generation works: rules, generators, seeds and distributions</a><a class="l3" href="#c7-parent-child">2.3.8 Generating parent and child tables so every key is valid</a><a class="l3" href="#c7-model-design-deploy-manage">2.3.9 The lifecycle: Model, Design, Deploy, Manage</a><a class="l3" href="#c7-worked-example">2.3.10 Worked example: 50 ShopSphere customers and their orders</a><a class="l3" href="#c7-tdaas">2.3.11 Test data as a service</a><a class="l3" href="#c7-lab">2.3.12 Hands-on lab: design a smaller data set on paper</a><a class="l3" href="#c7-mistakes">2.3.13 Common mistakes and gotchas</a><a class="l3" href="#c7-recap">2.3.14 Recap</a><a class="l3" href="#c7-sources">Sources used in this section</a></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">TDM GUIDE / FOUNDATIONS / CHAPTER 2</p><h1>The core techniques: discover, subset, mask and generate</h1><div class="meta"><span>Saravan Kumar M K</span><span>3 sections</span></div><p class="chapter-summary">The four things a TDM engineer actually does, explained in plain words before any tool appears: finding sensitive data, shrinking data, hiding it safely, and making synthetic data.</p></div><h2 id="c2-s1">2.1 Discovery, profiling and subsetting: the concepts</h2>
+<p><span class="day">Day 43-44</span></p>
+<p>Imagine you have to move a flat. Before you pack, you walk through every room and list what is there: which boxes are fragile, which items belong together, which papers are private. Only then do you decide what to take and how to wrap it. Test data work follows the same order. First you <em>look inside</em> the production database (discovery and profiling). Then you <em>take only what you need</em> (subsetting). After that, you protect what you took (masking, covered in <a href="02-core-techniques.html#c2-s2">the masking concepts chapter</a>).</p>
+
+<p>This section teaches the two first steps as ideas, without any tool buttons. It builds on <a href="01-welcome-why-tdm-data-and-privacy.html#c1-s3">the data basics chapter</a> (tables, primary keys, foreign keys) and on <a href="01-welcome-why-tdm-data-and-privacy.html#c1-s4">the sensitive data chapter</a> (what sensitive data is, and how patterns and names reveal it). The hands-on tool chapters that follow are <a href="04-informatica-architecture-discovery-subset.html#c4-s3">Informatica discovery and profiling</a>, <a href="04-informatica-architecture-discovery-subset.html#c4-s4">Informatica data subset</a> and <a href="08-delphix-connect-keys-profiling.html#c8-s4">Delphix profiling</a>.</p>
+
+<div class="callout recap"><strong class="ctitle">What you will learn</strong><ul>
+<li>What data discovery and profiling are, why they come first, and what a profile reports: types, patterns, sensitive-looking columns, keys and relationships.</li>
+<li>The difference between looking at metadata (names and types) and looking at the data itself, and why a human must review the results.</li>
+<li>What data subsetting is, why teams do it (size, speed, cost, privacy), and the main ways to choose a subset: by filter, by percentage or row count, by time window, by driver table.</li>
+<li>What a driver table is, how related "child" rows come along, and how to keep referential integrity so the subset still works.</li>
+<li>How subsetting and masking combine, and how a subset compares with a full copy.</li>
+<li>A worked ShopSphere subset with before and after rows.</li>
+</ul></div>
+
+<div class="callout note"><strong class="ctitle">What this section is based on</strong>
+
+<p><span class="badge doc">From docs</span> Tool statements come from the Informatica TDM 10.5.10 User Guide (PDF, February 2026, 455 pages): chapter 5 "Data Discovery" (PDF pages 86 to 111), chapter 6 "Creating a Data Subset" (pages 112 to 134) and the plan filtering parts of chapter 13 (pages 294 and 304). From the GenRocket help pages: "Synthetic Data Masking (SDM) and Data Subsetting Overview", "G-Subset Overview", "Data Subsetting - How to Add Tables and Subsetting Conditions", "G-Subset Traverse Full Hierarchy Option", "How to Select Tables for Full Migration During Subsetting", "How to Add Custom Referential Integrity to Imported Table Schemas" and "PII Discovery with Data Column Profiling". From Delphix Continuous Compliance 2026.5 (last published October 16, 2026): "Discovering your sensitive data", "Introduction to Delphix Masking" and "Delphix masking terminology".</p>
+
+<p><span class="badge concept">General concept</span> The ShopSphere examples, the comparison tables and the explanation of random versus targeted sampling are written for this guide. Where a type of subset is not described in the documentation I read, I say so.</p></div>
+
+<h3 id="c5-words-to-know">2.1.1 Words to know first</h3>
+
+<dl class="defs">
+<div><dt>Data discovery</dt><dd>The step of finding out what is in a data source: which tables and columns exist, which hold sensitive data, how tables relate. Informatica uses "data discovery" for the whole activity and "profile" for each job inside it.</dd></div>
+<div><dt>Profile (verb: to profile)</dt><dd>A job that scans a data source and reports facts about it. Delphix and GenRocket also say "profiling".</dd></div>
+<div><dt>Metadata</dt><dd>Data about data: table names, column names, data types, lengths, key definitions. The column <code>ssn</code> and its type "string of 11 characters" are metadata. The value 123-45-6789 is data.</dd></div>
+<div><dt>Primary key (PK)</dt><dd>A column (or set of columns) whose values are unique for every row and identify it, such as <code>customer_id</code>.</dd></div>
+<div><dt>Foreign key (FK)</dt><dd>A column whose values point to a primary key in another table, such as <code>ORDERS.customer_id</code> pointing to <code>CUSTOMERS.customer_id</code>.</dd></div>
+<div><dt>Parent table and child table</dt><dd>The table holding the primary key is the parent; the table holding the foreign key is the child. <code>CUSTOMERS</code> is the parent of <code>ORDERS</code>, and <code>ORDERS</code> is the parent of <code>ORDER_ITEMS</code>.</dd></div>
+<div><dt>Referential integrity</dt><dd>The promise that every foreign key value points to a row that really exists. A child row with no parent is an <dfn>orphan</dfn>, and it means the data is broken.</dd></div>
+<div><dt>Data subset</dt><dd>A smaller copy of a database that still hangs together: fewer rows, same structure, referential integrity intact.</dd></div>
+<div><dt>Driving table (driver table)</dt><dd>The table you start from when you pick a subset. The tool finds related rows in other tables starting from it. Informatica uses exactly this term for the starting table of an entity.</dd></div>
+<div><dt>Entity (Informatica)</dt><dd>A driving table plus all the tables related to it. It is the unit that Informatica copies to a subset database.</dd></div>
+</dl>
+
+<h3 id="c5-discovery">2.1.2 Data discovery and profiling</h3>
+
+<h4 id="c5-what-is-profiling">What it is</h4>
+
+<p><dfn>Data profiling</dfn> means scanning a data source with software and producing a report of facts about it. <dfn>Data discovery</dfn> is the wider goal: using those facts to decide what to mask, what to subset, and how tables connect. Informatica puts it plainly: run profiles to discover source data for data masking and data subset operations (User Guide 10.5.10, p.86). <span class="badge doc">From docs</span></p>
+
+<p>A profile changes nothing: it measures, lists and flags. Unlike a building survey, its flags are guesses that people must confirm.</p>
+
+<h4 id="c5-why-first">Why it comes first</h4>
+
+<p>Masking and subsetting are only as good as your knowledge of the data.</p>
+
+<ul>
+<li>You cannot mask a sensitive column you did not know about. Missing one column of SSNs means a leak.</li>
+<li>You cannot subset safely without knowing the relationships. If you cut <code>ORDERS</code> without knowing it points at <code>CUSTOMERS</code>, you will leave orphans.</li>
+<li>You cannot choose a masking technique without knowing the column's type, length and shape.</li>
+<li>Real databases are rarely documented. Old tables, renamed columns and half-forgotten fields are normal.</li>
+</ul>
+
+<div class="callout why"><strong class="ctitle">Why it matters</strong>
+
+<p>Both Informatica and Delphix describe profiling as the step that feeds the next one. Informatica says that before masking you can discover which columns to mask with the same rules, and before subsetting you can discover relationships between tables and the entities for the subset (User Guide 10.5.10, p.86). Delphix says that after connecting data, the next step is discovering which of it should be secured (Delphix "Discovering your sensitive data"). <span class="badge doc">From docs</span></p></div>
+
+<h4 id="c5-what-it-reports">What a profile reports</h4>
+
+<p>Typically: each column's data type and length; value patterns and their share (99 percent of <code>phone</code> values are ten digits); ranges, minimum, maximum and the share of nulls; the most common values; sensitive-looking columns (<code>email</code> matches an Email Address domain); primary key candidates (<code>customer_id</code> is 100 percent unique); and foreign key candidates (<code>ORDERS.customer_id</code> matches <code>CUSTOMERS.customer_id</code>).</p>
+
+<h4 id="c5-informatica-types">The four profile types in Informatica</h4>
+
+<p><span class="badge doc">From docs</span> The User Guide lists four kinds of profile (pp.86 to 87). Seeing them side by side shows how one tool splits the work:</p>
+
+<div class="tablewrap"><table><caption>Informatica profile types (User Guide 10.5.10, pp.86-87)</caption>
+<thead><tr><th>Type</th><th>What it determines</th><th>Feeds</th></tr></thead>
+<tbody>
+<tr><td>Foreign key (entity)</td><td>Relationships between tables, by evaluating table structure for potential links</td><td>Subsetting (entities, constraints)</td></tr>
+<tr><td>Primary key</td><td>Potential primary keys, with the percentage of unique values in a column or combination of columns</td><td>Subsetting</td></tr>
+<tr><td>Data domain</td><td>Which columns belong in a data domain, from data values or from column names</td><td>Masking</td></tr>
+<tr><td>Column</td><td>Characteristics of columns: range of values, list of values, data patterns</td><td>Data generation</td></tr>
+</tbody></table></div>
+
+<p>The guide says you can run data domain and primary key profiles at the same time, and also import profiles created in Informatica Developer. Two small but important facts: TDM adds discovered keys and relationships as <em>logical</em> constraints in its own repository and does not change the source tables (p.86 and p.87), and profiles run on relational sources such as Oracle, Microsoft SQL Server, IBM DB2 for Linux, UNIX and Windows, MySQL, Sybase and Teradata, with data domain profiles also supported on Hive and HDFS (p.87). Check your version for the current source list. A later chapter, <a href="04-informatica-architecture-discovery-subset.html#c4-s3">Informatica discovery and profiling</a>, walks through the screens.</p>
+
+<div class="flow"><div class="node"><b>1. Connect</b>point the tool at the source</div><div class="arrow">→</div><div class="node"><b>2. Profile</b>scan names, types, data</div><div class="arrow">→</div><div class="node"><b>3. Review</b>approve or reject findings</div><div class="arrow">→</div><div class="node"><b>4. Use</b>mask rules and subset entities</div></div>
+
+<h3 id="c5-metadata-vs-data">2.1.3 Metadata profiling and data profiling</h3>
+
+<p>A profile can look at two different things, and the difference decides how fast it is and what it can find.</p>
+
+<div class="compare"><div><h4 id="c2-metadata-profiling">Metadata profiling</h4>
+
+<p>Reads only <em>descriptions</em>: table names, column names, types, lengths, declared keys.</p>
+
+<ul><li>Fast, and does not need to read any real customer values.</li><li>Finds a column called <code>ssn</code>, or <code>user_email</code>.</li><li>Misses cryptic names such as <code>FLD_X2</code>, and cannot tell whether <code>notes</code> contains an SSN.</li></ul></div>
+<div><h4 id="c2-data-profiling">Data profiling</h4>
+
+<p>Reads actual <em>values</em> (often a sample) and measures patterns, counts and uniqueness.</p>
+
+<ul><li>Slower, because it reads rows.</li><li>Finds a column of SSN-shaped values even when its name is meaningless.</li><li>Needs access to real production data, which is itself a privacy decision.</li></ul></div></div>
+
+<p>The tools expose the same split under different names. <span class="badge doc">From docs</span></p>
+
+<div class="tablewrap"><table><caption>Metadata versus data profiling in the three tools</caption>
+<thead><tr><th>Tool</th><th>How it splits the two</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>Informatica</td><td>A data domain profile can search for patterns in the data only, in the column name only, or in both. You can run the metadata pass first and then run again for the data.</td><td>User Guide 10.5.10, pp.95 and 100</td></tr>
+<tr><td>Delphix</td><td>"Column-level" profiling uses regular expressions on column names (metadata). "Data-level" profiling uses regular expressions on the actual data. In the classifier model, PATH and TYPE work at column level, REGEX and LIST at data level.</td><td>Delphix "Introduction to Delphix Masking" and "Discovering your sensitive data"</td></tr>
+<tr><td>GenRocket</td><td>Data Column Profiling scans column headers only, not the actual data, so GenRocket does not need to read production values.</td><td>GenRocket "PII Discovery with Data Column Profiling"</td></tr>
+</tbody></table></div>
+
+<h4 id="c5-sampling">Sampling: a look, not a census</h4>
+
+<p>Scanning every row of a table with 80 million rows would be slow, so profiles often sample. <dfn>Sampling</dfn> means reading only some rows. That is efficient, but it has a catch: a value that appears in only 1 row in 10,000 may not be in the sample. If a few rows of a mostly-clean column hold real phone numbers, a small sample may miss them. Informatica reflects this with options such as "Maximum Rows to Profile" and "Minimum Conformance Percent" (p.95): the second one is the share of profiled rows that must match the pattern before the column is claimed for the domain.</p>
+
+<h3 id="c5-keys">2.1.4 Finding keys and relationships</h3>
+
+<p>Subsetting needs to know which tables are parents and which are children. Ideally the database declares its primary and foreign keys and the tool simply reads them. In practice many databases declare few or none (for performance, or because the application enforces the links). GenRocket's documentation says this directly: custom referential integrity is added "when referential integrity does not exist between tables in the source database" but the user still needs to subset (GenRocket "How to Add Custom Referential Integrity to Imported Table Schemas"). <span class="badge doc">From docs</span> Discovery fills that gap by inferring the links.</p>
+
+<h4 id="c5-pk-discovery">Primary key discovery</h4>
+
+<p>A primary key candidate is a column, or a small set of columns, whose values are unique. Informatica's primary key profile reports the percentage of unique values and lets you limit how hard it searches (User Guide 10.5.10, pp.92 to 93). <span class="badge doc">From docs</span></p>
+
+<p>Its options and defaults: the maximum number of columns combined into a key (3), the maximum rows to profile (1,000) and a conformance criterion, the minimum percentage of unique values allowed (99 percent) (p.93).</p>
+
+<p>Why would you allow less than 100 percent? Because real data is messy. If 99.8 percent of values are unique and a few rows are duplicates, the column is probably meant to be a key and the duplicates are data-quality bugs. Informatica notes that a primary key profile is useful to find such non-unique rows (p.92). The result table shows, per candidate, the table, the column or combination of columns, the uniqueness percentage, whether it is verified, any existing constraint and a status of verified, approved or rejected (pp.103 to 104). When you approve a candidate, TDM adds it as a key to the table in its repository, not in the source database. Rejecting a candidate does not affect the subset (p.104). <span class="badge doc">From docs</span></p>
+
+<div class="callout warn"><strong class="ctitle">Unique does not mean a good key</strong>
+
+<p><code>ssn</code> is 100 percent unique in the table above, yet it would be a poor primary key: it is sensitive, so masking will change it, and every table that used it as a link would need identical treatment. A human picks <code>customer_id</code>, the "meaningless but stable" identifier. Uniqueness tells you what <em>can</em> be a key. A person decides what <em>should</em> be.</p></div>
+
+<h4 id="c5-fk-discovery">Foreign key and entity discovery</h4>
+
+<p>To find parent-child links, Informatica's entity profile "returns a list of possible entities by comparing column names in the source tables" (p.93). In the guide's example, Employee, Employee_Detail and Employee_Address all contain an EmpID column, so the profile suggests Employee as an entity with two child tables. When you later subset, a filter on EmpID applies to every table in that relationship. <span class="badge doc">From docs</span></p>
+
+<p>The profile options show what matters when matching columns (p.94): whether to compare using the datatypes the tool inferred or the documented ones, whether comparison is case sensitive, whether to trim spaces first, the maximum number of foreign key results to return and the minimum confidence percent (the share of foreign key values that match). A coincidental match is the risk: two unrelated integer columns can overlap by chance, so discovery proposes and a person approves.</p>
+
+<p>One practical detail: if you choose the entity profile type and the physical database has no primary keys, the profile returns nothing. Run the profile as primary key and entity together, and it can discover both the primary and foreign keys even when the database declares none (p.93). <span class="badge doc">From docs</span></p>
+
+<p>Delphix says its masking keeps referential integrity by scanning metadata and data to identify and preserve the primary and foreign key relationships between elements, so that data is masked the same way across tables and databases (Delphix "Introduction to Delphix Masking"). <span class="badge doc">From docs</span> How keys are defined in a Delphix rule set is covered in <a href="08-delphix-connect-keys-profiling.html#c8-s3">the Delphix rule sets and keys chapter</a>.</p>
+
+<h3 id="c5-human-review">2.1.5 Reading the results: false positives, false negatives and human review</h3>
+
+<p>A profile is a set of educated guesses. Every guess can be wrong in two ways:</p>
+
+<div class="tablewrap"><table><caption>The two kinds of mistake in discovery</caption>
+<thead><tr><th>Mistake</th><th>Meaning</th><th>ShopSphere example</th><th>Cost</th></tr></thead>
+<tbody>
+<tr><td><strong>False positive</strong></td><td>Flagged, but not actually what the tool thinks</td><td><code>order_id</code> flagged as a phone number because it has ten digits</td><td>Wasted effort, or a harmful change (a key gets masked)</td></tr>
+<tr><td><strong>False negative</strong></td><td>Real, but not flagged</td><td>A <code>contact_no</code> column of real phone numbers not matched by any pattern</td><td>Real data leaks into test</td></tr>
+</tbody></table></div>
+
+<p>Between the two, false negatives are the more dangerous in a privacy project, because nobody notices them. That is why discovery tools build review into the workflow, and why you should plan for it. In Informatica, each result row has a status, and you can verify, approve or reject it. The guide says the Verified column is for your own tracking and does not affect data subset operations, and that marking the data domain classification as completed does not affect any process either; it simply records that you reviewed everything (pp.104 to 105). <span class="badge doc">From docs</span> The data viewer for a selected column shows the first 200 records, so reviewers can look at real values before approving (p.105).</p>
+
+<h4 id="c5-review-steps">A review routine that works</h4>
+
+<ol class="steps">
+<li><strong>Sort the results by confidence.</strong><p>Informatica shows % data conformance and whether the column name matched (p.105). High on both is easy to accept.</p><p class="expect">A short list of obvious accepts and a longer list that needs thought.</p></li>
+<li><strong>Look at the actual values for doubtful rows.</strong><p>Names alone mislead. Five sample values usually settle it.</p></li>
+<li><strong>Ask the data steward about anything ambiguous.</strong><p>"Is <code>tax_id</code> a personal or a company number?" is not something a tool can answer.</p></li>
+<li><strong>Scan the unflagged columns too, and record your decisions.</strong><p>Check free-text and generically named columns. A profile only covers the tables it was given, and re-profiling will not remember your reasons.</p><p class="expect">A short list of columns added by hand, and a written list of accepted and rejected findings.</p></li>
+</ol>
+
+<h4 id="c5-column-profile">The fourth type: the column profile</h4>
+
+<p>Informatica's <strong>column profile</strong> measures range, list of values and patterns of columns, mainly to infer rules for generating test data; it runs on Oracle and Microsoft SQL Server databases (p.97). <span class="badge doc">From docs</span> It returns in <a href="02-core-techniques.html#c2-s3">the test data classification and generation chapter</a>.</p>
+
+<div class="exercise"><h4 id="c2-lab-profile-three-mystery-columns-by-hand">Lab: profile three mystery columns by hand</h4>
+
+<p>Goal: practise what a profile computes. The columns come from a ShopSphere table whose column names were lost. Compute for each: the share of nulls, the number of distinct values, the pattern, and your best guess of the data domain.</p>
+
+<div class="tablewrap"><table class="sample"><caption>Five rows from a table with cryptic column names</caption>
+<thead><tr><th>row</th><th>col_a</th><th>col_b</th><th>col_c</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>9876543210</td><td>123-45-6789</td><td>1001</td></tr>
+<tr><td>2</td><td>9123456780</td><td>234-56-7890</td><td>1002</td></tr>
+<tr><td>3</td><td>9988776655</td><td>N/A</td><td>1003</td></tr>
+<tr><td>4</td><td>(empty)</td><td>345-67-8901</td><td>1004</td></tr>
+<tr><td>5</td><td>9876543210</td><td>123-45-6789</td><td>1005</td></tr>
+</tbody></table></div>
+
+<ol class="steps">
+<li><strong>Count nulls for each column.</strong><p>Treat "(empty)" as null. Treat "N/A" as a value, because it is text.</p></li>
+<li><strong>Count distinct values.</strong><p>Divide by the number of non-null values to get a uniqueness percentage (tools may compute this slightly differently, but the idea is the same).</p></li>
+<li><strong>Describe the pattern.</strong><p>Use digits as 9, and spell out hyphens.</p></li>
+<li><strong>Guess the domain and the next action.</strong><p>Which column is a primary key candidate? Which is sensitive? Which needs a human decision?</p></li>
+</ol>
+
+<details class="sol"><summary>Show a worked answer</summary>
+
+<div class="tablewrap"><table class="sample"><caption>Profile results computed by hand</caption>
+<thead><tr><th></th><th>% null</th><th>Distinct</th><th>Pattern</th><th>Guess and action</th></tr></thead>
+<tbody>
+<tr><td>col_a</td><td>20% (1 of 5)</td><td>3 distinct among 4 non-null, so 75% unique</td><td>10 digits in every non-null row</td><td>Phone. Mask. Not a key: values repeat.</td></tr>
+<tr><td>col_b</td><td>0%</td><td>4 distinct among 5, so 80% unique</td><td>999-99-9999 in 4 of 5 rows (80% conformance); "N/A" in 1</td><td>SSN. Mask. The "N/A" row needs an exception rule; a conformance setting of 100% would reject the column.</td></tr>
+<tr><td>col_c</td><td>0%</td><td>5 distinct among 5, so 100% unique</td><td>4 digits</td><td>Primary key candidate (it looks like <code>customer_id</code>). Handle consistently.</td></tr>
+</tbody></table></div>
+
+<p>The point of col_b: a column can be clearly sensitive even though not all rows match the pattern, which is why tools expose a minimum conformance percent instead of demanding 100.</p></details></div>
+
+<h3 id="c5-subsetting">2.1.6 What is data subsetting?</h3>
+
+<p>Start with the problem. ShopSphere's production database holds eight years of history: tens of millions of customers, hundreds of millions of orders, terabytes in total. A tester working on the checkout screen does not need all of it. Copying everything to every test environment is slow, expensive and risky. <dfn>Data subsetting</dfn> means copying only a <em>slice</em> of the database, small enough to be cheap, and consistent enough to be useful.</p>
+
+<p><span class="badge doc">From docs</span> Informatica describes the goal as a "small, targeted, and referentially intact copy" of production data for use in a nonproduction environment such as development, test or training, and gives the example of financial data for a specific region or time period (User Guide 10.5.10, p.112). GenRocket frames it the same way: production data may contain sensitive data, "you also do not need all that data for application testing, only a subset" (GenRocket "Synthetic Data Masking (SDM) and Data Subsetting Overview").</p>
+
+<h4 id="c5-why-subset">Why teams subset</h4>
+
+<ul>
+<li><strong>Size and storage cost:</strong> smaller copies need less disk and money (GenRocket lists saved storage as a benefit).</li>
+<li><strong>Speed:</strong> a small copy refreshes overnight instead of over days, and tests and reports run faster.</li>
+<li><strong>Privacy:</strong> fewer real records copied means less exposure and less to mask (the minimum necessary idea from <a href="01-welcome-why-tdm-data-and-privacy.html#c1-s4">the sensitive data chapter</a>).</li>
+<li><strong>Focus:</strong> you can pick exactly what a test needs, such as one region or one scenario.</li>
+</ul>
+
+<h4 id="c5-subset-not-sample">A subset is not just "the first 1,000 rows"</h4>
+
+<p>Beginners sometimes subset by taking the first N rows of each table. That breaks the data: the first 1,000 orders belong to customers that may not be in the first 1,000 customers. The result is orphans: orders with no customer, items with no order. A real subset starts from a choice (a set of customers, a time window) and then follows the relationships so that every kept row has all the parents it points to. Everything in the next sections is about doing that correctly.</p>
+
+<h3 id="c5-types">2.1.7 Types of subset</h3>
+
+<p>"Type" here means <em>how you choose which rows to keep</em>. Several can be combined. The table lists the kinds I can ground in the documentation, plus two general concepts marked as such.</p>
+
+<div class="tablewrap"><table><caption>Ways to choose a subset</caption>
+<thead><tr><th>Type</th><th>How the rows are chosen</th><th>Informatica</th><th>GenRocket</th></tr></thead>
+<tbody>
+<tr><td><strong>By filter condition</strong></td><td>Keep rows that satisfy a condition on a column (zip code, status, region).</td><td>Entity filter criteria on columns of the driving table, using values or parameters; several criteria combine with AND (pp.116 to 117).</td><td>Where clause; AND or OR allowed; example <code>address.state = 'CA'</code> (Subsetting how-to).</td></tr>
+<tr><td><strong>By percentage of rows</strong></td><td>Keep a given share of the rows, such as 25 or 50 percent.</td><td>Limit by percentage in the plan (pp.294, 304).</td><td>"% of rows", usable alone or with a Where clause.</td></tr>
+<tr><td><strong>By absolute number of rows</strong></td><td>Keep a fixed number of rows, such as 100.</td><td>Limit by absolute value (pp.294, 304).</td><td>"# of rows".</td></tr>
+<tr><td><strong>By interval of rows</strong></td><td>Keep a defined interval of rows.</td><td>Limit by an interval of rows (pp.294, 304).</td><td>Not described in the pages I read; the overview example starts at customer id 251 and keeps 100 rows.</td></tr>
+<tr><td><strong>By time window</strong> <span class="badge concept">General concept</span></td><td>A filter on a date column: last 90 days, a financial year.</td><td>The guide's example subset is for "a specific region or time period" (p.112); its database-function example uses a date test, <code>HIREDATE &gt; add_months(current_date, -3)</code> (p.119).</td><td>Possible through a Where clause on a date column; the documentation examples I read use id and state filters.</td></tr>
+<tr><td><strong>By entity or driver table</strong></td><td>Pick rows in one table and bring along everything related.</td><td>Entity with a driving table; example: all data for EmpID 10 (p.121).</td><td>The table that holds the subset conditions drives the rest; related rows come with it.</td></tr>
+<tr><td><strong>Whole tables copied in full</strong></td><td>Some tables (lookups, products) are copied entirely.</td><td>A group with residual tables, to copy unfiltered data (p.116).</td><td>Full-load tables (How to Select Tables for Full Migration).</td></tr>
+<tr><td><strong>Random sample</strong> <span class="badge concept">General concept</span></td><td>Rows picked by chance so the subset resembles the whole.</td><td>The documentation excerpt I had does not say whether a percentage limit picks rows at random.</td><td>Not described as random.</td></tr>
+<tr><td><strong>Targeted sample</strong> <span class="badge concept">General concept</span></td><td>Rows picked on purpose to cover a scenario.</td><td>Done with filters on entity criteria.</td><td>Done with the Where clause.</td></tr>
+</tbody></table></div>
+
+<p><strong>A percentage limit is not automatically a random sample.</strong> "Keep 25 percent" says how many rows, not which; the pages I read do not say how rows are picked. GenRocket's own example takes a contiguous block (start at customer 251, take 100). Check the tool before relying on representativeness.</p>
+
+<p>In short: a random sample resembles the whole (realistic averages) but may miss rare cases; a targeted subset covers chosen scenarios but is unrepresentative statistically. <span class="badge concept">General concept</span> Most teams combine them. For cases production lacks entirely, generate data instead (<a href="02-core-techniques.html#c2-s3">the test data classification and generation chapter</a>).</p>
+
+<p><span class="badge doc">From docs</span> Informatica filters can use a <em>criteria parameter</em> instead of a fixed value, so one entity and workflow can produce different subsets by changing the parameter file (for example EMPID greater than 100, then 500) (User Guide 10.5.10, p.118).</p>
+
+<h3 id="c5-driver-tables">2.1.8 Driver tables and child rows</h3>
+
+<p>Now the core mechanic. Every subset has a <strong>starting point</strong>: a table and a condition. The tool picks the matching rows there, then <em>follows the relationships</em> to select related rows in other tables.</p>
+
+<figure class="diagram"><svg viewBox="0 0 800 250" role="img" aria-label="ShopSphere tables as boxes: CUSTOMERS to ORDERS to ORDER_ITEMS, and PRODUCTS to ORDER_ITEMS, with the driving table marked">
+<defs><marker id="c5arr" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="currentColor"/></marker></defs>
+<rect x="20" y="95" width="160" height="60" rx="8" fill="var(--surface)" stroke="currentColor" stroke-width="3"/>
+<text x="100" y="122" text-anchor="middle" fill="currentColor" font-size="15" font-weight="bold">CUSTOMERS</text>
+<text x="100" y="142" text-anchor="middle" fill="currentColor" font-size="12">DRIVING TABLE (PK customer_id)</text>
+<rect x="250" y="95" width="140" height="60" rx="8" fill="var(--surface)" stroke="currentColor"/>
+<text x="320" y="122" text-anchor="middle" fill="currentColor" font-size="15" font-weight="bold">ORDERS</text>
+<text x="320" y="142" text-anchor="middle" fill="currentColor" font-size="12">FK customer_id</text>
+<rect x="460" y="95" width="160" height="60" rx="8" fill="var(--surface)" stroke="currentColor"/>
+<text x="540" y="122" text-anchor="middle" fill="currentColor" font-size="15" font-weight="bold">ORDER_ITEMS</text>
+<text x="540" y="142" text-anchor="middle" fill="currentColor" font-size="12">FK order_id, product_code</text>
+<rect x="640" y="185" width="140" height="55" rx="8" fill="var(--surface)" stroke="currentColor"/>
+<text x="710" y="210" text-anchor="middle" fill="currentColor" font-size="15" font-weight="bold">PRODUCTS</text>
+<text x="710" y="228" text-anchor="middle" fill="currentColor" font-size="12">PK product_code</text>
+<line x1="180" y1="125" x2="248" y2="125" stroke="currentColor" stroke-width="2" marker-end="url(#c5arr)"/>
+<line x1="390" y1="125" x2="458" y2="125" stroke="currentColor" stroke-width="2" marker-end="url(#c5arr)"/>
+<line x1="640" y1="200" x2="590" y2="157" stroke="currentColor" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#c5arr)"/>
+<text x="214" y="82" text-anchor="middle" fill="currentColor" font-size="12">1. pick customers</text>
+<text x="320" y="190" text-anchor="middle" fill="currentColor" font-size="12">2. their orders</text>
+<text x="540" y="190" text-anchor="middle" fill="currentColor" font-size="12">3. those orders' items</text>
+<text x="700" y="170" text-anchor="middle" fill="currentColor" font-size="12">4. products needed</text>
+<text x="20" y="30" fill="currentColor" font-size="14" font-weight="bold">Solid arrows: parent to child rows pulled down. Dashed arrow: a parent row the kept items point to.</text>
+</svg><figcaption>Original diagram: a subset driven from CUSTOMERS. Child rows follow downward; parent rows that kept rows depend on (the products) are pulled in as well.</figcaption></figure>
+
+<h4 id="c5-driver-in-informatica">Informatica: the entity and its driving table</h4>
+
+<p><span class="badge doc">From docs</span> In Informatica, an <strong>entity</strong> "consists of a driving table and related tables". The driving table is the starting point; TDM finds the tables related to it from physical (declared) and logical (discovered or added) constraints, and adds them to the entity by default. You then define filter criteria on columns of tables in the entity (User Guide 10.5.10, p.114). The guide's example: Employee as the driving table, with primary key EmpID, three child tables holding an EmpID foreign key, and a fourth table, BankAccounts, linked through an account number from one of the children (p.115). The Entity Map shows the star on the driving table.</p>
+
+<p>The Entity Map can show all tables, the parents or children of a selected table, or cyclic relationships, and you can disable a relationship; a table left unrelated is excluded (p.115). The guide advises running data discovery before creating an entity so the constraints exist (p.116).</p>
+
+<div class="callout example"><strong class="ctitle">The guide's own small example</strong>
+
+<p>An employee has ID 10 and you want everything about that employee. Employee is the driving table; Employee_History and Employee_Order are related to it by EmpID. Define the criteria "EmpID equals 10". After the plan runs, the target database holds one Employee row for EmpID 10, all of that employee's history rows and all of their orders (p.121). <span class="badge doc">From docs</span></p></div>
+
+<h4 id="c5-driver-in-genrocket">GenRocket: the subset table and the hierarchy</h4>
+
+<p><span class="badge doc">From docs</span> In GenRocket's G-Subset, only <em>one</em> table in a configuration can have subsetting conditions (Where clause and/or row limit). Rows that meet the condition are included, "all records in related tables associated with those meeting the Where Clause condition will be inserted as well" (Subsetting how-to). The Traverse Full Hierarchy page shows what "related" means. Its example database has Organization (1 row), Department (4), Employee (120), Address, Attendance, Payroll and Qualification (120 each) and Project (8). The condition is on Payroll: <code>hours &gt; 10</code>, limited to 10 rows.</p>
+
+<ul>
+<li><strong>Default behaviour:</strong> G-Subset goes <em>up</em> from the subset table to the top-most parent to build its queries, then migrates from the top down: Organization, Department, Employee, Payroll. Only the ancestor rows related to the chosen Payroll rows move: 10 employees, the departments they belong to, and so on.</li>
+<li><strong>Traverse Full Hierarchy enabled:</strong> it also brings the <em>other children</em> of those ancestors: Project (2 rows), and Address, Attendance and Qualification rows for the same 10 employees.</li>
+</ul>
+
+<p>The same page notes that the option is only available when a subsetting condition has been added to a table, and that masking rules you set for those extra tables are applied to them too.</p>
+
+<div class="callout tip"><strong class="ctitle">Choose the driving table by the test question</strong>
+
+<p>If the test is "does the customer page show the right orders?", drive from <code>CUSTOMERS</code>. If the test is "does the monthly report add up?", drive from <code>ORDERS</code> with a date filter and let the parents (customers) and children (items) follow. The table you drive from decides which rows are complete and which are partial.</p></div>
+
+<h3 id="c5-referential-integrity">2.1.9 Keeping referential integrity</h3>
+
+<p><dfn>Referential integrity</dfn> is the rule that every foreign key value points to a row that exists. It is the one property a subset must never lose. If it breaks, the application crashes or shows empty pages, and testers blame the data. GenRocket's page defines it in the same plain terms: it "refers to the accuracy and consistency of the defined relationships" between parent and child tables (GenRocket "How to Add Custom Referential Integrity to Imported Table Schemas"). <span class="badge doc">From docs</span></p>
+
+<h4 id="c5-how-it-breaks">How a naive subset breaks it</h4>
+
+<p>Suppose someone takes the first 6 rows of <code>ORDERS</code> and the first 4 rows of <code>CUSTOMERS</code> "to keep it small". Order 5006 belongs to customer 1005, who is the fifth customer and was left out. Order 5006 is now an orphan.</p>
+
+<pre><code>SELECT o.order_id, o.customer_id
+FROM   ORDERS o
+LEFT JOIN CUSTOMERS c ON c.customer_id = o.customer_id
+WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
+</code></pre>
+
+<p>On the naive subset this query returns one row (order 5006, customer 1005). On a correct subset it returns nothing. The same check works one level down (<code>ORDER_ITEMS</code> to <code>ORDERS</code>, and <code>ORDER_ITEMS</code> to <code>PRODUCTS</code>). Run these checks after every subset: they are cheap and catch the commonest failure.</p>
+
+<h4 id="c5-integrity-options">Integrity options in Informatica plans</h4>
+
+<p><span class="badge doc">From docs</span> Informatica goes beyond "no orphans". It also offers several ways to decide <em>how much</em> extra data to pull to keep the subset coherent. You choose the option in the plan's advanced settings, so the same entity can yield different subsets (User Guide 10.5.10, pp.121 to 123). By default all constraint relationships in an entity are "major", which can pull in excess data; you can optimise relations so that the entity has the minimum number of major relations while still covering all tables (p.119).</p>
+
+<div class="tablewrap"><table><caption>Informatica data integrity options for a subset plan (User Guide 10.5.10, pp.121-123), explained in plain words</caption>
+<thead><tr><th>Option</th><th>What it does</th><th>Size of result</th><th>Notes from the guide</th></tr></thead>
+<tbody>
+<tr><td>Transactional Integrity for Major Relation Type</td><td>A selected child row pulls in its parents; those parents pull in all of their children; those children may point to more parents, and so on until nothing new is added.</td><td>Can include extra records</td><td>Maintains transactional and referential integrity. Criteria apply to the entity as a whole; multiple criteria combine with AND, which can return nothing if they select unrelated tables.</td></tr>
+<tr><td>Referential Integrity Only</td><td>Selects the fewest rows needed to keep every foreign key valid.</td><td>Fewer rows</td><td>May not include all the children of a parent, so transactional integrity can break. Falls back to the transactional option if the entity has more than one criterion.</td></tr>
+<tr><td>Two-way</td><td>Pushes the criteria down, then back up, alternately, until every table in the entity has some data.</td><td>More than the first two</td><td>Keeps referential integrity and ensures every table meeting the criteria has data. Requires a staging connection.</td></tr>
+<tr><td>One-way</td><td>Applies criteria on individual tables and pushes them downward only; tables above the top-most filtered table are included in full.</td><td>More than Two-way</td><td>Aims for the smallest subset that does not break referential integrity while including all data from tables above the filtered one.</td></tr>
+</tbody></table></div>
+
+<p>The guide also says cyclic and self-referencing relationships (a table that points to itself, such as employees pointing to managers) need a staging connection for recursive evaluation (pp.114 and 122). <span class="badge doc">From docs</span></p>
+
+<h3 id="c5-worked-example">2.1.10 Worked example: a ShopSphere subset, before and after</h3>
+
+<p>Requirement from the test lead: "Give me the Bengaluru customers (zip code starting with 560), with all of their orders, items and the products those items use." The driving table is <code>CUSTOMERS</code>; the filter is <code>zip_code</code> starting with 560. All rows are fictional. Only the columns we need are shown, and customers 1004 to 1008 are extra rows added for this example (1001 to 1003 are the shared sample rows).</p>
+
+<h4 id="c5-before">Before: the full source</h4>
+
+<div class="tablewrap"><table class="sample"><caption>CUSTOMERS (8 rows) with the filter result</caption>
+<thead><tr><th>customer_id</th><th>first_name</th><th>last_name</th><th>zip_code</th><th>In subset?</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>Asha</td><td>Menon</td><td>560001</td><td><strong>Yes</strong></td></tr>
+<tr><td>1002</td><td>Ravi</td><td>Kumar</td><td>600017</td><td>No</td></tr>
+<tr><td>1003</td><td>Meera</td><td>Nair</td><td>682001</td><td>No</td></tr>
+<tr><td>1004</td><td>Kiran</td><td>Rao</td><td>560034</td><td><strong>Yes</strong></td></tr>
+<tr><td>1005</td><td>Divya</td><td>Iyer</td><td>600042</td><td>No</td></tr>
+<tr><td>1006</td><td>Arjun</td><td>Das</td><td>700001</td><td>No</td></tr>
+<tr><td>1007</td><td>Neha</td><td>Shah</td><td>560001</td><td><strong>Yes</strong></td></tr>
+<tr><td>1008</td><td>Sameer</td><td>Khan</td><td>400001</td><td>No</td></tr>
+</tbody></table></div>
+
+<div class="tablewrap"><table class="sample"><caption>ORDERS (12 rows): kept because their customer was kept</caption>
+<thead><tr><th>order_id</th><th>customer_id</th><th>order_date</th><th>total_amount</th><th>In subset?</th></tr></thead>
+<tbody>
+<tr><td>5001</td><td>1001</td><td>2026-01-14</td><td>1200.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>5002</td><td>1002</td><td>2026-01-20</td><td>450.00</td><td>No</td></tr>
+<tr><td>5003</td><td>1001</td><td>2026-02-02</td><td>890.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>5004</td><td>1003</td><td>2026-02-11</td><td>150.00</td><td>No</td></tr>
+<tr><td>5005</td><td>1004</td><td>2026-02-15</td><td>2300.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>5006</td><td>1005</td><td>2026-03-01</td><td>99.00</td><td>No</td></tr>
+<tr><td>5007</td><td>1007</td><td>2026-03-05</td><td>700.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>5008</td><td>1006</td><td>2026-03-09</td><td>595.00</td><td>No</td></tr>
+<tr><td>5009</td><td>1004</td><td>2026-03-12</td><td>99.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>5010</td><td>1008</td><td>2026-03-20</td><td>300.00</td><td>No</td></tr>
+<tr><td>5011</td><td>1002</td><td>2026-04-02</td><td>550.00</td><td>No</td></tr>
+<tr><td>5012</td><td>1001</td><td>2026-04-10</td><td>99.00</td><td><strong>Yes</strong></td></tr>
+</tbody></table></div>
+
+<div class="tablewrap"><table class="sample"><caption>ORDER_ITEMS (15 rows): kept because their order was kept</caption>
+<thead><tr><th>item_id</th><th>order_id</th><th>product_code</th><th>quantity</th><th>unit_price</th><th>In subset?</th></tr></thead>
+<tbody>
+<tr><td>9001</td><td>5001</td><td>P-100</td><td>1</td><td>1200.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>9002</td><td>5002</td><td>P-200</td><td>3</td><td>150.00</td><td>No</td></tr>
+<tr><td>9003</td><td>5003</td><td>P-300</td><td>2</td><td>445.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>9004</td><td>5004</td><td>P-200</td><td>1</td><td>150.00</td><td>No</td></tr>
+<tr><td>9005</td><td>5005</td><td>P-100</td><td>1</td><td>1200.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>9006</td><td>5005</td><td>P-400</td><td>2</td><td>550.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>9007</td><td>5006</td><td>P-500</td><td>1</td><td>99.00</td><td>No</td></tr>
+<tr><td>9008</td><td>5007</td><td>P-400</td><td>1</td><td>550.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>9009</td><td>5007</td><td>P-200</td><td>1</td><td>150.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>9010</td><td>5008</td><td>P-300</td><td>1</td><td>445.00</td><td>No</td></tr>
+<tr><td>9011</td><td>5008</td><td>P-200</td><td>1</td><td>150.00</td><td>No</td></tr>
+<tr><td>9012</td><td>5009</td><td>P-500</td><td>1</td><td>99.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>9013</td><td>5010</td><td>P-200</td><td>2</td><td>150.00</td><td>No</td></tr>
+<tr><td>9014</td><td>5011</td><td>P-400</td><td>1</td><td>550.00</td><td>No</td></tr>
+<tr><td>9015</td><td>5012</td><td>P-500</td><td>1</td><td>99.00</td><td><strong>Yes</strong></td></tr>
+</tbody></table></div>
+
+<div class="tablewrap"><table class="sample"><caption>PRODUCTS (7 rows): kept only if a kept item uses them</caption>
+<thead><tr><th>product_code</th><th>product_name</th><th>price</th><th>In subset?</th></tr></thead>
+<tbody>
+<tr><td>P-100</td><td>Headphones</td><td>1200.00</td><td><strong>Yes</strong> (items 9001, 9005)</td></tr>
+<tr><td>P-200</td><td>USB cable</td><td>150.00</td><td><strong>Yes</strong> (item 9009)</td></tr>
+<tr><td>P-300</td><td>Desk lamp</td><td>445.00</td><td><strong>Yes</strong> (item 9003)</td></tr>
+<tr><td>P-400</td><td>Keyboard</td><td>550.00</td><td><strong>Yes</strong> (items 9006, 9008)</td></tr>
+<tr><td>P-500</td><td>Mouse pad</td><td>99.00</td><td><strong>Yes</strong> (items 9012, 9015)</td></tr>
+<tr><td>P-600</td><td>Webcam</td><td>2100.00</td><td>No</td></tr>
+<tr><td>P-700</td><td>Monitor arm</td><td>1800.00</td><td>No</td></tr>
+</tbody></table></div>
+
+<h4 id="c5-steps">Step by step: how the tool arrives at the result</h4>
+
+<ol class="steps">
+<li><strong>Apply the filter to the driving table.</strong><p><code>CUSTOMERS</code> where zip_code starts with 560.</p><p class="expect">Customers 1001, 1004 and 1007 (3 rows).</p></li>
+<li><strong>Follow the relationship down to orders.</strong><p>Keep every order whose customer_id is in the kept set.</p><p class="expect">Orders 5001, 5003, 5012 (customer 1001), 5005, 5009 (customer 1004) and 5007 (customer 1007): 6 rows.</p></li>
+<li><strong>Follow the relationship down to order items.</strong><p>Keep items whose order_id is in the kept orders.</p><p class="expect">Items 9001, 9003, 9015, 9005, 9006, 9012, 9008, 9009: 8 rows.</p></li>
+<li><strong>Follow the items up to products.</strong><p>Items point at products, and a kept item must not point at a missing product.</p><p class="expect">P-100 to P-500 are kept (5 rows). P-600 and P-700 are not needed.</p></li>
+<li><strong>Check for orphans.</strong><p>Run the left-join checks from section 2.1.9 on each parent-child pair.</p><p class="expect">Zero orphans.</p></li>
+</ol>
+
+<h4 id="c5-after">After: the subset</h4>
+
+<div class="tablewrap"><table class="sample"><caption>Subset result: row counts and ids, before to after</caption>
+<thead><tr><th>Table</th><th>Before</th><th>After</th><th>Rows kept</th></tr></thead>
+<tbody>
+<tr><td>CUSTOMERS</td><td>8</td><td>3</td><td>1001, 1004, 1007</td></tr>
+<tr><td>ORDERS</td><td>12</td><td>6</td><td>5001, 5003, 5005, 5007, 5009, 5012</td></tr>
+<tr><td>ORDER_ITEMS</td><td>15</td><td>8</td><td>9001, 9003, 9005, 9006, 9008, 9009, 9012, 9015</td></tr>
+<tr><td>PRODUCTS</td><td>7</td><td>5</td><td>P-100, P-200, P-300, P-400, P-500</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>42</strong></td><td><strong>22</strong></td><td>about half of the rows in this toy example</td></tr>
+</tbody></table></div>
+
+<div class="callout real"><strong class="ctitle">Toy numbers, real principle</strong>
+
+<p>Half is a toy ratio with eight customers; one city of a real ShopSphere might keep 2 to 3 percent. Small shared tables such as the product catalogue are usually copied in full: Informatica uses a group with residual tables to copy unfiltered data (p.116), GenRocket uses full-load tables. <span class="badge doc">From docs</span></p></div>
+
+<div class="exercise"><h4 id="c2-lab-subset-by-a-time-window-instead">Lab: subset by a time window instead</h4>
+
+<p>Goal: repeat the exercise driving from <code>ORDERS</code> with the filter "order_date in March 2026", using the tables above. You will see how the choice of driving table changes the result.</p>
+
+<ol class="steps">
+<li><strong>Filter the driving table.</strong><p>List the orders whose order_date falls in March 2026.</p></li>
+<li><strong>Pull the parents.</strong><p>Which customers do those orders point to? They must be in the subset or the orders become orphans.</p></li>
+<li><strong>Pull the children.</strong><p>List the items belonging to the kept orders.</p></li>
+<li><strong>Pull the products those items use.</strong></li>
+<li><strong>Count rows per table and compare with the zip code subset.</strong></li>
+<li><strong>Apply transactional integrity.</strong><p>For each kept customer, also keep all of that customer's other orders (and their items and products). What is added?</p></li>
+</ol>
+
+<details class="sol"><summary>Show a worked answer</summary>
+
+<p>1. March orders: 5006, 5007, 5008, 5009, 5010 (5 rows).</p>
+
+<p>2. Their customers: 1005, 1007, 1006, 1004, 1008 (5 rows).</p>
+
+<p>3. Items: 9007 (order 5006); 9008, 9009 (5007); 9010, 9011 (5008); 9012 (5009); 9013 (5010): 7 rows.</p>
+
+<p>4. Products used: P-500, P-400, P-200, P-300 (4 rows; P-100, P-600, P-700 are not needed).</p>
+
+<p>5. Total: 5 + 5 + 7 + 4 = 21 rows. Different driver, different shape: here <em>customers</em> are partial (each has only their March orders) while in the zip code subset customers were complete.</p>
+
+<p>6. Customer 1004 also has order 5005 (February). Adding it brings its items 9005 and 9006 and product P-100. Result: 6 orders, 9 items, 5 products, 5 customers (25 rows). The other kept customers have no other orders, so nothing else is added. This extra round is the "loop" the Informatica guide describes for transactional integrity.</p></details></div>
+
+<h3 id="c5-reduced-vs-full">2.1.11 Reduced copies and full copies</h3>
+
+<p>A subset is one way to make a test copy small. There are other ways to get a test copy, and each has a place. The comparison below is a general guide, with the Delphix statements marked.</p>
+
+<p>A full physical copy is the most realistic but the slowest and most exposed. A subset is small and quick to refresh but may miss rare cases. A virtual copy looks full but shares storage with its source, so it is cheap to create, but it still holds all the data and needs masking. <span class="badge concept">General concept</span></p>
+
+<p><span class="badge doc">From docs</span> Delphix describes virtualization as producing "a functioning database or filesystem copy that is lightweight and ephemeral" (terminology page), and its introduction claims that ten virtual copies can fit into the space of one physical copy. The pages I read do not describe a subsetting feature for Delphix, so treat "virtual copy" and "subset" as two different answers to the same cost problem: Delphix makes full copies cheap; Informatica and GenRocket make copies small.</p>
+
+<h3 id="c5-masking-and-subsetting">2.1.12 How masking and subsetting combine</h3>
+
+<p>You rarely do one without the other: subsetting shrinks the set of real records, and masking changes what remains. Three orders are possible. <span class="badge concept">General concept</span></p>
+
+<div class="tablewrap"><table><caption>Possible orders of subsetting and masking</caption>
+<thead><tr><th>Order</th><th>How it works</th><th>Good</th><th>Watch out</th></tr></thead>
+<tbody>
+<tr><td>Subset, then mask</td><td>Select the slice from real data, then mask the slice</td><td>Less to mask, and filters see real values (for example real zip codes)</td><td>Unmasked data exists briefly in the slice or staging area</td></tr>
+<tr><td>Mask, then subset</td><td>Mask everything, then select the slice from the masked copy</td><td>Nothing unmasked leaves the masking step</td><td>Masks the whole database (slow), and filters on masked columns pick different rows than expected</td></tr>
+<tr><td>Both in one run</td><td>Select and mask while copying to the target</td><td>Fast, one job, one schedule</td><td>Needs a tool that supports it, and careful setup</td></tr>
+</tbody></table></div>
+
+<p><span class="badge doc">From docs</span> Both Informatica and GenRocket support the third pattern. In Informatica, a plan can contain masking components (policies and rules) and subset components (entities, groups) together (User Guide 10.5.10, p.304; and p.135 for masking plans). The plan also says whether to mask data in place in the source database or in stream into a target database (p.150). In GenRocket, "Mask and subset data set together by providing both the masking and subset parameters in a G-Subset Configuration" (G-Subset Overview). Its sensitive columns are replaced with synthetic values in a temporary file before the rows are inserted, and the sensitive values are never read.</p>
+
+<p>The key requirement when you combine them is <strong>consistency</strong>. The masked customer 1004 in <code>CUSTOMERS</code> must be the same masked customer 1004 that the kept orders point to. Informatica's docs describe "auto cascades" that mask a parent key and its child foreign keys with the same value (p.91), and Delphix says its masking keeps primary and foreign keys consistent across tables and databases (Delphix "Introduction to Delphix Masking"). <a href="02-core-techniques.html#c2-s2">The masking concepts chapter</a> explains how.</p>
+
+<div class="tablewrap"><table class="sample"><caption>The zip code subset from section 2.1.10, with names masked (the masked values are illustrative)</caption>
+<thead><tr><th>customer_id</th><th>first_name (before)</th><th>last_name (before)</th><th>first_name (after)</th><th>last_name (after)</th><th>zip_code</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>Asha</td><td>Menon</td><td>Leela</td><td>Pillai</td><td>560001</td></tr>
+<tr><td>1004</td><td>Kiran</td><td>Rao</td><td>Mohan</td><td>Verma</td><td>560034</td></tr>
+<tr><td>1007</td><td>Neha</td><td>Shah</td><td>Tara</td><td>Bose</td><td>560001</td></tr>
+</tbody></table></div>
+
+<p>Notice that the key <code>customer_id</code> is unchanged, so the 6 kept orders still point at the right rows. Notice too that zip codes were left alone here. As the <a href="01-welcome-why-tdm-data-and-privacy.html#c1-s4">sensitive data chapter</a> showed, a zip code is an indirect identifier, so whether it stays is a decision for the compliance officer.</p>
+
+<h4 id="c5-genrocket-subset">GenRocket's subsetting at a glance</h4>
+
+<p><span class="badge doc">From docs</span> GenRocket's database subsetting is called G-Subset (formerly G-Migration+). It plans from the source schema, runs in the customer's environment and migrates to a destination database of the same type. Conditions are a Where clause, a percentage or a number of rows, on one table only; related rows follow, other tables can be marked for full load, and custom referential integrity can be added when the source declares none. It does not support composite keys at present (GenRocket "G-Subset Overview", <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-overview-formerly-g-migration" target="_blank" rel="noopener">source page ↗</a>).</p>
+
+<h3 id="c5-mistakes">Common mistakes and gotchas</h3>
+
+<div class="callout warn"><strong class="ctitle">Mistakes beginners make</strong>
+
+<ul>
+<li><strong>Taking "the first N rows" of every table.</strong> It creates orphans. Always start from a driving table and follow relationships.</li>
+<li><strong>Trusting discovery output without review.</strong> Reject coincidental key matches, add missed sensitive columns.</li>
+<li><strong>Choosing a sensitive column as a key.</strong> A unique SSN is a poor primary key because masking will change it.</li>
+<li><strong>Assuming a percentage limit is random.</strong> The documentation excerpts do not say so; verify.</li>
+<li><strong>Forgetting reference tables.</strong> A subset with an empty <code>PRODUCTS</code> table breaks every order screen. Copy lookup tables in full.</li>
+<li><strong>Filtering on a column you also mask.</strong> Decide whether the filter sees real or masked values.</li>
+</ul></div>
+
+<h3 id="c5-recap">Recap</h3>
+
+<div class="callout recap"><strong class="ctitle">Remember</strong><ul>
+<li>Discovery and profiling come first: they report types, patterns, sensitive-looking columns, key candidates and relationships, from metadata (names and types) and from data (values, usually sampled).</li>
+<li>Profiles guess. False positives waste effort or change keys; false negatives leak data. A human reviews and approves.</li>
+<li>A subset is a small, targeted, referentially intact copy: cheaper to store, faster to refresh and test, and less real data exposed.</li>
+<li>You choose rows by filter condition, percentage, row count or interval, time window, or by a driving table; tools also copy some tables in full.</li>
+<li>A driving table is the starting point: related rows are followed down to children and up to parents so there are no orphans. Informatica calls the group an entity; GenRocket follows the hierarchy from the subset table.</li>
+<li>Informatica offers transactional, referential-only, two-way and one-way integrity options that trade subset size against completeness.</li>
+<li>Subsetting and masking are partners. Keep keys consistent when you combine them, and check for orphans afterwards.</li>
+</ul></div>
+
+<section class="sources"><h3 id="c5-sources">Sources used in this section</h3><ul>
+<li>Informatica TDM 10.5.10 User Guide (February 2026): chapter 5 "Data Discovery" pp.86 to 111 (profile types, options, results, key and entity discovery); chapter 6 "Creating a Data Subset" pp.112 to 134 (entities, driving tables, integrity options, criteria parameters); chapter 7 pp.135 and 150 (masking plans, in place or in stream); p.91 (auto cascades); chapter 13 pp.294 and 304 (limit by percentage, absolute value, interval).</li>
+<li>GenRocket help: <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/synthetic-data-masking-sdm-and-data-subsetting-overview" target="_blank" rel="noopener">SDM and Data Subsetting Overview</a>; <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-overview-formerly-g-migration" target="_blank" rel="noopener">G-Subset Overview</a>; <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/data-subsetting-how-to-add-tables-and-subsetting-conditions" target="_blank" rel="noopener">Data Subsetting: Add Tables and Conditions</a>; <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/how-to-add-custom-referential-integrity-to-imported-table-schemas" target="_blank" rel="noopener">Custom Referential Integrity</a>; <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-traverse-full-hierarchy-option" target="_blank" rel="noopener">Traverse Full Hierarchy</a>; <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/how-to-select-tables-for-full-migration-during-subsetting" target="_blank" rel="noopener">Select Tables for Full Migration</a>; <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/pii-discovery-with-data-column-profiling-identify-sensitive-data-columns" target="_blank" rel="noopener">PII Discovery with Data Column Profiling</a>.</li>
+<li>Delphix Continuous Compliance 2026.5: <a href="https://help.delphix.com/cc/current/content/discovering_your_sensitive_data.htm" target="_blank" rel="noopener">Discovering your sensitive data</a>; <a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a>; <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>.</li>
+<li>General concepts written for this guide: the ShopSphere tables and worked examples, random versus targeted sampling, subset-versus-mask ordering, full versus virtual copy comparison.</li>
+</ul></section>
+
+<h2 id="c2-s2">2.2 Data masking: the concepts</h2>
+<p><span class="day">Day 44</span></p>
+<p>You have found the sensitive columns (<a href="01-welcome-why-tdm-data-and-privacy.html#c1-s4">the sensitive data chapter</a>) and cut the data down to a slice (<a href="02-core-techniques.html#c2-s1">the discovery and subsetting concepts chapter</a>). Now comes the step that makes the copy safe to hand to testers: <strong>masking</strong>, replacing real sensitive values with realistic fake ones. This section explains the idea and the common techniques in plain words, with before and after values on ShopSphere data. The tool-specific chapters, <a href="05-informatica-masking-generation-workflows.html#c5-s1">Informatica data masking</a> and <a href="09-delphix-masking-files-labs.html#c9-s1">Delphix algorithms and masking jobs</a>, then show where the buttons are.</p>
+
+<div class="callout recap"><strong class="ctitle">What you will learn</strong><ul>
+<li>How masking differs from obfuscation, encryption, tokenization, anonymisation and pseudonymisation.</li>
+<li>What good masked data must be: realistic, safe, consistent, repeatable and still valid for tests.</li>
+<li>The common techniques, each with a before and after example: substitution, shuffle, key masking, encryption, nulling and redaction, date shifting, numeric variance, format-preserving masking, character replacement and algorithm chaining.</li>
+<li>Why the same input must give the same output in every table and system, and how tools achieve it.</li>
+<li>Static versus dynamic masking, in-place versus on-the-fly, the main risks, how to choose a technique, and how to validate the result.</li>
+</ul></div>
+
+<div class="callout note"><strong class="ctitle">What this section is based on</strong>
+
+<p><span class="badge doc">From docs</span> Informatica TDM 10.5.10 User Guide (PDF, February 2026): chapter 7 "Performing a Data Masking Operation" (pp.135 to 150) and chapter 8 "Data Masking Techniques and Parameters" (pp.151 to 185), all technique sections read. Delphix Continuous Compliance 2026.5 (last published October 16, 2026): "Delphix masking terminology", "Algorithms", "Algorithm frameworks", "Secure Lookup", "SecureShuffle", "Date Shift", "Payment Card", "Character Mapping", "Character Replacement", "Free Text Redaction", "String Algorithm Chain", "Tokenization", "Algorithm syncability", "Best practices for Delphix data masking", and the job-creation page for in-place and on-the-fly. One GenRocket page on Synthetic Data Replacement.</p>
+
+<p><span class="badge concept">General concept</span> The comparison of terms, static versus dynamic masking, the risks list and the decision table are explained for this guide. Technique names are marked as coming from the sources or as universally standard.</p></div>
+
+<h3 id="c6-words-to-know">2.2.1 Words to know first</h3>
+
+<dl class="defs">
+<div><dt>Masking</dt><dd>Replacing sensitive values with realistic but fictitious values so test data cannot identify real people. Delphix defines it as iterating through a dataset to identify all sensitive fields and replace them with desensitised values to eliminate risk in lower environments.</dd></div>
+<div><dt>Technique (Informatica) / algorithm (Delphix)</dt><dd>The method that changes a value, such as substitution or date shift. Informatica turns a technique plus settings into a <em>rule</em>. Delphix turns an algorithm framework plus settings into an <em>algorithm instance</em>.</dd></div>
+<div><dt>Deterministic</dt><dd>Always gives the same output for the same input (and same settings). The opposite is <dfn>non-deterministic</dfn> or random: a different output each time.</dd></div>
+<div><dt>Repeatable</dt><dd>Informatica's word for deterministic output across runs and tables, switched on with a seed.</dd></div>
+<div><dt>Seed / key</dt><dd>A starting value that controls the output of a deterministic technique. Same seed (Informatica) or same algorithm key (Delphix) gives the same masked values; changing it changes them.</dd></div>
+<div><dt>Dictionary / lookup file</dt><dd>A list of replacement values, such as thousands of first names, that substitution picks from.</dd></div>
+<div><dt>Collision</dt><dd>Two different inputs masked to the same output. Fine for names, harmful for a column that must be unique.</dd></div>
+<div><dt>Irreversible</dt><dd>You cannot get the original value back from the masked one.</dd></div>
+<div><dt>Format-preserving</dt><dd>The masked value keeps the original's shape: a 10-digit phone stays 10 digits, a card number keeps its checksum.</dd></div>
+<div><dt>In-place and on-the-fly</dt><dd>In-place masking changes the data where it sits. On-the-fly masking reads unmasked data and writes masked data to a different place.</dd></div>
+</dl>
+
+<h3 id="c6-compare-terms">2.2.2 Masking and its neighbours</h3>
+
+<p>People use these words loosely. They mean different things, and the difference decides whether a copy is safe.</p>
+
+<div class="tablewrap"><table><caption>Obfuscation, masking, encryption, tokenization, anonymisation, pseudonymisation</caption>
+<thead><tr><th>Term</th><th>What it means</th><th>Reversible?</th><th>Keeps data usable for tests?</th><th>ShopSphere example</th></tr></thead>
+<tbody>
+<tr><td><strong>Obfuscation</strong></td><td>Umbrella word: make data hard to read or understand, by any method. Masking is one kind.</td><td>Depends</td><td>Depends</td><td>Any of the rows below</td></tr>
+<tr><td><strong>Masking</strong></td><td>Replace real values with realistic fake ones, usually permanently, for non-production use.</td><td>No (by design)</td><td>Yes</td><td><code>Asha Menon</code> becomes <code>Leela Pillai</code></td></tr>
+<tr><td><strong>Encryption</strong></td><td>Scramble data with a key so only key holders can unscramble it.</td><td>Yes, with the key</td><td>Only if it preserves format; ordinary ciphertext breaks tests</td><td><code>123-45-6789</code> becomes <code>q8Zk...==</code></td></tr>
+<tr><td><strong>Tokenization</strong></td><td>Replace a value with a token, keeping a protected way to reverse it later.</td><td>Yes, by design</td><td>Partly</td><td>Send tokens to a vendor; map back afterwards</td></tr>
+<tr><td><strong>Anonymisation</strong></td><td>A <em>goal</em>: data that no longer identifies anyone, even in combination. Legal tests are strict.</td><td>No</td><td>Varies</td><td>Masked and generalised so no row is unique</td></tr>
+<tr><td><strong>Pseudonymisation</strong></td><td>Replace identifiers with pseudonyms, but a way back exists elsewhere. Still personal data under GDPR.</td><td>Yes, with the extra information</td><td>Yes</td><td>customer_id replaced by a token</td></tr>
+</tbody></table></div>
+
+<p>How the sources use the words: <span class="badge doc">From docs</span></p>
+
+<ul>
+<li>Delphix says <em>tokenization</em> is "the only type of algorithm that allows you to reverse its masking". Its example is masking data before sending it to a vendor and reversing it afterwards to act on the vendor's findings (terminology page). Its introduction labels masking as anonymisation and tokenization as pseudonymisation. It also says unlike encryption, which can be bypassed by obtaining user credentials, masking irreversibly protects data in downstream environments, and that encryption is ill-suited to protecting non-production environments (Delphix "Introduction to Delphix Masking").</li>
+<li>Informatica treats <em>encryption</em> as one masking technique. Standard encryption offers AES, CRC and MD5, and format preserving encryption can be decrypted with the same pass phrase and configuration (User Guide 10.5.10, p.161).</li>
+<li>GenRocket argues that traditional masking "can be reverse engineered" and that its Synthetic Data Replacement generates new values that cannot be traced back (GenRocket "G-Subset Overview" and "What is Synthetic Data Replacement").</li>
+</ul>
+
+<div class="callout warn"><strong class="ctitle">Reversible is a risk in test data</strong>
+
+<p>If a test copy can be turned back into the real data, then stealing the copy plus the key or mapping table is a breach. For ordinary test environments, prefer irreversible masking. Use encryption or tokenization when you truly need to come back, such as a vendor round trip, and guard the key like production data.</p></div>
+
+<div class="callout tip"><strong class="ctitle">Anonymisation is a destination, masking is a vehicle</strong>
+
+<p>Masking is a set of techniques. Whether the masked result counts as anonymous under a law depends on the whole data set (the combinations you saw in the sensitive data chapter) and is the compliance officer's call.</p></div>
+
+<h3 id="c6-goals">2.2.3 What good masked data looks like</h3>
+
+<p>A tool could blank every sensitive column in a second. That would be safe and useless. Masking has competing goals, and good masking meets all of them.</p>
+
+<div class="tablewrap"><table><caption>The goals of masking</caption>
+<thead><tr><th>Goal</th><th>Meaning</th><th>What goes wrong without it</th></tr></thead>
+<tbody>
+<tr><td>Safe</td><td>Real values cannot be recovered or inferred</td><td>A leak of test data is a leak of customers</td></tr>
+<tr><td>Realistic</td><td>Looks like real data: names look like names, emails like emails</td><td>Testers cannot spot UI bugs, and validation rules reject the data</td></tr>
+<tr><td>Valid</td><td>Passes the application's rules: format, checksum, length, ranges</td><td>The card form refuses every masked card number</td></tr>
+<tr><td>Consistent</td><td>The same real value maps to the same fake value everywhere it appears</td><td>Joins break; a customer has different names in two tables</td></tr>
+<tr><td>Repeatable</td><td>A re-run gives the same results when it should</td><td>Test cases that rely on a specific customer fail after each refresh</td></tr>
+<tr><td>Fit for purpose</td><td>Keeps the properties the tests depend on (a customer has several orders, a date precedes another)</td><td>The data is fake but the test no longer tests anything</td></tr>
+</tbody></table></div>
+
+<p><span class="badge doc">From docs</span> Both vendors state these goals. Informatica: replace source data in sensitive columns with "realistic test data" for nonproduction environments (p.135). Delphix: the data stays "production-like in quality", masking is consistent while "maintaining referential integrity across heterogeneous data sources", and it is irreversible (Delphix "Introduction to Delphix Masking").</p>
+
+<p>Some goals pull against each other. Perfect safety says "change everything completely". Perfect fidelity says "keep it as it was". Every technique in the next section is a compromise somewhere between those poles, which is why choosing is a skill.</p>
+
+<h3 id="c6-techniques">2.2.4 Common masking techniques</h3>
+
+<p>Each technique below is shown with a before and after on ShopSphere data. The masked values are made up for illustration unless marked as taken from the documentation. Names differ between tools, so the table maps them. <span class="badge doc">From docs</span> means the technique appears in the Informatica or Delphix pages I read; <span class="badge concept">General concept</span> means it is a universally standard idea, whatever the tool calls it.</p>
+
+<div class="tablewrap"><table><caption>The techniques and what each tool calls them</caption>
+<thead><tr><th>Technique</th><th>Informatica (chapter 8)</th><th>Delphix</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Substitution</td><td>Substitution</td><td>Secure Lookup</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Shuffle</td><td>Shuffle</td><td>SecureShuffle</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Key masking</td><td>Key</td><td>Character Mapping, Segment Mapping, Mapping (unique outputs)</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Encryption</td><td>Encryption (standard and format preserving)</td><td>Tokenization (reversible)</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Nulling, redaction</td><td>Nullification</td><td>Free Text Redaction, null-value lookup</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Date shifting</td><td>Random with date blurring</td><td>Date Shift, Dependent Date Shift</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Numeric variance</td><td>Random with numeric blurring or range</td><td>Min Max</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Format-preserving</td><td>Credit card, Phone, SSN, email, IP, URL masking; format preserving encryption</td><td>Payment Card, Character Mapping</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Character replacement</td><td>Mask format, source and result string characters</td><td>Character Replacement</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Algorithm chaining</td><td>Advanced masking (variable columns), mapplets</td><td>String Algorithm Chain</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Partial redaction ("show last 4")</td><td>Key masking with "+" (no mask) positions</td><td>Preserve ranges in Character Mapping</td><td><span class="badge concept">General concept</span> as a name</td></tr>
+</tbody></table></div>
+
+<h4 id="c6-substitution">Substitution</h4>
+
+<p>Replace the value with a different, believable one picked from a list. Informatica: it "replaces a column of data with similar but unrelated data from a dictionary", which can be a flat file or a database table (p.176). Delphix Secure Lookup is the same idea: it picks a replacement from a lookup file using a cryptographic hash of the original value, so the output is consistent for each input (terminology page; the framework page says the default hash method is SHA256). <span class="badge doc">From docs</span></p>
+
+<div class="tablewrap"><table class="sample"><caption>Substitution on CUSTOMERS (masked values illustrative)</caption>
+<thead><tr><th>customer_id</th><th>first_name before</th><th>after</th><th>last_name before</th><th>after</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>Asha</td><td>Leela</td><td>Menon</td><td>Pillai</td></tr>
+<tr><td>1002</td><td>Ravi</td><td>Sanjay</td><td>Kumar</td><td>Gupta</td></tr>
+<tr><td>1003</td><td>Meera</td><td>Anita</td><td>Nair</td><td>Joshi</td></tr>
+</tbody></table></div>
+
+<p>Strengths: very realistic. Limits: the list can run out. Informatica's <em>unique substitution</em> makes the operation fail when the source has more distinct values than the dictionary has (p.176), and Delphix says that two inputs can collide on one output, which is fine for names and a problem for unique columns (terminology page). Informatica also lets you pick names by a lookup column such as gender or country, so female names stay female (pp.177 to 179).</p>
+
+<h4 id="c6-shuffle">Shuffle</h4>
+
+<p>Move the existing values of a column between rows. Informatica's own example moves first names between four rows: Tom, Sue, Bob, Eli become Bob, Eli, Tom, Sue (p.173). Delphix SecureShuffle guarantees that each value moves to a different row, but an input can still mask to itself when values repeat (SecureShuffle page). <span class="badge doc">From docs</span></p>
+
+<div class="tablewrap"><table class="sample"><caption>Shuffle of last_name</caption>
+<thead><tr><th>customer_id</th><th>last_name before</th><th>after</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>Menon</td><td>Kumar</td></tr>
+<tr><td>1002</td><td>Kumar</td><td>Nair</td></tr>
+<tr><td>1003</td><td>Nair</td><td>Menon</td></tr>
+</tbody></table></div>
+
+<p>The catch: the values are still real. Someone who knows Asha Menon's first name and city could still recognise "Menon" in the column, and a rare value stays rare. Delphix warns that shuffling does not redact or modify any value, so consider carefully whether it meets your security requirements. Informatica offers a <em>constrained</em> shuffle (for example, only within the same city) and a <em>representative</em> shuffle, in which all rows with the same source value get the same shuffled value (p.174).</p>
+
+<h4 id="c6-key-masking">Key masking</h4>
+
+<p>Produce a deterministic masked value from the input and a seed: same input, same seed, same output. Informatica's Key technique works for dates, numbers and strings, and you can limit each output character to letters, digits or alphanumerics with a mask format (pp.164 to 168). For numbers, the guide says to use the same seed in the primary key column and the foreign key column so referential integrity is maintained (p.167). <span class="badge doc">From docs</span> Delphix does the same job with Character Mapping, which maps each value to another value built from the same character groups, giving no two inputs the same output, which suits primary and foreign key columns (Character Mapping page).</p>
+
+<div class="tablewrap"><table class="sample"><caption>Numeric key masking with the same seed everywhere (masked values illustrative)</caption>
+<thead><tr><th>Column</th><th>Before</th><th>After</th></tr></thead>
+<tbody>
+<tr><td>CUSTOMERS.customer_id</td><td>1001</td><td>48213</td></tr>
+<tr><td>ORDERS.customer_id (for Asha's orders)</td><td>1001</td><td>48213</td></tr>
+</tbody></table></div>
+
+<h4 id="c6-encryption">Encryption and tokenization</h4>
+
+<p>Informatica offers standard encryption (AES, CRC, MD5, with a key of 16 characters or fewer) and <em>format preserving encryption</em>. The latter can keep the format and length, and can be decrypted with the same pass phrase and configuration. Its example: <code>Abc123@xyz.com</code> becomes <code>Mpz849#dje!kuw</code>, or <code>Mpz849@dje.kuw</code> if the "@" and "." are excluded from encryption (pp.161 to 162). The Delphix Tokenization framework uses AES-128 and produces longer alphanumeric tokens, built for the vendor round trip described in 6.2 (Tokenization page). <span class="badge doc">From docs</span> Because they can be reversed, use them only when reversal is the goal.</p>
+
+<h4 id="c6-nulling">Nulling and redaction</h4>
+
+<p>Remove the value, or part of it. Informatica's Nullification replaces a column with NULL, works on all data types and has no parameters (p.168). <span class="badge doc">From docs</span> The simplest safe answer for a column the tests do not use, such as <code>tax_id</code>, is NULL. The cost: NOT NULL columns refuse it and the application paths that read the column go untested. <strong>Free text</strong> needs smarter redaction: Delphix's Free Text Redaction finds sensitive words and patterns inside a text column (for example "St", "Blvd", or the shape 123-45-6789 for an SSN) and redacts the whole matched word, but it "requires some expertise to use" (Free Text Redaction page). <span class="badge doc">From docs</span></p>
+
+<h4 id="c6-date-shift">Date shifting and blurring</h4>
+
+<p>Move a date by an amount so that the exact date is hidden but the date still looks plausible. Delphix Date Shift masks each date to another within a configured range (for example 3 to 5 days later), based on the algorithm key; a fixed shift (same minimum and maximum) preserves uniqueness and referential integrity, unlike variable ranges. Its docs show <code>2021-02-03 12:30:00</code> becoming <code>2021-02-06 12:30:00</code> (Date Shift page). Informatica blurs a date within a range of years, months, days or hours: a source of 2 February 2006 with a two-year bound becomes a date between 2 February 2004 and 2 February 2008 (p.170). <span class="badge doc">From docs</span></p>
+
+<div class="tablewrap"><table class="sample"><caption>Date shift of date_of_birth, fixed shift of +3 days (illustrative)</caption>
+<thead><tr><th>customer_id</th><th>Before</th><th>After</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>1990-04-12</td><td>1990-04-15</td></tr>
+<tr><td>1002</td><td>1985-11-02</td><td>1985-11-05</td></tr>
+</tbody></table></div>
+
+<p>Related dates need care. If <code>order_date</code> must stay after <code>date_of_birth</code>, shifting them independently can break the order. Delphix's <em>Dependent Date Shift</em> is a multi-column algorithm that masks two date-times while preserving the interval between them (Algorithms page). <span class="badge doc">From docs</span></p>
+
+<h4 id="c6-numeric">Numeric variance</h4>
+
+<p>Move a number by a controlled amount. Informatica numeric blurring uses a fixed or percent variance. With the input 66: fixed bounds 10 and 10 give a result between 56 and 76; percent bounds 50 and 50 give 33 to 99 (p.170). A range option returns a number between a minimum and a maximum. Delphix Min Max pulls extreme values toward the middle, because a record with the highest salary may reveal a company's CEO (Min Max Number page). <span class="badge doc">From docs</span> On ShopSphere, a 10 percent blur turns <code>total_amount</code> 1200.00 into something between 1080.00 and 1320.00, which keeps totals plausible but breaks the rule "total equals the sum of its items" unless the items are changed too, so decide whether tests rely on that.</p>
+
+<h4 id="c6-format-preserving">Format-preserving masking</h4>
+
+<p>The masked value keeps the format the application checks. Informatica has built-in formats. Credit card masking returns a number with a valid checksum, leaves the six-digit bank identification number unchanged, and can keep or change the card issuer: <code>4539 1596 8210 2773</code> becomes <code>4539 1516 0556 7067</code> (p.158). Phone masking keeps the format: <code>(408)382 0658</code> becomes <code>(408)256 3106</code> (p.169). SSN masking generates valid numbers that avoid ones the Social Security Administration has issued (p.175). Delphix Payment Card preserves the Luhn check and the leading digits you choose: <code>5419033646326699</code> becomes <code>5419036803270758</code> when the first six digits are kept (Payment Card page). <span class="badge doc">From docs</span></p>
+
+<div class="tablewrap"><table class="sample"><caption>Format-preserving masking of ShopSphere columns (illustrative)</caption>
+<thead><tr><th>Column</th><th>Before</th><th>After</th></tr></thead>
+<tbody>
+<tr><td>phone</td><td>9876543210</td><td>9412087365</td></tr>
+<tr><td>ssn</td><td>123-45-6789</td><td>561-80-3472</td></tr>
+<tr><td>email</td><td>asha.menon@example.com</td><td>leela.pillai@example.com</td></tr>
+</tbody></table></div>
+
+<h4 id="c6-char-replacement">Character replacement</h4>
+
+<p>Replace characters according to a pattern. In Informatica's key and random techniques you set a <em>mask format</em>: A for letters, D for digits, N for alphanumerics, X for any character, <code>+</code> for "leave as is", and R for the remaining characters (pp.165, 170); and you can mask only chosen source characters or restrict the result to chosen characters. Delphix's Character Replacement framework swaps listed characters (for example vowels to "+") and wraps another string algorithm, and the page notes it has no UI or default instance at present, so it is configured through the API. <span class="badge doc">From docs</span> A ShopSphere use: a tax ID shaped like <code>AKPPM4821Q</code> (five letters, four digits, one letter) masked with format <code>AAAAADDDDA</code> becomes something like <code>TRWQD9037B</code>, same shape, no real content.</p>
+
+<h4 id="c6-chaining">Algorithm chaining</h4>
+
+<p>Combine several steps into one result. Informatica's <em>advanced masking</em> uses input, variable and output columns: mask FIRST_NAME and LAST_NAME separately with substitution into variable columns, then output <code>FIRST_MASKED || ' ' || LAST_MASKED</code> as the full name (p.158). Its email masking can build the address from the masked first and last name (p.159). Delphix's String Algorithm Chain runs two to eight string algorithms one after another, and its docs give a reason to chain: with deterministic masking, a very rare input value keeps its low frequency in the output and could be used to infer the original, so a first algorithm can alter such rare values before the main one runs (String Algorithm Chain page). <span class="badge doc">From docs</span></p>
+
+<div class="callout why"><strong class="ctitle">Why chain at all?</strong>
+
+<p>Real columns are related: the email contains the name, the full name contains the first name. If each is masked independently, the masked email will name someone different from the masked name. Chaining makes the dependent value follow the one it depends on.</p></div>
+
+<h3 id="c6-deterministic">2.2.5 Same input, same output: deterministic masking and referential integrity</h3>
+
+<p>This is the idea that separates amateur masking from professional masking. Imagine ShopSphere masks <code>CUSTOMERS.customer_id</code> randomly, and then masks <code>ORDERS.customer_id</code> randomly in a separate step:</p>
+
+<div class="tablewrap"><table class="sample"><caption>What happens when the same key is masked independently, versus consistently (illustrative)</caption>
+<thead><tr><th>Column</th><th>Original</th><th>Random each time</th><th>Deterministic (same seed)</th></tr></thead>
+<tbody>
+<tr><td>CUSTOMERS.customer_id (Asha)</td><td>1001</td><td>48213</td><td>48213</td></tr>
+<tr><td>ORDERS.customer_id (Asha's order 5001)</td><td>1001</td><td>90377</td><td>48213</td></tr>
+<tr><td>Join CUSTOMERS to ORDERS</td><td>works</td><td><strong>no match: order 5001 is an orphan</strong></td><td>works</td></tr>
+</tbody></table></div>
+
+<p>Masking a <em>primary key</em> or <em>foreign key</em> is only safe if every copy of the same real value turns into the same masked value. The same holds across systems: if the billing database and the orders database both hold customer 1001, they must both end up with 48213, or reconciliation tests will fail. This property is called <dfn>deterministic</dfn> (Informatica: <dfn>repeatable</dfn>) masking, and referential integrity depends on it.</p>
+
+<h4 id="c6-how-tools-do-it">How the tools achieve it</h4>
+
+<ul>
+<li><strong>Informatica seed and repeatable output.</strong> With repeatable output, "John Smith" is masked as "Frank Martinez" in every table, account number 1234 always becomes 6549 and 5678 always becomes 3214, across runs. A seed, a number from 1 through 999 with default 1, is the starting point; use the same seed on the same kind of column in different tables. An administrator can set a central seed that overrides all others, and a seed can come from a parameter file (pp.154 to 155). <span class="badge doc">From docs</span></li>
+<li><strong>Informatica cascades.</strong> An <em>auto cascade</em> masks a parent key and the related foreign keys in child tables with the same value, applied by default where key constraints exist (p.91). A <em>value cascade</em> does the same for similar columns that are not linked by a key, such as <code>employee_num</code> in one table and <code>EmpID</code> in another, by choosing a driving column (p.90). <span class="badge doc">From docs</span></li>
+<li><strong>Delphix key and domain.</strong> Most algorithms carry a key; the same algorithm with the same key gives the same output, and changing the key changes every output (the Algorithms page gives an example where "Michelle" becomes "Rachael" and after rekeying "Ben"). Because each domain has one default algorithm, every column found in that domain is masked the same way (Discovering your sensitive data). <span class="badge doc">From docs</span></li>
+<li><strong>Delphix across engines.</strong> Algorithms can be synchronised between masking engines so that two engines mask the same input the same way. Algorithms that cannot guarantee the same output, such as the variable Date Shift, SecureShuffle and the random Secure Lookup, are called non-deterministic and cannot be used for syncable masking, while a fixed Date Shift is deterministic (Algorithm syncability page). <span class="badge doc">From docs</span></li>
+</ul>
+
+<div class="callout warn"><strong class="ctitle">Things that quietly break consistency</strong>
+
+<ul>
+<li><strong>Different spellings of the same value.</strong> Informatica's key masking is case sensitive by default, so "john brown" and "JOHN BROWN" can mask differently unless you convert the source to one format first with a preprocessing expression (p.166). Delphix Secure Lookup has a case-sensitive option and whitespace options with similar effects.</li>
+<li><strong>The value hiding inside another column.</strong> A name in <code>FIRST_NAME</code> may also appear inside <code>FULL_NAME</code> or <code>DESCRIPTION</code>. Informatica's delimited string masking masks such substrings consistently, for example "Donne, John" and "John Donne, General Manager" (pp.166 to 167).</li>
+<li><strong>Random options.</strong> A "random" mode is fine for a column that nothing links to. The Delphix Secure Lookup RANDOMIZE method "does not maintain referential integrity and should never be used" where it is required.</li>
+<li><strong>Different algorithm or seed for the same data in two jobs.</strong> Keep one policy and one seed or key per kind of data (this is what a policy from <a href="01-welcome-why-tdm-data-and-privacy.html#c1-s4">the sensitive data chapter</a> is for).</li>
+</ul></div>
+
+<div class="callout tip"><strong class="ctitle">Repeatable output has a price</strong>
+
+<p>The same property that keeps joins working also means the mapping can be recomputed by anyone who has the seed or key and the algorithm. For a small value space (an SSN has about a billion possibilities) that is guessable. Treat seeds and keys as secrets, store them outside the test environment, and rotate them when policy says so (Delphix lets you randomise an algorithm key through its API; the Algorithms page gives the endpoint).</p></div>
+
+<h3 id="c6-irreversible">2.2.6 Irreversibility, uniqueness and collisions</h3>
+
+<p><strong>Irreversible by design.</strong> A good masking technique throws the original away. Substitution picks an unrelated value; shuffle and key masking cannot be undone without the seed and source. Encryption and tokenization are the exceptions (section 2.2.2). <strong>Unique by need.</strong> Some columns must not repeat: primary keys, SSNs, emails used as login names. A technique that can produce the same output for two inputs (a collision) will break them. Choose by need:</p>
+
+<div class="tablewrap"><table><caption>When uniqueness matters</caption>
+<thead><tr><th>Need</th><th>Technique that gives it</th><th>Source</th></tr></thead>
+<tbody>
+<tr><td>Collisions are fine (names, cities)</td><td>Secure Lookup / Substitution</td><td>Delphix and Informatica: names naturally repeat</td></tr>
+<tr><td>Unique values from a list</td><td>Informatica unique substitution (fails if the dictionary is too small); Delphix Mapping (each output to one input, but stores an encrypted mapping and tables are masked one at a time)</td><td>p.176; terminology page</td></tr>
+<tr><td>Unique short numbers or codes, no collisions</td><td>Delphix Segment Mapping (no collisions if the allowed set is at least as large as the input; up to 36 characters) or Character Mapping</td><td>Terminology and Character Mapping pages</td></tr>
+<tr><td>Unique SSNs</td><td>Informatica notes SSN masking cannot always return all-unique numbers because it avoids numbers already issued (p.175)</td><td>p.175</td></tr>
+</tbody></table></div>
+
+<h3 id="c6-modes">2.2.7 Static or dynamic, in-place or on-the-fly</h3>
+
+<p>Two different choices are often mixed up. <span class="badge concept">General concept</span> <strong>Static versus dynamic</strong> asks <em>when</em> data is masked. <strong>In-place versus on-the-fly</strong> asks <em>where</em> the masked data ends up.</p>
+
+<div class="compare"><div><h4 id="c2-static-masking">Static masking</h4>
+
+<p>Create a masked copy once. The copy is stored, and from then on anyone using it sees masked data. This is what test data management normally does.</p></div>
+<div><h4 id="c2-dynamic-masking">Dynamic masking</h4>
+
+<p>Mask at the moment of reading, depending on who asks. The stored data stays real, and an application or proxy hides values from some users. It protects production views, not test copies. The TDM sources I read do not cover it.</p></div></div>
+
+<p>A word of caution on vocabulary: GenRocket also uses "dynamically" for masking that happens as rows are inserted into the destination, which is closer to on-the-fly than to the dynamic masking above (GenRocket "SDM and Data Subsetting Overview").</p>
+
+<div class="tablewrap"><table><caption>In-place and on-the-fly</caption>
+<thead><tr><th>Method</th><th>What happens</th><th>Typical use</th></tr></thead>
+<tbody>
+<tr><td>In-place</td><td>Updates the data in the source environment itself with masked values</td><td>You first make a copy (for example a virtual copy), then mask the copy in place. Never point it at production.</td></tr>
+<tr><td>On-the-fly</td><td>Reads unmasked data from the source and writes masked data to a different target</td><td>Producing a masked copy directly from a source, together with subsetting</td></tr>
+</tbody></table></div>
+
+<p><span class="badge doc">From docs</span> Delphix defines both in its masking job settings: in-place jobs update the source environment with the masked values; on-the-fly jobs read unmasked data from the source and write masked data to the target (create, view, edit, delete, verify jobs page). Informatica says a masking plan indicates whether to mask data in place in the source database or in stream in a target database (p.150). The masked-copy approach fits the rule from <a href="01-welcome-why-tdm-data-and-privacy.html#c1-s4">the sensitive data chapter</a>: ask at which moment unmasked data exists outside production.</p>
+
+<h3 id="c6-risks">2.2.8 Risks and what goes wrong</h3>
+
+<div class="tablewrap"><table><caption>Common risks in masking projects</caption>
+<thead><tr><th>Risk</th><th>What happens</th><th>Defence</th></tr></thead>
+<tbody>
+<tr><td>Re-identification</td><td>Masked names, but birth date, zip and gender still single out a person</td><td>Treat indirect identifiers too: date shift, generalise, subset</td></tr>
+<tr><td>Sensitive data left in free text</td><td>An SSN inside a notes column survives column-level masking</td><td>Free text redaction, or exclude or null the column; search for patterns afterwards</td></tr>
+<tr><td>Masking a primary key without cascading</td><td>Joins break, orphans appear</td><td>Same seed or key everywhere, auto and value cascades, or leave surrogate keys unmasked</td></tr>
+<tr><td>Non-conformant data left unmasked</td><td>Delphix: a value that does not fit the algorithm's expected format is by default not masked and only a warning is recorded</td><td>Check job warnings; set non-conformant handling to fail or null where leaking is unacceptable (terminology page)</td></tr>
+<tr><td>Masked value too long or wrong type</td><td>Job fails or truncates. Informatica's Change Metadata encryption needs a larger column precision using a formula given in the guide (p.162); it also does not mask integers over 28 characters (p.152)</td><td>Check lengths and types; use format-preserving options</td></tr>
+<tr><td>Null and blank values</td><td>Treated unexpectedly</td><td>Informatica exception handling can set constant, ignore, treat as value or log an error (p.155)</td></tr>
+<tr><td>Collisions on unique columns</td><td>Duplicate key errors on load</td><td>Use a unique technique (section 2.2.6)</td></tr>
+<tr><td>Performance and memory</td><td>Large lookup files and parallel jobs need memory; Delphix suggests about 1 GB per job or stream, more for wide rows or big lookups, and about one vCPU per concurrent job</td><td>Size the engine; mask a subset (best practices page)</td></tr>
+<tr><td>Realism lost</td><td>Fake data fails validation or no longer exercises the code</td><td>Format-preserving techniques; test the rules on a sample first</td></tr>
+</tbody></table></div>
+
+<h3 id="c6-choosing">2.2.9 Choosing a technique</h3>
+
+<p>Start from the column, not the technique. Ask four questions: What is it (name, number, date, free text)? Must it stay unique or linked to other tables? Must it keep a format the application checks? Do tests depend on its meaning (for example an age band)? The table gives a reasoned first choice for the ShopSphere columns. <span class="badge concept">General concept</span> (technique names are from section 2.2.4)</p>
+
+<div class="tablewrap"><table><caption>Decision table for ShopSphere columns (a starting point, to be confirmed with the compliance officer)</caption>
+<thead><tr><th>Column</th><th>Constraint</th><th>First choice</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>first_name, last_name</td><td>Realistic; repeats allowed</td><td>Substitution from a dictionary</td><td>Looks real; no uniqueness needed</td></tr>
+<tr><td>email</td><td>Valid format; maybe unique; should match the masked name</td><td>Email masking built from the masked names (chaining)</td><td>Keeps consistency inside the row</td></tr>
+<tr><td>phone</td><td>10 digits</td><td>Format-preserving phone masking</td><td>Keeps the shape the application validates</td></tr>
+<tr><td>ssn</td><td>999-99-9999 format; unique</td><td>Format-preserving SSN masking, deterministic</td><td>Valid shape; same output wherever it appears</td></tr>
+<tr><td>date_of_birth</td><td>Plausible; age bands matter</td><td>Date shift or blurring by a few days</td><td>Hides the exact date, keeps the age band</td></tr>
+<tr><td>zip_code</td><td>Valid code; region may matter</td><td>Substitution from valid codes, or keep the first digits</td><td>Reduces re-identification, keeps regional logic</td></tr>
+<tr><td>tax_id</td><td>Shape like AAAAADDDDA</td><td>Character replacement with a mask format, or null</td><td>Same shape, no real content</td></tr>
+<tr><td>customer_id (key)</td><td>Joins to ORDERS</td><td>Leave as is (a meaningless surrogate), or key masking with the same seed in every table</td><td>A made-up number identifies nobody on its own, but must stay consistent</td></tr>
+<tr><td>total_amount</td><td>Must match order items</td><td>Leave alone, unless amounts are sensitive</td><td>Masking it breaks arithmetic</td></tr>
+<tr><td>Free-text notes</td><td>Unknown content</td><td>Free text redaction or null</td><td>Cannot be fixed by column-level rules</td></tr>
+</tbody></table></div>
+
+<div class="callout tip"><strong class="ctitle">Not every column needs masking</strong>
+
+<p>Masking has a cost: it can break realism and arithmetic. A surrogate key like <code>customer_id</code> that carries no meaning is often safe to leave, as long as nothing else in the row identifies a person. The compliance officer decides, not the tool.</p></div>
+
+<h3 id="c6-validate">2.2.10 Validating masked data</h3>
+
+<p>A masking job that finishes without errors is not proof that the data is safe or useful. Check the result against the goals from section 2.2.3.</p>
+
+<div class="tablewrap"><table><caption>A validation checklist</caption>
+<thead><tr><th>Check</th><th>How</th></tr></thead>
+<tbody>
+<tr><td>Nothing sensitive is left</td><td>Run discovery again on the masked copy. Search free-text columns for SSN-like and phone-like patterns. Compare: no real value from the source should appear in the target for masked columns.</td></tr>
+<tr><td>Joins still work</td><td>Run orphan queries between each parent and child table.</td></tr>
+<tr><td>Consistency</td><td>The same real value gives the same masked value in every table and system that holds it.</td></tr>
+<tr><td>Valid format</td><td>Pattern check on each masked column, for example SSN <code>[0-9]{3}-[0-9]{2}-[0-9]{4}</code> and card numbers pass the checksum.</td></tr>
+<tr><td>Uniqueness</td><td>No duplicates in columns that must be unique.</td></tr>
+<tr><td>Realism</td><td>Look at a sample by eye. Null counts and value distributions should be believable.</td></tr>
+<tr><td>Repeatability</td><td>Run twice with the same settings; results match when they should.</td></tr>
+<tr><td>Job logs</td><td>Read warnings. Delphix shows a yellow warning marker on a job when non-conformant data was found; Informatica logs exceptions per its exception-handling settings.</td></tr>
+</tbody></table></div>
+
+<pre><code>-- duplicates in a column that must be unique
+SELECT ssn, COUNT(*) FROM CUSTOMERS GROUP BY ssn HAVING COUNT(*) &gt; 1;
+
+-- any order without a customer (orphan)
+SELECT o.order_id FROM ORDERS o
+LEFT JOIN CUSTOMERS c ON c.customer_id = o.customer_id
+WHERE c.customer_id IS NULL;
+
+-- any SSN-shaped text left in a notes column (pattern syntax varies by database)
+SELECT order_id FROM ORDER_NOTES WHERE notes LIKE '%___-__-____%';
+</code></pre>
+
+<p><span class="badge doc">From docs</span> Tools help with previewing. Informatica's Rule Simulator shows original and masked values for a standard rule before you assign it, using default sample data, your own sample or a connection, with up to 100 rows and a default of 20 (pp.137 and 140). Delphix says its platform generates reports and email notifications to confirm that sensitive data has been masked (Delphix "Introduction to Delphix Masking"). Neither removes the need to inspect the result yourself.</p>
+
+<div class="exercise"><h4 id="c2-lab-design-and-check-a-mask-for-the-shopsphere-customers">Lab: design and check a mask for the ShopSphere customers</h4>
+
+<p>Goal: pick a technique for every sensitive column of CUSTOMERS, apply it to the three sample rows by hand, and prove the result is consistent.</p>
+
+<ol class="steps">
+<li><strong>Write the rule set.</strong><p>For each column in the decision table, choose one technique and say whether it must be deterministic. Decide the seed or key story: one seed, shared by every column that joins elsewhere.</p></li>
+<li><strong>Apply it to rows 1001 to 1003.</strong><p>Use made-up values that respect each column's format. Build the email from the masked first and last names.</p><p class="expect">Three masked rows with valid phone, SSN and date formats and no original value surviving.</p></li>
+<li><strong>Check the rules.</strong><p>Does any masked value equal a real one? Is any value duplicated? Does the masked email match the masked name? Would an orphan appear in <code>ORDERS</code> if customer_id were masked here but not there?</p></li>
+<li><strong>Re-run in your head with the same seed.</strong><p>Would 1001 still become the same row next week? If not, which technique is random?</p></li>
+</ol>
+
+<details class="sol"><summary>Show a worked answer</summary>
+
+<div class="tablewrap"><table class="sample"><caption>One acceptable answer (all masked values are made up)</caption>
+<thead><tr><th>Column</th><th>Technique</th><th>1001</th><th>1002</th><th>1003</th></tr></thead>
+<tbody>
+<tr><td>first_name</td><td>Substitution (deterministic)</td><td>Asha to Leela</td><td>Ravi to Sanjay</td><td>Meera to Anita</td></tr>
+<tr><td>last_name</td><td>Substitution (deterministic)</td><td>Menon to Pillai</td><td>Kumar to Gupta</td><td>Nair to Joshi</td></tr>
+<tr><td>email</td><td>Built from masked names</td><td>leela.pillai@example.com</td><td>sanjay.gupta@example.com</td><td>anita.joshi@example.com</td></tr>
+<tr><td>phone</td><td>Format-preserving</td><td>9876543210 to 9412087365</td><td>9123456780 to 9055512346</td><td>9988776655 to 9770011223</td></tr>
+<tr><td>ssn</td><td>Format-preserving SSN</td><td>123-45-6789 to 561-80-3472</td><td>234-56-7890 to 478-21-9054</td><td>345-67-8901 to 612-39-1180</td></tr>
+<tr><td>date_of_birth</td><td>Date shift, fixed +3 days</td><td>1990-04-12 to 1990-04-15</td><td>1985-11-02 to 1985-11-05</td><td>1999-07-23 to 1999-07-26</td></tr>
+<tr><td>zip_code</td><td>Substitution from valid codes</td><td>560001 to 560047</td><td>600017 to 600089</td><td>682001 to 682030</td></tr>
+<tr><td>customer_id</td><td>Left unchanged (surrogate)</td><td>1001</td><td>1002</td><td>1003</td></tr>
+</tbody></table></div>
+
+<p>Checks: no original value survives; all SSNs are different; each masked email matches its masked name; because customer_id is unchanged, <code>ORDERS</code> joins still work; every technique used is deterministic, so a rerun with the same seed or key gives the same rows. A fixed shift keeps relative order of dates, whereas a variable shift would not be repeatable. If you had chosen to mask customer_id, the same seed would be needed in <code>ORDERS</code>. Note that <code>zip_code</code> kept the first three digits (a regional shape) so test logic still works, and the compliance officer should confirm that is acceptable.</p></details></div>
+
+<h3 id="c6-mistakes">Common mistakes and gotchas</h3>
+
+<div class="callout warn"><strong class="ctitle">Mistakes beginners make</strong>
+
+<ul>
+<li><strong>Calling encryption "masking".</strong> It can be reversed. Use it only when reversal is intended.</li>
+<li><strong>Masking keys independently.</strong> Joins break. Use the same seed or key, or cascades.</li>
+<li><strong>Ignoring the job warnings.</strong> In Delphix, non-conformant values are left unmasked by default and only flagged.</li>
+<li><strong>Trusting one technique for everything.</strong> Shuffle leaves real values in place; substitution can collide; date shifting can reorder dates.</li>
+<li><strong>Forgetting free text and indirect identifiers.</strong> They defeat column-level masking.</li>
+<li><strong>Sharing the seed or key with the test team.</strong> It makes the mapping reproducible by anyone who has it.</li>
+<li><strong>Declaring success without validating.</strong> Run discovery again on the masked data and check joins.</li>
+</ul></div>
+
+<h3 id="c6-recap">Recap</h3>
+
+<div class="callout recap"><strong class="ctitle">Remember</strong><ul>
+<li>Masking replaces real values with realistic fake ones, usually irreversibly. Encryption and tokenization are reversible; anonymisation is a legal goal that masking helps reach.</li>
+<li>Good masked data is safe, realistic, valid, consistent, repeatable and still fit for the tests.</li>
+<li>Common techniques: substitution, shuffle, key masking, encryption, nulling and redaction, date shifting, numeric variance, format-preserving masking, character replacement, and chaining several of them.</li>
+<li>Deterministic masking (same input, same output, from a seed or key) is what keeps keys and joins working across tables and systems. Random masking is for columns nothing links to.</li>
+<li>Choose by column type, uniqueness, format and test needs. Not every column needs masking, and free text needs special handling.</li>
+<li>Masking can be in place or on the fly; static copies are the norm for test data.</li>
+<li>Always validate: rediscover, check joins, formats, uniqueness, repeatability and job warnings.</li>
+</ul></div>
+
+<section class="sources"><h3 id="c6-sources">Sources used in this section</h3><ul>
+<li>Informatica TDM 10.5.10 User Guide (February 2026): chapter 7 pp.135 to 150 (masking overview, rules, rule simulator, plans); chapter 8 pp.151 to 185 (techniques and parameters: advanced, credit card, email, encryption, expression, IP, key, nullification, phone, random, shuffle, SIN, SSN, substitution, URL, examples); chapter 5 pp.90 to 91 (value and auto cascades).</li>
+<li>Delphix Continuous Compliance 2026.5: <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>; <a href="https://help.delphix.com/cc/current/content/algorithms.htm" target="_blank" rel="noopener">Algorithms</a>; <a href="https://help.delphix.com/cc/current/content/algorithm_frameworks.htm" target="_blank" rel="noopener">Algorithm frameworks</a>; <a href="https://help.delphix.com/cc/current/content/secure_lookup__algorithm_frameworks_.htm" target="_blank" rel="noopener">Secure Lookup</a>; <a href="https://help.delphix.com/cc/current/content/secureshuffle.htm" target="_blank" rel="noopener">SecureShuffle</a>; <a href="https://help.delphix.com/cc/current/content/date_shift__algorithm_frameworks_.htm" target="_blank" rel="noopener">Date Shift</a>; <a href="https://help.delphix.com/cc/current/content/payment_card__algorithm_frameworks_.htm" target="_blank" rel="noopener">Payment Card</a>; <a href="https://help.delphix.com/cc/current/content/character_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Character Mapping</a>; <a href="https://help.delphix.com/cc/current/content/character_replacement__algorithm_frameworks_.htm" target="_blank" rel="noopener">Character Replacement</a>; <a href="https://help.delphix.com/cc/current/content/free_text_redaction__algorithm_frameworks_.htm" target="_blank" rel="noopener">Free Text Redaction</a>; <a href="https://help.delphix.com/cc/current/content/string_algorithm_chain__algorithm_frameworks_.htm" target="_blank" rel="noopener">String Algorithm Chain</a>; <a href="https://help.delphix.com/cc/current/content/tokenization__algorithm_frameworks_.htm" target="_blank" rel="noopener">Tokenization</a>; <a href="https://help.delphix.com/cc/current/content/min_max_number__algorithm_frameworks_.htm" target="_blank" rel="noopener">Min Max Number</a>; <a href="https://help.delphix.com/cc/current/content/algorithm_syncability.htm" target="_blank" rel="noopener">Algorithm syncability</a>; <a href="https://help.delphix.com/cc/current/content/best_practices_for_delphix_data_masking.htm" target="_blank" rel="noopener">Best practices for Delphix data masking</a>; <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs</a>; <a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a>.</li>
+<li>GenRocket: <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/what-is-synthetic-data-replacement-sdr" target="_blank" rel="noopener">What is Synthetic Data Replacement</a>; <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/synthetic-data-masking-sdm-and-data-subsetting-overview" target="_blank" rel="noopener">SDM and Data Subsetting Overview</a>.</li>
+<li>General concepts written for this guide: the term comparison, static versus dynamic masking, risks, decision table and validation checklist. All masked sample values are invented.</li>
+</ul></section>
+
+<h2 id="c2-s3">2.3 Test data classification and synthetic data generation</h2>
+<p><span class="day">Day 45, Day 46, Day 47</span></p>
+<p>So far you have met two ways to get test data. You can copy and cut down real data (<a href="02-core-techniques.html#c2-s1">the discovery and subsetting concepts chapter</a>) and then hide the sensitive parts (<a href="02-core-techniques.html#c2-s2">the masking concepts chapter</a>). This section introduces the third way: <strong>make the data up</strong>, on purpose, from rules. Before we do that we need a better question than "where do I get data?". The better question is: <em>what is this data for?</em></p>
+<p>A tester checking the login screen does not need "a lot of customers". She needs one normal customer, one customer whose account is locked, one with a very long surname, one with no phone number, and one whose date of birth makes them exactly 18 today. Each of those rows has a different job. Naming the jobs is called <strong>classifying</strong> test data, and it is the starting point for designing any data set, whether you copy it, mask it or generate it.</p>
+<p>This section is also where the course syllabus phrase "Model, Design, Deploy, Manage" first appears, and where the five "data patterns" of the syllabus (boundary conditions, sequential, random, edge cases, null) are placed on a map. The tool chapters later (<a href="05-informatica-masking-generation-workflows.html#c5-s2">the Informatica data generation chapter</a> and the <a href="06-genrocket-building-blocks.html#c6-s1">GenRocket chapters</a>) assume you have read this one.</p>
+<div class="callout recap"><strong class="ctitle">What you will learn</strong>
+<ul>
+<li>Three ways to classify test data: by <em>source</em>, by <em>sensitivity</em> and by <em>purpose</em>.</li>
+<li>The seven purposes of test data (valid, invalid, boundary, edge case, null or empty, volume, security) and how the syllabus "data patterns" map onto them.</li>
+<li>What synthetic data is, and an honest comparison with masked production data.</li>
+<li>How generation works in principle: rules, generators, seeds and distributions.</li>
+<li>How to generate parent and child tables so every foreign key is valid.</li>
+<li>The Model, Design, Deploy, Manage cycle, and the "test data as a service" idea.</li>
+<li>A complete design for 50 ShopSphere customers and their orders, with a coverage matrix.</li>
+</ul>
+</div>
+<div class="callout note"><strong class="ctitle">What this section is based on</strong>
+<p>This is mostly a concepts chapter, so most statements carry the badge <span class="badge concept">General concept</span>. Where I name what a tool does, it comes from these sources, which I read for this section:</p>
+<ul>
+<li><strong>Informatica:</strong> TDM 10.5.10 User Guide (PDF, February 2026), User Guide chapter 9 "Data Generation" (pp.190 to 207) and chapter 10 "Data Generation Techniques and Parameters" (pp.208 onward), plus chapter 13 (plans, p.285) and chapter 1 (p.24). Cited as (User Guide 10.5.10, p.NN).</li>
+<li><strong>GenRocket:</strong> help-centre pages "Why Synthetic Test Data?", "The GenRocket Methodology", "GenRocket Five Key Components", the General FAQ, "Generators Overview", "What is Seeding?", "Parent, Child, and Sibling Relationships", the G-Cases overview, the G-Portal overview and the "What is Synthetic Data Replacement (SDR)?" page. Each is linked where used.</li>
+<li><strong>Delphix:</strong> only the terminology page, for one sentence about its self-service interface.</li>
+</ul>
+<p>The numbers in the ShopSphere design (50 customers, 75 orders) are my own illustrative choices, not from any vendor document. The Python snippet and the SQL checks were run by me before being printed here.</p>
+</div>
+
+<h3 id="c7-words">2.3.1 Words to know first</h3>
+<dl class="defs">
+<div>
+<dt>Test data</dt>
+<dd>Any data the application is fed or finds waiting in its database during a test. It includes both the rows in the database and the values typed into screens or sent in files.</dd>
+</div>
+<div>
+<dt>Test condition</dt>
+<dd>One specific situation a test wants to check, such as "customer with no phone number" or "order with the maximum number of items". Each condition needs data that creates it.</dd>
+</div>
+<div>
+<dt>Positive (valid) data</dt>
+<dd>Data the application should accept and process normally.</dd>
+</div>
+<div>
+<dt>Negative (invalid) data</dt>
+<dd>Data the application should reject or handle gracefully, such as letters in a phone number.</dd>
+</div>
+<div>
+<dt>Boundary value</dt>
+<dd>A value sitting exactly on the edge of what is allowed. If customers must be 18 or older, the boundary values are 17, 18 and 19 years.</dd>
+</div>
+<div>
+<dt>Edge case</dt>
+<dd>A rare or unusual situation outside normal use, such as a surname containing an apostrophe. GenRocket describes it as a rare or unexpected scenario outside the typical usage pattern.</dd>
+</div>
+<div>
+<dt>Synthetic data</dt>
+<dd>Data made by a program following rules, instead of being taken from real events. GenRocket's help centre puts it as data manufactured by an algorithm rather than real-world events.</dd>
+</div>
+<div>
+<dt>Generator</dt>
+<dd>The small piece of logic that produces the values for one column, for example "count up from 1" or "pick a name from a list".</dd>
+</div>
+<div>
+<dt>Seed</dt>
+<dd>A starting number given to a random generator. The same seed gives the same "random" values every time, so a test data set can be rebuilt exactly.</dd>
+</div>
+<div>
+<dt>Distribution</dt>
+<dd>How values are spread: for example, 20% of customers have no orders, 40% have one. Real data is lumpy, and good test data copies the lumps that matter.</dd>
+</div>
+<div>
+<dt>Referential integrity</dt>
+<dd>The promise that every foreign key points at a row that exists. An order whose <code>customer_id</code> has no matching customer breaks it. See <a href="01-welcome-why-tdm-data-and-privacy.html#c1-s3">the data basics chapter</a>.</dd>
+</div>
+<div>
+<dt>Parent table / child table</dt>
+<dd>The table being pointed at (CUSTOMERS) is the parent; the table holding the foreign key (ORDERS) is the child.</dd>
+</div>
+<div>
+<dt>Coverage matrix</dt>
+<dd>A grid that lists test conditions against the data that covers them, so you can see gaps at a glance.</dd>
+</div>
+</dl>
+
+<h3 id="c7-why-classify">2.3.2 Why classify test data at all?</h3>
+<p><span class="badge concept">General concept</span> Imagine a kitchen preparing for a cooking class. The chef does not just buy "food". She buys the exact ingredients each recipe needs, in the amounts each recipe needs, and she keeps the allergy-sensitive items (nuts) in a separate, labelled place. Test data works the same way. You prepare the exact rows each test needs, and you keep the dangerous ones (real personal data) away from places they must not be.</p>
+<p>The analogy stops being accurate in one place: a chef can taste the soup, but nobody can "see" whether a table of 5 million rows has the right mix. That is why we write the classification down, as a plan, before building anything.</p>
+<div class="callout why"><strong class="ctitle">Why it matters</strong>
+<p>Without classification, teams fall into two traps. Either they copy everything from production (huge, risky, and still missing the odd cases that have never happened yet), or they hand-type five "happy path" rows and discover the bugs in production. Classification gives you a short list of questions to ask for any data request: <em>where does it come from, how sensitive is it, and what must it prove?</em></p>
+</div>
+
+<h3 id="c7-three-axes">2.3.3 Three ways to classify test data</h3>
+<p>You can sort the same piece of data along three independent lines. A single customer row can be "masked production" by source, "restricted until masked" by sensitivity, and "boundary" by purpose. Keep the three lines separate in your head and in your documents.</p>
+<div class="flow">
+<div class="node"><b>By source</b>where did it come from?
+</div>
+<div class="arrow">+
+</div>
+<div class="node"><b>By sensitivity</b>how risky is it if it leaks?
+</div>
+<div class="arrow">+
+</div>
+<div class="node"><b>By purpose</b>what must the test prove?
+</div>
+</div>
+
+<h4 id="c7-by-source">2.3.3.1 By source</h4>
+<p>The source is how the data came to exist. The syllabus groups tool capabilities exactly along this line: subsetting and masking work on production-derived data, while generation makes new data.</p>
+<div class="tablewrap"><table><thead>
+<tr><th>Source class</th><th>How it is made</th><th>Typical risk</th><th>Where this guide covers it</th></tr>
+</thead>
+<tbody>
+<tr><td>Production copy (raw)</td><td>Straight copy of the real database</td><td>Exposes real personal data; not allowed in test for regulated data</td><td><a href="01-welcome-why-tdm-data-and-privacy.html#c1-s2">Why TDM exists</a></td></tr>
+<tr><td>Production subset</td><td>A cut-down, consistent slice of production</td><td>Still real data until masked</td><td><a href="02-core-techniques.html#c2-s1">the discovery and subsetting concepts chapter</a></td></tr>
+<tr><td>Masked production</td><td>Production (or a subset) with sensitive values replaced</td><td>Weak masking can leak; masking must stay consistent across tables</td><td><a href="02-core-techniques.html#c2-s2">the masking concepts chapter</a></td></tr>
+<tr><td>Synthetic (generated)</td><td>Created from rules, no real person behind any row</td><td>May not look like the messy real world unless the rules are good</td><td>This section</td></tr>
+<tr><td>Hand-crafted</td><td>A person types or edits specific rows</td><td>Slow, hard to repeat, tiny volume</td><td>This section</td></tr>
+<tr><td>Hybrid</td><td>Masked or queried production plus generated rows added</td><td>Needs a clear plan for which part comes from where</td><td>Section 2.3.6</td></tr>
+</tbody>
+</table>
+</div>
+<p>Hybrid is more than a theory. GenRocket's FAQ says it can query existing production data and merge it with synthetically generated data, and its G-Subset overview lists "test data augmentation" (adding a richer set of data to the destination) as one of its usage options. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">GenRocket General FAQ ↗</a></p>
+
+<h4 id="c7-by-sensitivity">2.3.3.2 By sensitivity</h4>
+<p>Sensitivity is how much harm follows if the data leaks. <a href="01-welcome-why-tdm-data-and-privacy.html#c1-s4">the sensitive data and regulations chapter</a> covers PII, PHI and the regulations in depth. For classification purposes you only need a simple ladder. The labels differ between companies; the ladder below is a common shape, not a standard.</p>
+<div class="tablewrap"><table><thead>
+<tr><th>Level</th><th>Meaning</th><th>ShopSphere example</th><th>Allowed in test?</th></tr>
+</thead>
+<tbody>
+<tr><td>Public</td><td>Harmless if seen by anyone</td><td><code>PRODUCTS.product_name</code></td><td>Yes</td></tr>
+<tr><td>Internal</td><td>Business data, not personal</td><td><code>ORDERS.total_amount</code> with no customer link</td><td>Yes</td></tr>
+<tr><td>Personal</td><td>Identifies or relates to a person</td><td><code>first_name</code>, <code>email</code>, <code>phone</code>, <code>zip_code</code></td><td>Only masked or synthetic</td></tr>
+<tr><td>Highly restricted</td><td>Identifiers regulators care most about</td><td><code>ssn</code>, <code>tax_id</code>, <code>date_of_birth</code></td><td>Only masked or synthetic, and strongly protected</td></tr>
+</tbody>
+</table>
+</div>
+<p>Informatica's own introduction frames the same idea: you identify sensitive information in large volumes of production data, and its profiles can compare data against compliance standards, naming PII, PCI and PHI as examples (User Guide 10.5.10, p.24). <span class="badge doc">From docs</span> The key point for classification is simple: <strong>sensitivity decides what you are allowed to do to the data; source and purpose decide what you do with it.</strong> Synthetic data has no real person behind it, which is why it needs no masking step.</p>
+
+<h4 id="c7-by-purpose">2.3.3.3 By purpose</h4>
+<p>This is the line testers care about most. Each purpose answers "what must this row prove?". There are seven that cover almost every request.</p>
+<div class="tablewrap"><table><thead>
+<tr><th>Purpose</th><th>What it proves</th><th>ShopSphere example</th></tr>
+</thead>
+<tbody>
+<tr><td>Positive / valid</td><td>The normal path works</td><td>Asha Menon, 560001, valid email, two orders</td></tr>
+<tr><td>Negative / invalid</td><td>Bad input is rejected with a clear message</td><td>Phone <code>98765abcde</code>; email with no <code>@</code></td></tr>
+<tr><td>Boundary</td><td>The edges of each rule behave exactly right</td><td>Customer aged 17, 18 and 19; surname of 1 and of the maximum length</td></tr>
+<tr><td>Edge case</td><td>Rare or odd but legal situations</td><td>Surname <code>O'Brien</code>, hyphenated name, name with leading spaces, order with 50 items</td></tr>
+<tr><td>Null / empty</td><td>Missing values do not crash anything</td><td>No phone; empty <code>zip_code</code>; customer with zero orders</td></tr>
+<tr><td>Volume / performance</td><td>The system copes with realistic size</td><td>2 million customers, 10 million orders</td></tr>
+<tr><td>Security</td><td>Hostile input is blocked</td><td>Name field containing <code>'; DROP TABLE ORDERS;--</code></td></tr>
+</tbody>
+</table>
+</div>
+<div class="callout tip"><strong class="ctitle">Negative data usually does not live in the table</strong>
+<p>A database column with a 10-digit phone constraint will refuse <code>98765abcde</code> when you try to load it. Negative and security data are normally sent in through the screen, the API or an input file, not inserted straight into the table. Only load invalid values into a table if the table has no constraint and the test is about how the application reads bad stored data (for example a legacy table).</p>
+</div>
+
+
+<h3 id="c7-data-patterns">2.3.4 The syllabus "data patterns" on the map</h3>
+<p>The course syllabus (Day 47) lists five data patterns: <strong>boundary conditions, sequential, random, edge cases and null</strong>. They are not a separate classification. They are <em>ways of shaping values</em>, and each one serves one or more of the purposes in 7.3.3. <a href="07-genrocket-patterns-and-hands-on.html#c7-s1">the GenRocket data patterns chapter</a> shows them in GenRocket; here we place them on the map.</p>
+<div class="tablewrap"><table><thead>
+<tr><th>Pattern</th><th>What the values look like</th><th>Mainly serves purpose</th><th>ShopSphere example</th></tr>
+</thead>
+<tbody>
+<tr><td>Boundary conditions</td><td>Values on and just either side of every limit</td><td>Boundary</td><td>Ages 17, 18, 19; <code>quantity</code> 0, 1, max, max+1</td></tr>
+<tr><td>Sequential</td><td>Values that count up (or down) in a fixed step</td><td>Valid, volume, unique keys</td><td><code>customer_id</code> 2001, 2002, 2003 ...</td></tr>
+<tr><td>Random</td><td>Values picked unpredictably from a range or list</td><td>Valid, volume, realism</td><td>First names picked from a list; zip codes in a range</td></tr>
+<tr><td>Edge cases</td><td>Unusual but possible values, placed on purpose</td><td>Edge case, negative</td><td>A negative age every fifth record; names over the length limit 25% of the time</td></tr>
+<tr><td>Null</td><td>Missing, empty or blank values</td><td>Null / empty</td><td>5 customers with no phone</td></tr>
+</tbody>
+</table>
+</div>
+<p>The two documented tools describe these same shapes in their own words. This is the evidence for the table above:</p>
+<ul>
+<li><strong>GenRocket</strong> has a page on <em>Synthetic Data Replacement</em> that lists test scenarios for one column (a Social Security Number): sequential replacement (<code>001-00-0001</code>, <code>001-00-0002</code>), valid-format replacement, character sets that inject invalid characters, boundary values such as <code>000-00-0000</code> and <code>999-99-9999</code>, missing or null data, illegal-format testing and volume stress testing. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/what-is-synthetic-data-replacement-sdr" target="_blank" rel="noopener">What is SDR? ↗</a></li>
+<li>GenRocket's <code>EdgeCaseGen</code> page gives a story where the valid age range is 1 to 120, and a negative age is produced on every fifth record by cycling between a normal-range source and an edge-case source. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-edgecasegen-generator" target="_blank" rel="noopener">EdgeCaseGen ↗</a></li>
+<li><strong>Informatica</strong> rules have an "exception test data" section where you pick how many rows should be null and how many should hold values that break the rule, each as a percentage with up to two decimal places (User Guide 10.5.10, pp.210 to 211). <span class="badge doc">From docs</span> A rule can also use a sequence technique for ordered numbers or dates and a random technique for random strings, numbers and dates (pp.209 and 220).</li>
+</ul>
+<div class="callout example"><strong class="ctitle">Worked example: one rule, five patterns</strong>
+<p>Rule: "a customer must be at least 18 years old on the day of registration". Today, in the test, is 2026-10-23. Here is the same <code>date_of_birth</code> column shaped five ways.</p>
+</div>
+<div class="tablewrap"><table class="sample">
+<caption>Illustrative date_of_birth values for the 18+ rule (my example, not from a vendor document)</caption><thead>
+<tr><th>Pattern</th><th>Values</th><th>Expected application result</th></tr>
+</thead>
+<tbody>
+<tr><td>Boundary</td><td>2009-10-24 (17 years, 364 days), 2008-10-23 (exactly 18), 2008-10-22 (18 years, 1 day)</td><td>Reject, accept, accept</td></tr>
+<tr><td>Sequential</td><td>1980-01-01, 1980-01-02, 1980-01-03 ...</td><td>All accepted; useful for volume and unique ordering</td></tr>
+<tr><td>Random</td><td>Any date between 1950-01-01 and 2008-10-22</td><td>All accepted; realistic age spread</td></tr>
+<tr><td>Edge case</td><td>1900-01-01, 2024-02-29 (a leap day)</td><td>Application decides: accept, or reject as implausible</td></tr>
+<tr><td>Null</td><td>empty</td><td>Reject with a "date of birth required" message</td></tr>
+</tbody>
+</table>
+</div>
+<p>Notice the boundary row. A boundary test needs <em>three</em> values per limit: just inside, on, and just outside. Many bugs are off-by-one mistakes (using "greater than" where "greater than or equal" was meant), and only the exact boundary value catches them. Random data hits the exact boundary almost never. That is the main reason boundary data must be <em>designed</em>, not left to chance.</p>
+
+<h3 id="c7-what-is-synthetic">2.3.5 What synthetic data is</h3>
+<p><strong>Concept.</strong> Synthetic data is data created by a program following rules you set. No row in it was ever a real person's record.</p>
+<p><strong>Simple explanation.</strong> A film set looks like a street, but nobody lives in the houses. Synthetic data looks like customers, but no customer exists. It is built to be <em>good enough to exercise the application</em>, which is a different goal from being a copy of reality.</p>
+<p>The analogy stops being accurate in one place. A film set is built once and looks right from one angle. Synthetic data must stay correct from every angle the application looks at it: the foreign keys must join, the dates must be in order, and the totals must add up.</p>
+<p><strong>What the tools say.</strong></p>
+<ul>
+<li>GenRocket: "Synthetic Test Data" is data manufactured or generated by an algorithm rather than real-world events. Its stated benefit is that companies can maximise test coverage by testing all permutations and combinations. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/why-synthetic-test-data" target="_blank" rel="noopener">Why Synthetic Test Data? ↗</a></li>
+<li>Informatica: data generation creates realistic test data for test environments, using generation rules that hold the logic. You import the metadata (table and column definitions) so the tool knows which columns to fill, assign rules to columns, then create a plan and run it (User Guide 10.5.10, p.190). <span class="badge doc">From docs</span></li>
+</ul>
+<p>Note what both descriptions have in common. The tool needs to know the <em>shape</em> of the target (the metadata) and a <em>rule</em> for each column. It does not need to see any real customer.</p>
+<div class="callout real"><strong class="ctitle">A real-world example from the Informatica guide</strong>
+<p>The guide's own example is an airline that sells plane tickets. Rules load dictionary values such as names into the customer tables, create random number strings for ticket numbers, create a numeric sequence for identification numbers, and use a reference lookup for values such as airport codes (User Guide 10.5.10, p.191). <span class="badge doc">From docs</span> Map that to ShopSphere and you get: a name dictionary for <code>first_name</code>, a sequence for <code>customer_id</code>, random strings for order references, and a lookup of valid <code>product_code</code> values.</p>
+</div>
+
+<h3 id="c7-synthetic-vs-masked">2.3.6 Synthetic data versus masked production data</h3>
+<p>Neither is "better". They solve different problems, and mature teams use both. The table compares them on the dimensions that matter. The ratings are general experience, so each column heading carries the "General concept" badge rather than a product claim. <span class="badge concept">General concept</span></p>
+<div class="tablewrap"><table><thead>
+<tr><th>Question</th><th>Masked production data</th><th>Synthetic data</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Realism</strong></td><td>High. Real shapes, real mess, real correlations between columns</td><td>As good as your rules. Looks real only for the properties you modelled</td></tr>
+<tr><td><strong>Coverage of rare or future cases</strong></td><td>Only cases that already happened in production</td><td>Any case you can describe, including ones that never happened, and boundary or invalid values on demand</td></tr>
+<tr><td><strong>Privacy</strong></td><td>Depends on masking quality. Weak masking, or unmasked columns, can still identify people</td><td>No real person behind any row, so there is nothing to re-identify</td></tr>
+<tr><td><strong>Setup effort</strong></td><td>Discovery, masking rules, consistency checks</td><td>Modelling the tables, writing rules for each column and relationship</td></tr>
+<tr><td><strong>Cost to refresh</strong></td><td>Re-run extract and mask, which grows with production size</td><td>Re-run the generator; speed depends on the rows asked for, not on production size</td></tr>
+<tr><td><strong>Referential integrity</strong></td><td>Comes from the real data, but masking must keep keys matching across tables</td><td>Must be designed: parent rows first, children point at existing parents (section 2.3.8)</td></tr>
+<tr><td><strong>Distributions</strong></td><td>Real distributions come free</td><td>You must state them (for example 20% of customers with no orders)</td></tr>
+<tr><td><strong>Repeatability</strong></td><td>Same snapshot until refreshed</td><td>Same output every run if you use a seed</td></tr>
+<tr><td><strong>Volume on demand</strong></td><td>Limited by what production holds</td><td>As many rows as the target can hold</td></tr>
+<tr><td><strong>Main risk</strong></td><td>A leaked or unmasked column</td><td>A model that is too tidy and misses real-world mess</td></tr>
+</tbody>
+</table>
+</div>
+<p>GenRocket's SDR page makes one claim worth noticing, which I report as the vendor's view: synthetic data "can produce edge cases that do not currently exist in production" and "can yield more accurate data patterns than exist in production". <span class="badge doc">From docs</span> That is a statement about coverage, and it is true for any generator that supports designed edge cases. It does not mean synthetic data is automatically more realistic than production, which it is not.</p>
+<h4 id="c7-choosing">2.3.6.1 Which one should you choose?</h4>
+<ol class="steps">
+<li><strong>Is a realistic mix of messy data essential, such as for a new analytics report or a migration rehearsal?</strong><p>Lean towards masked production, because the real mess is the thing being tested.</p><p class="expect">Result: use the subsetting and masking techniques from the <a href="02-core-techniques.html#c2-s1">subsetting</a> and <a href="02-core-techniques.html#c2-s2">masking</a> concept chapters.</p></li>
+<li><strong>Is the system new, so there is no production data yet, or are you testing a feature with no history?</strong><p>Generate. There is nothing to copy.</p><p class="expect">Result: use rules from this section.</p></li>
+<li><strong>Do you need exact boundary, negative or very large data sets?</strong><p>Generate. Production rarely holds the 51st item in an order or a customer aged exactly 18 today.</p></li>
+<li><strong>Do you need both realism and designed edge cases?</strong><p>Use a hybrid: masked subset as the base, generated rows added on top, with generated keys chosen so they never clash with the real ones.</p></li>
+</ol>
+<div class="callout warn"><strong class="ctitle">Generated is not the same as safe by default</strong>
+<p>If a generator copies a real value (for example, picks names from an unmasked production table as its dictionary) the result is no longer purely synthetic. Always check where a generator's source list came from. Dictionaries should be made-up or public lists, never an export of real customers.</p>
+</div>
+
+
+<h3 id="c7-how-generation-works">2.3.7 How generation works: rules, generators, seeds and distributions</h3>
+<p><strong>Concept.</strong> A generation job has three layers. The <em>target</em> says which tables and columns to fill. A <em>rule</em> (Informatica's word) or an assigned <em>generator</em> (GenRocket's word) says how to fill each column. A <em>run</em> says how many rows and where to put them.</p>
+<div class="flow">
+<div class="node"><b>1. Target shape</b>tables, columns, types, keys
+</div>
+<div class="arrow">→
+</div>
+<div class="node"><b>2. Rule per column</b>sequence, random, list, formula
+</div>
+<div class="arrow">→
+</div>
+<div class="node"><b>3. Run settings</b>how many rows, seed, output
+</div>
+<div class="arrow">→
+</div>
+<div class="node"><b>4. Output</b>database, file, message
+</div>
+</div>
+<h4 id="c7-generator-kinds">2.3.7.1 The common kinds of generator</h4>
+<p>Almost every column in a business table can be filled by one of about eight ideas. The table shows each idea, then the names the two tools use for it. Names come from the pages I read; I list only what those pages state.</p>
+<div class="tablewrap"><table><thead>
+<tr><th>Idea</th><th>ShopSphere column</th><th>Informatica technique</th><th>GenRocket generator named in its docs</th></tr>
+</thead>
+<tbody>
+<tr><td>Count up in steps</td><td><code>customer_id</code></td><td>Sequence (numeric or date)</td><td><code>RangeGen</code> (FAQ: starts a sequence from 1)</td></tr>
+<tr><td>Random in a range</td><td><code>zip_code</code>, <code>quantity</code></td><td>Random</td><td><code>RandomGen</code> (seeding page: random numbers 1 to 25)</td></tr>
+<tr><td>Pick from a list of real-looking words</td><td><code>first_name</code></td><td>Dictionary</td><td><code>NameGen</code>, <code>ListGen</code></td></tr>
+<tr><td>Pick from a small fixed set</td><td><code>order_status</code></td><td>Set of Values</td><td><code>ListGen</code> (list generators)</td></tr>
+<tr><td>Follow a pattern</td><td>An order reference such as 4 digits plus "St."</td><td>Random with a regular expression pattern</td><td><code>SimplePatternGen</code> (default fallback, appends a number to the attribute name)</td></tr>
+<tr><td>Combine other columns</td><td><code>email</code> from first name plus domain</td><td>Advanced rule, or Expression</td><td><code>EmailGen</code>, <code>ConcatGen</code>; "Linked Generators" chain several</td></tr>
+<tr><td>Copy from another table</td><td><code>ORDERS.customer_id</code></td><td>Reference Lookup</td><td><code>ReferenceGen</code> (with <code>ProxyReferenceGen</code> at domain level)</td></tr>
+<tr><td>Depends on a condition</td><td><code>age_group</code>: "adult" or "minor"</td><td>Conditional</td><td>Conditional Logic Generators, G-Rules</td></tr>
+</tbody>
+</table>
+</div>
+<p>Sources: Informatica technique list (User Guide 10.5.10, p.209) and ad hoc, standard and global rule types (pp.192 to 193); GenRocket "Generators Overview", "How are Generators Assigned to Domain Attributes?", "What is Seeding?", the General FAQ, and the "What is the difference between the ProxyReferenceGen and ReferenceGen?" page. <span class="badge doc">From docs</span> Both tools offer more techniques than these. The <a href="05-informatica-masking-generation-workflows.html#c5-s2">Informatica data generation chapter</a> and the <a href="06-genrocket-building-blocks.html#c6-s2">GenRocket generators chapter</a> list them.</p>
+<div class="callout note"><strong class="ctitle">Same idea, different packaging</strong>
+<p>Informatica separates the <em>rule</em> (reusable, named, stored in the Policies area) from its <em>assignment</em> to a column (User Guide 10.5.10, pp.191 to 193). GenRocket attaches a <em>generator</em> directly to each attribute and picks a default for you from the attribute and domain name, the project's industry type and usage patterns (GenRocket "How are Generators Assigned to Domain Attributes?"). In both, you can replace what was picked. <span class="badge doc">From docs</span></p>
+</div>
+
+<h4 id="c7-seeds">2.3.7.2 Seeds: making "random" repeatable</h4>
+<p><strong>Concept.</strong> Computers do not produce truly random numbers. They run a formula that produces a long, random-looking list, starting from a number called the <dfn>seed</dfn>. Same seed, same list.</p>
+<p><strong>Why it matters.</strong> Suppose a test fails on Tuesday because customer 2003 had a zip code with a leading zero. If the data is regenerated on Wednesday with different random values, you may never see that customer again. With a fixed seed you can rebuild exactly Tuesday's data and debug it. The opposite is also useful: change the seed on purpose to get a fresh data set when you want fresh coverage.</p>
+<p>GenRocket describes this directly: seeding generates the same set of random data for the same seed value every time, a seed can be set on the domain (a global seed variable) or in an attribute's generator configuration, and two attributes using the same generator and same seed produce the same random series. It also notes that GenRocket can generate the same data as previous runs through a seed on a domain or generator (FAQ). <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/-what-is-seeding" target="_blank" rel="noopener">What is Seeding? ↗</a></p>
+<p>The snippet below is my own illustration of the principle in plain Python, not a vendor tool. It builds the 50 customers and orders designed in section 2.3.10. Run it twice with seed 42 and you get identical data; run it with seed 7 and you get different data.</p>
+<pre><code>import random
+
+def generate(seed):
+    rnd = random.Random(seed)              # the seed lives here
+    first = ["Asha","Ravi","Meera","Kiran","Divya","Arjun","Sana","Vikram"]
+    last  = ["Menon","Kumar","Nair","Iyer","Rao","Shah","Das","Pillai"]
+    customers = []
+    for i in range(50):
+        cid = 2001 + i                     # sequential: 2001, 2002, ...
+        customers.append((cid, rnd.choice(first), rnd.choice(last),
+                          "%06d" % rnd.randint(560001, 560099)))   # random
+    # exact distribution: 10 customers get 0 orders, 20 get 1, 15 get 2, 5 get 5
+    counts = [0]*10 + [1]*20 + [2]*15 + [5]*5
+    rnd.shuffle(counts)                    # random WHO, exact HOW MANY
+    orders, oid = [], 9001
+    for cust, n in zip(customers, counts):
+        for _ in range(n):
+            orders.append((oid, cust[0], rnd.randint(1, 4)))  # parent id, items
+            oid += 1
+    return customers, orders
+
+c1, o1 = generate(42)
+c2, o2 = generate(42)
+c3, o3 = generate(7)
+print(len(c1), len(o1), sum(x[2] for x in o1))   # 50 75 179
+print(c1 == c2 and o1 == o2, c1 == c3)           # True False</code></pre>
+<p class="expect">Expected result when I ran it (Python 3.13): the first print shows <code>50 75 179</code> and the second shows <code>True False</code>. The first three customers with seed 42 were <code>(2001, 'Ravi', 'Menon', '560095')</code>, <code>(2002, 'Divya', 'Iyer', '560029')</code> and <code>(2003, 'Meera', 'Kumar', '560087')</code>. The item total 179 and these exact names depend on the random generator inside your Python version, so yours may differ. What must hold on your machine is <code>True False</code>.</p>
+
+<h4 id="c7-distributions">2.3.7.3 Distributions: how values are spread</h4>
+<p>If every customer got exactly two orders, the data would be repeatable but unrealistic. Real shops have many customers with none, most with one or two, and a few with many. The snippet above states this on purpose: 10, 20, 15 and 5 customers get 0, 1, 2 and 5 orders. That is a <em>distribution</em>.</p>
+<p>Both tools let you state percentages rather than writing a loop:</p>
+<ul>
+<li>Informatica's random technique lets a regular expression create a fixed percentage of the generated values, and pattern percentages must total 100 (User Guide 10.5.10, p.220). Null and invalid-value rows are also set as percentages (pp.210 to 211). <span class="badge doc">From docs</span></li>
+<li>GenRocket's <code>MultiWeightGen</code> assigns weights (a percentage and a value) so that, for example, 50% of parents have 2 children, 20% have 3 and 30% have 1. With <code>exactPercentage</code> set to true, ten parents give exactly five, two and three parents of each type. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-children-based-on-weights-percentages" target="_blank" rel="noopener">Generate Children based on Weights ↗</a></li>
+</ul>
+<div class="callout tip"><strong class="ctitle">Exact or approximate?</strong>
+<p>With "10% of rows null", you can ask for roughly 10% (each row has a 10% chance) or exactly 10% (5 of 50). For small data sets such as 50 customers, always choose exact, otherwise a run can produce zero nulls and your null test silently tests nothing.</p>
+</div>
+
+<h4 id="c7-dependencies">2.3.7.4 Rules that link columns</h4>
+<p>Some values only make sense in combination. A shipped date must come after the order date. A flight cannot leave and arrive at the same airport. Informatica's guide has both examples. It describes a <em>conditional constraint</em>: an expression such as <code>To_City != From_City</code> that restricts values in one column based on another (User Guide 10.5.10, pp.201 to 202). When the rule's own limits make the constraint impossible (for example a modified date that must be later than a created date of 31 July 2014, the last date the rule allows), the rule wins and the tool generates data with warning messages. <span class="badge doc">From docs</span> The lesson for your own designs: when two rules fight, decide which one is the boss, and expect warnings from the other.</p>
+
+<h3 id="c7-parent-child">2.3.8 Generating parent and child tables so every key is valid</h3>
+<p><strong>Concept.</strong> A child row needs a parent that exists. If you generate ORDERS first and pick <code>customer_id</code> values at random, some will point at customers that do not exist, and the database (or the application's joins) will fail.</p>
+<p><strong>Simple explanation.</strong> You cannot write a library card for a member who has not been registered. So you register members first, then issue cards that carry a registered member's number.</p>
+<figure class="diagram"><svg viewBox="0 0 800 250" role="img" aria-label="Three boxes in a row: CUSTOMERS with 50 rows generated first, ORDERS with 75 rows generated second pointing back to a customer id, ORDER_ITEMS with about 179 rows generated third pointing back to an order id.">
+<rect x="20" y="60" width="210" height="110" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="125" y="95" text-anchor="middle" fill="currentColor" font-weight="bold">CUSTOMERS</text>
+<text x="125" y="120" text-anchor="middle" fill="currentColor" font-size="13">customer_id (PK)</text>
+<text x="125" y="145" text-anchor="middle" fill="currentColor" font-size="13">50 rows, made first</text>
+<rect x="295" y="60" width="210" height="110" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="400" y="95" text-anchor="middle" fill="currentColor" font-weight="bold">ORDERS</text>
+<text x="400" y="120" text-anchor="middle" fill="currentColor" font-size="13">order_id (PK), customer_id (FK)</text>
+<text x="400" y="145" text-anchor="middle" fill="currentColor" font-size="13">75 rows, made second</text>
+<rect x="570" y="60" width="210" height="110" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="675" y="95" text-anchor="middle" fill="currentColor" font-weight="bold">ORDER_ITEMS</text>
+<text x="675" y="120" text-anchor="middle" fill="currentColor" font-size="13">item_id (PK), order_id (FK)</text>
+<text x="675" y="145" text-anchor="middle" fill="currentColor" font-size="13">179 rows, made third</text>
+<path d="M295 115 L232 115" stroke="var(--accent)" stroke-width="2" fill="none"/>
+<polygon points="232,115 242,110 242,120" fill="var(--accent)"/>
+<path d="M570 115 L507 115" stroke="var(--accent)" stroke-width="2" fill="none"/>
+<polygon points="507,115 517,110 517,120" fill="var(--accent)"/>
+<text x="263" y="105" text-anchor="middle" fill="currentColor" font-size="12">copies an existing id</text>
+<text x="538" y="105" text-anchor="middle" fill="currentColor" font-size="12">copies an existing id</text>
+<text x="400" y="215" text-anchor="middle" fill="currentColor" font-size="13">Generation order: left to right. Arrows show which table each foreign key points at.</text>
+</svg>
+<figcaption>Original diagram: parents are generated before children, and every foreign key copies an id that already exists. Row counts are from the design in section 2.3.10.</figcaption>
+</figure>
+<h4 id="c7-two-ways">2.3.8.1 Two common ways to keep keys valid</h4>
+<div class="compare">
+<div>
+<h4 id="c2-a-child-picks-from-existing-parents">A. Child picks from existing parents</h4>
+<p>Generate the whole parent table first. Then, for each child row, choose a parent id from the finished list.</p>
+<p>Informatica calls this a <em>reference lookup</em> rule: you name the parent table and assign parent columns to child columns (User Guide 10.5.10, p.229). <span class="badge doc">From docs</span></p>
+<p>Good when the parent table already exists, for example loading new orders against real or masked customers.</p>
+</div>
+<div>
+<h4 id="c2-b-children-are-made-inside-each-parent">B. Children are made inside each parent</h4>
+<p>Loop over parents. For each parent, decide how many children it has, then create exactly that many, stamping the parent's id on each.</p>
+<p>GenRocket works this way: a parent domain's loop count and the child's count per parent drive the output, and it generates data sequentially along the relationships (see its "Parent, Child, and Sibling Relationships" page). <span class="badge doc">From docs</span></p>
+<p>Good when both tables are being created together, and when you want a controlled number of children per parent.</p>
+</div>
+</div>
+<p>GenRocket's page also says every domain has an id or primary attribute that is used to guarantee referential integrity between domains, and its FAQ says it can generate synthetic data with full referential integrity. It introduces a "sibling" idea: a table that merely describes another (the page's example is a role table describing a user table) is marked as a sibling instead of a parent, to avoid generating unnecessary data. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/domains-overview/parent-child-and-sibling-relationships" target="_blank" rel="noopener">Parent, Child, and Sibling Relationships ↗</a></p>
+<h4 id="c7-children-per-parent">2.3.8.2 How many children per parent?</h4>
+<p>Informatica's plan settings for data generation include a <strong>minimum and maximum number of child records for each parent record, each with a default of 1</strong>, and percentages for "parent records without children" and "child records without parent" for self-cyclic tables and reference lookup rules (User Guide 10.5.10, p.285). <span class="badge doc">From docs</span> Those last two settings exist because sometimes you <em>want</em> a customer with no orders (a null-style condition) or, rarely, a deliberately orphaned child (for a data-quality test). Do this only on purpose and label it, so nobody mistakes it for a bug.</p>
+<div class="callout warn"><strong class="ctitle">Self-referencing tables</strong>
+<p>A table whose foreign key points at itself (an employee table with a manager id) has no "parents first" order. The tool needs a special rule: the first rows have no parent, later rows point back at earlier ones. Informatica's setting names self-cyclic tables specifically (p.285). ShopSphere has none, so we do not build one here.</p>
+</div>
+
+
+<h3 id="c7-model-design-deploy-manage">2.3.9 The lifecycle: Model, Design, Deploy, Manage</h3>
+<p>The syllabus for Day 46 says "Data generation: model, design, deploy, manage". That is GenRocket's own phrase: its help centre states that GenRocket uses a "Model, Design, Deploy, Manage" methodology and explains it in a video that I could not watch, so the page text is all I can report. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/the-genrocket-methodology" target="_blank" rel="noopener">The GenRocket Methodology ↗</a></p>
+<p>The four words describe a cycle that any generation effort goes through, in any tool. The table below is my teaching interpretation, built from the pieces I could ground. <span class="badge concept">General concept</span></p>
+<div class="tablewrap"><table><thead>
+<tr><th>Phase</th><th>Question it answers</th><th>ShopSphere activity</th><th>What you produce</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Model</strong></td><td>What does the data look like?</td><td>List the tables, columns, types, keys and relationships (CUSTOMERS, ORDERS, ORDER_ITEMS, PRODUCTS)</td><td>A data model the tool can read, often imported from an existing database definition</td></tr>
+<tr><td><strong>Design</strong></td><td>Which values, how many, and why?</td><td>Choose a rule per column, set the distributions, decide the boundary and null rows (section 2.3.10)</td><td>Rules, counts and a coverage matrix</td></tr>
+<tr><td><strong>Deploy</strong></td><td>How do the rows reach the test system?</td><td>Run the generation, write to the QA database or to files, check keys and counts</td><td>Loaded, verified test data</td></tr>
+<tr><td><strong>Manage</strong></td><td>How do we keep it right and reusable?</td><td>Version the rules, record the seed, handle requests for changes, retire old data sets</td><td>A catalogue of data sets and a change history</td></tr>
+</tbody>
+</table>
+</div>
+<p>Evidence for the pieces. GenRocket's General FAQ says it assigns the more complex test data tasks to a small group of trained "Test Data Engineers" who <em>model</em> test data projects and <em>design</em> the data (the FAQ's examples are integration, load and negative data), while testers and developers only need to learn how to search for the data they need, integrate or <em>deploy</em> it into their test environment, and modify it with a questionnaire tool. <span class="badge doc">From docs</span> Its architecture page adds that GenRocket is hybrid: synthetic data is modelled and designed in a cloud component and generated locally in an on-premises component. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-architecture" target="_blank" rel="noopener">GenRocket Architecture ↗</a></p>
+<p>GenRocket also names five building blocks that the phases work on. The reference table on its "Five Key Components" page reads like this in my words: a <em>domain</em> is a noun such as a table or file; an <em>attribute</em> is a characteristic of a domain, such as a column; a <em>generator</em> produces the values for an attribute; a <em>receiver</em> turns generated data into a usable format such as SQL, CSV or JSON; and a <em>scenario</em> holds the instructions for what to generate and how much. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-five-key-components" target="_blank" rel="noopener">GenRocket Five Key Components ↗</a> Placing them on the cycle is my own reading: domains and attributes are mostly Model work, generators and scenarios are Design work, receivers carry the Deploy step. The <a href="06-genrocket-building-blocks.html#c6-s1">GenRocket overview chapter</a> takes this further.</p>
+<div class="callout note"><strong class="ctitle">Where Informatica fits on the same cycle</strong>
+<p>Informatica's task flow has the same shape: import metadata into a project (model), create generation rules and assign them to columns (design), create a plan, generate a workflow and run it (deploy), then watch it in the Monitor view (User Guide 10.5.10, p.192). <span class="badge doc">From docs</span> The guide does not use the words Model, Design, Deploy, Manage; the mapping is mine.</p>
+</div>
+
+<h3 id="c7-worked-example">2.3.10 Worked example: 50 ShopSphere customers and their orders</h3>
+<p><strong>The request.</strong> The QA team testing ShopSphere's Customer Orders app asks the TDM engineer for a new data set in a QA database: 50 customers, with orders and items, covering the registration rules, the order history page and a customer-search feature. No production data may be used. We follow Model, Design and Deploy; Manage is covered by the lab at the end.</p>
+<h4 id="c7-model-step">2.3.10.1 Model</h4>
+<p>The tables are the ShopSphere tables from the data basics chapter. The relationships are the only thing the generator needs to respect: <code>ORDERS.customer_id</code> points at <code>CUSTOMERS</code>, <code>ORDER_ITEMS.order_id</code> points at <code>ORDERS</code>, and <code>ORDER_ITEMS.product_code</code> points at <code>PRODUCTS</code>. PRODUCTS is a small reference table of four rows that we load by hand (P-100 Laptop Stand, P-200 USB Cable, P-300 Phone Case, P-400 Desk Lamp), because it is better to control the catalogue than to invent products.</p>
+<p>These business rules are invented for this example. They are what the test conditions will aim at: <em>customers must be 18 or older; first and last names are at most 30 characters; phone is 10 digits when present; zip code is 6 digits when present; email is optional; each order has between 1 and 4 items</em>.</p>
+<h4 id="c7-design-step">2.3.10.2 Design: a rule for every column</h4>
+<div class="tablewrap"><table class="sample">
+<caption>Generation rules for CUSTOMERS (my design; the 'ssn' prefix 900 and 'example.test' domain are my choices so values cannot be mistaken for real ones)</caption><thead>
+<tr><th>Column</th><th>Rule</th><th>Sensitivity</th></tr>
+</thead>
+<tbody>
+<tr><td>customer_id</td><td>Sequential from 2001, step 1</td><td>Internal</td></tr>
+<tr><td>first_name</td><td>Random pick from a made-up list of 200 names</td><td>Personal (synthetic)</td></tr>
+<tr><td>last_name</td><td>Random pick from a made-up list of 200 surnames</td><td>Personal (synthetic)</td></tr>
+<tr><td>email</td><td>first name + "." + customer_id + "@example.test", lower case</td><td>Personal (synthetic)</td></tr>
+<tr><td>phone</td><td>"9" followed by 9 random digits</td><td>Personal (synthetic)</td></tr>
+<tr><td>ssn</td><td>"900-" then 2 random digits, "-" and 4 random digits; unique</td><td>Highly restricted (synthetic)</td></tr>
+<tr><td>date_of_birth</td><td>Random between 1950-01-01 and 2008-10-22</td><td>Highly restricted (synthetic)</td></tr>
+<tr><td>zip_code</td><td>Random 6 digits from 560001 to 560099</td><td>Personal (synthetic)</td></tr>
+<tr><td>tax_id</td><td>Pattern of 5 letters, 4 digits, 1 letter; unique</td><td>Highly restricted (synthetic)</td></tr>
+</tbody>
+</table>
+</div>
+<p>Next, the customers are split by purpose. The counts below must add up to 50, and each group overrides the default rules for the columns it targets.</p>
+<div class="tablewrap"><table class="sample">
+<caption>Customer groups by purpose</caption><thead>
+<tr><th>Group</th><th>Rows</th><th>What differs from the default rules</th></tr>
+</thead>
+<tbody>
+<tr><td>Typical (positive)</td><td>33</td><td>None</td></tr>
+<tr><td>Boundary</td><td>6</td><td>1 customer exactly 18 today (born 2008-10-23); 1 aged 18 years and 1 day (2008-10-22); first_name of 1 character; first_name of 30 characters; last_name of 30 characters; zip_code 560001 (lowest in range)</td></tr>
+<tr><td>Null / empty</td><td>5</td><td>phone NULL (2 rows); email NULL (1); zip_code empty string (1); tax_id NULL (1)</td></tr>
+<tr><td>Edge case</td><td>6</td><td>last_name O'Brien; hyphenated last_name; first_name with a leading and trailing space; accented letters in first_name; date_of_birth on a leap day (2000-02-29); two customers sharing the same last_name and zip_code (to test search)</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>50</strong></td><td>&nbsp;</td></tr>
+</tbody>
+</table>
+</div>
+<p>Invalid and security values (letters in a phone number, an email with no "@", a name that contains SQL text) are <em>not</em> in the table. They go into a separate four-row input file that the tester types or posts through the registration screen, because the database would refuse to store them. That is the point made in the tip in 7.3.3.</p>
+<p>Now the children. Orders per customer follow the distribution below, drawn from the Python snippet in 7.7.2.</p>
+<div class="tablewrap"><table class="sample">
+<caption>Orders per customer</caption><thead>
+<tr><th>Orders per customer</th><th>Customers</th><th>Share</th><th>Orders created</th></tr>
+</thead>
+<tbody>
+<tr><td>0</td><td>10</td><td>20%</td><td>0</td></tr>
+<tr><td>1</td><td>20</td><td>40%</td><td>20</td></tr>
+<tr><td>2</td><td>15</td><td>30%</td><td>30</td></tr>
+<tr><td>5</td><td>5</td><td>10%</td><td>25</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>50</strong></td><td>100%</td><td><strong>75</strong></td></tr>
+</tbody>
+</table>
+</div>
+<p>Each order has 1 to 4 items picked at random, each item has a random product code from PRODUCTS, a quantity of 1 to 3, and a <code>unit_price</code> copied from that product's <code>price</code> (so prices always agree with the catalogue). With seed 42 in my run that gave 179 items. <code>total_amount</code> on each order is calculated as the sum of its items, so totals always match. Without that last rule the data would be internally contradictory, and tests of the order total report would fail for the wrong reason.</p>
+<h4 id="c7-coverage-matrix">2.3.10.3 The coverage matrix</h4>
+<p>The matrix shows which data group serves which test area. An empty column is a gap. A tick means a row exists that exercises that area.</p>
+<div class="tablewrap"><table class="sample">
+<caption>Coverage matrix: data groups against test areas (✓ = covered)</caption><thead>
+<tr><th>Data group</th><th>Registration validation</th><th>Customer search</th><th>Order history page</th><th>Order total report</th><th>Privacy export</th></tr>
+</thead>
+<tbody>
+<tr><td>Typical (33)</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Boundary (6)</td><td>✓</td><td>✓</td><td></td><td></td><td></td></tr>
+<tr><td>Null / empty (5)</td><td>✓</td><td>✓</td><td></td><td></td><td>✓</td></tr>
+<tr><td>Edge case (6)</td><td>✓</td><td>✓</td><td>✓</td><td></td><td>✓</td></tr>
+<tr><td>Customers with 0 orders (10)</td><td></td><td></td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Customers with 5 orders (5)</td><td></td><td></td><td>✓</td><td>✓</td><td></td></tr>
+<tr><td>Negative input file (4 rows, not loaded)</td><td>✓</td><td></td><td></td><td></td><td></td></tr>
+</tbody>
+</table>
+</div>
+<p>Look at the empty cells. Boundary customers have no tick for the order history page, because the design does not say whether they have orders. A good review catches that. Fix it by requiring that at least two boundary customers and two null-phone customers are among the 35 customers who have orders, so the order history page is also tried with them.</p>
+<h4 id="c7-deploy-step">2.3.10.4 Deploy and verify</h4>
+<p>After the run, check three things before you hand the data over. These SQL checks are what I ran against my generated rows in SQLite; the syntax works on most databases.</p>
+<pre><code>-- 1. No orphan orders (expected: 0)
+SELECT COUNT(*) FROM orders o
+LEFT JOIN customers c ON c.customer_id = o.customer_id
+WHERE c.customer_id IS NULL;
+
+-- 2. The orders-per-customer distribution matches the design
+SELECT n AS orders_per_customer, COUNT(*) AS customers
+FROM (SELECT c.customer_id, COUNT(o.order_id) AS n
+      FROM customers c
+      LEFT JOIN orders o ON o.customer_id = c.customer_id
+      GROUP BY c.customer_id) t
+GROUP BY n ORDER BY n;
+
+-- 3. The null and empty rows really exist (expected: 2, 1, 1, 1)
+SELECT SUM(CASE WHEN phone IS NULL THEN 1 ELSE 0 END)    AS null_phone,
+       SUM(CASE WHEN email IS NULL THEN 1 ELSE 0 END)    AS null_email,
+       SUM(CASE WHEN zip_code = '' THEN 1 ELSE 0 END)    AS empty_zip,
+       SUM(CASE WHEN tax_id IS NULL THEN 1 ELSE 0 END)   AS null_tax_id
+FROM customers;</code></pre>
+<p class="expect">Expected result: check 1 returns 0. Check 2 returns four rows: (0, 10), (1, 20), (2, 15), (5, 5); I got exactly this from the snippet in 7.7.2. Check 3 returns 2, 1, 1, 1 once the null and empty overrides from the design table are applied. The snippet in 7.7.2 generates only the typical shape, so I did not run check 3 against it; it is a template for you to run on a real design.</p>
+
+<h3 id="c7-tdaas">2.3.11 Test data as a service</h3>
+<p><strong>Concept.</strong> "Test data as a service" means test data is something teams can <em>ask for and receive</em>, like a ticket to a service desk, instead of something each team builds in secret. A small group owns the know-how and the rules; many teams consume the results. <span class="badge concept">General concept</span> The phrase itself does not appear in the documentation pages I read, so I use it as a label for what the three tools describe in their own words.</p>
+<p><strong>Why it matters.</strong> Without it, every team writes its own scripts, nobody can reproduce another team's data and the same sensitive columns get masked ten different ways. With it, a request is a small form ("50 customers with orders, boundary included"), and the answer is a catalogued, repeatable data set.</p>
+<div class="tablewrap"><table><thead>
+<tr><th>Tool</th><th>What its docs say that fits the idea</th></tr>
+</thead>
+<tbody>
+<tr><td>GenRocket</td><td>G-Portal is described as part of a distributed self-service platform in which a small group of Test Data Engineers in a Center of Excellence supports large distributed teams. Requesters search for existing test data, create requests, track them and download components. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/g-portal/g-portal-overview" target="_blank" rel="noopener">G-Portal Overview ↗</a></td></tr>
+<tr><td>GenRocket</td><td>Test Data Cases (G-Cases) change the components inside a scenario so the same scenario can produce many permutations for different test cases, organised in suites with categories such as Beta, Unit or Load. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/test-data-cases-g-cases/test-data-cases-g-cases-overview" target="_blank" rel="noopener">G-Cases Overview ↗</a></td></tr>
+<tr><td>Informatica TDM</td><td>A test data warehouse stores data sets; the guide says multiple teams using different machines that host a Test Data Manager Service in a domain can access a single test data warehouse (User Guide 10.5.10, p.24). <span class="badge doc">From docs</span></td></tr>
+<tr><td>Delphix</td><td>The terminology page describes Delphix Self-Service as a user interface designed for project teams, application developers and testers to manage their virtualised datasets. <span class="badge doc">From docs</span> <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology ↗</a></td></tr>
+</tbody>
+</table>
+</div>
+<div class="callout example"><strong class="ctitle">What a ShopSphere request might look like</strong>
+<p><strong>Requester:</strong> QA engineer. <strong>Need:</strong> customers with 0, 1, 2 and 5 orders; 5 null-phone customers. <strong>Environment:</strong> QA2. <strong>Refresh:</strong> weekly, same seed. <strong>Owner:</strong> TDM engineer. <strong>Delivered as:</strong> a named data set "SHOPSPHERE-CUST-50-v3" with the rule version and seed recorded. This record is the "Manage" phase of 7.9 in miniature.</p>
+</div>
+
+<h3 id="c7-lab">2.3.12 Hands-on lab: design a smaller data set on paper</h3>
+<div class="exercise">
+<h4 id="c2-lab-model-and-design-20-customers">Lab: model and design 20 customers</h4>
+<p>Goal: practise turning a request into a Model, a Design and a coverage matrix. You need pen and paper or a text editor; no tool is required.</p>
+<ol class="steps">
+<li><strong>Write the request.</strong><p>"20 customers with orders for the order history page. Customers must be 18 or older. Zip code is 6 digits."</p><p class="expect">You should have one sentence naming the tables, the count and the rules.</p></li>
+<li><strong>Split the 20 customers by purpose.</strong><p>Use typical, boundary, null or empty and edge case. The groups must add up to 20.</p><p class="expect">A table with four rows and a total of 20.</p></li>
+<li><strong>Pick an orders-per-customer distribution.</strong><p>Choose counts that add up to 20 customers and state the total orders.</p></li>
+<li><strong>Draw a coverage matrix</strong> with your groups down the side and the test areas "registration" and "order history" across the top. Mark ticks and find one gap.</li>
+<li><strong>Write two SQL checks</strong> you would run after generation.</li>
+</ol>
+<details class="sol">
+<summary>Show a worked answer</summary>
+<p><strong>Groups:</strong> typical 12, boundary 3 (exactly 18; 18 and one day; zip 560001), null or empty 2 (phone NULL; email NULL), edge case 3 (O'Brien; hyphenated surname; leap-day birthday). Total 12 + 3 + 2 + 3 = 20.</p>
+<p><strong>Orders:</strong> 0 orders for 4 customers, 1 order for 8, 2 orders for 6, 4 orders for 2. Total orders = 0 + 8 + 12 + 8 = 28.</p>
+<p><strong>Gap you should find:</strong> the order history column is empty for the groups unless you require some of the boundary and null customers to have orders. A fix: make 2 of the 3 boundary customers and both null customers belong to the groups that have orders.</p>
+<p><strong>Checks:</strong> the orphan-order query from 7.10.4 (expect 0), and a count of customers with exactly 4 orders (expect 2).</p>
+</details>
+</div>
+
+<h3 id="c7-mistakes">2.3.13 Common mistakes and gotchas</h3>
+<div class="callout warn"><strong class="ctitle">Mistakes beginners make</strong>
+<ul>
+<li><strong>Generating children before parents.</strong> The foreign keys then point at nothing. Always parents first, or have the child rule read from the finished parent table.</li>
+<li><strong>All-random data and no designed edges.</strong> Random values almost never hit an exact boundary, a null, or a name with an apostrophe. Put those rows in on purpose.</li>
+<li><strong>Not recording the seed.</strong> A failed test cannot be reproduced if the data cannot be rebuilt.</li>
+<li><strong>Requesting "about 10% null".</strong> In a 50-row data set that can come out as zero. Ask for an exact count.</li>
+<li><strong>Totals that do not add up.</strong> Derive <code>total_amount</code> from the items instead of generating it separately.</li>
+<li><strong>Loading invalid values into constrained columns.</strong> The load fails or the constraint is silently dropped. Keep negative data in the input channel.</li>
+<li><strong>Treating synthetic as automatically realistic.</strong> It only mirrors what you modelled. Compare a few generated distributions against real, masked, aggregated figures.</li>
+<li><strong>Reusing real values as the "dictionary".</strong> A name list exported from production defeats the purpose.</li>
+</ul>
+</div>
+
+<h3 id="c7-recap">2.3.14 Recap</h3>
+<div class="callout recap"><strong class="ctitle">Recap</strong>
+<ul>
+<li>Classify test data along three lines: <strong>source</strong> (production-derived or synthetic), <strong>sensitivity</strong> (what harm a leak causes) and <strong>purpose</strong> (what the row must prove).</li>
+<li>The seven purposes are valid, invalid, boundary, edge case, null or empty, volume and security. The syllabus data patterns (boundary, sequential, random, edge cases, null) are ways of shaping values to serve them.</li>
+<li>Synthetic data is created from rules. It gives privacy and designed coverage; masked production gives real-world mess. Hybrids use both.</li>
+<li>Generation needs a target shape, a rule or generator per column, and run settings. A <strong>seed</strong> makes it repeatable and a <strong>distribution</strong> makes it realistic.</li>
+<li>Generate parents first and make every foreign key copy an existing parent id; control how many children each parent gets.</li>
+<li>GenRocket's cycle is Model, Design, Deploy, Manage. Test data as a service means requestable, catalogued, repeatable data owned by a small expert group.</li>
+<li>A coverage matrix shows gaps before the testers find them.</li>
+</ul>
+</div>
+
+
+<section class="sources"><h3 id="c7-sources">Sources used in this section</h3>
+<ul>
+<li>Informatica TDM 10.5.10 User Guide (February 2026): User Guide chapter 9 "Data Generation" (pp.190 to 207: overview, components, task flow, rule types, conditional constraints pp.201 to 202); chapter 10 (pp.208 to 211, 220, 229: technique list, exception test data, random and reference lookup generation); chapter 13 p.285 (data generation plan settings for child records and error options); chapter 1 p.24 (compliance standards, test data warehouse).</li>
+<li>GenRocket: <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/why-synthetic-test-data" target="_blank" rel="noopener">Why Synthetic Test Data?</a> (definition); <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/the-genrocket-methodology" target="_blank" rel="noopener">The GenRocket Methodology</a> (the four-word phrase); <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-five-key-components" target="_blank" rel="noopener">Five Key Components</a>; <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-architecture" target="_blank" rel="noopener">Architecture</a>; <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">General FAQ</a> (roles, seeds, referential integrity, hybrid use); <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/generators-overview" target="_blank" rel="noopener">Generators Overview</a>; <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/-what-is-seeding" target="_blank" rel="noopener">What is Seeding?</a>; <a href="https://genrocket.helpjuice.com/en_US/domains-overview/parent-child-and-sibling-relationships" target="_blank" rel="noopener">Parent, Child, and Sibling Relationships</a>; <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-children-based-on-weights-percentages" target="_blank" rel="noopener">Generate Children based on Weights</a>; <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/what-is-synthetic-data-replacement-sdr" target="_blank" rel="noopener">What is SDR?</a>; <a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-edgecasegen-generator" target="_blank" rel="noopener">EdgeCaseGen</a>; <a href="https://genrocket.helpjuice.com/en_US/g-portal/g-portal-overview" target="_blank" rel="noopener">G-Portal Overview</a>; <a href="https://genrocket.helpjuice.com/en_US/test-data-cases-g-cases/test-data-cases-g-cases-overview" target="_blank" rel="noopener">G-Cases Overview</a>.</li>
+<li>Delphix: <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a> (Continuous Compliance 2026.5): one definition of Self-Service.</li>
+
+<li>Not used as sources: the YouTube videos (transcripts could not be retrieved). "Cog IPs" are organisation-specific; ask your trainer.</li>
+<li>All ShopSphere numbers, rules and code are my own illustrations, run in SQLite 3.45 and Python 3.13 before printing.</li>
+</ul></section>
+
+<nav class="chapter-nav" aria-label="Previous and next chapter"><a href="01-welcome-why-tdm-data-and-privacy.html">← 1. Welcome: why TDM exists, the data it handles and the rules around it</a><a href="03-etl-and-tdm.html">3. ETL from scratch, and how it meets TDM →</a></nav></article></div></main><footer class="sitefooter"><div class="wrap">© 2026 Saravan Kumar M K · <a href="https://saravankumar25.github.io/">Portfolio</a> · <a href="index.html">TDM Guide</a> · <a href="sources-and-limitations.html">Sources &amp; limitations</a> · Study notes: always confirm screen details against your own tool version.</div></footer><div id="search-modal" hidden><div class="search-box" role="dialog" aria-label="Search"><input id="search-input" type="search" placeholder="Search the whole guide (e.g. 'primary key', 'shuffle', 'receiver')…" autocomplete="off"><div id="search-results"></div><p class="search-hint">Esc to close · ↑↓ to move · Enter to open</p></div></div><script src="assets/guide.js" defer></script></body></html>

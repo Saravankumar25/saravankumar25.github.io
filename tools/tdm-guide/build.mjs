@@ -118,7 +118,12 @@ for (const c of chapters) {
   for (const m of c.html.matchAll(/href="(\d\d-[a-z0-9-]+\.html)(#[^"]*)?"/g)) {
     if (!structure.chapters.some((x) => `${pad(x.num)}-${x.slug}.html` === m[1])) errors.push(`${c.file}: broken internal link ${m[1]}`);
   }
-  for (const m of c.html.matchAll(/\b(?:[Cc]hapters?|ch\.?) \d+(?:\s*(?:-|–|and|,)\s*\d+)*/g)) staleRefs.push(`${c.file}: "${m[0]}"  …${strip(c.html.slice(Math.max(0, m.index - 40), m.index + 60))}…`);
+  for (const m of c.html.matchAll(/\b(?:[Cc]hapters?|ch\.?) \d+(?:\s*(?:-|–|and|,)\s*\d+)*/g)) {
+    const after = strip(c.html.slice(m.index, m.index + 160)).slice(0, 90), before = strip(c.html.slice(Math.max(0, m.index - 160), m.index)).slice(-90);
+    // legitimate: citations of the Informatica manual's own chapters (page numbers or a quoted title nearby, or "User Guide")
+    if (/pp?\.\s*\d|pages? \d|PDF page|"/.test(after) || /User Guide|the guide|manual|Guide \(|Guide,|Guide\)/i.test(before)) continue;
+    staleRefs.push(`${c.file}: "${m[0]}"  …${strip(c.html.slice(Math.max(0, m.index - 40), m.index + 60))}…`);
+  }
   for (const m of c.html.matchAll(/\b\d+[- ]?(?:min|minute)s?\b[^<]{0,20}(?:read|reading)|reading time|read time/gi)) warnings.push(`${c.file}: mentions reading time: "${m[0]}"`);
   if (c.html && !/<h2[\s>]/.test(c.html)) warnings.push(`${c.file}: no <h2> sections`);
   c.text = strip(c.html);
