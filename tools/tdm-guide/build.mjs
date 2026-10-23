@@ -29,7 +29,10 @@ const allow = new Set(
   fs.readFileSync(path.join(here, "links.txt"), "utf8").split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#")),
 );
 const normUrl = (u) => u.replace(/#.*$/, "").replace(/\/$/, "");
-const allowNorm = new Set([...allow].map(normUrl));
+const allowNorm = new Set([...allow].map(normUrl)); // "leads": surfaced by search or supplied by the learner, NOT fetched
+const verified = new Set(
+  fs.readFileSync(path.join(here, "verified-links.txt"), "utf8").split("\n").map((l) => l.trim()).filter((l) => l && !l.startsWith("#")).map(normUrl),
+);
 
 // ---------- load chapters ----------
 const chapters = [];
@@ -47,7 +50,7 @@ for (const d of fs.readdirSync(chapDir).sort()) {
 chapters.sort((a, b) => a.num - b.num);
 
 // ---------- process each chapter: ensure ids, build toc ----------
-const warnings = [];
+const warnings = [], errors = [], leadLinks = [];
 const slugify = (s) => strip(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
 for (const c of chapters) {
   const seen = new Set();
@@ -69,7 +72,10 @@ for (const c of chapters) {
   for (const m of c.html.matchAll(/href="(https?:\/\/[^"]+)"/g)) {
     const u = m[1];
     if (u.startsWith(SITE)) continue;
-    if (!allowNorm.has(normUrl(u))) warnings.push(`${c.file}: link not in verified list: ${u}`);
+    const nu = normUrl(u);
+    if (verified.has(nu)) continue;
+    if (allowNorm.has(nu)) { leadLinks.push(`${c.file}: ${u}`); continue; }
+    errors.push(`${c.file}: link is neither verified nor a known lead: ${u}`);
   }
   // heading structure
   if (!/<h2[\s>]/.test(c.html)) warnings.push(`${c.file}: no <h2> sections`);
@@ -140,7 +146,6 @@ function indexPage() {
 }
 
 // ---------- write ----------
-const index = chapters.map((c) => ({ ch: c.num, t: c.title, f: c.file, s: c.toc.filter((t) => t.level === 2).map((t) => ({ id: t.id, h: t.text })), x: c.text.slice(0, 0) }));
 // full-text search index: split chapter text by h2 sections
 const searchDocs = [];
 for (const c of chapters) {
@@ -157,8 +162,11 @@ console.log(`\nChapters: ${chapters.length}`);
 let totalLines = 0, totalWords = 0;
 for (const c of chapters) { console.log(`  ${String(c.num).padStart(2)}  ${String(c.lines).padStart(5)} lines  ${String(c.words).padStart(6)} words  ${c.title}`); totalLines += c.lines; totalWords += c.words; }
 console.log(`TOTAL: ${totalLines} source lines, ${totalWords} words`);
+if (leadLinks.length) { console.log(`\n${leadLinks.length} link(s) to LEADS (not fetched; must be labelled "unverified" in the text):`); for (const w of leadLinks) console.log("  ~ " + w); }
+if (errors.length) { console.log(`\n${errors.length} ERROR(S):`); for (const w of errors) console.log("  x " + w); }
 if (warnings.length) { console.log(`\n${warnings.length} warning(s):`); for (const w of warnings) console.log("  - " + w); }
-if (checkOnly) process.exit(0);
+if (checkOnly) process.exit(errors.length ? 1 : 0);
+if (errors.length) { console.error("Refusing to write output while link errors exist."); process.exit(1); }
 
 fs.mkdirSync(path.join(outDir, "assets"), { recursive: true });
 for (const f of fs.readdirSync(outDir)) if (f.endsWith(".html")) fs.unlinkSync(path.join(outDir, f));
