@@ -47,6 +47,41 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 <h3 id="c4-genrocket-names">What GenRocket does: column names only</h3>
 <p><span class="badge doc">From docs</span> GenRocket's "Data Column Profiling" scans column <em>headers</em>, not the data. It checks whether each column name contains a keyword from a list: 102 built-in names plus any your organisation adds (for example <code>user_email</code> matches <code>email</code>, <code>client_ssn</code> matches <code>ssn</code>). It then shows you the matches to choose from (GenRocket "PII Discovery with Data Column Profiling", <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/pii-discovery-with-data-column-profiling-identify-sensitive-data-columns" target="_blank" rel="noopener">source page ↗</a>). It is the "column name" signal on its own. The upside is that the tool never needs to read real values.</p>
 
+<h3 id="c4-regex-primer">A beginner's regular expression primer</h3>
+<p>You do not need to be a regex expert to be a TDM engineer, but you must be able to read the patterns in a policy and fix one that misfires. Informatica's guide lists the building blocks it supports (User Guide 10.5.10, pp.74 to 75). <span class="badge doc">From docs</span> They are the same few ideas used everywhere:</p>
+<div class="tablewrap"><table><caption>The common building blocks (listed in the Informatica guide), with a ShopSphere use</caption>
+<thead><tr><th>Piece</th><th>Meaning</th><th>Small example</th></tr></thead>
+<tbody>
+<tr><td>an ordinary character, e.g. <code>abc</code></td><td>matches itself</td><td><code>abc</code> matches abc</td></tr>
+<tr><td><code>[0-9]</code></td><td>one character from a set or range</td><td>one digit</td></tr>
+<tr><td><code>[a-zA-Z0-9]</code></td><td>any letter or digit</td><td>one letter or digit</td></tr>
+<tr><td><code>{n}</code></td><td>repeat the previous item n times</td><td><code>[0-9]{10}</code> is ten digits in a row</td></tr>
+<tr><td><code>*</code></td><td>the previous item zero or more times</td><td><code>.*SSN*</code> style name patterns</td></tr>
+<tr><td><code>?</code></td><td>the previous item is optional</td><td><code>-?</code> is an optional hyphen</td></tr>
+<tr><td><code>\</code> (backslash)</td><td>take the next special character literally</td><td><code>\.</code> is a real dot</td></tr>
+</tbody></table></div>
+<p>The guide adds that regular expressions are case sensitive and points to outside tutorials for more. The exact dialect (for example whether a pattern is case-insensitive by default) differs between products, so test patterns in the tool's own preview. Delphix's built-in patterns, for instance, start with <code>(?i)</code> to make name matching case-insensitive, which shows a different dialect from the simple examples above. <span class="badge doc">From docs</span></p>
+<div class="tablewrap"><table class="sample"><caption>Illustrative ShopSphere data patterns, written in the simple style of the Informatica guide's examples</caption>
+<thead><tr><th>Kind of data</th><th>Pattern</th><th>Matches</th><th>Also (wrongly) matches</th></tr></thead>
+<tbody>
+<tr><td>SSN with hyphens</td><td><code>[0-9]{3}-[0-9]{2}-[0-9]{4}</code></td><td>123-45-6789</td><td>A part number formatted 100-20-3000</td></tr>
+<tr><td>Ten-digit phone</td><td><code>[0-9]{10}</code></td><td>9876543210</td><td>Any ten-digit order reference</td></tr>
+<tr><td>Six-digit zip (PIN) code</td><td><code>[0-9]{6}</code></td><td>560001</td><td>A six-digit invoice number</td></tr>
+<tr><td>Birth date, ISO style</td><td><code>[0-9]{4}-[0-9]{2}-[0-9]{2}</code></td><td>1990-04-12</td><td>An order_date such as 2026-10-23</td></tr>
+</tbody></table></div>
+<p>The last column is the point: a data pattern says what the value <em>looks like</em>, not what it <em>is</em>. That is why name patterns and data patterns are combined and why a "minimum conformance percent" exists, and it is the source of false alarms (a false positive: a harmless column flagged). The opposite problem, a real SSN column that does not match because someone stored it without hyphens, is a false negative. The <a href="05-discovery-and-subsetting-concepts.html">discovery and subsetting concepts chapter</a> returns to both.</p>
+<div class="exercise"><h4>Lab: read the patterns</h4>
+<p>Goal: predict which ShopSphere values each pattern catches, then spot a false alarm and a miss.</p>
+<ol class="steps">
+<li><strong>Test <code>[0-9]{10}</code> against these values:</strong> 9876543210, 98765 43210, 0987654321, 98765432101, +91 9876543210.<p>The guide's example patterns do not say whether a match must cover the whole value, so assume a match can sit inside a longer string unless your tool says otherwise.</p></li>
+<li><strong>Write a pattern that also accepts a hyphen or space after the fifth digit.</strong><p>Use optional pieces with <code>?</code>.</p></li>
+<li><strong>Decide:</strong> would both <code>order_id</code> (for example 1000000001) and <code>phone</code> be flagged by <code>[0-9]{10}</code>? What second signal would you add?</li>
+</ol>
+<details class="sol"><summary>Show a worked answer</summary>
+<p>Step 1: 9876543210 and 0987654321 match. 98765 43210 does not, because a space breaks the run of digits. 98765432101 is eleven digits but contains a ten-digit run, so it matches only if partial matches are allowed, which is a trap. +91 9876543210 also matches only as a partial match.</p>
+<p>Step 2: <code>[0-9]{5}[- ]?[0-9]{5}</code> accepts ten digits with an optional hyphen or space in the middle. (Here <code>[- ]</code> means "a hyphen or a space".)</p>
+<p>Step 3: both would be flagged. Add the column-name signal (<code>phone</code>, <code>mobile</code>, <code>tel</code>) and a minimum conformance percent so a column is only claimed when most rows match.</p></details></div>
+
 <h3 id="c4-shopsphere-detection">ShopSphere example: what each signal finds</h3>
 <div class="tablewrap"><table class="sample"><caption>Illustrative: how the three signals would treat ShopSphere columns</caption>
 <thead><tr><th>Column</th><th>Name signal</th><th>Data signal</th><th>Verdict</th></tr></thead>
@@ -141,6 +176,36 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 <p>The tools reflect the split of duties. <span class="badge doc">From docs</span> In Informatica, you need the <em>View Policies</em> and <em>Manage Policies</em> privileges to view and work with policies (User Guide 10.5.10, p.77), and the Administrator defines the list of sensitivity levels (p.75). Delphix has roles too: an "Editing a user-defined algorithm" permission is described on its algorithms page, and a separate best-practice page covers defining masking roles.</p>
 <div class="callout real"><strong class="ctitle">Keep a written record</strong>
 <p>A good habit: when the compliance officer and data steward decide how a column is handled, write the decision down next to the column name (a spreadsheet is fine) and reference it from the policy. Both tools can attach descriptions. Informatica also lets you link Informatica Business Glossary terms to policies, domains and rules, so people can look up what a term means from one central place (User Guide 10.5.10, p.82). <span class="badge doc">From docs</span></p></div>
+
+<h2 id="c4-walkthrough">4.10 Walkthrough: from a legal requirement to a policy</h2>
+<p>Here is the whole chain in one story, so the pieces above fit together. This is the shape of a real engagement, simplified. It is an illustrative process <span class="badge concept">General concept</span> that uses the tool facts from earlier sections where marked.</p>
+<ol class="steps">
+<li><strong>Start with the requirement, in business words.</strong><p>ShopSphere's compliance officer says: "No real customer identity may leave production, in India or Germany. Card data never leaves the payment zone." The reason to write it in plain words is that everything later is traced back to this sentence.</p><p class="expect">A one-page statement of scope: which systems, which data subjects, which laws.</p></li>
+<li><strong>Find candidate sensitive columns.</strong><p>Run discovery (<a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>, then the tool chapters). The tool proposes columns and domains from names, patterns and lists.</p><p class="expect">A candidate list of columns with a proposed domain and a match score or conformance percent.</p></li>
+<li><strong>Review with the data steward.</strong><p>Remove false alarms, add misses, resolve doubtful ones such as <code>zip_code</code> and <code>tax_id</code>. Informatica's flow lets you approve each suggested domain (User Guide 10.5.10, p.105). <span class="badge doc">From docs</span></p><p class="expect">An approved list, with a short reason for each yes and no.</p></li>
+<li><strong>Classify.</strong><p>Give each approved column a level (section 4.6) and decide the action for each level: mask, null out, or exclude.</p><p class="expect">A table like the lab answer below, signed off by the compliance officer.</p></li>
+<li><strong>Choose a protection for each domain.</strong><p>Pick techniques that keep data usable for tests (see <a href="06-masking-concepts.html">the masking concepts chapter</a>). In Informatica, attach them as preferred rules and mark one default per domain; in Delphix, choose the default algorithm for each domain.</p><p class="expect">Each domain has one default protection and a written reason.</p></li>
+<li><strong>Bundle into a policy and store it.</strong><p>In Informatica you add the domains to a named policy and assign the policy to a project's data source (p.71). You can export policies, domains and rules to XML files and import them into another TDM repository, so a tested policy can travel from a test setup to the real one (p.80). Importing fails if the object already has assignments, so clear them or rename the file first (pp.80 to 81). <span class="badge doc">From docs</span></p><p class="expect">A versioned policy and a copy of its exported files.</p></li>
+<li><strong>Prove it works.</strong><p>Run on a small sample, look at the results, and have a second person check. <a href="06-masking-concepts.html">The masking concepts chapter</a> lists what to check.</p><p class="expect">A short report: columns covered, rule used, sample before and after.</p></li>
+<li><strong>Repeat on change.</strong><p>New columns appear whenever the application changes. Delphix notes that a profiling job only covers tables and files already in the rule set, and that newly reachable objects must be added by hand (Delphix "Discovering your sensitive data"). <span class="badge doc">From docs</span> Re-run discovery on every release.</p><p class="expect">A standing step in the release checklist.</p></li>
+</ol>
+
+<h2 id="c4-leaks">4.11 Where test copies leak</h2>
+<p>Protecting the main test database is not enough. Real data escapes through side doors, and it is the TDM engineer's job to think about them. <span class="badge concept">General concept</span></p>
+<div class="tablewrap"><table><caption>Common leak points for test data (general concept; examples are fictional)</caption>
+<thead><tr><th>Where</th><th>How real data gets there</th><th>What helps</th></tr></thead>
+<tbody>
+<tr><td>Developer laptops</td><td>A developer exports a "quick sample" of production to debug an issue</td><td>Policy that production extracts are never allowed, and an easy masked sample on request</td></tr>
+<tr><td>Bug tickets and screenshots</td><td>A tester pastes a screen showing Asha Menon's real SSN into a ticket</td><td>Masked test data, so there is nothing real to paste</td></tr>
+<tr><td>Log files</td><td>The application writes request bodies with email and phone to logs</td><td>Masked inputs; review of what the application logs</td></tr>
+<tr><td>Backups and snapshots of test servers</td><td>A copy taken before masking was finished</td><td>Mask before the copy is made available, for example with the on-the-fly method described in <a href="06-masking-concepts.html">the masking concepts chapter</a></td></tr>
+<tr><td>Third-party vendors and offshore teams</td><td>Production data sent for performance testing</td><td>Contract terms plus masked or synthetic data</td></tr>
+<tr><td>Staging area of the TDM tool itself</td><td>Unmasked data lands in a temporary table or file during processing</td><td>Restrict access to the staging area and clean it up</td></tr>
+<tr><td>Free-text columns</td><td>Notes or comments hold IDs and names</td><td>Free-text redaction, or exclude the column</td></tr>
+</tbody></table></div>
+<p>GenRocket's G-Subset documentation shows how a vendor can design around the staging problem. It says the data stays in the customer's environment behind their firewall, that the sensitive columns are never read, and that temporary "dump" files are removed after the run (GenRocket "G-Subset Overview"). <span class="badge doc">From docs</span> Whatever the tool, ask the same question: <em>at which moment does unmasked data exist outside production, and who can reach it?</em></p>
+<div class="callout why"><strong class="ctitle">Why this belongs in a chapter about policy</strong>
+<p>A policy that only says "mask these columns" protects the final database. A good policy also states where unmasked data is allowed to exist, for how long, and who may touch it. That is the part the compliance officer and the security team will ask about first.</p></div>
 
 <div class="exercise"><h4>Lab: classify the ShopSphere columns</h4>
 <p>Goal: on paper or in a spreadsheet, decide the sensitivity level and the family (PII, PHI, PCI, none) for each ShopSphere column, and name the signal you would expect a tool to use to find it.</p>
