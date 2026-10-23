@@ -1,0 +1,99 @@
+<h2 id="c30-deliverables">30.7 Deliverables</h2>
+
+<p>The BU SME evaluates deliverables, so decide early what you will hand over. A reasonable set, kept in one folder with the activity number in each file name:</p>
+
+<ul>
+<li><strong>Progress log:</strong> the daily entries from the plan.</li>
+<li><strong>Per activity:</strong> inventory export, algorithm or entity configuration, query and shell output, job summaries or reports, and a decision note per column or table.</li>
+<li><strong>Algorithm sheet:</strong> one line per column: algorithm, parameters, reason, and "docs" or "design".</li>
+<li><strong>Final report</strong> (two to four pages): scope, approach, results against each acceptance criterion, warnings and how they were explained, limits, and what you would do next, following the <a href="29-planning-real-engagements.html">assessment report outline</a>.</li>
+<li><strong>Presentation</strong> for Day 57, following the slide outline in the same chapter.</li>
+</ul>
+
+<h2 id="c30-evaluators">30.8 What evaluators look for</h2>
+
+<p>The syllabus describes the evaluation only as the BU SME judging the deliverables; I have no marking scheme, so this section is my general reading of what a reviewer of masking work needs to see, not a published rubric. Four things recur.</p>
+
+<ol>
+<li><strong>Proof, not claims.</strong> Each acceptance criterion has a query result or report next to it. A statement such as "SSN is masked" without a before/after comparison counts for little.</li>
+<li><strong>Understanding of why.</strong> You can say why you chose an algorithm, what it guarantees (deterministic, unique, format-keeping) and what it does not (for example, that the FirstName algorithm can return the input, or that nothing I read says CM Digits yields valid SSNs).</li>
+<li><strong>Integrity and safety.</strong> Keys and joins survive, the same value masks the same way in the database and the file, nothing real is left behind, and the work was done on a restorable copy.</li>
+<li><strong>Honesty about limits.</strong> Warnings are explained, assumptions and design choices are labelled, and open items are listed. Separating documented fact from your own choice is a strength, not a weakness.</li>
+</ol>
+
+<h2 id="c30-rubric">30.9 Rubric for reviewing your own work</h2>
+
+<p>Score each row 0 (missing), 1 (partly there) or 2 (complete with evidence) before you submit. This is a self-review aid, not an official marking scheme. A total below 18 of 24 means something is missing; go back to the weakest rows.</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Area</th><th>2 means</th></tr></thead>
+<tbody>
+<tr><td>1. Profiling</td><td>Every in-scope column is profiled or deliberately decided; misses are logged</td></tr>
+<tr><td>2. Tool choice</td><td>Each activity states its tool and a reason, with a cross-check where relevant</td></tr>
+<tr><td>3. Names (Activity 1)</td><td>All A1 criteria pass, edge rows checked, collisions explained</td></tr>
+<tr><td>4. Subset (Activity 2)</td><td>All A2 criteria pass; ratio stated; zero orphans; source untouched</td></tr>
+<tr><td>5. SSN, TaxID (Activity 3)</td><td>Format kept, unique where needed, consistent with the file</td></tr>
+<tr><td>6. ZipCode and alphanumeric</td><td>Shape kept; the trade-off on the preserved region is written down and approved</td></tr>
+<tr><td>7. Integrity</td><td>Orphan queries are 0; counts unchanged; no key masked without a plan</td></tr>
+<tr><td>8. Warnings</td><td>Every non-conformant event is explained; none ignored</td></tr>
+<tr><td>9. Evidence</td><td>Every criterion maps to a file in the pack; no real values in screenshots</td></tr>
+<tr><td>10. Docs versus design</td><td>Each decision is labelled; uncertain items say so</td></tr>
+<tr><td>11. Daily log</td><td>An entry for every day with next steps and blockers</td></tr>
+<tr><td>12. Presentation</td><td>Follows the outline; shows results, risks and decisions needed</td></tr>
+</tbody></table></div>
+
+<h2 id="c30-checklist">30.10 Pre-submission checklist</h2>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Check</th><th>Done</th></tr></thead>
+<tbody>
+<tr><td>Work done on restorable copies; production never touched; the "before" copy exists</td><td>☐</td></tr>
+<tr><td>Activity 1: A1-1 to A1-6 pass, evidence filed</td><td>☐</td></tr>
+<tr><td>Activity 2: A2-1 to A2-6 pass; entity map and Row Count Report filed</td><td>☐</td></tr>
+<tr><td>Activity 3: A3-1 to A3-9 pass; custom algorithm configurations saved</td><td>☐</td></tr>
+<tr><td>Same SSN identical in database and file; leak search clean</td><td>☐</td></tr>
+<tr><td>Algorithm sheet complete and each line marked "docs" or "design"</td><td>☐</td></tr>
+<tr><td>All warnings explained; no unexplained WARNING status</td><td>☐</td></tr>
+<tr><td>No real or unmasked values in any screenshot or report</td><td>☐</td></tr>
+<tr><td>Daily log complete; final report written; presentation rehearsed</td><td>☐</td></tr>
+<tr><td>Questions for your trainer listed: deadline, data set, tool per activity, evaluation format</td><td>☐</td></tr>
+</tbody></table></div>
+
+<h2 id="c30-mistakes">30.11 Common mistakes and gotchas</h2>
+
+<div class="callout warn">
+<strong class="ctitle">Where capstones lose marks</strong>
+<ul>
+<li><strong>Masking a key to "be safe".</strong> It breaks joins. Leave keys alone unless the same deterministic algorithm is applied on both sides.</li>
+<li><strong>Different algorithms for the same value.</strong> An SSN masked differently in the database and the file ruins consistency; reuse one instance.</li>
+<li><strong>Numeric columns and leading zeros.</strong> Digit masking on a numeric zip or tax id can collide; keep such values as text or use the numeric algorithm.</li>
+<li><strong>Trusting profiling for six-digit postal codes.</strong> The documented ZIP data patterns target US formats; the column name does the work.</li>
+<li><strong>A subset left unmasked.</strong> It is real data; say how it will be masked.</li>
+<li><strong>Presenting design choices as product facts.</strong> "CM Digits is the SSN algorithm" is false; "I chose CM Digits for SSN because..." is right.</li>
+</ul>
+</div>
+
+<h2 id="c30-recap">30.12 Recap</h2>
+
+<div class="callout recap">
+<strong class="ctitle">Recap</strong>
+<ul>
+<li>The project has three activities: names, subset, and SSN, alphanumeric values, TaxID and ZipCode. Plan them over daily steps and log progress every day.</li>
+<li>Use Delphix for the masking activities and Informatica for the subset, with the other tool as a cross-check and GenRocket for fake source rows; follow your trainer if the assignment differs.</li>
+<li>Every activity has acceptance criteria that a query or report can prove.</li>
+<li>Format-preserving, deterministic algorithms (CM Digits, CM Alpha-Numeric, a Character Mapping instance with a preserve range, or Informatica key masking with a mask format and seed) keep shape and consistency. Segment Mapping and Informatica SSN masking are documented alternatives with their own limits.</li>
+<li>Integrity means both intact foreign keys and the same value masked the same way in every system.</li>
+<li>A subset is real data until it is masked.</li>
+<li>Label every decision as documented or designed, and explain every warning.</li>
+</ul>
+</div>
+
+<section class="sources">
+<h2 id="c30-sources">Sources used in this chapter</h2>
+<ul>
+<li>Delphix 2026.5 pages: <a href="https://help.delphix.com/cc/current/content/dlpx_core__firstname.htm" target="_blank" rel="noopener">FirstName</a>, <a href="https://help.delphix.com/cc/current/content/dlpx_core__lastname.htm" target="_blank" rel="noopener">LastName</a>, <a href="https://help.delphix.com/cc/current/content/dlpx_core__cm_digits.htm" target="_blank" rel="noopener">CM Digits</a>, <a href="https://help.delphix.com/cc/current/content/dlpx_core__cm_alpha_numeric.htm" target="_blank" rel="noopener">CM Alpha-Numeric</a>, <a href="https://help.delphix.com/cc/current/content/character_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Character Mapping</a>, <a href="https://help.delphix.com/cc/current/content/segment_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Segment Mapping</a>, <a href="https://help.delphix.com/cc/current/content/repeatfirstdigit.htm" target="_blank" rel="noopener">RepeatFirstDigit</a>, <a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>.</li>
+<li>Informatica TDM 10.5.10 User Guide: process and plans, pp.30-33; data subset and entities, pp.112-114; Repeatable Output, p.154; key masking, pp.164-168; SSN masking, p.175; substitution and name examples, pp.176-177; Row Count Report, p.324.</li>
+<li>GenRocket help: <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-overview-formerly-g-migration" target="_blank" rel="noopener">G-Subset overview</a>, <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-five-key-components" target="_blank" rel="noopener">five key components</a>, <a href="https://genrocket.helpjuice.com/en_US/identification-generators/how-do-i-use-the-ssngen-generator" target="_blank" rel="noopener">SSNGen</a>, <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/why-synthetic-test-data" target="_blank" rel="noopener">Why synthetic test data</a>.</li>
+<li>Not from any source: the data set, edge rows, plan, acceptance criteria, queries, rubric, algorithm choices for the four columns and the Informatica mask formats are my own design. The syllabus gives only the activity wording, the daily progress check and the Days 57 to 60 schedule.</li>
+</ul>
+</section>
