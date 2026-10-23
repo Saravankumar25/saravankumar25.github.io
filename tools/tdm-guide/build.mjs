@@ -44,7 +44,7 @@ const miniFileRe = /href="(\d\d)-[a-z0-9-]+\.html(#[^"]*)?"/g;
 function rewriteHrefs(html) {
   return html.replace(miniFileRe, (m, nn, frag) => {
     const n = Number(nn);
-    if (n === 99) return `href="${structure.extra.file}${frag || ""}"`;
+    if (n === 99) return `href="${'sources-and-limitations.html'}${frag || ""}"`;
     const w = where[n];
     if (!w) return m;
     return `href="${w.file}${frag || "#" + w.id}"`;
@@ -53,16 +53,43 @@ function rewriteHrefs(html) {
 
 const warnings = [], errors = [], leadLinks = [], staleRefs = [];
 
+// Sections that are study-guide material, not subject matter, are not published.
+const META_H2 = /\b(final presentation|self-assessment|rubric for reviewing|pre-submission checklist|what evaluators look for|day-by-day plan|where this fits in the syllabus|day \d+ topics that depend|one-page lab checklist|evidence template|who this guide is for|the learning path|how to read a chapter|study plan|how the hands-on labs work|how this guide was researched|how to use this|sources used in this (?:chapter|section))\b/i;
+const META_UNIT = { 1: /recap|common mistakes|deliverables/i, 30: /deliverables/i };
+function dropSections(html, num) {
+  return html.split(/(?=<h2[\s>])/).filter((p) => {
+    if (!p.startsWith("<h2")) return true;
+    const t = strip((p.match(/<h2[^>]*>([\s\S]*?)<\/h2>/) || [])[1] || "");
+    return !(META_H2.test(t) || (META_UNIT[num] && META_UNIT[num].test(t)));
+  }).join("");
+}
+// "Day 48: Planning..." / "... (Days 51-56)" / "... (Activities 1-3)" lose their syllabus tag
+const noDay = (t) => t.replace(/^\s*Days? \d+(?:\s*[-–]\s*\d+)?\s*:\s*/i, "").replace(/\s*\((?:Days?|Activities)[^)]*\)\s*$/i, "");
+
+// Published pages are pure notes: no source boxes, evidence badges, "what you will learn" boxes, day tags or links to
+// meta pages. (The research ledger stays in the repo under tools/tdm-guide/.)
+function stripMeta(h) {
+  return dropSections(h, stripMeta.unit)
+    .replace(/<section class="sources">[\s\S]*?<\/section>/g, "")
+    .replace(/<div class="callout [a-z]+"><strong class="ctitle">(?:What this (?:section|chapter) is based on|What you will learn|What to say in the walkthrough)<\/strong>[\s\S]*?<\/div>/g, "")
+    .replace(/<span class="badge [a-z]+">[\s\S]*?<\/span>/g, "")
+    .replace(/<span class="day">[\s\S]*?<\/span>/g, "")
+    .replace(/<a href="99-sources-and-limitations\.html[^"]*">([\s\S]*?)<\/a>/g, "$1");
+}
+
 // ---------- renumber one unit into its chapter ----------
 // Old h2 -> new h2 numbered N.j (j runs across the whole chapter); old h3 -> h3 numbered N.j.i.
 // `map` records old numbers ("8.13", "8.13.2") so prose cross references can follow.
-function numberHeadings(html, ch, state, map) {
+function numberHeadings(html, ch, state, map, unit) {
+  stripMeta.unit = unit;
+  html = stripMeta(html);
   // a unit's "Sources used" box heading must not become a section of its own
   html = html.replace(/<section class="sources">\s*<h2([^>]*)>([\s\S]*?)<\/h2>/g, '<section class="sources"><h4$1>$2</h4>');
   return html.replace(/<(h[23])([^>]*)>([\s\S]*?)<\/\1>/g, (m, tag, attrs, inner) => {
     const mm = inner.match(/^\s*(\d+)\.(\d+)(?:\.(\d+))?(?:\.\d+)*\.?\s*/);
     let text = inner, key = null;
     if (mm) { text = inner.slice(mm[0].length); key = mm[3] !== undefined ? `${mm[1]}.${mm[2]}.${mm[3]}` : `${mm[1]}.${mm[2]}`; }
+    text = noDay(text);
     if (tag === "h2") {
       state.j++; state.i = 0;
       const n = `${ch.num}.${state.j}`;
@@ -79,11 +106,11 @@ function numberHeadings(html, ch, state, map) {
 const numberMap = {};
 for (const c of structure.chapters) { // pass 1: learn the old -> new numbers
   const st = { j: 0, i: 0 };
-  for (const m of c.sources) if (minis[m]) numberHeadings(minis[m].html, c, st, numberMap);
+  for (const m of c.sources) if (minis[m]) numberHeadings(minis[m].html, c, st, numberMap, m);
 }
 
-function transformMini(html, c, state) {
-  let h = numberHeadings(html, c, state, {});
+function transformMini(html, c, state, unit) {
+  let h = numberHeadings(html, c, state, {}, unit);
   // the guide carries no quizzes or practice questions: strip any that slip in
   h = h.replace(/<details class="quiz"[\s\S]*?<\/details>/g, "").replace(/<h[234][^>]*>[^<]*(?:Check yourself|Practice questions?|Self-?check)[^<]*<\/h[234]>/gi, "");
   h = h.replace(/\bthis chapter\b/g, "this section").replace(/\bThis chapter\b/g, "This section");
@@ -101,18 +128,12 @@ for (const c of structure.chapters) {
   c.sources.forEach((m, i) => {
     const mini = minis[m], w = where[m];
     if (!mini) { warnings.push(`chapter ${c.num}: source ${m} not written yet`); return; }
-    const days = mini.meta.days ? `<span class="day">${esc(mini.meta.days)}</span>` : "";
-    html += `<div class="grp" id="${w.id}"><span class="grplabel">${esc(mini.meta.title)}</span>${days}</div>\n${transformMini(mini.html, c, state)}\n`;
+    const days = "";
+    html += `<div class="grp" id="${w.id}"><span class="grplabel">${esc(noDay(mini.meta.title))}</span>${days}</div>\n${transformMini(mini.html, c, state, m)}\n`;
     units.push({ id: w.id, title: mini.meta.title, old: m });
   });
   chapters.push({ ...c, html, units, file: `${pad(c.num)}-${c.slug}.html` });
 }
-{ // sources page: authored directly, headings "99.x" shown as "A.x"
-  const e = structure.extra, mini = minis[e.source];
-  const html = mini ? mini.html.replace(/<(h[23])([^>]*)>(\s*)99\./g, "<$1$2>$3A.") : "";
-  chapters.push({ num: e.num, slug: e.slug, part: 0, title: e.title, summary: mini ? mini.meta.summary : "", html, units: [], file: e.file, extra: true });
-}
-
 // ---------- ids, contents, audits ----------
 const slugify = (s) => strip(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 60);
 for (const c of chapters) {
@@ -172,7 +193,7 @@ const nav = `<nav aria-label="Main navigation"><a href="${SITE}/">Home</a><a hre
 function head(title, desc, canonical, hasSidebar = false) {
   return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>${esc(title)}</title><meta name="description" content="${esc(desc)}"><link rel="canonical" href="${canonical}"><meta property="og:type" content="article"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}try{var s=localStorage.getItem('tdm-sidebar');if(!s&&matchMedia('(max-width:860px)').matches)s='hidden';if(s==='hidden')document.documentElement.setAttribute('data-sidebar','hidden')}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="${SITE}/">SK</a>${nav}<div class="tools">${hasSidebar ? '<button id="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="true" title="Hide or show the sidebar ([)">☰ <span>Contents</span></button>' : ""}<button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header>`;
 }
-const foot = `<footer class="sitefooter"><div class="wrap">© 2026 Saravan Kumar M K · <a href="${SITE}/">Portfolio</a> · <a href="index.html">TDM Guide</a> · <a href="syllabus.html">Syllabus index</a> · <a href="${structure.extra.file}">Sources &amp; limitations</a> · Study notes: always confirm screen details against your own tool version.</div></footer><div id="search-modal" hidden><div class="search-box" role="dialog" aria-label="Search"><input id="search-input" type="search" placeholder="Search the whole guide (e.g. 'primary key', 'shuffle', 'receiver')…" autocomplete="off"><div id="search-results"></div><p class="search-hint">Esc to close · ↑↓ to move · Enter to open</p></div></div><script src="assets/guide.js" defer></script></body></html>`;
+const foot = `<footer class="sitefooter"><div class="wrap">© 2026 Saravan Kumar M K · <a href="${SITE}/">Portfolio</a> · <a href="index.html">TDM Guide</a></div></footer><div id="search-modal" hidden><div class="search-box" role="dialog" aria-label="Search"><input id="search-input" type="search" placeholder="Search the whole guide (e.g. 'primary key', 'shuffle', 'receiver')…" autocomplete="off"><div id="search-results"></div><p class="search-hint">Esc to close · ↑↓ to move · Enter to open</p></div></div><script src="assets/guide.js" defer></script></body></html>`;
 
 const main = chapters.filter((c) => !c.extra);
 function contentsList(c, cls) {
@@ -181,19 +202,19 @@ function contentsList(c, cls) {
 function sidebar(current) {
   let h = `<aside class="sidebar" id="sidebar" aria-label="Chapter navigation"><div class="sbtop"><a class="allchap" href="index.html">← All ${main.length} chapters</a><button type="button" class="sbhide" data-sidebar-hide title="Hide the sidebar ([)">« Hide</button></div><h3>Chapters</h3><div class="chapter-list">`;
   for (const c of main) h += `<a class="${current && c.num === current.num ? "current" : ""}" href="${c.file}"><span class="n">${pad(c.num)}</span> ${esc(c.title)}</a>`;
-  h += `<a class="${current && current.extra ? "current" : ""}" href="${structure.extra.file}"><span class="n">··</span> About the sources</a></div>`;
+  h += `</div>`;
   if (current) h += `<h3>In this chapter</h3><div class="section-list">${contentsList(current, "secs")}</div>`;
   return h + `</aside>`;
 }
 
-const ordered = [...main, ...chapters.filter((c) => c.extra)];
+const ordered = main;
 function chapterPage(c, i) {
   const prev = ordered[i - 1], next = ordered[i + 1];
   const label = (x) => (x.extra ? "About the sources" : `${x.num}. ${x.title}`);
-  const eyebrow = c.extra ? "TDM GUIDE / APPENDIX" : `TDM GUIDE / ${esc(partOf(c.part).title.toUpperCase())} / CHAPTER ${pad(c.num)} OF ${pad(main.length)}`;
+  const eyebrow = `CHAPTER ${pad(c.num)}`;
   const title = c.extra ? `${c.title} | TDM Guide` : `Chapter ${c.num}: ${c.title} | TDM Guide`;
   const toc = c.groups.length ? `<details class="pagetoc"><summary>Contents of this chapter</summary>${contentsList(c, "secs")}</details>` : "";
-  const body = `<main id="main"><div class="article-layout">${sidebar(c)}<article class="prose"><div class="article-top"><p class="eyebrow">${eyebrow}</p><h1>${esc(c.title)}</h1><div class="meta"><span>Saravan Kumar M K</span><span>Updated ${UPDATED}</span>${c.sectionCount ? `<span>${c.sectionCount} sections</span>` : ""}</div><p class="chapter-summary">${esc(c.summary)}</p></div>${toc}${c.html}<nav class="chapter-nav" aria-label="Previous and next chapter">${prev ? `<a href="${prev.file}">← ${esc(label(prev))}</a>` : "<span></span>"}${next ? `<a href="${next.file}">${esc(label(next))} →</a>` : "<span></span>"}</nav></article></div></main>`;
+  const body = `<main id="main"><div class="article-layout">${sidebar(c)}<article class="prose"><div class="article-top"><p class="eyebrow">${eyebrow}</p><h1>${esc(c.title)}</h1><p class="chapter-summary">${esc(c.summary)}</p></div>${toc}${c.html}<nav class="chapter-nav" aria-label="Previous and next chapter">${prev ? `<a href="${prev.file}">← ${esc(label(prev))}</a>` : "<span></span>"}${next ? `<a href="${next.file}">${esc(label(next))} →</a>` : "<span></span>"}</nav></article></div></main>`;
   return head(title, c.summary, `${SITE}/blogs/tdm-guide/${c.file}`, true) + body + foot;
 }
 function partOf(id) { return structure.parts.find((p) => p.id === id); }
@@ -201,7 +222,7 @@ function partOf(id) { return structure.parts.find((p) => p.id === id); }
 // ---------- landing page: a hero and the chapter cards ----------
 function indexPage() {
   let h = head("TDM Guide: Test Data Management from zero to tool mastery | Saravan Kumar", "A beginner-first learning textbook on Test Data Management, ETL, Informatica TDM, GenRocket and Delphix.", `${SITE}/blogs/tdm-guide/`);
-  h += `<main id="main"><section class="landing"><div class="wrap"><p class="eyebrow">SK / ENGINEERING BLOG · 2026 EDITION</p><h1>TDM Guide</h1><p class="lead">Test Data Management from absolute zero to hands-on tool work: the foundations and ETL first, then <strong>Informatica TDM</strong>, <strong>GenRocket</strong> and <strong>Delphix</strong>, with worked examples, labs, a capstone project and a glossary.</p><div class="meta"><span>By Saravan Kumar M K</span><span>${main.length} chapters</span><span>Updated ${UPDATED}</span></div><a class="action" href="${main[0].file}">Start reading →</a><a class="action ghost" href="${structure.extra.file}">Sources &amp; limitations</a></div></section><section class="wrap landing-body"><h2 id="contents" class="nobar">Contents · ${main.length} chapters</h2>`;
+  h += `<main id="main"><section class="landing"><div class="wrap"><p class="eyebrow">TEST DATA MANAGEMENT · ${main.length} CHAPTERS</p><h1>TDM Guide</h1><p class="lead">Test Data Management from absolute zero to hands-on tool work: the foundations and ETL first, then <strong>Informatica TDM</strong>, <strong>GenRocket</strong> and <strong>Delphix</strong>, with worked examples, labs, a capstone project and a glossary.</p><a class="action" href="${main[0].file}">Start reading →</a></div></section><section class="wrap landing-body"><h2 id="contents" class="nobar">Contents</h2>`;
   for (const p of structure.parts) {
     const list = main.filter((c) => c.part === p.id);
     h += `<h3 class="parthead">${esc(p.title)}</h3><div class="cards">`;
@@ -210,7 +231,7 @@ function indexPage() {
     }
     h += `</div>`;
   }
-  h += `<p class="source-note">Looking for a particular syllabus day or hands-on item? See the <a href="syllabus.html">syllabus index</a>. How the research was done, and what could not be read, is on the <a href="${structure.extra.file}">sources page</a>.</p></section></main>` + foot;
+  h += `</section></main>` + foot;
   return h;
 }
 
@@ -256,7 +277,6 @@ for (const f of fs.readdirSync(outDir)) if (f.endsWith(".html")) fs.unlinkSync(p
 fs.copyFileSync(path.join(here, "assets/guide.css"), path.join(outDir, "assets/guide.css"));
 fs.copyFileSync(path.join(here, "assets/guide.js"), path.join(outDir, "assets/guide.js"));
 fs.writeFileSync(path.join(outDir, "index.html"), indexPage());
-fs.writeFileSync(path.join(outDir, "syllabus.html"), syllabusPage());
 ordered.forEach((c, i) => fs.writeFileSync(path.join(outDir, c.file), chapterPage(c, i)));
 fs.writeFileSync(path.join(outDir, "assets/search-index.json"), JSON.stringify(searchDocs));
 fs.writeFileSync(path.join(outDir, ".nojekyll"), "");
