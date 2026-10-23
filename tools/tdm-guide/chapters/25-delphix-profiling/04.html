@@ -66,47 +66,7 @@
 </ul>
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_inventories5.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_inventories5.png" alt="Database inventory with Status Rejected and column rows showing Domain and Algorithm" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> A database inventory under the approval workflow. I viewed this image: the header shows "Status: Rejected" in red, buttons "All Logical Keys", "All Filters" and "Actions", and column rows with domain ZIP and algorithm RepeatFirstDigit on the ID column. The key, filter and code icons on the table row are for logical key, filter condition and custom SQL. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<h3 id="c25-reading-example">Reading a report like a reviewer</h3>
-<p>Take the PDF screenshot earlier: it has TELEPHONE_NO and EMAIL rows with confidence 80 and "Auto ID true". Ask four questions of every row, in this order:</p>
-<ol class="steps">
-<li><strong>Is the domain right for what the column holds?</strong><p>A phone number column marked TELEPHONE_NO is right. A column of order codes marked TELEPHONE_NO would be a false alarm.</p></li>
-<li><strong>Is the algorithm right for the application?</strong><p>The domain's default is only a default. A unique-email algorithm keeps each person distinct; a lookup-based one can map two people to the same address. Which one the tests need is a design decision, see <a href="26-delphix-algorithms-and-masking-jobs.html">the algorithms chapter</a>.</p></li>
-<li><strong>Is confidence low?</strong><p>Low means "worth a second look", not "wrong".</p></li>
-<li><strong>What is missing?</strong><p>The rows with no domain, such as UNMASKED_00 in the database screenshot, are as important as the flagged ones. Ask for each: could this hold personal data?</p></li>
-</ol>
-<div class="mock"><div class="mbar">Schematic: predicted ShopSphere inventory after the first run</div>
-<div class="mbody"><pre class="ascii">TABLE      COLUMN         DOMAIN         ACTION
-CUSTOMERS  customer_id    (none)         keep, key policy
-CUSTOMERS  first_name     FIRST_NAME     accept
-CUSTOMERS  last_name      LAST_NAME      accept
-CUSTOMERS  email          EMAIL          accept
-CUSTOMERS  phone          TELEPHONE_NO   accept, check
-CUSTOMERS  ssn            SSN            accept, check algo
-CUSTOMERS  date_of_birth  DOB            accept, check fmt
-CUSTOMERS  zip_code       ZIP            accept, check PIN
-CUSTOMERS  tax_id         TAX_ID         accept, check algo
-ORDERS     total_amount   PAYMENT_AMOUNT clear (false alarm)
-ORDER_ITEMS unit_price    PAYMENT_AMOUNT clear (false alarm)
-PRODUCTS   price          PAYMENT_AMOUNT clear (false alarm)</pre></div>
-<div class="mnote">Schematic illustration drawn for this guide, not an official screenshot. The domains are my prediction, not engine output.</div></div>
-<h3 id="c25-checklist">A review checklist for the data steward</h3>
-<ol class="steps">
-<li><strong>List every table and column in the rule set.</strong><p>Export the rule set to CSV so that nothing is missed by scrolling.</p></li>
-<li><strong>Mark every column that holds or could hold personal data.</strong><p>Use the data dictionary, the application team and a quick look at sample values.</p></li>
-<li><strong>Compare your marks with the profiler's.</strong><p>Differences are your to-do list: extra flags to clear, missing flags to add.</p></li>
-<li><strong>Record the reason for every manual change in the Notes field.</strong><p>The Edit dialog has a Notes box for exactly this. It makes audits easier.</p></li>
-<li><strong>Untick Enable Automatic Updates on every manual change.</strong><p>Otherwise the next profiling run may undo it.</p></li>
-<li><strong>If the environment uses the approval workflow, Submit, then have an approver sign off.</strong><p class="expect">Status shows Approved and masking jobs can run.</p></li>
-</ol>
-<h3 id="c25-api-inventory">Doing the same from a script</h3>
-<p>Everything above is also available through the Masking API. The documentation's <code>createInventory</code> example logs in, finds a connector, rule set and table, creates table metadata for that table, then updates one column's inventory entry (it assigns an algorithm and a domain). The payload that does the assigning is just two fields <span class="badge doc">From docs</span>:</p>
-<pre><code>PUT /column-metadata/{columnMetadataId}
-{
-  "algorithmName": "AddrLine2Lookup",
-  "domainName": "ADDRESS_LINE2"
-}</code></pre>
-<p>That is the same act as picking a domain and algorithm in the Edit dialog. Teams use scripts like this to apply the same corrections to many rule sets. The script relies on helper files (<code>apiHostInfo</code>, <code>loginCredentials</code>, <code>helpers</code>) that are not shown, so you cannot run it as printed. To fetch the profiling results of a database job you would call <code>/profileResultDatabase/{executionId}</code>, mentioned earlier.</p>
-<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_inventories6.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_inventories6.png" alt="Database inventory with two confirmation bars asking to reset masking assignments and disable automatic updates for DATA_00 and DATA_01" loading="lazy"></a>
-<figcaption><strong>Official screenshot:</strong> The Clear Masking Assignment action. I viewed this image: after clicking the circular-arrow icon on two rows, two blue "Information" bars ask "Are you sure you want to reset masking assignments and disable automatic updates for DATA_00 ..." each with a red Cancel link. The grid also shows Domain and Algorithm columns (NULL_SL on two rows, ZIP with RepeatFirst... on the ID row) and the Automatic Updates column. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>Review every row in this order: is the domain right, is the algorithm right for the application (see <a href="26-delphix-algorithms-and-masking-jobs.html">the algorithms chapter</a>), is confidence low (worth a second look, not necessarily wrong), and what is missing. Rows with no domain, such as UNMASKED_00 in the database screenshot, matter as much as flagged ones. Put the reason for each manual change in the Notes field for the audit trail.</p>
+<p>Everything above is also available through the Masking API. The documentation's <code>createInventory</code> example assigns an algorithm and a domain to a column with <code>PUT /column-metadata/{id}</code> and a body such as <code>{"algorithmName": "AddrLine2Lookup", "domainName": "ADDRESS_LINE2"}</code> <span class="badge doc">From docs</span>. The script needs helper files that are not shown, so it cannot be run as printed.</p>
 <div class="callout why"><strong class="ctitle">Why the checkbox matters in teams</strong>
 <p>A TDM engineer who fixes ten columns by hand, and a colleague who re-runs profiling the next day, are a common cause of "my changes disappeared". Untick automatic updates on every column you corrected deliberately, and let the profiler keep updating the rest.</p></div>

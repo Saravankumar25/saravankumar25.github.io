@@ -66,33 +66,11 @@
 <p>For data-level classifiers the ASDD profiler samples rows instead of reading whole tables. These documented settings steer it; the values are the defaults in the 2026.5 Masking API client page <span class="badge doc">From docs</span>.</p>
 <div class="tablewrap"><table><thead><tr><th>Application setting (ASDD group)</th><th>Default</th><th>What it controls</th></tr></thead><tbody>
 <tr><td><code>DefaultTableSampleRows</code></td><td>1000</td><td>Rows sampled per table</td></tr>
-<tr><td><code>DefaultMaximumColumnSize</code></td><td>1024</td><td>Longer values are truncated to this length for profiling</td></tr>
 <tr><td><code>DefaultAssignmentThreshold</code></td><td>1</td><td>Minimum confidence to assign</td></tr>
 <tr><td><code>DefaultNullFilterThreshold</code></td><td>75</td><td>Percent of null or empty values that triggers an extra query for more values</td></tr>
-<tr><td><code>DefaultTableSampleLimitSeconds</code></td><td>180</td><td>Time limit for that extra query</td></tr>
-<tr><td><code>DefaultProfileSetName</code></td><td>ASDD Standard</td><td>Profile set pre-selected in the Create Profile Job wizard</td></tr>
 <tr><td><code>DefaultMultipleProfilerExpressionAlgorithm</code></td><td>NullValueLookup</td><td>Algorithm used when the "multiple profiler expression" option finds a tie</td></tr>
 </tbody></table></div>
 <p>Statistical sampling (so the sample reflects the whole table) is supported for Oracle, SQL Server and SAP ASE. When sampling is used, the sample percentage is always 1%, and if that yields too few rows the query is repeated without sampling <span class="badge doc">From docs</span>. The page does not say what happens on other databases beyond this; check your version.</p>
-<div class="callout tip"><strong class="ctitle">Sparse columns</strong>
-<p>If most of a column is empty, the profiler tries harder to find non-null values, which can mean a long table scan. If you see warnings about insufficient data, you can lower <code>DefaultNullFilterThreshold</code> (lower sampling quality) or raise <code>DefaultTableSampleLimitSeconds</code> (longer runtime), or ignore the warning and assign the algorithm yourself.</p></div>
-
 <h3 id="c25-legacy">The legacy profiler, briefly</h3>
-<p>Before ASDD, profiling used <em>search expressions</em> (patterns on column names or data) and <em>type expressions</em> (data type and minimum length). The legacy profile sets are kept so that old jobs keep giving the same results, and they contain no type classifiers to restrict matches by column type <span class="badge doc">From docs</span>. The legacy classifier tables list patterns such as <code>ssn(?!\w*ID)</code> for SSN and <code>(?&gt;((tele?)?phone)|...)</code> for telephone. The Add Profile Set dialog in the screenshot below carries a banner saying legacy profile sets are deprecated and will be removed in a future release. Treat the legacy path as maintenance knowledge, and use ASDD for new work. The <a href="https://help.delphix.com/cc/current/content/profiletypeexpressions.htm" target="_blank" rel="noopener">profileTypeExpressions</a> page only shows API scripts that create type expressions for legacy sets.</p>
-<div class="compare"><div><h4>Legacy profiler</h4>
-<ul>
-<li>Search expressions and type expressions</li>
-<li>Data-level expressions need about 80% match by default</li>
-<li>No list classifiers</li>
-<li>Legacy sets do not restrict matches by column type</li>
-<li>Deprecated; kept so old jobs behave the same</li>
-</ul></div>
-<div><h4>ASDD profiler</h4>
-<ul>
-<li>Classifiers: PATH, TYPE, REGEX, LIST</li>
-<li>Default threshold 1, adjustable per profile set</li>
-<li>Reject strengths, checksums (such as Luhn for cards) and value lists</li>
-<li>Type detection via standard Java SQL types across database variants</li>
-<li>The direction of the product; recommended for new work</li>
-</ul></div></div>
+<p>Before ASDD, profiling used <em>search expressions</em> (patterns on column names or data) and <em>type expressions</em> (data type and minimum length). The legacy profile sets are kept so that old jobs keep giving the same results, and they contain no type classifiers to restrict matches by column type <span class="badge doc">From docs</span>. The legacy classifier tables list patterns such as <code>ssn(?!\w*ID)</code> for SSN and <code>(?&gt;((tele?)?phone)|...)</code> for telephone. The Add Profile Set dialog in the screenshot below carries a banner saying legacy profile sets are deprecated and will be removed in a future release. Use ASDD for new work; the <a href="https://help.delphix.com/cc/current/content/profiletypeexpressions.htm" target="_blank" rel="noopener">profileTypeExpressions</a> page only shows API scripts for legacy type expressions.</p>
 <p>ASDD currently supports databases, delimited files, fixed-width files, JSON files, XML files and mainframe data <span class="badge doc">From docs</span>. Its stated limits: XML or JSON documents stored inside database columns are not profiled, and the Informix database is a known problem for discovery because of the column-truncation SQL.</p>

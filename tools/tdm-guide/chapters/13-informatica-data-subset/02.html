@@ -28,7 +28,6 @@
 <text x="20" y="180" stroke="none" font-size="12">(In TDM's own map, a dotted line means a disabled relationship.)</text>
 </g></svg>
 <figcaption>Original diagram: the ShopSphere entity with CUSTOMERS as the driving table. The star marks the driving table, as the guide says TDM does in its own entity map. The dotted line is my drawing style for "minor"; in the real tool, dotted means disabled (p.120).</figcaption></figure>
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.115, Figure (entity map for the Employee entity). What I saw on the rendered page: an orange box "EMPLOYEE" with a star icon on the left, three light blue boxes to its right (names truncated, starting EMPLOYEEADD..., EMPLOYEEBAN..., EMPLOYEEDET...) joined by thin arrows, and a fourth box BANKACCOUNTS to the right of the middle one. That is exactly our CUSTOMERS to ORDERS to ORDER_ITEMS picture, just with different tables.</div>
 
 <h3 id="c13-entity-views">The three views of an entity</h3>
 <p>Once saved, an entity can be seen three ways in the Define | Data Subset view of a project (User Guide 10.5.10, p.114 to 116) <span class="badge doc">From docs</span>.</p>
@@ -40,26 +39,9 @@
 <tr><td>Relationships</td><td>A list of constraints: parent table, child table, database names, and enabled or disabled status. A table with more than one relationship appears more than once.</td><td>Enable or disable relationships. Select a relationship and give the number of child records to keep (min and max, see below).</td></tr>
 </tbody></table></div>
 <p>The Entity Map can show <strong>All</strong> tables, <strong>All parents</strong> of the selected table, <strong>All immediate relationships</strong> (one level up and down), <strong>All children</strong>, or <strong>All cyclic relationships</strong> (TDM shows at most 1000). By default it shows only enabled relationships; tick <strong>Show excluded tables</strong> to see disabled ones (p.115). Selecting a link in the map highlights the matching row in the Relationships view, and the other way round.</p>
-<p>If you drag the map panel to the left, a Table Properties panel appears for a selected table, and a Constraint Properties panel appears if you click a link (p.114).</p>
-
-<h3 id="c13-constraint-props">Constraint properties on a link</h3>
-<p>When you click a link in the map you can set these properties (User Guide 10.5.10, p.117) <span class="badge doc">From docs</span>:</p>
-<div class="tablewrap"><table>
-<thead><tr><th>Property</th><th>Meaning</th><th>Editable?</th></tr></thead>
-<tbody>
-<tr><td>Name</td><td>Name of the relationship</td><td>No</td></tr>
-<tr><td>Type</td><td>Major or Minor (see 13.6)</td><td>Yes</td></tr>
-<tr><td>Input Type</td><td>Physical or logical</td><td>No</td></tr>
-<tr><td>Parent Table / Child Table</td><td>The two ends of the link</td><td>No</td></tr>
-<tr><td>Minimum / Maximum</td><td>Smallest and largest number of child records to generate for each parent record</td><td>Yes</td></tr>
-<tr><td>Status</td><td>Enabled or disabled</td><td>Yes</td></tr>
-</tbody></table></div>
-<p>A small honesty note: the guide's Minimum and Maximum wording says "generate test data", which sounds like data <em>generation</em> rather than subsetting. The same sentence appears in the entity overview (p.114), so it is documented, but the guide does not explain how min and max behave in a pure subset run. I do not rely on them in the ShopSphere example.</p>
 
 <h3 id="c13-physical-logical">Where the relationships come from: physical and logical constraints</h3>
 <p>TDM can only follow links it knows about. Those links are the <strong>constraints</strong> stored in the project (User Guide 10.5.10, p.107 to 109) <span class="badge doc">From docs</span>. Foreign keys that already exist in the database are physical. If the database does not declare a foreign key (common in older systems), you can accept one that data discovery inferred (see <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>), or add one by hand as a <em>logical</em> constraint. Adding keys in TDM does not change the source database (p.109). The guide's advice before you build an entity is: run data discovery to identify constraints, and add constraints to the source to define the child tables (p.116).</p>
-<div class="callout warn"><strong class="ctitle">If a link is missing, the child table will not come along</strong>
-<p>If ShopSphere's database has no declared foreign key from <code>ORDER_ITEMS.product_code</code> to <code>PRODUCTS</code>, an entity built from <code>CUSTOMERS</code> would not include <code>PRODUCTS</code> at all. Order lines would then point at products that are not in the target. Fix it by adding the logical constraint first, then building the entity. (This is my worked consequence of the guide's rule that entities follow constraints.)</p></div>
 
 <h3 id="c13-create-entity">Creating an entity, step by step</h3>
 <p>This is the guide's procedure (User Guide 10.5.10, p.116 to 117) <span class="badge doc">From docs</span>, with the reason for each step.</p>
@@ -74,19 +56,12 @@
 <li><strong>For each column, pick the attribute: Value (type a value) or Parameter (pick a parameter). Pick an operator. Then type the value or choose the parameter. Click Save for each criterion.</strong><p>Parameters let you change the value later without editing the entity (13.7).</p></li>
 <li><strong>Click Save to leave the Edit Criteria dialog.</strong><p class="expect">The entity is ready to add to a plan.</p></li>
 </ol>
-<div class="mock"><div class="mbar">Edit Criteria: Entity Criteria tab (schematic)</div><div class="mbody">
-<p><strong>Columns:</strong> CUSTOMERS.customer_id</p>
-<p>Attribute: [ Parameter &#9662; ] &nbsp; Operator: [ &lt;= &#9662; ] &nbsp; Value: [ $$MAX_CUST_ID &#9662; ] &nbsp; [Save]</p>
-<p><em>Several criteria in one entity act as AND.</em></p>
-</div><div class="mnote">Schematic illustration drawn for this guide, not an official screenshot. Field order follows the guide's description on p.117; the real layout differs.</div></div>
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.119, Figure (Edit Criteria dialog, Entity Criteria tab). What I saw: a grid with one filled row (data source AutoTarget, table CUSTOMERS, column HIREDATE, data type date), a drop-down for Attribute set to Value, a Label, an Operator drop-down set to In, a Value field, and green tick and red cross buttons to save or discard the row.</div>
 <p>When you have several criteria in one entity the guide says the filter conditions act as "AND" (p.117). So <code>customer_id &lt;= 1002</code> and <code>zip_code = '560001'</code> together would keep only rows that satisfy both.</p>
-<p>The guide's own small example (p.121) <span class="badge doc">From docs</span>: <code>Employee</code> is the driving table, <code>Employee_History</code> and <code>Employee_Order</code> have constraints to it, and the filter is EmpID = 10. After the plan runs, the target holds one Employee row for EmpID 10, all of that employee's history rows and all of their orders. That is the whole pattern. Replace Employee by CUSTOMERS and EmpID by customer_id and you have the ShopSphere example.</p>
 
 <h2 id="c13-groups">13.5 Groups, residual tables and templates</h2>
 <h3 id="c13-group-concept">Groups</h3>
 <p>A <strong>group</strong> is "one or more unrelated tables" you want copied to the subset database. The guide gives two uses: add unrelated tables to a plan, or "copy unfiltered data to a target" (User Guide 10.5.10, p.116) <span class="badge doc">From docs</span>. When you add tables to a group you can include <em>residual tables</em>: tables that are not yet in any group or entity. Tick them when you want every table of the source to be in the subset plan.</p>
-<p>Why would you need this? An entity only brings tables reachable by constraints from its driving table. ShopSphere's lookup tables (say, a table of country codes with no foreign keys) would be left behind. If the application needs them to start, put them in a group. The guide's own group example: an employee-skills table and an organization-location table are unrelated, you want both in the subset, so you put them in one group and add the group to the plan (p.116).</p>
+<p>An entity only reaches tables linked by constraints, so unlinked tables go in a group. The guide's example: an employee-skills table and an organization-location table are unrelated, you want both, so you put them in one group and add the group to the plan (p.116).</p>
 <h3 id="c13-create-group">Creating a group</h3>
 <ol class="steps">
 <li><strong>In the project, open Define | Data Subset and click Actions > New > Groups.</strong><p>Same place as entities, different menu item (User Guide 10.5.10, p.123).</p></li>
@@ -95,9 +70,7 @@
 <li><strong>Click Save.</strong><p class="expect">The group appears in the Define | Data Subset list next to your entities. Editing a group later lets you add or remove tables (p.124).</p></li>
 </ol>
 <h3 id="c13-templates">Templates: what the guide actually says</h3>
-<p>The guide mentions templates only in passing. It describes a template as "an optional component that contains the entities and groups" (User Guide 10.5.10, p.32, in the process overview, and again on p.293) <span class="badge doc">From docs</span>, and the Add Subset Components dialog lists "entities, groups, templates" together. In User Guide chapter 6 itself, which is about creating subsets, there is no section on creating a template. I could not find step-by-step instructions for templates in the guide excerpt I had, so I will not invent any. If your course uses templates, ask your trainer for the exact screens. Treat a template as a convenient way to bundle an entity and a group so you can add them to a plan in one go (that last sentence is my reading of the one-line definition, <span class="badge unverified">Unverified</span> beyond it).</p>
-<div class="callout note"><strong class="ctitle">Entity or group? A quick rule</strong>
-<p>Ask: "Do I want rows filtered by a key and followed through relationships?" Yes means entity. "Do I just want the whole table as it is?" Yes means group.</p></div>
+<p>The guide mentions templates only in passing: "an optional component that contains the entities and groups" (User Guide 10.5.10, p.32 and p.293) <span class="badge doc">From docs</span>. Chapter 6 has no section on creating a template and I found no steps elsewhere, so I give none. Ask your trainer if your course uses them.</p>
 
 <h2 id="c13-related-rows">13.6 How related rows are pulled</h2>
 <p>This is the part that makes subsetting more than a filter. When your filter selects customer 1001, which other rows must come with it? The answer depends on the <strong>constraint severity</strong> and on the <strong>data integrity option</strong> you pick in the plan. Both are covered in the guide (User Guide 10.5.10, p.108 to 109, 119 to 123).</p>
@@ -110,7 +83,6 @@
 <li><strong>By default every constraint in an entity is major</strong> (p.119).</li>
 </ul>
 <p>The guide's own example (p.108 to 109) uses Customer as parent and Leads as child, with a filter on Leads that keeps only high-quality leads. With a <em>major</em> constraint, the subset receives each qualifying lead, its customer, and <em>all</em> leads of that customer. With a <em>minor</em> constraint it receives only the qualifying leads and their customers.</p>
-<p>Now the same on ShopSphere. Suppose the filter is on <code>ORDERS</code> and keeps orders over 1000 in value. Major <code>ORDERS</code>-to-<code>CUSTOMERS</code>: you get those orders, their customers, and every other order of those customers. Minor: you get those orders and their customers only.</p>
 <pre class="ascii">
 MAJOR (both ways)                     MINOR (child to parent only)
 

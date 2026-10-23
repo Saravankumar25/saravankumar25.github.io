@@ -1,17 +1,19 @@
-<p><a href="10-informatica-overview-and-architecture.html">The Informatica overview and architecture chapter</a> gave you the map: tools, services and databases. This chapter is the tour of the part you actually touch, the <dfn>Test Data Manager</dfn> web page. We go through the top-level screens, then the three areas where beginners spend their first week: <strong>projects</strong> (your workspace), <strong>data sources</strong> (the tables you bring in), and <strong>policies</strong> (the rules about what to protect).</p>
-<p>The aim is not to memorise buttons. It is to know <em>where things live</em>, <em>why</em> each task exists, and <em>what you should see</em> afterwards, so that when you open the tool the first time nothing is a surprise. The next chapter, <a href="12-informatica-discovery-and-profiling.html">12</a>, uses everything here to run profiles.</p>
-<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
-<p>The <strong>Informatica Test Data Management 10.5.10 User Guide, PDF, February 2026, 455 pages</strong>: chapter 2 "Test Data Manager" (pp.37-48), chapter 3 "Projects" (pp.49-70) and chapter 4 "Policies" (pp.71-85). I read all three in full and looked at the page figures on pp.38, 41, 43, 45, 47 and 49. Citations look like <em>(User Guide 10.5.10, p.54)</em>.</p>
-<p>The figures in the guide are screenshots with no image address, so this chapter uses <strong>visual reference</strong> boxes that tell you which page to look at, plus <strong>schematic sketches I drew</strong> (marked as such). Menu and button names are quoted from the guide. If your version is different, trust your screen and ask your trainer.</p></div>
-<div class="callout recap"><strong class="ctitle">What you will learn</strong>
+<p><a href="10-informatica-overview-and-architecture.html">The Informatica overview and architecture chapter</a> gave you the map. This chapter tours the part you touch: the <dfn>Test Data Manager</dfn> web page, then the three areas where beginners spend their first week, namely <strong>projects</strong> (your workspace), <strong>data sources</strong> (the tables you bring in) and <strong>policies</strong> (what to protect, and how). The aim is to know where things live, why each task exists and what you should see afterwards. <a href="12-informatica-discovery-and-profiling.html">The discovery and profiling chapter</a> then uses all of it.</p>
+
+<div class="callout note">
+<strong class="ctitle">What this chapter is based on</strong>
+<p>The <strong>Informatica Test Data Management 10.5.10 User Guide, PDF, February 2026, 455 pages</strong>: chapter 2 "Test Data Manager" (pp.37-48), chapter 3 "Projects" (pp.49-70) and chapter 4 "Policies" (pp.71-85), read in full, with the figures on pp.38, 41, 43, 45, 47 and 49 viewed. The guide's screenshots have no image address, so I use <strong>visual reference</strong> boxes and one schematic sketch I drew. Menu names are quoted from the guide; if your version differs, trust your screen.</p>
+</div>
+
+<div class="callout recap">
+<strong class="ctitle">What you will learn</strong>
 <ul>
-<li>Who uses which view, and how to log in.</li>
-<li>What each view does: Overview, Policies, Data Sets, Projects, Monitor, Parameters and Administrator.</li>
-<li>The helpers on every screen: search, quick links, user preferences, the Actions menu, the data filter and the Expression Builder.</li>
-<li>What a project is made of, how to create, edit, copy, delete, export and import one, and what its permissions mean.</li>
-<li>How to bring source tables into a project, and the special cases the guide lists (flat files, Hive, XML, identity columns).</li>
-<li>What a policy, a data rule and a data domain are, how patterns and regular expressions find columns, and how to create and manage each.</li>
-</ul></div>
+<li>How to log in, what each view does, and the helpers on every screen (search, filter, Actions menu, Expression Builder).</li>
+<li>What a project holds, and how to create, copy, export and import one, set permissions and import source tables.</li>
+<li>What policies, rules and data domains are, how patterns find columns, and how to create and manage each.</li>
+</ul>
+</div>
+
 <h2 id="c11-words">11.1 Words to know first</h2>
 <dl class="defs"><div><dt>View</dt><dd>One of the main screens of Test Data Manager, chosen from the tab bar at the top (for example Policies or Projects).</dd></div>
 <div><dt>Content panel and Details panel</dt><dd>The two areas of most screens. The Content panel lists items (rows). The Details panel shows more about the row you selected.</dd></div>
@@ -24,27 +26,19 @@
 <div><dt>Policy pack</dt><dd>A ready-made policy installed with TDM, covering PII, PHI or PCI data.</dd></div>
 <div><dt>Impacted Objects dialog</dt><dd>A warning window that lists what will break when you delete or change something that is already used.</dd></div></dl>
 <h2 id="c11-who">11.2 Who uses which view</h2>
-<p>The guide introduces Test Data Manager as one web user interface for discovery, subset, masking and generation, plus data sets in the test data warehouse. It then ties each view to a typical person (User Guide 10.5.10, p.37). Here is the same idea with our ShopSphere team.</p>
-<div class="tablewrap"><table>
-<caption>Typical user per view (from the guide, p.37) with the ShopSphere team member</caption>
-<thead><tr><th>View</th><th>Who the guide says uses it</th><th>ShopSphere</th></tr></thead><tbody>
-<tr><td>Policies</td><td>Compliance officer: policies, masking rules, generation rules, data domains.</td><td>The compliance officer defines the SSN and Phone domains.</td></tr>
-<tr><td>Projects</td><td>Developer: defines a project, imports sources, runs profiles, creates entities, assigns rules, creates plans and runs workflows.</td><td>The TDM engineer builds "Customer Orders".</td></tr>
-<tr><td>Monitor</td><td>Developer: checks the status of jobs.</td><td>The TDM engineer checks a masking run.</td></tr>
-<tr><td>Data Sets</td><td>Test data specialist or test engineer: views and manages data sets in the test data warehouse.</td><td>A QA engineer resets "masked set v1".</td></tr>
-<tr><td>Administrator</td><td>Administrator: connections, pass phrases, workflow options, server management, access restrictions; also test tool integration and test data warehouse configuration.</td><td>The platform admin creates the connection to the QA database.</td></tr></tbody></table></div>
-<p>By default only an administrator can open the Administrator view. Everyone else needs privileges for the other views (p.39).</p>
+<p>The guide ties each view to a typical person (User Guide 10.5.10, p.37). A compliance officer uses <strong>Policies</strong> to create policies, rules and data domains. A developer uses <strong>Projects</strong> to import sources, run profiles, define subset, masking and generation, and generate and run workflows, and uses <strong>Monitor</strong> to check job status. A test data specialist or test engineer uses <strong>Data Sets</strong> for the test data warehouse. An administrator uses <strong>Administrator</strong> for connections, pass phrases, workflow options and server management. By default only an administrator can open the Administrator view; everyone else needs privileges for the other views (p.39).</p>
+
 <h2 id="c11-login">11.3 Logging in to Test Data Manager</h2>
-<p>You reach Test Data Manager with a normal web browser. The user name and password are the same ones defined in Informatica Administrator (User Guide 10.5.10, p.48).</p>
+<p>You use a normal web browser and the user name and password defined in Informatica Administrator (User Guide 10.5.10, p.48).</p>
 <ol class="steps">
-<li><strong>Open the Test Data Manager address in the browser.</strong>
-<p>The format is <code>https://hostname:portnumber/tdm/</code> if Transport Layer Security (encrypted web traffic) is enabled, otherwise <code>http://hostname:portnumber/tdm/</code>. <em>hostname</em> is the host name or IP address of the machine with the TDM Server. The default port is <strong>6643</strong> with TLS and <strong>6605</strong> without. The guide's example is <code>http://TXW1779:6643/tdm/</code>, which has a mixed style, so read the rule rather than copying the example.</p>
+<li><strong>Open the address <code>https://hostname:portnumber/tdm/</code></strong> (or <code>http://</code> if Transport Layer Security is off).
+<p><em>hostname</em> is the machine with the TDM Server. The guide's default port is <strong>6643</strong> with TLS and <strong>6605</strong> without.</p>
 <p class="expect">The Login dialog box appears.</p></li>
-<li><strong>Enter your user name and password.</strong>
-<p>Choose the security domain. If the Informatica domain uses LDAP authentication, the default security domain is Native.</p></li>
-<li><strong>Click Login.</strong>
-<p class="expect">Test Data Manager opens. To leave, click Logout.</p></li>
+<li><strong>Enter your user name and password and choose the security domain, then click Login.</strong>
+<p>If the domain uses LDAP, the default security domain is Native.</p>
+<p class="expect">Test Data Manager opens. Click Logout to leave.</p></li>
 </ol>
+
 <h2 id="c11-layout">11.4 The screen layout and the views</h2>
 <p>All views share a header and a tab bar. The guide's screenshot (p.38) shows a Policies list on top, a Properties and Data Domains area below, and a pie chart labelled as a project compliance indicator. Here is an original sketch of the common layout.</p>
 <div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.38, Figure "Test Data Manager" (a screenshot of the Policies view). What to look for: the tab bar (Overview, Policies, Data Sets, Projects, Monitor, Administrator), a list of policies in the upper pane, and a lower pane with Properties and Data Domains tabs plus a pie chart for project compliance. The guide describes the chart as showing data that is not masked and so potential compliance risk.</div>

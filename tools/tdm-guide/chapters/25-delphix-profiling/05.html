@@ -33,14 +33,6 @@
 <li><strong>Re-run the profiling job and check the inventory again.</strong><p class="expect">The columns you corrected with automatic updates off should keep your choices. If they changed, the checkbox was still ticked.</p></li>
 <li><strong>Download the PDF (<em>Report and Logs &gt; Job Report</em>) and keep it with the CSV.</strong><p>These two files are what you would hand to a data steward.</p></li>
 </ol>
-<h4>Part B (optional): add your own classifier</h4>
-<p>Use the loyalty-number scenario from the classifiers section. This is an exercise on a lab engine; do not do it on shared ShopSphere tables.</p>
-<ol class="steps">
-<li><strong>Create the domain.</strong><p>Settings &gt; Domains &gt; <em>+ Domain</em>, name <code>LOYALTY_NO</code>, choose a default masking algorithm, skip the tokenization algorithm, Save.</p><p class="expect">The domain appears in the Domains grid with your algorithm as its Masking Method.</p></li>
-<li><strong>Create a PATH classifier.</strong><p>Settings &gt; Classifiers &gt; <em>+ Classifier</em>, pick the new domain, framework Path, enter a Field Value that matches column names containing "loyalty", click Add, then Save.</p><p class="expect">The classifier shows in the grid with type PATH and your domain.</p></li>
-<li><strong>Duplicate ASDD Standard and tick the new classifier.</strong><p>Settings &gt; Profile Sets, row menu &gt; Duplicate, give it a new name, tick your classifier, Save.</p></li>
-<li><strong>Add a <code>loyalty_no</code> column to a scratch copy of CUSTOMERS, refresh the rule set, and run a profiling job with the new profile set.</strong><p>Rule set refresh is covered in <a href="24-delphix-rule-sets-and-keys.html">the rule sets and keys chapter</a>.</p><p class="expect"><code>loyalty_no</code> is reported with domain LOYALTY_NO.</p></li>
-</ol>
 <details class="sol"><summary>Show a worked answer</summary>
 <p><strong>Likely corrections (prediction-based):</strong></p>
 <ul>
@@ -67,17 +59,6 @@
 <li><strong>Sharing the PDF report or CSV without thinking.</strong> They list table and column names with their domains, which tells a reader exactly where your sensitive data lives, so store them with care.</li>
 </ul></div>
 
-<h3 id="c25-troubleshoot">Symptoms and likely causes</h3>
-<div class="tablewrap"><table><thead><tr><th>What you see</th><th>Likely cause (from the docs)</th><th>What to try</th></tr></thead><tbody>
-<tr><td>The UI refuses to save a profiling job that uses an ASDD profile set</td><td>The rule set's connector is not supported by the ASDD profiler</td><td>Check ASDD support for your connector; otherwise assign algorithms by hand</td></tr>
-<tr><td>Memory trouble in an ASDD profiling job</td><td>Max Memory set below the documented minimum of 1024 MB per stream</td><td>Raise Max Memory, or lower the number of streams</td></tr>
-<tr><td>Warnings about not enough data for a column</td><td>Most values are null or empty; the extra sampling query hit its time limit</td><td>Adjust the null filter threshold or time limit, or assign the algorithm yourself</td></tr>
-<tr><td>A sensitive column has no domain</td><td>Cryptic name and no value-level classifier for that domain, or confidence below the threshold</td><td>Assign by hand; consider a custom classifier</td></tr>
-<tr><td>A harmless column has a domain</td><td>A name pattern matched by coincidence (for example <em>price</em>)</td><td>Clear the assignment and record the reason in Notes</td></tr>
-<tr><td>Your manual edit vanished after a re-run</td><td>Enable Automatic Updates was still ticked</td><td>Untick it, or use Clear Masking Assignment, which unticks it</td></tr>
-<tr><td>New table not profiled</td><td>It is not in the rule set</td><td>Add it to the rule set and run again</td></tr>
-<tr><td>Job waits and does not run</td><td>Queued behind the running-jobs or memory limit</td><td>Check the Monitor screen for queue position</td></tr>
-</tbody></table></div>
 <h2 id="c25-recap">25.13 Recap</h2>
 <div class="callout recap"><strong class="ctitle">Key points</strong>
 <ul>

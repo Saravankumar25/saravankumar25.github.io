@@ -38,47 +38,19 @@
 <h3 id="c15-t-random">15.9.2 Random</h3>
 <p><span class="badge doc">From docs</span> A global or ad hoc rule that creates random strings, numbers and dates, for things like salary and birth dates (p.220). For strings you give a minimum and maximum length; for numbers a minimum and maximum value; for dates a range. You can instead supply a <strong>regular expression</strong> (a compact pattern language for text shapes) and say what percentage of rows follow it. If you use several patterns the percentages must total 100.</p>
 <div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.210, figure "random string generation rule". I rendered this page. It shows a wizard step titled "New Generation Rule: Step 2 of 2" with a Random option (Minimum Length, Maximum Length), a From Regular Expression option with a Pattern box and a Distribution % box, a Generate Unique Values checkbox, and an Exception Test Data area with Null Values and Invalid Values drop-downs set to "Default" beside percentage boxes showing 0. What to look for: the two radio choices are mutually exclusive ways of making a string.</div>
-<div class="tablewrap"><table>
-<caption>Random parameters by data type (pp.221-223)</caption>
-<thead><tr><th>Parameter</th><th>String</th><th>Numeric</th><th>Date</th></tr></thead>
-<tbody>
-<tr><td>Minimum Length / Minimum Value</td><td>Default 1</td><td>Default 0</td><td>n/a</td></tr>
-<tr><td>Maximum Length / Maximum Value</td><td>Default is the column's maximum</td><td>Default is the column's maximum</td><td>n/a</td></tr>
-<tr><td>From Regular Expression: Pattern and Distribution</td><td>Yes</td><td>Yes</td><td>n/a</td></tr>
-<tr><td>Start Date/Time, End Date/Time</td><td>n/a</td><td>n/a</td><td>Yes</td></tr>
-<tr><td>Exclude (days of the week)</td><td>n/a</td><td>n/a</td><td>Up to two, and not the same day twice</td></tr>
-<tr><td>Generate Unique Values</td><td>Yes, but not with a pattern</td><td>Yes, but not with a pattern</td><td>n/a</td></tr>
-<tr><td>Null Values, Invalid Values</td><td>Yes (no invalid values with a pattern)</td><td>Yes (no invalid values with a pattern)</td><td>Yes</td></tr>
-</tbody></table></div>
+<p>Parameters (pp.221-223): strings take Minimum Length (default 1) and Maximum Length (default the column maximum); numbers take Minimum Value (default 0) and Maximum Value (default the column maximum); dates take Start and End Date/Time and Exclude (up to two different weekdays). Strings and numbers can instead use <strong>From Regular Expression</strong> with a Pattern and Distribution. <strong>Generate Unique Values</strong> is not available with a pattern, and neither are invalid values. Null Values and Invalid Values apply as usual.</p>
 <h4 id="c15-patterns">Writing patterns</h4>
 <p>For strings the usable operators are <code>.</code>, <code>\d</code>, <code>\w</code>, alternation <code>(a|b|c)</code>, <code>{n}</code> repeat counts and <code>[ ]</code> sets. To make numbers that contain special characters, use the <em>string</em> technique. To make plain numbers use the <em>numeric</em> technique, which allows <code>\d</code>, alternates like <code>(1|2|3)</code> and <code>[0-9]</code>, and alternates cannot be nested (p.223).</p>
 <div class="tablewrap"><table class="sample">
-<caption>Pattern examples. The first three rows are patterns printed in the guide (pp.224-226); the ShopSphere rows apply the same operators and are my illustrations.</caption>
+<caption>ShopSphere pattern examples (my illustrations, using the operators the guide lists on p.223)</caption>
 <thead><tr><th>Goal</th><th>Technique</th><th>Pattern</th><th>Example output</th></tr></thead>
 <tbody>
-<tr><td>US-style phone (guide)</td><td>String</td><td><code>\d{3}-\d{3}-\d{4}</code></td><td>617-555-1212</td></tr>
-<tr><td>Social Security number (guide)</td><td>String</td><td><code>\d{3}-\d{2}-\d{4}</code></td><td>999-99-9999</td></tr>
-<tr><td>10-digit phone starting with 3 or 4 (guide)</td><td>Numeric</td><td><code>(3|4)\d{9}</code></td><td>3xxxxxxxxx</td></tr>
 <tr><td>ShopSphere mobile, 10 digits starting 6 to 9</td><td>Numeric</td><td><code>(6|7|8|9)\d{9}</code></td><td>9123456780</td></tr>
 <tr><td>ShopSphere SSN-like</td><td>String</td><td><code>\d{3}-\d{2}-\d{4}</code></td><td>234-56-7890</td></tr>
 <tr><td>ShopSphere tax id</td><td>String</td><td><code>[A-Z]{3}\d{6}</code></td><td>KQM481926</td></tr>
 <tr><td>ShopSphere test email</td><td>String</td><td><code>[a-z]{8}@example\.(com|org)</code></td><td>qkdmpzra@example.org</td></tr>
 </tbody></table></div>
-<h4 id="c15-regex-primer">A five-minute pattern primer for beginners</h4>
-<p>If you have never written a regular expression, read a pattern left to right as a list of "slots". This primer is general knowledge, not from the guide, but every symbol in it is one the guide lists (p.223).</p>
-<div class="tablewrap"><table>
-<caption>Pattern pieces, as used in the ShopSphere rules</caption>
-<thead><tr><th>Piece</th><th>Means</th><th>Example</th><th>Matches</th></tr></thead>
-<tbody>
-<tr><td><code>\d</code></td><td>one digit, 0 to 9</td><td><code>\d</code></td><td>7</td></tr>
-<tr><td><code>{n}</code></td><td>repeat the previous piece n times</td><td><code>\d{3}</code></td><td>482</td></tr>
-<tr><td><code>[ ]</code></td><td>one character from a set or range</td><td><code>[A-Z]</code></td><td>K</td></tr>
-<tr><td><code>( | )</code></td><td>one of the listed choices</td><td><code>(6|7|8|9)</code></td><td>8</td></tr>
-<tr><td><code>\.</code></td><td>a literal dot</td><td><code>example\.org</code></td><td>example.org</td></tr>
-<tr><td>plain characters</td><td>themselves</td><td><code>-</code></td><td>-</td></tr>
-</tbody></table></div>
-<p>Now read the SSN-like pattern <code>\d{3}-\d{2}-\d{4}</code> aloud: three digits, a hyphen, two digits, a hyphen, four digits. Read the tax id <code>[A-Z]{3}\d{6}</code>: three capital letters, then six digits. Read the mobile pattern <code>(6|7|8|9)\d{9}</code>: a first digit of 6, 7, 8 or 9, then nine more digits, ten in all.</p>
-<p>To test a pattern before you save the rule, write two or three values by hand and check each slot matches. Then generate 50 rows into a scratch table and look for rows that surprise you.</p>
+<p>Read a pattern left to right as slots: <code>\d</code> is one digit, <code>{n}</code> repeats the previous piece, <code>[A-Z]</code> is one character from a range, <code>(a|b)</code> is a choice and <code>\.</code> is a literal dot. So <code>(6|7|8|9)\d{9}</code> is a first digit 6 to 9 followed by nine digits. This reading aid is general knowledge. Test a pattern by generating a few rows into a scratch table first.</p>
 <div class="callout warn"><strong class="ctitle">Patterns cannot make valid checksummed numbers</strong>
 <p>For credit card, Social Security and Social Insurance numbers the guide warns that pattern-made values might not be valid, because real numbers follow algorithms that a pattern cannot reproduce (p.224). That is fine for "SSN-like" test data, and it is why the Credit Card technique exists.</p></div>
 <p><strong>Date example:</strong> a random date rule from 1950-01-01 to 2005-12-31 for <code>date_of_birth</code> gives values such as 1990-04-12 and 1999-07-23. Set Exclude to Saturday and Sunday and no value falls on a weekend; "invalid" for dates means outside the range or on an excluded day (p.221).</p>
