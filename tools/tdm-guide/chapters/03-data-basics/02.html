@@ -1,0 +1,146 @@
+<h2 id="c3-keys">3.4 Keys and relationships</h2>
+<p>A single table is easy. Real applications split data across many tables and connect them. Keys are the connectors. This section is the most important in the whole chapter.</p>
+
+<h3 id="c3-why-split">Why data is split into several tables</h3>
+<p>Imagine ShopSphere stored everything in one big sheet: one row per ordered item, with the customer's name, phone and address repeated on every row. Customer Asha has two orders with three items in total, so her phone number would be typed three times. If she changes her phone number you must update every copy, and if you miss one the data disagrees with itself.</p>
+<p>The fix is to store each fact once, in the table where it belongs, and refer to it from elsewhere. Customer facts live in <code>CUSTOMERS</code>. An order stores only the customer's <em>ID</em>, not the name and phone. To get the name, you look the ID up. The ID is a key.</p>
+<span class="badge concept">General concept</span>
+
+<h3 id="c3-pk">Primary key</h3>
+<p>A <dfn>primary key</dfn> is a column (or a small group of columns) whose value is <strong>unique</strong> in every row and is <strong>never empty</strong> (null). It is the row's identity, like a library card number or a passport number.</p>
+<ul>
+<li><code>CUSTOMERS.customer_id</code>: 1001, 1002, 1003. No two customers share an ID.</li>
+<li><code>ORDERS.order_id</code>, <code>ORDER_ITEMS.item_id</code> and <code>PRODUCTS.product_code</code> are the primary keys of their tables.</li>
+</ul>
+<p>A database enforces this: it refuses to insert a second customer with ID 1001.</p>
+<p><strong>Why not use the name as the key?</strong> Two customers can share a name; names change; spellings vary. A key must be stable and unique. That is why tables carry an artificial ID such as <code>customer_id</code>. (Keys made up of real-world data, like an email address, are called <em>natural keys</em>; made-up IDs are <em>surrogate keys</em>. Both appear in the real world.)</p>
+<p>A key can have more than one column. Suppose a table <code>ORDER_ITEM_NOTES</code> allowed one note per item per language; then <code>(item_id, language)</code> together would be unique, though neither alone is. That is a <dfn>composite key</dfn>.</p>
+
+<h3 id="c3-fk">Foreign key</h3>
+<p>A <dfn>foreign key</dfn> is a column in one table whose values must match the primary key of <em>another</em> table. It is the link.</p>
+<ul>
+<li><code>ORDERS.customer_id</code> is a foreign key to <code>CUSTOMERS.customer_id</code>: it says which customer placed the order.</li>
+<li><code>ORDER_ITEMS.order_id</code> is a foreign key to <code>ORDERS.order_id</code>: it says which order this line belongs to.</li>
+<li><code>ORDER_ITEMS.product_code</code> is a foreign key to <code>PRODUCTS.product_code</code>: it says which product was bought.</li>
+</ul>
+<p>The foreign key column is allowed to repeat. Customer 1001 can appear in many order rows, because Asha can place many orders. The primary key side cannot repeat.</p>
+
+<h3 id="c3-parent-child">Parent and child tables, one-to-many</h3>
+<p>The table that holds the primary key is the <dfn>parent</dfn>; the table with the foreign key pointing at it is the <dfn>child</dfn>. One customer (parent) can have many orders (children), and one order can have many items. That shape is called <dfn>one-to-many</dfn>.</p>
+<figure class="diagram">
+<svg viewBox="0 0 800 330" role="img" aria-label="Relationship diagram of the four ShopSphere tables: CUSTOMERS one-to-many ORDERS, ORDERS one-to-many ORDER_ITEMS, PRODUCTS one-to-many ORDER_ITEMS">
+<defs><marker id="c3a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+<rect x="10" y="20" width="210" height="130" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="115" y="44" text-anchor="middle" fill="var(--accent)" font-size="15" font-weight="700">CUSTOMERS</text>
+<line x1="10" y1="54" x2="220" y2="54" stroke="currentColor"/>
+<text x="22" y="76" fill="currentColor" font-size="13" font-weight="700">PK  customer_id</text>
+<text x="22" y="96" fill="currentColor" font-size="13">first_name, last_name</text>
+<text x="22" y="114" fill="currentColor" font-size="13">email, phone, ssn</text>
+<text x="22" y="132" fill="currentColor" font-size="13">date_of_birth, zip_code, tax_id</text>
+<rect x="295" y="20" width="210" height="130" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="400" y="44" text-anchor="middle" fill="var(--accent)" font-size="15" font-weight="700">ORDERS</text>
+<line x1="295" y1="54" x2="505" y2="54" stroke="currentColor"/>
+<text x="307" y="76" fill="currentColor" font-size="13" font-weight="700">PK  order_id</text>
+<text x="307" y="96" fill="currentColor" font-size="13" font-weight="700">FK  customer_id</text>
+<text x="307" y="114" fill="currentColor" font-size="13">order_date</text>
+<text x="307" y="132" fill="currentColor" font-size="13">total_amount</text>
+<rect x="580" y="20" width="210" height="150" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="685" y="44" text-anchor="middle" fill="var(--accent)" font-size="15" font-weight="700">ORDER_ITEMS</text>
+<line x1="580" y1="54" x2="790" y2="54" stroke="currentColor"/>
+<text x="592" y="76" fill="currentColor" font-size="13" font-weight="700">PK  item_id</text>
+<text x="592" y="96" fill="currentColor" font-size="13" font-weight="700">FK  order_id</text>
+<text x="592" y="114" fill="currentColor" font-size="13" font-weight="700">FK  product_code</text>
+<text x="592" y="132" fill="currentColor" font-size="13">quantity</text>
+<text x="592" y="150" fill="currentColor" font-size="13">unit_price</text>
+<rect x="580" y="230" width="210" height="85" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="685" y="254" text-anchor="middle" fill="var(--accent)" font-size="15" font-weight="700">PRODUCTS</text>
+<line x1="580" y1="264" x2="790" y2="264" stroke="currentColor"/>
+<text x="592" y="286" fill="currentColor" font-size="13" font-weight="700">PK  product_code</text>
+<text x="592" y="304" fill="currentColor" font-size="13">product_name, price</text>
+<line x1="220" y1="85" x2="293" y2="85" stroke="currentColor" stroke-width="2" marker-end="url(#c3a)"/>
+<text x="257" y="75" text-anchor="middle" fill="currentColor" font-size="12">1 : many</text>
+<line x1="505" y1="85" x2="578" y2="85" stroke="currentColor" stroke-width="2" marker-end="url(#c3a)"/>
+<text x="542" y="75" text-anchor="middle" fill="currentColor" font-size="12">1 : many</text>
+<line x1="685" y1="230" x2="685" y2="173" stroke="currentColor" stroke-width="2" marker-end="url(#c3a)"/>
+<text x="640" y="205" text-anchor="end" fill="currentColor" font-size="12">1 : many</text>
+<text x="20" y="215" fill="currentColor" font-size="13">Arrows run from parent (PK) to child (FK).</text>
+<text x="20" y="237" fill="currentColor" font-size="13">The parent must exist before the child.</text>
+<text x="20" y="259" fill="currentColor" font-size="13">Delete a parent and its children are orphaned.</text>
+<text x="20" y="295" fill="currentColor" font-size="13">PK = primary key, FK = foreign key</text>
+</svg>
+<figcaption>Original diagram: ShopSphere's four tables and the keys that connect them. Compare with the table definitions in <a href="01-start-here.html">the start-here chapter</a>.</figcaption>
+</figure>
+
+<h3 id="c3-sample-rows">The linked sample data</h3>
+<p>Here are the other three ShopSphere tables with fake rows, linked to the customers. Trace the keys with your finger: order 5001 belongs to customer 1001, and its items 9001 and 9002 point to products P100 and P200.</p>
+<div class="tablewrap"><table class="sample">
+<caption>ORDERS</caption>
+<thead><tr><th>order_id (PK)</th><th>customer_id (FK)</th><th>order_date</th><th>total_amount</th></tr></thead>
+<tbody>
+<tr><td>5001</td><td>1001</td><td>2026-01-15</td><td>1098.00</td></tr>
+<tr><td>5002</td><td>1001</td><td>2026-02-03</td><td>1499.00</td></tr>
+<tr><td>5003</td><td>1002</td><td>2026-02-10</td><td>598.00</td></tr>
+</tbody>
+</table></div>
+<div class="tablewrap"><table class="sample">
+<caption>ORDER_ITEMS</caption>
+<thead><tr><th>item_id (PK)</th><th>order_id (FK)</th><th>product_code (FK)</th><th>quantity</th><th>unit_price</th></tr></thead>
+<tbody>
+<tr><td>9001</td><td>5001</td><td>P100</td><td>1</td><td>799.00</td></tr>
+<tr><td>9002</td><td>5001</td><td>P200</td><td>1</td><td>299.00</td></tr>
+<tr><td>9003</td><td>5002</td><td>P300</td><td>1</td><td>1499.00</td></tr>
+<tr><td>9004</td><td>5003</td><td>P200</td><td>2</td><td>299.00</td></tr>
+</tbody>
+</table></div>
+<div class="tablewrap"><table class="sample">
+<caption>PRODUCTS</caption>
+<thead><tr><th>product_code (PK)</th><th>product_name</th><th>price</th></tr></thead>
+<tbody>
+<tr><td>P100</td><td>Wireless Mouse</td><td>799.00</td></tr>
+<tr><td>P200</td><td>USB-C Cable</td><td>299.00</td></tr>
+<tr><td>P300</td><td>Laptop Stand</td><td>1499.00</td></tr>
+</tbody>
+</table></div>
+<p>These rows are illustrative and fake. Customer 1003 (Meera) has no orders: a parent with no children is perfectly legal. The reverse is not.</p>
+
+<h3 id="c3-ri">Referential integrity</h3>
+<p><dfn>Referential integrity</dfn> is the rule that every foreign key value must match a primary key value that exists. Every order must belong to a customer who exists; every item to an order that exists.</p>
+<p>A child row whose parent is missing is called an <dfn>orphan</dfn>. Suppose someone deletes customer 1001 but leaves orders 5001 and 5002. Those orders now point to nobody. The "my orders" page crashes. When the database has the foreign key declared, it refuses such a delete, and it refuses to insert an order for a customer ID that does not exist. (When I tried this in SQLite with foreign key enforcement switched on, both attempts were rejected with a foreign key constraint error.)</p>
+
+<div class="callout why">
+<strong class="ctitle">Why keys matter so much to TDM</strong>
+<p>Every TDM operation reshapes data. Each one can break referential integrity if done carelessly.</p>
+</div>
+<div class="tablewrap"><table>
+<thead><tr><th>Operation</th><th>How it can break keys</th><th>What it must do instead</th></tr></thead>
+<tbody>
+<tr><td><strong>Subsetting</strong></td><td>Pick 100 customers but leave out their orders (missing children), or pick orders but leave out their customers (orphans).</td><td>Follow the keys: choose a starting table, then bring along every related row in the other tables.</td></tr>
+<tr><td><strong>Masking</strong></td><td>Mask <code>customer_id</code> in <code>CUSTOMERS</code> to a new value but leave <code>ORDERS.customer_id</code> unchanged, or mask them differently. Orders no longer match customers.</td><td>Apply the same masking to the parent key and every child foreign key so the values still match, or leave keys alone.</td></tr>
+<tr><td><strong>Generation</strong></td><td>Generate 1,000 orders with customer IDs that no generated customer has.</td><td>Generate parents first and give each child a valid parent ID.</td></tr>
+<tr><td><strong>Provisioning</strong></td><td>Load child tables before parent tables so foreign key checks fail.</td><td>Load parents first; delete children first.</td></tr>
+</tbody>
+</table></div>
+<p>Each tool has its own way to say this. The Informatica documentation says a data subset retains primary and foreign key relations so that the data stays referentially intact (User Guide 10.5.10, p.23). The Delphix introduction says it scans metadata and data to identify and preserve primary/foreign key relationships so that data is masked the same way across tables and databases (<a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a>). <span class="badge doc">From docs</span></p>
+
+<div class="callout example">
+<strong class="ctitle">Worked example: masking a key the wrong way</strong>
+<p>A masking script replaces <code>CUSTOMERS.customer_id</code> with random numbers: 1001 becomes 7342, 1002 becomes 2210, 1003 becomes 9915. Nobody touches <code>ORDERS</code>. Now order 5001 still says <code>customer_id = 1001</code>, and no customer has ID 1001. Every one of the three orders is an orphan. The data is both "safe" and useless.</p>
+<p>The right approaches are either not to mask the key (an ID like 1001 is not personal on its own), or to mask it with the <em>same</em> consistent rule in every table where it appears: 1001 becomes 7342 in <code>CUSTOMERS</code> <em>and</em> in <code>ORDERS</code>.</p>
+</div>
+
+<h3 id="c3-logical-keys">Logical keys: keys the database does not know about</h3>
+<p>Everything above assumed the keys are <em>declared</em> in the database. In real life they often are not. Older systems, performance-minded designs and imported data frequently have tables with no declared primary or foreign keys at all, even though the application treats certain columns as keys. The relationships exist in the developers' heads and in the code, not in the schema.</p>
+<p>TDM tools cannot follow a relationship they do not know about. So they let you (or their profilers) describe the relationships separately. Keys defined this way are called <dfn>logical keys</dfn> in this guide: the tool is told "treat this column as the key" without any change to the real database.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Tool</th><th>What its documentation says</th></tr></thead>
+<tbody>
+<tr><td>Informatica</td><td>Primary-key and foreign-key profiles can discover potential relationships (p.21). The foreign key profile adds the discovered logical constraints to the TDM repository but does not apply them in the source tables; the subset workflow uses them to produce referentially intact data (p.86). You can also add a logical primary key to a table (p.109) and a logical foreign key choosing a column from a parent table (p.110). In its worked example the database contains no primary or foreign keys, so the developer creates logical ones (p.34). For data sets it advises creating logical keys in transactional tables that have no primary keys (p.239).</td></tr>
+<tr><td>Delphix</td><td>In a rule set, a logical key is a unique, non-null value identifying a row. If a table has no primary key defined and you use in-place masking, you must name an existing column or columns as the logical key. It does not change the target database; it only informs Delphix. Without one, an identity column may be created, which requires permission to modify the schema or the job may fail. The rule set "Checklist" validates that every table has a primary key, an indexed identity column or a logical key (<a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>).</td></tr>
+</tbody>
+</table></div>
+<span class="badge doc">From docs</span>
+<p>The idea is the same in both: <strong>a key you declare to the tool, which the database may know nothing about</strong>. Chapters on <a href="13-informatica-data-subset.html">Informatica subsetting</a> and <a href="24-delphix-rule-sets-and-keys.html">Delphix rule sets and keys</a> show the screens.</p>
+<div class="callout note">
+<strong class="ctitle">Logical keys are only as good as your understanding</strong>
+<p>If you declare a column as a key but it is not actually unique, masking or subsetting will misbehave. A logical key must be unique and never null for every row, exactly like a real primary key. You prove it by checking the data (for example by counting rows and counting distinct values), not by assuming.</p>
+</div>
