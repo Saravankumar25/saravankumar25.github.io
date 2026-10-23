@@ -1,5 +1,7 @@
 <h2 id="c6-choosing">6.9 Choosing a technique</h2>
+
 <p>Start from the column, not the technique. Ask four questions: What is it (name, number, date, free text)? Must it stay unique or linked to other tables? Must it keep a format the application checks? Do tests depend on its meaning (for example an age band)? The table gives a reasoned first choice for the ShopSphere columns. <span class="badge concept">General concept</span> (technique names are from section 6.4)</p>
+
 <div class="tablewrap"><table><caption>Decision table for ShopSphere columns (a starting point, to be confirmed with the compliance officer)</caption>
 <thead><tr><th>Column</th><th>Constraint</th><th>First choice</th><th>Why</th></tr></thead>
 <tbody>
@@ -14,11 +16,15 @@
 <tr><td>total_amount</td><td>Must match order items</td><td>Leave alone, unless amounts are sensitive</td><td>Masking it breaks arithmetic</td></tr>
 <tr><td>Free-text notes</td><td>Unknown content</td><td>Free text redaction or null</td><td>Cannot be fixed by column-level rules</td></tr>
 </tbody></table></div>
+
 <div class="callout tip"><strong class="ctitle">Not every column needs masking</strong>
+
 <p>Masking has a cost: it can break realism and arithmetic. A surrogate key like <code>customer_id</code> that carries no meaning is often safe to leave, as long as nothing else in the row identifies a person. The compliance officer decides, not the tool.</p></div>
 
 <h2 id="c6-validate">6.10 Validating masked data</h2>
+
 <p>A masking job that finishes without errors is not proof that the data is safe or useful. Check the result against the goals from section 6.3.</p>
+
 <div class="tablewrap"><table><caption>A validation checklist</caption>
 <thead><tr><th>Check</th><th>How</th></tr></thead>
 <tbody>
@@ -31,6 +37,7 @@
 <tr><td>Repeatability</td><td>Run twice with the same settings; results match when they should.</td></tr>
 <tr><td>Job logs</td><td>Read warnings. Delphix shows a yellow warning marker on a job when non-conformant data was found; Informatica logs exceptions per its exception-handling settings.</td></tr>
 </tbody></table></div>
+
 <pre><code>-- duplicates in a column that must be unique
 SELECT ssn, COUNT(*) FROM CUSTOMERS GROUP BY ssn HAVING COUNT(*) &gt; 1;
 
@@ -42,16 +49,22 @@ WHERE c.customer_id IS NULL;
 -- any SSN-shaped text left in a notes column (pattern syntax varies by database)
 SELECT order_id FROM ORDER_NOTES WHERE notes LIKE '%___-__-____%';
 </code></pre>
+
 <p><span class="badge doc">From docs</span> Tools help with previewing. Informatica's Rule Simulator shows original and masked values for a standard rule before you assign it, using default sample data, your own sample or a connection, with up to 100 rows and a default of 20 (pp.137 and 140). Delphix says its platform generates reports and email notifications to confirm that sensitive data has been masked (Delphix "Introduction to Delphix Masking"). Neither removes the need to inspect the result yourself.</p>
+
 <div class="exercise"><h4>Lab: design and check a mask for the ShopSphere customers</h4>
+
 <p>Goal: pick a technique for every sensitive column of CUSTOMERS, apply it to the three sample rows by hand, and prove the result is consistent.</p>
+
 <ol class="steps">
 <li><strong>Write the rule set.</strong><p>For each column in the decision table, choose one technique and say whether it must be deterministic. Decide the seed or key story: one seed, shared by every column that joins elsewhere.</p></li>
 <li><strong>Apply it to rows 1001 to 1003.</strong><p>Use made-up values that respect each column's format. Build the email from the masked first and last names.</p><p class="expect">Three masked rows with valid phone, SSN and date formats and no original value surviving.</p></li>
 <li><strong>Check the rules.</strong><p>Does any masked value equal a real one? Is any value duplicated? Does the masked email match the masked name? Would an orphan appear in <code>ORDERS</code> if customer_id were masked here but not there?</p></li>
 <li><strong>Re-run in your head with the same seed.</strong><p>Would 1001 still become the same row next week? If not, which technique is random?</p></li>
 </ol>
+
 <details class="sol"><summary>Show a worked answer</summary>
+
 <div class="tablewrap"><table class="sample"><caption>One acceptable answer (all masked values are made up)</caption>
 <thead><tr><th>Column</th><th>Technique</th><th>1001</th><th>1002</th><th>1003</th></tr></thead>
 <tbody>
@@ -64,10 +77,13 @@ SELECT order_id FROM ORDER_NOTES WHERE notes LIKE '%___-__-____%';
 <tr><td>zip_code</td><td>Substitution from valid codes</td><td>560001 to 560047</td><td>600017 to 600089</td><td>682001 to 682030</td></tr>
 <tr><td>customer_id</td><td>Left unchanged (surrogate)</td><td>1001</td><td>1002</td><td>1003</td></tr>
 </tbody></table></div>
+
 <p>Checks: no original value survives; all SSNs are different; each masked email matches its masked name; because customer_id is unchanged, <code>ORDERS</code> joins still work; every technique used is deterministic, so a rerun with the same seed or key gives the same rows. A fixed shift keeps relative order of dates, whereas a variable shift would not be repeatable. If you had chosen to mask customer_id, the same seed would be needed in <code>ORDERS</code>. Note that <code>zip_code</code> kept the first three digits (a regional shape) so test logic still works, and the compliance officer should confirm that is acceptable.</p></details></div>
 
 <h2 id="c6-mistakes">Common mistakes and gotchas</h2>
+
 <div class="callout warn"><strong class="ctitle">Mistakes beginners make</strong>
+
 <ul>
 <li><strong>Calling encryption "masking".</strong> It can be reversed. Use it only when reversal is intended.</li>
 <li><strong>Masking keys independently.</strong> Joins break. Use the same seed or key, or cascades.</li>
@@ -79,6 +95,7 @@ SELECT order_id FROM ORDER_NOTES WHERE notes LIKE '%___-__-____%';
 </ul></div>
 
 <h2 id="c6-recap">Recap</h2>
+
 <div class="callout recap"><strong class="ctitle">Remember</strong><ul>
 <li>Masking replaces real values with realistic fake ones, usually irreversibly. Encryption and tokenization are reversible; anonymisation is a legal goal that masking helps reach.</li>
 <li>Good masked data is safe, realistic, valid, consistent, repeatable and still fit for the tests.</li>

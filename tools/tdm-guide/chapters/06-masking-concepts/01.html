@@ -1,4 +1,5 @@
 <p>You have found the sensitive columns (<a href="04-sensitive-data-and-regulations.html">the sensitive data chapter</a>) and cut the data down to a slice (<a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>). Now comes the step that makes the copy safe to hand to testers: <strong>masking</strong>, replacing real sensitive values with realistic fake ones. This chapter explains the idea and the common techniques in plain words, with before and after values on ShopSphere data. The tool-specific chapters, <a href="14-informatica-data-masking.html">Informatica data masking</a> and <a href="26-delphix-algorithms-and-masking-jobs.html">Delphix algorithms and masking jobs</a>, then show where the buttons are.</p>
+
 <div class="callout recap"><strong class="ctitle">What you will learn</strong><ul>
 <li>How masking differs from obfuscation, encryption, tokenization, anonymisation and pseudonymisation.</li>
 <li>What good masked data must be: realistic, safe, consistent, repeatable and still valid for tests.</li>
@@ -6,11 +7,15 @@
 <li>Why the same input must give the same output in every table and system, and how tools achieve it.</li>
 <li>Static versus dynamic masking, in-place versus on-the-fly, the main risks, how to choose a technique, and how to validate the result.</li>
 </ul></div>
+
 <div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
+
 <p><span class="badge doc">From docs</span> Informatica TDM 10.5.10 User Guide (PDF, February 2026): chapter 7 "Performing a Data Masking Operation" (pp.135 to 150) and chapter 8 "Data Masking Techniques and Parameters" (pp.151 to 185), all technique sections read. Delphix Continuous Compliance 2026.5 (last published October 16, 2026): "Delphix masking terminology", "Algorithms", "Algorithm frameworks", "Secure Lookup", "SecureShuffle", "Date Shift", "Payment Card", "Character Mapping", "Character Replacement", "Free Text Redaction", "String Algorithm Chain", "Tokenization", "Algorithm syncability", "Best practices for Delphix data masking", and the job-creation page for in-place and on-the-fly. One GenRocket page on Synthetic Data Replacement.</p>
+
 <p><span class="badge concept">General concept</span> The comparison of terms, static versus dynamic masking, the risks list and the decision table are explained for this guide. Technique names are marked as coming from the sources or as universally standard.</p></div>
 
 <h2 id="c6-words-to-know">6.1 Words to know first</h2>
+
 <dl class="defs">
 <div><dt>Masking</dt><dd>Replacing sensitive values with realistic but fictitious values so test data cannot identify real people. Delphix defines it as iterating through a dataset to identify all sensitive fields and replace them with desensitised values to eliminate risk in lower environments.</dd></div>
 <div><dt>Technique (Informatica) / algorithm (Delphix)</dt><dd>The method that changes a value, such as substitution or date shift. Informatica turns a technique plus settings into a <em>rule</em>. Delphix turns an algorithm framework plus settings into an <em>algorithm instance</em>.</dd></div>
@@ -25,7 +30,9 @@
 </dl>
 
 <h2 id="c6-compare-terms">6.2 Masking and its neighbours</h2>
+
 <p>People use these words loosely. They mean different things, and the difference decides whether a copy is safe.</p>
+
 <div class="tablewrap"><table><caption>Obfuscation, masking, encryption, tokenization, anonymisation, pseudonymisation</caption>
 <thead><tr><th>Term</th><th>What it means</th><th>Reversible?</th><th>Keeps data usable for tests?</th><th>ShopSphere example</th></tr></thead>
 <tbody>
@@ -36,19 +43,27 @@
 <tr><td><strong>Anonymisation</strong></td><td>A <em>goal</em>: data that no longer identifies anyone, even in combination. Legal tests are strict.</td><td>No</td><td>Varies</td><td>Masked and generalised so no row is unique</td></tr>
 <tr><td><strong>Pseudonymisation</strong></td><td>Replace identifiers with pseudonyms, but a way back exists elsewhere. Still personal data under GDPR.</td><td>Yes, with the extra information</td><td>Yes</td><td>customer_id replaced by a token</td></tr>
 </tbody></table></div>
+
 <p>How the sources use the words: <span class="badge doc">From docs</span></p>
+
 <ul>
 <li>Delphix says <em>tokenization</em> is "the only type of algorithm that allows you to reverse its masking". Its example is masking data before sending it to a vendor and reversing it afterwards to act on the vendor's findings (terminology page). Its introduction labels masking as anonymisation and tokenization as pseudonymisation. It also says unlike encryption, which can be bypassed by obtaining user credentials, masking irreversibly protects data in downstream environments, and that encryption is ill-suited to protecting non-production environments (Delphix "Introduction to Delphix Masking").</li>
 <li>Informatica treats <em>encryption</em> as one masking technique. Standard encryption offers AES, CRC and MD5, and format preserving encryption can be decrypted with the same pass phrase and configuration (User Guide 10.5.10, p.161).</li>
 <li>GenRocket argues that traditional masking "can be reverse engineered" and that its Synthetic Data Replacement generates new values that cannot be traced back (GenRocket "G-Subset Overview" and "What is Synthetic Data Replacement").</li>
 </ul>
+
 <div class="callout warn"><strong class="ctitle">Reversible is a risk in test data</strong>
+
 <p>If a test copy can be turned back into the real data, then stealing the copy plus the key or mapping table is a breach. For ordinary test environments, prefer irreversible masking. Use encryption or tokenization when you truly need to come back, such as a vendor round trip, and guard the key like production data.</p></div>
+
 <div class="callout tip"><strong class="ctitle">Anonymisation is a destination, masking is a vehicle</strong>
+
 <p>Masking is a set of techniques. Whether the masked result counts as anonymous under a law depends on the whole data set (the combinations you saw in the sensitive data chapter) and is the compliance officer's call.</p></div>
 
 <h2 id="c6-goals">6.3 What good masked data looks like</h2>
+
 <p>A tool could blank every sensitive column in a second. That would be safe and useless. Masking has competing goals, and good masking meets all of them.</p>
+
 <div class="tablewrap"><table><caption>The goals of masking</caption>
 <thead><tr><th>Goal</th><th>Meaning</th><th>What goes wrong without it</th></tr></thead>
 <tbody>
@@ -59,5 +74,7 @@
 <tr><td>Repeatable</td><td>A re-run gives the same results when it should</td><td>Test cases that rely on a specific customer fail after each refresh</td></tr>
 <tr><td>Fit for purpose</td><td>Keeps the properties the tests depend on (a customer has several orders, a date precedes another)</td><td>The data is fake but the test no longer tests anything</td></tr>
 </tbody></table></div>
+
 <p><span class="badge doc">From docs</span> Both vendors state these goals. Informatica: replace source data in sensitive columns with "realistic test data" for nonproduction environments (p.135). Delphix: the data stays "production-like in quality", masking is consistent while "maintaining referential integrity across heterogeneous data sources", and it is irreversible (Delphix "Introduction to Delphix Masking").</p>
+
 <p>Some goals pull against each other. Perfect safety says "change everything completely". Perfect fidelity says "keep it as it was". Every technique in the next section is a compromise somewhere between those poles, which is why choosing is a skill.</p>

@@ -1,12 +1,20 @@
 <h2 id="c5-metadata-vs-data">5.3 Metadata profiling and data profiling</h2>
+
 <p>A profile can look at two different things, and the difference decides how fast it is and what it can find.</p>
+
 <div class="compare"><div><h4>Metadata profiling</h4>
+
 <p>Reads only <em>descriptions</em>: table names, column names, types, lengths, declared keys.</p>
+
 <ul><li>Fast, and does not need to read any real customer values.</li><li>Finds a column called <code>ssn</code>, or <code>user_email</code>.</li><li>Misses cryptic names such as <code>FLD_X2</code>, and cannot tell whether <code>notes</code> contains an SSN.</li></ul></div>
 <div><h4>Data profiling</h4>
+
 <p>Reads actual <em>values</em> (often a sample) and measures patterns, counts and uniqueness.</p>
+
 <ul><li>Slower, because it reads rows.</li><li>Finds a column of SSN-shaped values even when its name is meaningless.</li><li>Needs access to real production data, which is itself a privacy decision.</li></ul></div></div>
+
 <p>The tools expose the same split under different names. <span class="badge doc">From docs</span></p>
+
 <div class="tablewrap"><table><caption>Metadata versus data profiling in the three tools</caption>
 <thead><tr><th>Tool</th><th>How it splits the two</th><th>Source</th></tr></thead>
 <tbody>
@@ -14,42 +22,67 @@
 <tr><td>Delphix</td><td>"Column-level" profiling uses regular expressions on column names (metadata). "Data-level" profiling uses regular expressions on the actual data. In the classifier model, PATH and TYPE work at column level, REGEX and LIST at data level.</td><td>Delphix "Introduction to Delphix Masking" and "Discovering your sensitive data"</td></tr>
 <tr><td>GenRocket</td><td>Data Column Profiling scans column headers only, not the actual data, so GenRocket does not need to read production values.</td><td>GenRocket "PII Discovery with Data Column Profiling"</td></tr>
 </tbody></table></div>
+
 <h3 id="c5-sampling">Sampling: a look, not a census</h3>
+
 <p>Scanning every row of a table with 80 million rows would be slow, so profiles often sample. <dfn>Sampling</dfn> means reading only some rows. That is efficient, but it has a catch: a value that appears in only 1 row in 10,000 may not be in the sample. If a few rows of a mostly-clean column hold real phone numbers, a small sample may miss them. Informatica reflects this with options such as "Maximum Rows to Profile" and "Minimum Conformance Percent" (p.95): the second one is the share of profiled rows that must match the pattern before the column is claimed for the domain.</p>
+
 <h2 id="c5-keys">5.4 Finding keys and relationships</h2>
+
 <p>Subsetting needs to know which tables are parents and which are children. Ideally the database declares its primary and foreign keys and the tool simply reads them. In practice many databases declare few or none (for performance, or because the application enforces the links). GenRocket's documentation says this directly: custom referential integrity is added "when referential integrity does not exist between tables in the source database" but the user still needs to subset (GenRocket "How to Add Custom Referential Integrity to Imported Table Schemas"). <span class="badge doc">From docs</span> Discovery fills that gap by inferring the links.</p>
+
 <h3 id="c5-pk-discovery">Primary key discovery</h3>
+
 <p>A primary key candidate is a column, or a small set of columns, whose values are unique. Informatica's primary key profile reports the percentage of unique values and lets you limit how hard it searches (User Guide 10.5.10, pp.92 to 93). <span class="badge doc">From docs</span></p>
+
 <p>Its options and defaults: the maximum number of columns combined into a key (3), the maximum rows to profile (1,000) and a conformance criterion, the minimum percentage of unique values allowed (99 percent) (p.93).</p>
 
 <p>Why would you allow less than 100 percent? Because real data is messy. If 99.8 percent of values are unique and a few rows are duplicates, the column is probably meant to be a key and the duplicates are data-quality bugs. Informatica notes that a primary key profile is useful to find such non-unique rows (p.92). The result table shows, per candidate, the table, the column or combination of columns, the uniqueness percentage, whether it is verified, any existing constraint and a status of verified, approved or rejected (pp.103 to 104). When you approve a candidate, TDM adds it as a key to the table in its repository, not in the source database. Rejecting a candidate does not affect the subset (p.104). <span class="badge doc">From docs</span></p>
+
 <div class="callout warn"><strong class="ctitle">Unique does not mean a good key</strong>
+
 <p><code>ssn</code> is 100 percent unique in the table above, yet it would be a poor primary key: it is sensitive, so masking will change it, and every table that used it as a link would need identical treatment. A human picks <code>customer_id</code>, the "meaningless but stable" identifier. Uniqueness tells you what <em>can</em> be a key. A person decides what <em>should</em> be.</p></div>
+
 <h3 id="c5-fk-discovery">Foreign key and entity discovery</h3>
+
 <p>To find parent-child links, Informatica's entity profile "returns a list of possible entities by comparing column names in the source tables" (p.93). In the guide's example, Employee, Employee_Detail and Employee_Address all contain an EmpID column, so the profile suggests Employee as an entity with two child tables. When you later subset, a filter on EmpID applies to every table in that relationship. <span class="badge doc">From docs</span></p>
+
 <p>The profile options show what matters when matching columns (p.94): whether to compare using the datatypes the tool inferred or the documented ones, whether comparison is case sensitive, whether to trim spaces first, the maximum number of foreign key results to return and the minimum confidence percent (the share of foreign key values that match). A coincidental match is the risk: two unrelated integer columns can overlap by chance, so discovery proposes and a person approves.</p>
+
 <p>One practical detail: if you choose the entity profile type and the physical database has no primary keys, the profile returns nothing. Run the profile as primary key and entity together, and it can discover both the primary and foreign keys even when the database declares none (p.93). <span class="badge doc">From docs</span></p>
+
 <p>Delphix says its masking keeps referential integrity by scanning metadata and data to identify and preserve the primary and foreign key relationships between elements, so that data is masked the same way across tables and databases (Delphix "Introduction to Delphix Masking"). <span class="badge doc">From docs</span> How keys are defined in a Delphix rule set is covered in <a href="24-delphix-rule-sets-and-keys.html">the Delphix rule sets and keys chapter</a>.</p>
+
 <h2 id="c5-human-review">5.5 Reading the results: false positives, false negatives and human review</h2>
+
 <p>A profile is a set of educated guesses. Every guess can be wrong in two ways:</p>
+
 <div class="tablewrap"><table><caption>The two kinds of mistake in discovery</caption>
 <thead><tr><th>Mistake</th><th>Meaning</th><th>ShopSphere example</th><th>Cost</th></tr></thead>
 <tbody>
 <tr><td><strong>False positive</strong></td><td>Flagged, but not actually what the tool thinks</td><td><code>order_id</code> flagged as a phone number because it has ten digits</td><td>Wasted effort, or a harmful change (a key gets masked)</td></tr>
 <tr><td><strong>False negative</strong></td><td>Real, but not flagged</td><td>A <code>contact_no</code> column of real phone numbers not matched by any pattern</td><td>Real data leaks into test</td></tr>
 </tbody></table></div>
+
 <p>Between the two, false negatives are the more dangerous in a privacy project, because nobody notices them. That is why discovery tools build review into the workflow, and why you should plan for it. In Informatica, each result row has a status, and you can verify, approve or reject it. The guide says the Verified column is for your own tracking and does not affect data subset operations, and that marking the data domain classification as completed does not affect any process either; it simply records that you reviewed everything (pp.104 to 105). <span class="badge doc">From docs</span> The data viewer for a selected column shows the first 200 records, so reviewers can look at real values before approving (p.105).</p>
+
 <h3 id="c5-review-steps">A review routine that works</h3>
+
 <ol class="steps">
 <li><strong>Sort the results by confidence.</strong><p>Informatica shows % data conformance and whether the column name matched (p.105). High on both is easy to accept.</p><p class="expect">A short list of obvious accepts and a longer list that needs thought.</p></li>
 <li><strong>Look at the actual values for doubtful rows.</strong><p>Names alone mislead. Five sample values usually settle it.</p></li>
 <li><strong>Ask the data steward about anything ambiguous.</strong><p>"Is <code>tax_id</code> a personal or a company number?" is not something a tool can answer.</p></li>
 <li><strong>Scan the unflagged columns too, and record your decisions.</strong><p>Check free-text and generically named columns. A profile only covers the tables it was given, and re-profiling will not remember your reasons.</p><p class="expect">A short list of columns added by hand, and a written list of accepted and rejected findings.</p></li>
 </ol>
+
 <h3 id="c5-column-profile">The fourth type: the column profile</h3>
+
 <p>Informatica's <strong>column profile</strong> measures range, list of values and patterns of columns, mainly to infer rules for generating test data; it runs on Oracle and Microsoft SQL Server databases (p.97). <span class="badge doc">From docs</span> It returns in <a href="07-test-data-classification-and-generation-concepts.html">the test data classification and generation chapter</a>.</p>
+
 <div class="exercise"><h4>Lab: profile three mystery columns by hand</h4>
+
 <p>Goal: practise what a profile computes. The columns come from a ShopSphere table whose column names were lost. Compute for each: the share of nulls, the number of distinct values, the pattern, and your best guess of the data domain.</p>
+
 <div class="tablewrap"><table class="sample"><caption>Five rows from a table with cryptic column names</caption>
 <thead><tr><th>row</th><th>col_a</th><th>col_b</th><th>col_c</th></tr></thead>
 <tbody>
@@ -59,13 +92,16 @@
 <tr><td>4</td><td>(empty)</td><td>345-67-8901</td><td>1004</td></tr>
 <tr><td>5</td><td>9876543210</td><td>123-45-6789</td><td>1005</td></tr>
 </tbody></table></div>
+
 <ol class="steps">
 <li><strong>Count nulls for each column.</strong><p>Treat "(empty)" as null. Treat "N/A" as a value, because it is text.</p></li>
 <li><strong>Count distinct values.</strong><p>Divide by the number of non-null values to get a uniqueness percentage (tools may compute this slightly differently, but the idea is the same).</p></li>
 <li><strong>Describe the pattern.</strong><p>Use digits as 9, and spell out hyphens.</p></li>
 <li><strong>Guess the domain and the next action.</strong><p>Which column is a primary key candidate? Which is sensitive? Which needs a human decision?</p></li>
 </ol>
+
 <details class="sol"><summary>Show a worked answer</summary>
+
 <div class="tablewrap"><table class="sample"><caption>Profile results computed by hand</caption>
 <thead><tr><th></th><th>% null</th><th>Distinct</th><th>Pattern</th><th>Guess and action</th></tr></thead>
 <tbody>
@@ -73,4 +109,5 @@
 <tr><td>col_b</td><td>0%</td><td>4 distinct among 5, so 80% unique</td><td>999-99-9999 in 4 of 5 rows (80% conformance); "N/A" in 1</td><td>SSN. Mask. The "N/A" row needs an exception rule; a conformance setting of 100% would reject the column.</td></tr>
 <tr><td>col_c</td><td>0%</td><td>5 distinct among 5, so 100% unique</td><td>4 digits</td><td>Primary key candidate (it looks like <code>customer_id</code>). Handle consistently.</td></tr>
 </tbody></table></div>
+
 <p>The point of col_b: a column can be clearly sensitive even though not all rows match the pattern, which is why tools expose a minimum conformance percent instead of demanding 100.</p></details></div>

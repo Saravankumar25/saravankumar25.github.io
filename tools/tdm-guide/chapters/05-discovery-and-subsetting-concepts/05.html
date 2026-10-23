@@ -1,9 +1,15 @@
 <h2 id="c5-reduced-vs-full">5.11 Reduced copies and full copies</h2>
+
 <p>A subset is one way to make a test copy small. There are other ways to get a test copy, and each has a place. The comparison below is a general guide, with the Delphix statements marked.</p>
+
 <p>A full physical copy is the most realistic but the slowest and most exposed. A subset is small and quick to refresh but may miss rare cases. A virtual copy looks full but shares storage with its source, so it is cheap to create, but it still holds all the data and needs masking. <span class="badge concept">General concept</span></p>
+
 <p><span class="badge doc">From docs</span> Delphix describes virtualization as producing "a functioning database or filesystem copy that is lightweight and ephemeral" (terminology page), and its introduction claims that ten virtual copies can fit into the space of one physical copy. The pages I read do not describe a subsetting feature for Delphix, so treat "virtual copy" and "subset" as two different answers to the same cost problem: Delphix makes full copies cheap; Informatica and GenRocket make copies small.</p>
+
 <h2 id="c5-masking-and-subsetting">5.12 How masking and subsetting combine</h2>
+
 <p>You rarely do one without the other: subsetting shrinks the set of real records, and masking changes what remains. Three orders are possible. <span class="badge concept">General concept</span></p>
+
 <div class="tablewrap"><table><caption>Possible orders of subsetting and masking</caption>
 <thead><tr><th>Order</th><th>How it works</th><th>Good</th><th>Watch out</th></tr></thead>
 <tbody>
@@ -11,8 +17,11 @@
 <tr><td>Mask, then subset</td><td>Mask everything, then select the slice from the masked copy</td><td>Nothing unmasked leaves the masking step</td><td>Masks the whole database (slow), and filters on masked columns pick different rows than expected</td></tr>
 <tr><td>Both in one run</td><td>Select and mask while copying to the target</td><td>Fast, one job, one schedule</td><td>Needs a tool that supports it, and careful setup</td></tr>
 </tbody></table></div>
+
 <p><span class="badge doc">From docs</span> Both Informatica and GenRocket support the third pattern. In Informatica, a plan can contain masking components (policies and rules) and subset components (entities, groups) together (User Guide 10.5.10, p.304; and p.135 for masking plans). The plan also says whether to mask data in place in the source database or in stream into a target database (p.150). In GenRocket, "Mask and subset data set together by providing both the masking and subset parameters in a G-Subset Configuration" (G-Subset Overview). Its sensitive columns are replaced with synthetic values in a temporary file before the rows are inserted, and the sensitive values are never read.</p>
+
 <p>The key requirement when you combine them is <strong>consistency</strong>. The masked customer 1004 in <code>CUSTOMERS</code> must be the same masked customer 1004 that the kept orders point to. Informatica's docs describe "auto cascades" that mask a parent key and its child foreign keys with the same value (p.91), and Delphix says its masking keeps primary and foreign keys consistent across tables and databases (Delphix "Introduction to Delphix Masking"). <a href="06-masking-concepts.html">The masking concepts chapter</a> explains how.</p>
+
 <div class="tablewrap"><table class="sample"><caption>The zip code subset from section 5.10, with names masked (the masked values are illustrative)</caption>
 <thead><tr><th>customer_id</th><th>first_name (before)</th><th>last_name (before)</th><th>first_name (after)</th><th>last_name (after)</th><th>zip_code</th></tr></thead>
 <tbody>
@@ -20,12 +29,17 @@
 <tr><td>1004</td><td>Kiran</td><td>Rao</td><td>Mohan</td><td>Verma</td><td>560034</td></tr>
 <tr><td>1007</td><td>Neha</td><td>Shah</td><td>Tara</td><td>Bose</td><td>560001</td></tr>
 </tbody></table></div>
+
 <p>Notice that the key <code>customer_id</code> is unchanged, so the 6 kept orders still point at the right rows. Notice too that zip codes were left alone here. As the <a href="04-sensitive-data-and-regulations.html">sensitive data chapter</a> showed, a zip code is an indirect identifier, so whether it stays is a decision for the compliance officer.</p>
+
 <h3 id="c5-genrocket-subset">GenRocket's subsetting at a glance</h3>
+
 <p><span class="badge doc">From docs</span> GenRocket's database subsetting is called G-Subset (formerly G-Migration+). It plans from the source schema, runs in the customer's environment and migrates to a destination database of the same type. Conditions are a Where clause, a percentage or a number of rows, on one table only; related rows follow, other tables can be marked for full load, and custom referential integrity can be added when the source declares none. It does not support composite keys at present (GenRocket "G-Subset Overview", <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-overview-formerly-g-migration" target="_blank" rel="noopener">source page ↗</a>).</p>
 
 <h2 id="c5-mistakes">Common mistakes and gotchas</h2>
+
 <div class="callout warn"><strong class="ctitle">Mistakes beginners make</strong>
+
 <ul>
 <li><strong>Taking "the first N rows" of every table.</strong> It creates orphans. Always start from a driving table and follow relationships.</li>
 <li><strong>Trusting discovery output without review.</strong> Reject coincidental key matches, add missed sensitive columns.</li>
@@ -36,6 +50,7 @@
 </ul></div>
 
 <h2 id="c5-recap">Recap</h2>
+
 <div class="callout recap"><strong class="ctitle">Remember</strong><ul>
 <li>Discovery and profiling come first: they report types, patterns, sensitive-looking columns, key candidates and relationships, from metadata (names and types) and from data (values, usually sampled).</li>
 <li>Profiles guess. False positives waste effort or change keys; false negatives leak data. A human reviews and approves.</li>

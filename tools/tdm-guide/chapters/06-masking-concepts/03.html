@@ -1,5 +1,7 @@
 <h2 id="c6-deterministic">6.5 Same input, same output: deterministic masking and referential integrity</h2>
+
 <p>This is the idea that separates amateur masking from professional masking. Imagine ShopSphere masks <code>CUSTOMERS.customer_id</code> randomly, and then masks <code>ORDERS.customer_id</code> randomly in a separate step:</p>
+
 <div class="tablewrap"><table class="sample"><caption>What happens when the same key is masked independently, versus consistently (illustrative)</caption>
 <thead><tr><th>Column</th><th>Original</th><th>Random each time</th><th>Deterministic (same seed)</th></tr></thead>
 <tbody>
@@ -7,26 +9,35 @@
 <tr><td>ORDERS.customer_id (Asha's order 5001)</td><td>1001</td><td>90377</td><td>48213</td></tr>
 <tr><td>Join CUSTOMERS to ORDERS</td><td>works</td><td><strong>no match: order 5001 is an orphan</strong></td><td>works</td></tr>
 </tbody></table></div>
+
 <p>Masking a <em>primary key</em> or <em>foreign key</em> is only safe if every copy of the same real value turns into the same masked value. The same holds across systems: if the billing database and the orders database both hold customer 1001, they must both end up with 48213, or reconciliation tests will fail. This property is called <dfn>deterministic</dfn> (Informatica: <dfn>repeatable</dfn>) masking, and referential integrity depends on it.</p>
+
 <h3 id="c6-how-tools-do-it">How the tools achieve it</h3>
+
 <ul>
 <li><strong>Informatica seed and repeatable output.</strong> With repeatable output, "John Smith" is masked as "Frank Martinez" in every table, account number 1234 always becomes 6549 and 5678 always becomes 3214, across runs. A seed, a number from 1 through 999 with default 1, is the starting point; use the same seed on the same kind of column in different tables. An administrator can set a central seed that overrides all others, and a seed can come from a parameter file (pp.154 to 155). <span class="badge doc">From docs</span></li>
 <li><strong>Informatica cascades.</strong> An <em>auto cascade</em> masks a parent key and the related foreign keys in child tables with the same value, applied by default where key constraints exist (p.91). A <em>value cascade</em> does the same for similar columns that are not linked by a key, such as <code>employee_num</code> in one table and <code>EmpID</code> in another, by choosing a driving column (p.90). <span class="badge doc">From docs</span></li>
 <li><strong>Delphix key and domain.</strong> Most algorithms carry a key; the same algorithm with the same key gives the same output, and changing the key changes every output (the Algorithms page gives an example where "Michelle" becomes "Rachael" and after rekeying "Ben"). Because each domain has one default algorithm, every column found in that domain is masked the same way (Discovering your sensitive data). <span class="badge doc">From docs</span></li>
 <li><strong>Delphix across engines.</strong> Algorithms can be synchronised between masking engines so that two engines mask the same input the same way. Algorithms that cannot guarantee the same output, such as the variable Date Shift, SecureShuffle and the random Secure Lookup, are called non-deterministic and cannot be used for syncable masking, while a fixed Date Shift is deterministic (Algorithm syncability page). <span class="badge doc">From docs</span></li>
 </ul>
+
 <div class="callout warn"><strong class="ctitle">Things that quietly break consistency</strong>
+
 <ul>
 <li><strong>Different spellings of the same value.</strong> Informatica's key masking is case sensitive by default, so "john brown" and "JOHN BROWN" can mask differently unless you convert the source to one format first with a preprocessing expression (p.166). Delphix Secure Lookup has a case-sensitive option and whitespace options with similar effects.</li>
 <li><strong>The value hiding inside another column.</strong> A name in <code>FIRST_NAME</code> may also appear inside <code>FULL_NAME</code> or <code>DESCRIPTION</code>. Informatica's delimited string masking masks such substrings consistently, for example "Donne, John" and "John Donne, General Manager" (pp.166 to 167).</li>
 <li><strong>Random options.</strong> A "random" mode is fine for a column that nothing links to. The Delphix Secure Lookup RANDOMIZE method "does not maintain referential integrity and should never be used" where it is required.</li>
 <li><strong>Different algorithm or seed for the same data in two jobs.</strong> Keep one policy and one seed or key per kind of data (this is what a policy from <a href="04-sensitive-data-and-regulations.html">the sensitive data chapter</a> is for).</li>
 </ul></div>
+
 <div class="callout tip"><strong class="ctitle">Repeatable output has a price</strong>
+
 <p>The same property that keeps joins working also means the mapping can be recomputed by anyone who has the seed or key and the algorithm. For a small value space (an SSN has about a billion possibilities) that is guessable. Treat seeds and keys as secrets, store them outside the test environment, and rotate them when policy says so (Delphix lets you randomise an algorithm key through its API; the Algorithms page gives the endpoint).</p></div>
 
 <h2 id="c6-irreversible">6.6 Irreversibility, uniqueness and collisions</h2>
+
 <p><strong>Irreversible by design.</strong> A good masking technique throws the original away. Substitution picks an unrelated value; shuffle and key masking cannot be undone without the seed and source. Encryption and tokenization are the exceptions (section 6.2). <strong>Unique by need.</strong> Some columns must not repeat: primary keys, SSNs, emails used as login names. A technique that can produce the same output for two inputs (a collision) will break them. Choose by need:</p>
+
 <div class="tablewrap"><table><caption>When uniqueness matters</caption>
 <thead><tr><th>Need</th><th>Technique that gives it</th><th>Source</th></tr></thead>
 <tbody>
@@ -37,21 +48,29 @@
 </tbody></table></div>
 
 <h2 id="c6-modes">6.7 Static or dynamic, in-place or on-the-fly</h2>
+
 <p>Two different choices are often mixed up. <span class="badge concept">General concept</span> <strong>Static versus dynamic</strong> asks <em>when</em> data is masked. <strong>In-place versus on-the-fly</strong> asks <em>where</em> the masked data ends up.</p>
+
 <div class="compare"><div><h4>Static masking</h4>
+
 <p>Create a masked copy once. The copy is stored, and from then on anyone using it sees masked data. This is what test data management normally does.</p></div>
 <div><h4>Dynamic masking</h4>
+
 <p>Mask at the moment of reading, depending on who asks. The stored data stays real, and an application or proxy hides values from some users. It protects production views, not test copies. The TDM sources I read do not cover it.</p></div></div>
+
 <p>A word of caution on vocabulary: GenRocket also uses "dynamically" for masking that happens as rows are inserted into the destination, which is closer to on-the-fly than to the dynamic masking above (GenRocket "SDM and Data Subsetting Overview").</p>
+
 <div class="tablewrap"><table><caption>In-place and on-the-fly</caption>
 <thead><tr><th>Method</th><th>What happens</th><th>Typical use</th></tr></thead>
 <tbody>
 <tr><td>In-place</td><td>Updates the data in the source environment itself with masked values</td><td>You first make a copy (for example a virtual copy), then mask the copy in place. Never point it at production.</td></tr>
 <tr><td>On-the-fly</td><td>Reads unmasked data from the source and writes masked data to a different target</td><td>Producing a masked copy directly from a source, together with subsetting</td></tr>
 </tbody></table></div>
+
 <p><span class="badge doc">From docs</span> Delphix defines both in its masking job settings: in-place jobs update the source environment with the masked values; on-the-fly jobs read unmasked data from the source and write masked data to the target (create, view, edit, delete, verify jobs page). Informatica says a masking plan indicates whether to mask data in place in the source database or in stream in a target database (p.150). The masked-copy approach fits the rule from <a href="04-sensitive-data-and-regulations.html">the sensitive data chapter</a>: ask at which moment unmasked data exists outside production.</p>
 
 <h2 id="c6-risks">6.8 Risks and what goes wrong</h2>
+
 <div class="tablewrap"><table><caption>Common risks in masking projects</caption>
 <thead><tr><th>Risk</th><th>What happens</th><th>Defence</th></tr></thead>
 <tbody>
