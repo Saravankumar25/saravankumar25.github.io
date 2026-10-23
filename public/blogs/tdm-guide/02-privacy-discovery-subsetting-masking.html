@@ -1,24 +1,11 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 2: Privacy, discovery, subsetting and masking: the concepts | TDM Guide</title><meta name="description" content="The sensitive data and laws that shape every project, then three of the four core techniques explained in plain words before any tool appears: finding data, shrinking it, and hiding it safely."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/02-privacy-discovery-subsetting-masking.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 2: Privacy, discovery, subsetting and masking: the concepts | TDM Guide"><meta property="og:description" content="The sensitive data and laws that shape every project, then three of the four core techniques explained in plain words before any tool appears: finding data, shrinking it, and hiding it safely."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}try{var s=localStorage.getItem('tdm-sidebar');if(!s&&matchMedia('(max-width:860px)').matches)s='hidden';if(s==='hidden')document.documentElement.setAttribute('data-sidebar','hidden')}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="true" title="Hide or show the sidebar ([)">☰ <span>Contents</span></button><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" id="sidebar" aria-label="Chapter navigation"><div class="sbtop"><a class="allchap" href="index.html">← All 10 chapters</a><button type="button" class="sbhide" data-sidebar-hide title="Hide the sidebar ([)">« Hide</button></div><h3>Chapters</h3><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="current" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a><a class="" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a><a class="" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a><a class="" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, the capstone and the glossary</a><a class="" href="sources-and-limitations.html"><span class="n">··</span> About the sources</a></div><h3>In this chapter</h3><div class="section-list"><details class="grpbox" open data-grp="c2-s1"><summary>Sensitive data, privacy laws and policies</summary><div class="secs"><a href="#c4-words-to-know">2.1 Words to know first</a><a href="#c4-what-is-sensitive">2.2 What is sensitive data?</a><a href="#c4-pii-phi-pci">2.3 The three families: PII, PHI and PCI</a><a href="#c4-identifiers">2.4 Direct and indirect identifiers: why &quot;just remove the names&quot; fails</a><a href="#c4-regulations">2.5 Privacy laws and standards in plain words</a><a href="#c4-classification">2.6 Data classification: how sensitive is each column?</a><a href="#c4-finding">2.7 How sensitive data is found</a><a href="#c4-policies">2.8 Policies, rules and data domains</a><a href="#c4-owners">2.9 Who owns what?</a><a href="#c4-walkthrough">2.10 Walkthrough: from a legal requirement to a policy</a><a href="#c4-leaks">2.11 Where test copies leak</a><a href="#c4-cases">2.12 A judgement call: free text</a><a href="#c4-mistakes">2.13 Common mistakes and gotchas</a><a href="#c4-recap">2.14 Recap</a></div></details><details class="grpbox" data-grp="c2-s2"><summary>Discovery, profiling and subsetting: the concepts</summary><div class="secs"><a href="#c5-words-to-know">2.15 Words to know first</a><a href="#c5-discovery">2.16 Data discovery and profiling</a><a href="#c5-metadata-vs-data">2.17 Metadata profiling and data profiling</a><a href="#c5-keys">2.18 Finding keys and relationships</a><a href="#c5-human-review">2.19 Reading the results: false positives, false negatives and human review</a><a href="#c5-subsetting">2.20 What is data subsetting?</a><a href="#c5-types">2.21 Types of subset</a><a href="#c5-driver-tables">2.22 Driver tables and child rows</a><a href="#c5-referential-integrity">2.23 Keeping referential integrity</a><a href="#c5-worked-example">2.24 Worked example: a ShopSphere subset, before and after</a><a href="#c5-reduced-vs-full">2.25 Reduced copies and full copies</a><a href="#c5-masking-and-subsetting">2.26 How masking and subsetting combine</a><a href="#c5-mistakes">2.27 Common mistakes and gotchas</a><a href="#c5-recap">2.28 Recap</a></div></details><details class="grpbox" data-grp="c2-s3"><summary>Data masking: the concepts</summary><div class="secs"><a href="#c6-words-to-know">2.29 Words to know first</a><a href="#c6-compare-terms">2.30 Masking and its neighbours</a><a href="#c6-goals">2.31 What good masked data looks like</a><a href="#c6-techniques">2.32 Common masking techniques</a><a href="#c6-deterministic">2.33 Same input, same output: deterministic masking and referential integrity</a><a href="#c6-irreversible">2.34 Irreversibility, uniqueness and collisions</a><a href="#c6-modes">2.35 Static or dynamic, in-place or on-the-fly</a><a href="#c6-risks">2.36 Risks and what goes wrong</a><a href="#c6-choosing">2.37 Choosing a technique</a><a href="#c6-validate">2.38 Validating masked data</a><a href="#c6-mistakes">2.39 Common mistakes and gotchas</a><a href="#c6-recap">2.40 Recap</a></div></details></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">TDM GUIDE / FOUNDATIONS / CHAPTER 02 OF 10</p><h1>Privacy, discovery, subsetting and masking: the concepts</h1><div class="meta"><span>Saravan Kumar M K</span><span>Updated 2026-10-23</span><span>40 sections</span></div><p class="chapter-summary">The sensitive data and laws that shape every project, then three of the four core techniques explained in plain words before any tool appears: finding data, shrinking it, and hiding it safely.</p></div><details class="pagetoc"><summary>Contents of this chapter</summary><details class="grpbox" open data-grp="c2-s1"><summary>Sensitive data, privacy laws and policies</summary><div class="secs"><a href="#c4-words-to-know">2.1 Words to know first</a><a href="#c4-what-is-sensitive">2.2 What is sensitive data?</a><a href="#c4-pii-phi-pci">2.3 The three families: PII, PHI and PCI</a><a href="#c4-identifiers">2.4 Direct and indirect identifiers: why &quot;just remove the names&quot; fails</a><a href="#c4-regulations">2.5 Privacy laws and standards in plain words</a><a href="#c4-classification">2.6 Data classification: how sensitive is each column?</a><a href="#c4-finding">2.7 How sensitive data is found</a><a href="#c4-policies">2.8 Policies, rules and data domains</a><a href="#c4-owners">2.9 Who owns what?</a><a href="#c4-walkthrough">2.10 Walkthrough: from a legal requirement to a policy</a><a href="#c4-leaks">2.11 Where test copies leak</a><a href="#c4-cases">2.12 A judgement call: free text</a><a href="#c4-mistakes">2.13 Common mistakes and gotchas</a><a href="#c4-recap">2.14 Recap</a></div></details><details class="grpbox" data-grp="c2-s2"><summary>Discovery, profiling and subsetting: the concepts</summary><div class="secs"><a href="#c5-words-to-know">2.15 Words to know first</a><a href="#c5-discovery">2.16 Data discovery and profiling</a><a href="#c5-metadata-vs-data">2.17 Metadata profiling and data profiling</a><a href="#c5-keys">2.18 Finding keys and relationships</a><a href="#c5-human-review">2.19 Reading the results: false positives, false negatives and human review</a><a href="#c5-subsetting">2.20 What is data subsetting?</a><a href="#c5-types">2.21 Types of subset</a><a href="#c5-driver-tables">2.22 Driver tables and child rows</a><a href="#c5-referential-integrity">2.23 Keeping referential integrity</a><a href="#c5-worked-example">2.24 Worked example: a ShopSphere subset, before and after</a><a href="#c5-reduced-vs-full">2.25 Reduced copies and full copies</a><a href="#c5-masking-and-subsetting">2.26 How masking and subsetting combine</a><a href="#c5-mistakes">2.27 Common mistakes and gotchas</a><a href="#c5-recap">2.28 Recap</a></div></details><details class="grpbox" data-grp="c2-s3"><summary>Data masking: the concepts</summary><div class="secs"><a href="#c6-words-to-know">2.29 Words to know first</a><a href="#c6-compare-terms">2.30 Masking and its neighbours</a><a href="#c6-goals">2.31 What good masked data looks like</a><a href="#c6-techniques">2.32 Common masking techniques</a><a href="#c6-deterministic">2.33 Same input, same output: deterministic masking and referential integrity</a><a href="#c6-irreversible">2.34 Irreversibility, uniqueness and collisions</a><a href="#c6-modes">2.35 Static or dynamic, in-place or on-the-fly</a><a href="#c6-risks">2.36 Risks and what goes wrong</a><a href="#c6-choosing">2.37 Choosing a technique</a><a href="#c6-validate">2.38 Validating masked data</a><a href="#c6-mistakes">2.39 Common mistakes and gotchas</a><a href="#c6-recap">2.40 Recap</a></div></details></details><div class="grp" id="c2-s1"><span class="grplabel">Sensitive data, privacy laws and policies</span><span class="day">Day 43</span></div>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 2: Privacy, discovery, subsetting and masking: the concepts | TDM Guide</title><meta name="description" content="The sensitive data and laws that shape every project, then three of the four core techniques explained in plain words before any tool appears: finding data, shrinking it, and hiding it safely."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/02-privacy-discovery-subsetting-masking.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 2: Privacy, discovery, subsetting and masking: the concepts | TDM Guide"><meta property="og:description" content="The sensitive data and laws that shape every project, then three of the four core techniques explained in plain words before any tool appears: finding data, shrinking it, and hiding it safely."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}try{var s=localStorage.getItem('tdm-sidebar');if(!s&&matchMedia('(max-width:860px)').matches)s='hidden';if(s==='hidden')document.documentElement.setAttribute('data-sidebar','hidden')}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="true" title="Hide or show the sidebar ([)">☰ <span>Contents</span></button><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" id="sidebar" aria-label="Chapter navigation"><div class="sbtop"><a class="allchap" href="index.html">← All 10 chapters</a><button type="button" class="sbhide" data-sidebar-hide title="Hide the sidebar ([)">« Hide</button></div><h3>Chapters</h3><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="current" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a><a class="" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a><a class="" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a><a class="" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, the capstone and the glossary</a></div><h3>In this chapter</h3><div class="section-list"><details class="grpbox" open data-grp="c2-s1"><summary>Sensitive data, privacy laws and policies</summary><div class="secs"><a href="#c4-words-to-know">2.1 Words to know first</a><a href="#c4-what-is-sensitive">2.2 What is sensitive data?</a><a href="#c4-pii-phi-pci">2.3 The three families: PII, PHI and PCI</a><a href="#c4-identifiers">2.4 Direct and indirect identifiers: why &quot;just remove the names&quot; fails</a><a href="#c4-regulations">2.5 Privacy laws and standards in plain words</a><a href="#c4-classification">2.6 Data classification: how sensitive is each column?</a><a href="#c4-finding">2.7 How sensitive data is found</a><a href="#c4-policies">2.8 Policies, rules and data domains</a><a href="#c4-owners">2.9 Who owns what?</a><a href="#c4-walkthrough">2.10 Walkthrough: from a legal requirement to a policy</a><a href="#c4-leaks">2.11 Where test copies leak</a><a href="#c4-cases">2.12 A judgement call: free text</a><a href="#c4-mistakes">2.13 Common mistakes and gotchas</a><a href="#c4-recap">2.14 Recap</a></div></details><details class="grpbox" data-grp="c2-s2"><summary>Discovery, profiling and subsetting: the concepts</summary><div class="secs"><a href="#c5-words-to-know">2.15 Words to know first</a><a href="#c5-discovery">2.16 Data discovery and profiling</a><a href="#c5-metadata-vs-data">2.17 Metadata profiling and data profiling</a><a href="#c5-keys">2.18 Finding keys and relationships</a><a href="#c5-human-review">2.19 Reading the results: false positives, false negatives and human review</a><a href="#c5-subsetting">2.20 What is data subsetting?</a><a href="#c5-types">2.21 Types of subset</a><a href="#c5-driver-tables">2.22 Driver tables and child rows</a><a href="#c5-referential-integrity">2.23 Keeping referential integrity</a><a href="#c5-worked-example">2.24 Worked example: a ShopSphere subset, before and after</a><a href="#c5-reduced-vs-full">2.25 Reduced copies and full copies</a><a href="#c5-masking-and-subsetting">2.26 How masking and subsetting combine</a><a href="#c5-mistakes">2.27 Common mistakes and gotchas</a><a href="#c5-recap">2.28 Recap</a></div></details><details class="grpbox" data-grp="c2-s3"><summary>Data masking: the concepts</summary><div class="secs"><a href="#c6-words-to-know">2.29 Words to know first</a><a href="#c6-compare-terms">2.30 Masking and its neighbours</a><a href="#c6-goals">2.31 What good masked data looks like</a><a href="#c6-techniques">2.32 Common masking techniques</a><a href="#c6-deterministic">2.33 Same input, same output: deterministic masking and referential integrity</a><a href="#c6-irreversible">2.34 Irreversibility, uniqueness and collisions</a><a href="#c6-modes">2.35 Static or dynamic, in-place or on-the-fly</a><a href="#c6-risks">2.36 Risks and what goes wrong</a><a href="#c6-choosing">2.37 Choosing a technique</a><a href="#c6-validate">2.38 Validating masked data</a><a href="#c6-mistakes">2.39 Common mistakes and gotchas</a><a href="#c6-recap">2.40 Recap</a></div></details></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">CHAPTER 02</p><h1>Privacy, discovery, subsetting and masking: the concepts</h1><p class="chapter-summary">The sensitive data and laws that shape every project, then three of the four core techniques explained in plain words before any tool appears: finding data, shrinking it, and hiding it safely.</p></div><details class="pagetoc"><summary>Contents of this chapter</summary><details class="grpbox" open data-grp="c2-s1"><summary>Sensitive data, privacy laws and policies</summary><div class="secs"><a href="#c4-words-to-know">2.1 Words to know first</a><a href="#c4-what-is-sensitive">2.2 What is sensitive data?</a><a href="#c4-pii-phi-pci">2.3 The three families: PII, PHI and PCI</a><a href="#c4-identifiers">2.4 Direct and indirect identifiers: why &quot;just remove the names&quot; fails</a><a href="#c4-regulations">2.5 Privacy laws and standards in plain words</a><a href="#c4-classification">2.6 Data classification: how sensitive is each column?</a><a href="#c4-finding">2.7 How sensitive data is found</a><a href="#c4-policies">2.8 Policies, rules and data domains</a><a href="#c4-owners">2.9 Who owns what?</a><a href="#c4-walkthrough">2.10 Walkthrough: from a legal requirement to a policy</a><a href="#c4-leaks">2.11 Where test copies leak</a><a href="#c4-cases">2.12 A judgement call: free text</a><a href="#c4-mistakes">2.13 Common mistakes and gotchas</a><a href="#c4-recap">2.14 Recap</a></div></details><details class="grpbox" data-grp="c2-s2"><summary>Discovery, profiling and subsetting: the concepts</summary><div class="secs"><a href="#c5-words-to-know">2.15 Words to know first</a><a href="#c5-discovery">2.16 Data discovery and profiling</a><a href="#c5-metadata-vs-data">2.17 Metadata profiling and data profiling</a><a href="#c5-keys">2.18 Finding keys and relationships</a><a href="#c5-human-review">2.19 Reading the results: false positives, false negatives and human review</a><a href="#c5-subsetting">2.20 What is data subsetting?</a><a href="#c5-types">2.21 Types of subset</a><a href="#c5-driver-tables">2.22 Driver tables and child rows</a><a href="#c5-referential-integrity">2.23 Keeping referential integrity</a><a href="#c5-worked-example">2.24 Worked example: a ShopSphere subset, before and after</a><a href="#c5-reduced-vs-full">2.25 Reduced copies and full copies</a><a href="#c5-masking-and-subsetting">2.26 How masking and subsetting combine</a><a href="#c5-mistakes">2.27 Common mistakes and gotchas</a><a href="#c5-recap">2.28 Recap</a></div></details><details class="grpbox" data-grp="c2-s3"><summary>Data masking: the concepts</summary><div class="secs"><a href="#c6-words-to-know">2.29 Words to know first</a><a href="#c6-compare-terms">2.30 Masking and its neighbours</a><a href="#c6-goals">2.31 What good masked data looks like</a><a href="#c6-techniques">2.32 Common masking techniques</a><a href="#c6-deterministic">2.33 Same input, same output: deterministic masking and referential integrity</a><a href="#c6-irreversible">2.34 Irreversibility, uniqueness and collisions</a><a href="#c6-modes">2.35 Static or dynamic, in-place or on-the-fly</a><a href="#c6-risks">2.36 Risks and what goes wrong</a><a href="#c6-choosing">2.37 Choosing a technique</a><a href="#c6-validate">2.38 Validating masked data</a><a href="#c6-mistakes">2.39 Common mistakes and gotchas</a><a href="#c6-recap">2.40 Recap</a></div></details></details><div class="grp" id="c2-s1"><span class="grplabel">Sensitive data, privacy laws and policies</span></div>
 <p>In <a href="01-welcome-why-tdm-and-data-basics.html#c1-s2">the why-TDM chapter</a> you saw why teams cannot simply copy production into testing. The main reason is simple: production is full of real people's private details. In <a href="01-welcome-why-tdm-and-data-basics.html#c1-s3">the data basics chapter</a> you learned what tables, columns and keys are. This section joins the two ideas. Before any tool can protect data, someone has to say what "sensitive" means, which laws care about it, and how a tool can recognise it among thousands of columns.</p>
 
 <p>This is the vocabulary layer of TDM. Every later chapter (discovery, subsetting, masking, and all three tools) uses the words defined here: PII, PHI, PCI, policy, rule, data domain, classification. If those words are fuzzy, the tools will feel like a maze of unexplained menus. If they are clear, the tools will feel like different dialects of the same language.</p>
 
-<div class="callout recap"><strong class="ctitle">What you will learn</strong><ul>
-<li>What "sensitive data" means, and the three families you will hear about all the time: PII, PHI and PCI.</li>
-<li>The difference between direct and indirect identifiers, and why removing names is not enough to make data anonymous.</li>
-<li>What GDPR and HIPAA are in plain words, who they apply to, and the ideas behind them (consent, minimum necessary, de-identification). Other laws are mentioned only in general terms.</li>
-<li>How data is classified by sensitivity, and how a tool finds sensitive columns using column names, data patterns and lists of values.</li>
-<li>What a TDM <em>policy</em>, <em>rule</em> and <em>data domain</em> are, with the exact structure Informatica uses and the matching Delphix words.</li>
-<li>Who owns which decision: compliance officer, data steward, TDM engineer.</li>
-</ul></div>
 
-<div class="callout note"><strong class="ctitle">What this section is based on</strong>
 
-<p><span class="badge doc">From docs</span> The tool statements come from the Informatica TDM 10.5.10 User Guide (PDF, February 2026, 455 pages), chapter 4 "Policies" (PDF pages 71 to 85, especially the PII, PHI and PCI policy packs on pages 77 to 80), and from the Delphix Continuous Compliance 2026.5 documentation (last published October 16, 2026): the pages "Discovering your sensitive data", "Delphix masking terminology", "Managing domains", "Out of the box profiling settings" and "ASDD standard profile set". One GenRocket help page on column profiling is mentioned briefly.</p>
 
-<p><span class="badge concept">General concept</span> The legal summaries (GDPR, HIPAA and others) and the identifier examples are general background written for this guide. They are not taken from the tool documentation.</p>
-
-<p><strong>This is not legal advice.</strong> The laws below are summarised in plain words so you can follow conversations at work. Real compliance decisions belong to your organisation's compliance officer and legal team.</p></div>
 
 <h2 id="c4-words-to-know">2.1 Words to know first</h2>
 
@@ -64,7 +51,7 @@
 
 <p>Production data is protected by firewalls, access reviews and monitoring. A test database usually has none of that. Many people can log in, copies get passed around, and some environments live with outside vendors or in the cloud. If a real SSN sits in a test table, it carries production's legal weight into a place with a fraction of production's security. That mismatch is the whole reason this section exists.</p></div>
 
-<p>Delphix's own introduction makes the same point from the tool side: organisations face data breaches and pressure from regulators, and encryption helps protect data on disks and in transit but is, in their words, ill-suited for protecting non-production environments used for development, testing and reporting. Their answer is to replace confidential values with fictitious but realistic ones. <span class="badge doc">From docs</span> (Delphix "Introduction to Delphix Masking", <a class="badge-link" href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">source page ↗</a>).</p>
+<p>Delphix's own introduction makes the same point from the tool side: organisations face data breaches and pressure from regulators, and encryption helps protect data on disks and in transit but is, in their words, ill-suited for protecting non-production environments used for development, testing and reporting. Their answer is to replace confidential values with fictitious but realistic ones.  (Delphix "Introduction to Delphix Masking", <a class="badge-link" href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">source page ↗</a>).</p>
 
 <div class="callout tip"><strong class="ctitle">A quick test you can apply at work</strong>
 
@@ -76,7 +63,7 @@
 
 <h3 id="c4-pii">2.3.1 PII: personally identifiable information</h3>
 
-<p><span class="badge concept">General concept</span> PII is data that identifies a person. The definition differs a little between countries and laws, but the everyday list is stable:</p>
+<p> PII is data that identifies a person. The definition differs a little between countries and laws, but the everyday list is stable:</p>
 
 <ul>
 <li>Names, email addresses, phone numbers, postal addresses.</li>
@@ -87,7 +74,7 @@
 
 <p>ShopSphere's <code>CUSTOMERS</code> table is almost pure PII: <code>first_name</code>, <code>last_name</code>, <code>email</code>, <code>phone</code>, <code>ssn</code>, <code>date_of_birth</code>, <code>zip_code</code> and <code>tax_id</code>.</p>
 
-<p><span class="badge doc">From docs</span> Informatica ships a ready-made <strong>PII policy pack</strong>. It lists 26 data domains, each paired with a default masking rule (User Guide 10.5.10, pp.78 to 79). Reading the list is a quick way to see what a vendor treats as PII:</p>
+<p> Informatica ships a ready-made <strong>PII policy pack</strong>. It lists 26 data domains, each paired with a default masking rule (User Guide 10.5.10, pp.78 to 79). Reading the list is a quick way to see what a vendor treats as PII:</p>
 
 <div class="tablewrap"><table><caption>Data domains in the Informatica PII policy pack (User Guide 10.5.10, pp.78-79), grouped by us for readability</caption>
 <thead><tr><th>Group (our label)</th><th>Data domains in the pack</th></tr></thead>
@@ -104,7 +91,7 @@
 
 <h3 id="c4-phi">2.3.2 PHI: protected health information</h3>
 
-<p><span class="badge concept">General concept</span> PHI is health data that can be linked to a person. The health data alone ("type 2 diabetes") is not what makes it PHI. The link to an identifiable individual does. A list of diagnoses with no names or IDs and no way to trace back is a different thing from a patient record.</p>
+<p> PHI is health data that can be linked to a person. The health data alone ("type 2 diabetes") is not what makes it PHI. The link to an identifiable individual does. A list of diagnoses with no names or IDs and no way to trace back is a different thing from a patient record.</p>
 
 <p>ShopSphere is a retailer, so it has no medical records. To make the idea concrete, imagine a hypothetical ShopSphere feature, "ShopSphere Pharmacy", with a table <code>PRESCRIPTIONS(rx_id, customer_id, diagnosis_code, drug_name, insurer_member_id)</code>. Then:</p>
 
@@ -115,21 +102,21 @@
 <tr><td>9002</td><td>1003</td><td>J45.909</td><td>Salbutamol inhaler</td><td>HP-5501-913</td></tr>
 </tbody></table></div>
 
-<p>Here <code>diagnosis_code</code> and <code>drug_name</code> are health facts, <code>insurer_member_id</code> is an identifier, and <code>customer_id</code> links them to Asha or Meera. Together they are PHI. The same pack idea exists in Informatica: the <strong>PHI policy pack</strong> lists 17 domains, among them Medical Record Number, Health Plan Beneficiary Number, Device Identifier Serial Number, Certificate License Number, Account Number, Birth Date, Email Address, IP Address, Web URL, Social Security Number and ZIP (User Guide 10.5.10, p.79). <span class="badge doc">From docs</span></p>
+<p>Here <code>diagnosis_code</code> and <code>drug_name</code> are health facts, <code>insurer_member_id</code> is an identifier, and <code>customer_id</code> links them to Asha or Meera. Together they are PHI. The same pack idea exists in Informatica: the <strong>PHI policy pack</strong> lists 17 domains, among them Medical Record Number, Health Plan Beneficiary Number, Device Identifier Serial Number, Certificate License Number, Account Number, Birth Date, Email Address, IP Address, Web URL, Social Security Number and ZIP (User Guide 10.5.10, p.79). </p>
 
 <div class="callout note"><strong class="ctitle">Look closely at what the pack contains</strong>
 
 <p>The PHI pack is mostly <em>identifiers</em> that appear in healthcare data: names, record numbers, plan numbers, dates, ZIP. It does not try to list every diagnosis. That tells you how privacy rules think: what makes a health record dangerous is that it can be traced to a person, so removing or masking the identifiers does most of the protective work.</p></div>
 
-<p>Delphix organises its detection logic into <em>profile sets</em>. Besides the recommended ASDD Standard set, it ships legacy sets named "Financial - Legacy" and "HIPAA - Legacy" (Delphix "Out of the box profiling settings"). <span class="badge doc">From docs</span> Delphix's standard set also has domains with explicitly medical names, such as MEDICAL_CODES, MEDICAL_DRUG and BLOOD_TYPE, and a domain called HIPAA_DATE (Delphix "ASDD standard profile set" listing). The words "HIPAA Date" hint at a rule HIPAA has about dates, which section 2.5 explains.</p>
+<p>Delphix organises its detection logic into <em>profile sets</em>. Besides the recommended ASDD Standard set, it ships legacy sets named "Financial - Legacy" and "HIPAA - Legacy" (Delphix "Out of the box profiling settings").  Delphix's standard set also has domains with explicitly medical names, such as MEDICAL_CODES, MEDICAL_DRUG and BLOOD_TYPE, and a domain called HIPAA_DATE (Delphix "ASDD standard profile set" listing). The words "HIPAA Date" hint at a rule HIPAA has about dates, which section 2.5 explains.</p>
 
 <h3 id="c4-pci">2.3.3 PCI: payment card data</h3>
 
-<p><span class="badge concept">General concept</span> PCI refers to the Payment Card Industry. The <em>PCI DSS</em> (Data Security Standard) is a rulebook created by the card brands for anyone who stores, processes or sends card data. It is not a government law. It is a contractual standard: merchants who ignore it can lose the right to take card payments, and can be fined by their payment partners. In TDM talk, "PCI data" means card number, card expiry date, security code, cardholder name.</p>
+<p> PCI refers to the Payment Card Industry. The <em>PCI DSS</em> (Data Security Standard) is a rulebook created by the card brands for anyone who stores, processes or sends card data. It is not a government law. It is a contractual standard: merchants who ignore it can lose the right to take card payments, and can be fined by their payment partners. In TDM talk, "PCI data" means card number, card expiry date, security code, cardholder name.</p>
 
 <p>ShopSphere's shared schema has no card column, but any real online shop would have one (or would store a token from a payment provider). If it did, it would look like <code>4539 1596 8210 2773</code>. This is the number Informatica's own documentation uses as a masking example (User Guide 10.5.10, p.158).</p>
 
-<p><span class="badge doc">From docs</span> The Informatica <strong>PCI policy pack</strong> is short: Account Number, Birth Date, Credit Card, Expiration Date, First Name and Last Name (User Guide 10.5.10, p.80).</p>
+<p> The Informatica <strong>PCI policy pack</strong> is short: Account Number, Birth Date, Credit Card, Expiration Date, First Name and Last Name (User Guide 10.5.10, p.80).</p>
 
 <div class="callout warn"><strong class="ctitle">Do not copy these numbers from the docs into your own tests</strong>
 
@@ -156,7 +143,7 @@
 
 <p>Easy to forget, which is why they cause leaks.</p></div></div>
 
-<p><span class="badge concept">General concept</span> Research on public records, most famously by the computer scientist Latanya Sweeney, has found that a large share of people in the United States can be singled out from just three facts: zip code, full date of birth and gender. The exact percentage depends on the data set and the year, so do not quote a number from this guide. Remember the shape of the result: three boring columns, one unique person.</p>
+<p> Research on public records, most famously by the computer scientist Latanya Sweeney, has found that a large share of people in the United States can be singled out from just three facts: zip code, full date of birth and gender. The exact percentage depends on the data set and the year, so do not quote a number from this guide. Remember the shape of the result: three boring columns, one unique person.</p>
 
 <h3 id="c4-reid-example">2.4.2 A worked example with ShopSphere</h3>
 
@@ -184,19 +171,19 @@
 
 <div class="callout real"><strong class="ctitle">Free text is the other hiding place</strong>
 
-<p>Informatica's data domain page notes that a Social Security number might sit in an <code>SSN</code> column, in a column called <code>SOCIAL_SECURITY</code> in another table, and also inside a <code>COMMENTS</code> column (User Guide 10.5.10, p.73). <span class="badge doc">From docs</span> A support agent typing "customer 123-45-6789 called about refund" into a notes field has just put an SSN where no column name will ever warn you. Delphix's Free Text Redaction algorithm exists for exactly this problem (<a href="02-privacy-discovery-subsetting-masking.html#c2-s3">the masking concepts chapter</a> explains it).</p></div>
+<p>Informatica's data domain page notes that a Social Security number might sit in an <code>SSN</code> column, in a column called <code>SOCIAL_SECURITY</code> in another table, and also inside a <code>COMMENTS</code> column (User Guide 10.5.10, p.73).  A support agent typing "customer 123-45-6789 called about refund" into a notes field has just put an SSN where no column name will ever warn you. Delphix's Free Text Redaction algorithm exists for exactly this problem (<a href="02-privacy-discovery-subsetting-masking.html#c2-s3">the masking concepts chapter</a> explains it).</p></div>
 
 <h2 id="c4-regulations">2.5 Privacy laws and standards in plain words</h2>
 
 <div class="callout warn"><strong class="ctitle">This is not legal advice</strong>
 
-<p>Everything in this section is a plain-language orientation <span class="badge concept">General concept</span>, written so you can follow a meeting and ask good questions. Laws change, have exceptions, and apply differently depending on where your company and your customers are. Treat every statement here as "roughly true, check with legal". The tool documentation does not teach law, so none of this comes from the tool sources, except where marked.</p></div>
+<p>Everything in this section is a plain-language orientation , written so you can follow a meeting and ask good questions. Laws change, have exceptions, and apply differently depending on where your company and your customers are. Treat every statement here as "roughly true, check with legal". The tool documentation does not teach law, so none of this comes from the tool sources, except where marked.</p></div>
 
 <p>Why should a tester care about laws? Because when a court or regulator looks at a data leak, they do not ask "was it production or test?". They ask "was personal data properly protected?". A copy in a test database is still personal data.</p>
 
 <h3 id="c4-gdpr">2.5.1 GDPR in plain words</h3>
 
-<p><span class="badge concept">General concept</span> The <dfn>GDPR</dfn> (General Data Protection Regulation) is a European Union law that has applied since May 2018.</p>
+<p> The <dfn>GDPR</dfn> (General Data Protection Regulation) is a European Union law that has applied since May 2018.</p>
 
 <ul>
 <li><strong>What it protects:</strong> "personal data", meaning any information about an identifiable person. That is broader than a name and number: online identifiers and location data can count.</li>
@@ -209,7 +196,7 @@
 
 <h3 id="c4-hipaa">2.5.2 HIPAA in plain words</h3>
 
-<p><span class="badge concept">General concept</span> <dfn>HIPAA</dfn> is a United States law from 1996 that, through its Privacy and Security Rules, protects health information.</p>
+<p> <dfn>HIPAA</dfn> is a United States law from 1996 that, through its Privacy and Security Rules, protects health information.</p>
 
 <ul>
 <li><strong>What it protects:</strong> PHI, health information that identifies a person (section 2.3).</li>
@@ -219,7 +206,7 @@
 <li><strong>Penalties at a high level:</strong> civil penalties in tiers depending on how careless the organisation was, and criminal penalties for knowing misuse.</li>
 </ul>
 
-<p><span class="badge doc">From docs</span> Both tools mention these regimes only briefly. Delphix's introduction lists HIPAA, PCI and GDPR as examples of mandates organisations must stay compliant with, and Informatica packages its PHI and PCI policy packs for healthcare and banking respectively (User Guide 10.5.10, pp.79 to 80). GenRocket's column-profiling page says that identifying PII early helps organisations meet requirements "such as HIPAA".</p>
+<p> Both tools mention these regimes only briefly. Delphix's introduction lists HIPAA, PCI and GDPR as examples of mandates organisations must stay compliant with, and Informatica packages its PHI and PCI policy packs for healthcare and banking respectively (User Guide 10.5.10, pp.79 to 80). GenRocket's column-profiling page says that identifying PII early helps organisations meet requirements "such as HIPAA".</p>
 
 <h3 id="c4-others">2.5.3 Other regimes, kept general</h3>
 
@@ -246,7 +233,7 @@
 
 <h2 id="c4-classification">2.6 Data classification: how sensitive is each column?</h2>
 
-<p><dfn>Data classification</dfn> means labelling data by how much damage a leak could do, so that you can apply protection in proportion. Organisations choose their own scheme. A typical four-level scheme <span class="badge concept">General concept</span> looks like this:</p>
+<p><dfn>Data classification</dfn> means labelling data by how much damage a leak could do, so that you can apply protection in proportion. Organisations choose their own scheme. A typical four-level scheme  looks like this:</p>
 
 <div class="tablewrap"><table><caption>A typical four-level classification (illustrative; your organisation's levels may differ)</caption>
 <thead><tr><th>Level</th><th>Meaning</th><th>ShopSphere example</th><th>Typical test-data action</th></tr></thead>
@@ -262,15 +249,15 @@
 <h3 id="c4-classification-in-tools">2.6.1 How the tools record sensitivity</h3>
 
 <ul>
-<li><span class="badge doc">From docs</span> <strong>Informatica.</strong> When you create a data domain you set a <em>sensitivity level</em> for all its columns, chosen from levels that the Administrator defines (User Guide 10.5.10, p.75). Separately, each column in a project has a <em>Sensitive</em> flag. The guide says the flag is "for reference only" and does not affect processing, and that assigning a data domain to a column marks it sensitive automatically (p.89). A different property, <em>Restricted</em>, does change behaviour: the integration service does not write a restricted column's value to the target (p.89).</li>
-<li><span class="badge doc">From docs</span> <strong>Delphix.</strong> A <em>domain</em> ties a category of sensitive data (the terminology page's example is social security numbers) to the way it should be secured. The profiler assigns the domain to a column and, with it, the domain's default masking algorithm (Delphix "Discovering your sensitive data").</li>
+<li> <strong>Informatica.</strong> When you create a data domain you set a <em>sensitivity level</em> for all its columns, chosen from levels that the Administrator defines (User Guide 10.5.10, p.75). Separately, each column in a project has a <em>Sensitive</em> flag. The guide says the flag is "for reference only" and does not affect processing, and that assigning a data domain to a column marks it sensitive automatically (p.89). A different property, <em>Restricted</em>, does change behaviour: the integration service does not write a restricted column's value to the target (p.89).</li>
+<li> <strong>Delphix.</strong> A <em>domain</em> ties a category of sensitive data (the terminology page's example is social security numbers) to the way it should be secured. The profiler assigns the domain to a column and, with it, the domain's default masking algorithm (Delphix "Discovering your sensitive data").</li>
 </ul>
 
 <div class="callout tip"><strong class="ctitle">Sensitive flag versus masking rule</strong>
 
 <p>In Informatica, marking a column "sensitive" does not mask it. It documents your decision. Masking happens only when a rule is assigned to the column and a plan runs (see <a href="05-informatica-masking-generation-workflows.html#c5-s1">the Informatica data masking chapter</a>). Beginners often tick "sensitive" and think the job is done.</p></div>
 
-<p><span class="badge concept">General concept</span> Many laws treat some data as especially sensitive: ethnic origin, political opinions, religion, trade union membership, health, sexual orientation, biometrics. The Delphix ASDD Standard profile set has domains for these (for example ETHNICITY, RELIGIOUS_ORIEN, POLITICAL_ORIEN, UNION_MEMBERSHIP_NO, BIOMETRIC and MEDICAL_CODES), and the default masking method it shows for BIOMETRIC is NullValueLookup. <span class="badge doc">From docs</span> For the most delicate data, blanking a value is often better than faking it.</p>
+<p> Many laws treat some data as especially sensitive: ethnic origin, political opinions, religion, trade union membership, health, sexual orientation, biometrics. The Delphix ASDD Standard profile set has domains for these (for example ETHNICITY, RELIGIOUS_ORIEN, POLITICAL_ORIEN, UNION_MEMBERSHIP_NO, BIOMETRIC and MEDICAL_CODES), and the default masking method it shows for BIOMETRIC is NullValueLookup.  For the most delicate data, blanking a value is often better than faking it.</p>
 
 <h2 id="c4-finding">2.7 How sensitive data is found</h2>
 
@@ -294,14 +281,14 @@
 
 <h3 id="c4-informatica-patterns">2.7.2 What Informatica does: data patterns and metadata patterns</h3>
 
-<p><span class="badge doc">From docs</span> Informatica describes a <em>data domain</em> using regular expressions. A <dfn>regular expression</dfn> (regex) is a compact text recipe for a pattern, for example "three digits, a hyphen, two digits, a hyphen, four digits". The guide separates two kinds (User Guide 10.5.10, pp.74 to 75):</p>
+<p> Informatica describes a <em>data domain</em> using regular expressions. A <dfn>regular expression</dfn> (regex) is a compact text recipe for a pattern, for example "three digits, a hyphen, two digits, a hyphen, four digits". The guide separates two kinds (User Guide 10.5.10, pp.74 to 75):</p>
 
 <ul>
 <li>A <strong>data pattern</strong> matches the values. Its example for Social Security numbers is <code>[0-9]{3}-[0-9]{2}-[0-9]{4}</code>.</li>
 <li>A <strong>metadata pattern</strong> matches column names. Its examples for Social Security numbers are <code>.*SSN*</code>, <code>.*SOCIAL*</code> and <code>.*SECURITY*</code>.</li>
 </ul>
 
-<p>A column joins the data domain if it matches <em>any</em> expression in the domain. When you run a data domain profile you choose to search the data only, the column name only, or both, how many rows to read (default 1,000) and a minimum conformance percent, since not every row has to match the pattern (pp.95 and 100). <span class="badge doc">From docs</span></p>
+<p>A column joins the data domain if it matches <em>any</em> expression in the domain. When you run a data domain profile you choose to search the data only, the column name only, or both, how many rows to read (default 1,000) and a minimum conformance percent, since not every row has to match the pattern (pp.95 and 100). </p>
 
 <pre><code>Data pattern     [0-9]{3}-[0-9]{2}-[0-9]{4}     matches   123-45-6789
 Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
@@ -309,7 +296,7 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 
 <h3 id="c4-delphix-classifiers">2.7.3 What Delphix does: profile sets, classifiers and domains</h3>
 
-<p><span class="badge doc">From docs</span> Delphix calls the detection step <em>profiling</em>. A profiling job examines metadata (column names and types) and possibly the data itself, and when it decides a column is sensitive it assigns the matching domain and that domain's default masking algorithm. It only covers the tables and files in the chosen rule set (Delphix "Discovering your sensitive data", <a class="badge-link" href="https://help.delphix.com/cc/current/content/discovering_your_sensitive_data.htm" target="_blank" rel="noopener">source page ↗</a>).</p>
+<p> Delphix calls the detection step <em>profiling</em>. A profiling job examines metadata (column names and types) and possibly the data itself, and when it decides a column is sensitive it assigns the matching domain and that domain's default masking algorithm. It only covers the tables and files in the chosen rule set (Delphix "Discovering your sensitive data", <a class="badge-link" href="https://help.delphix.com/cc/current/content/discovering_your_sensitive_data.htm" target="_blank" rel="noopener">source page ↗</a>).</p>
 
 <p>The logic is packaged in <strong>classifiers</strong>, grouped into <strong>profile sets</strong>. Four classifier frameworks exist, and they map neatly to our signals:</p>
 
@@ -322,7 +309,7 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 <tr><td><code>LIST</code></td><td>Whether data values appear in a list of values, to match or reject a domain.</td><td>Data</td></tr>
 </tbody></table></div>
 
-<p>The recommended built-in profile set, the "ASDD Standard" set, includes list classifiers that can detect domains such as FIRST_NAME and LAST_NAME even when column names are meaningless, though data-level detection is limited to English values (Delphix "Out of the box profiling settings"). <span class="badge doc">From docs</span></p>
+<p>The recommended built-in profile set, the "ASDD Standard" set, includes list classifiers that can detect domains such as FIRST_NAME and LAST_NAME even when column names are meaningless, though data-level detection is limited to English values (Delphix "Out of the box profiling settings"). </p>
 
 <h3 id="c4-delphix-ssn">2.7.4 One real example: how Delphix recognises an SSN</h3>
 
@@ -338,9 +325,9 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 
 <h3 id="c4-genrocket-names">2.7.5 What GenRocket does: column names only</h3>
 
-<p><span class="badge doc">From docs</span> GenRocket's "Data Column Profiling" scans column <em>headers</em>, not the data. It checks whether each column name contains a keyword from a list: 102 built-in names plus any your organisation adds (for example <code>user_email</code> matches <code>email</code>, <code>client_ssn</code> matches <code>ssn</code>). It then shows you the matches to choose from (GenRocket "PII Discovery with Data Column Profiling", <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/pii-discovery-with-data-column-profiling-identify-sensitive-data-columns" target="_blank" rel="noopener">source page ↗</a>). It is the "column name" signal on its own. The upside is that the tool never needs to read real values.</p>
+<p> GenRocket's "Data Column Profiling" scans column <em>headers</em>, not the data. It checks whether each column name contains a keyword from a list: 102 built-in names plus any your organisation adds (for example <code>user_email</code> matches <code>email</code>, <code>client_ssn</code> matches <code>ssn</code>). It then shows you the matches to choose from (GenRocket "PII Discovery with Data Column Profiling", <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/pii-discovery-with-data-column-profiling-identify-sensitive-data-columns" target="_blank" rel="noopener">source page ↗</a>). It is the "column name" signal on its own. The upside is that the tool never needs to read real values.</p>
 
-<p>You will read many patterns in policies, so here is the minimum: <code>[0-9]</code> means one digit, <code>{n}</code> repeats the previous item n times, <code>?</code> makes it optional, <code>*</code> means zero or more, and a backslash makes a special character literal (User Guide 10.5.10, pp.74 to 75). <span class="badge doc">From docs</span> A data pattern says what a value <em>looks like</em>, not what it <em>is</em>: <code>[0-9]{10}</code> matches a phone number and also a ten-digit order reference. That is the source of false alarms (false positives); a real SSN column stored without hyphens that fails the pattern is a false negative. Dialects differ: Delphix patterns start with <code>(?i)</code> for case-insensitive matching.</p>
+<p>You will read many patterns in policies, so here is the minimum: <code>[0-9]</code> means one digit, <code>{n}</code> repeats the previous item n times, <code>?</code> makes it optional, <code>*</code> means zero or more, and a backslash makes a special character literal (User Guide 10.5.10, pp.74 to 75).  A data pattern says what a value <em>looks like</em>, not what it <em>is</em>: <code>[0-9]{10}</code> matches a phone number and also a ten-digit order reference. That is the source of false alarms (false positives); a real SSN column stored without hyphens that fails the pattern is a false negative. Dialects differ: Delphix patterns start with <code>(?i)</code> for case-insensitive matching.</p>
 
 <h3 id="c4-shopsphere-detection">2.7.6 ShopSphere example: what each signal finds</h3>
 
@@ -362,7 +349,7 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 
 <h2 id="c4-policies">2.8 Policies, rules and data domains</h2>
 
-<p>Now the vocabulary promised at the start. A TDM tool needs one place that records the answer to "what is sensitive here, and how do we protect each kind?". Informatica calls that place a <strong>policy</strong>. The structure is worth learning exactly, because it explains many menus you will see later. <span class="badge doc">From docs</span> (User Guide 10.5.10, p.71)</p>
+<p>Now the vocabulary promised at the start. A TDM tool needs one place that records the answer to "what is sensitive here, and how do we protect each kind?". Informatica calls that place a <strong>policy</strong>. The structure is worth learning exactly, because it explains many menus you will see later.  (User Guide 10.5.10, p.71)</p>
 
 <figure class="diagram"><svg viewBox="0 0 800 300" role="img" aria-label="Nested boxes: a Policy contains Data domains; each Data domain contains patterns and preferred rules; each rule is a masking technique with parameters">
 <rect x="10" y="10" width="780" height="280" rx="10" fill="none" stroke="currentColor" stroke-width="2"/>
@@ -398,7 +385,7 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 <div><dt>Policy pack</dt><dd>A ready-made policy shipped with TDM. There are three: PII, PHI and PCI, visible after installation (p.77).</dd></div>
 </dl>
 
-<p>The order of work does not matter. The guide says you can create policies, rules and domains in any order, then connect them: create masking rules, define domains, assign rules to domains, create a policy, assign domains to it (p.72). <span class="badge doc">From docs</span></p>
+<p>The order of work does not matter. The guide says you can create policies, rules and domains in any order, then connect them: create masking rules, define domains, assign rules to domains, create a policy, assign domains to it (p.72). </p>
 
 <div class="callout example"><strong class="ctitle">Illustrative ShopSphere policy</strong>
 
@@ -417,7 +404,7 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 
 <h3 id="c4-delphix-vocab">2.8.2 The same ideas in Delphix words</h3>
 
-<p><span class="badge doc">From docs</span> Delphix splits the same job differently. Use this table to translate when you move between chapters (Delphix "Discovering your sensitive data", "Managing domains" and "Delphix masking terminology").</p>
+<p> Delphix splits the same job differently. Use this table to translate when you move between chapters (Delphix "Discovering your sensitive data", "Managing domains" and "Delphix masking terminology").</p>
 
 <div class="tablewrap"><table><caption>Vocabulary translation. Matching rows are close, not identical.</caption>
 <thead><tr><th>Idea</th><th>Informatica</th><th>Delphix</th><th>GenRocket</th></tr></thead>
@@ -436,13 +423,13 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 <figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_domain.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_domain.png" alt="Delphix Continuous Compliance Settings, Domains page listing domain names such as ACCOUNT_NO, ADDRESS, AGE and BLOOD_TYPE with their owner and masking method" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Settings, Domains in Delphix Continuous Compliance. Each row is a domain (ACCOUNT_NO, ADDRESS, AGE ...) with its owner and its default masking method, and the grid shows 10 of 69 domains in this build. This is the "domain equals category plus default algorithm" idea in one picture. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_domains.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 
-<p>Two behaviours from the Delphix "Managing domains" page are worth knowing: each domain has a single default masking algorithm, so you need a separate domain for each distinct algorithm you want the profiler to assign, and changing a domain's default algorithm only affects future profiling runs, not assignments that already exist in rule sets. <span class="badge doc">From docs</span></p>
+<p>Two behaviours from the Delphix "Managing domains" page are worth knowing: each domain has a single default masking algorithm, so you need a separate domain for each distinct algorithm you want the profiler to assign, and changing a domain's default algorithm only affects future profiling runs, not assignments that already exist in rule sets. </p>
 
 <p>Both tools use the domain idea for a consistency reason as well. Delphix says the domain mechanism helps ensure the same masking algorithm is applied consistently across rule sets whenever a particular type of sensitive data is discovered. Informatica says all columns in a domain are masked with the same rule, so "SSN" and "SOCIAL_SECURITY" in different tables end up masked the same way (p.73). Consistency across tables is a major theme of <a href="02-privacy-discovery-subsetting-masking.html#c2-s3">the masking concepts chapter</a>.</p>
 
 <h2 id="c4-owners">2.9 Who owns what?</h2>
 
-<p><span class="badge concept">General concept</span> Tools do not decide what is sensitive. People do. Titles differ between companies, but these roles appear in most TDM programmes:</p>
+<p> Tools do not decide what is sensitive. People do. Titles differ between companies, but these roles appear in most TDM programmes:</p>
 
 <div class="tablewrap"><table><caption>Typical roles around sensitive data (organisation-specific; confirm yours)</caption>
 <thead><tr><th>Role</th><th>Owns</th><th>Typical question they answer</th></tr></thead>
@@ -455,30 +442,30 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 <tr><td>Security team</td><td>Access control and logging for the TDM tool and test environments.</td><td>"Who may run a masking job or see the unmasked source?"</td></tr>
 </tbody></table></div>
 
-<p>The tools reflect the split of duties. <span class="badge doc">From docs</span> In Informatica, you need the <em>View Policies</em> and <em>Manage Policies</em> privileges to view and work with policies (User Guide 10.5.10, p.77), and the Administrator defines the list of sensitivity levels (p.75). Delphix has roles too: an "Editing a user-defined algorithm" permission is described on its algorithms page, and a separate best-practice page covers defining masking roles.</p>
+<p>The tools reflect the split of duties.  In Informatica, you need the <em>View Policies</em> and <em>Manage Policies</em> privileges to view and work with policies (User Guide 10.5.10, p.77), and the Administrator defines the list of sensitivity levels (p.75). Delphix has roles too: an "Editing a user-defined algorithm" permission is described on its algorithms page, and a separate best-practice page covers defining masking roles.</p>
 
 <div class="callout real"><strong class="ctitle">Keep a written record</strong>
 
-<p>A good habit: when the compliance officer and data steward decide how a column is handled, write the decision down next to the column name (a spreadsheet is fine) and reference it from the policy. Both tools can attach descriptions. Informatica also lets you link Informatica Business Glossary terms to policies, domains and rules, so people can look up what a term means from one central place (User Guide 10.5.10, p.82). <span class="badge doc">From docs</span></p></div>
+<p>A good habit: when the compliance officer and data steward decide how a column is handled, write the decision down next to the column name (a spreadsheet is fine) and reference it from the policy. Both tools can attach descriptions. Informatica also lets you link Informatica Business Glossary terms to policies, domains and rules, so people can look up what a term means from one central place (User Guide 10.5.10, p.82). </p></div>
 
 <h2 id="c4-walkthrough">2.10 Walkthrough: from a legal requirement to a policy</h2>
 
-<p>Here is the whole chain in one story, so the pieces above fit together. This is the shape of a real engagement, simplified. It is an illustrative process <span class="badge concept">General concept</span> that uses the tool facts from earlier sections where marked.</p>
+<p>Here is the whole chain in one story, so the pieces above fit together. This is the shape of a real engagement, simplified. It is an illustrative process  that uses the tool facts from earlier sections where marked.</p>
 
 <ol class="steps">
 <li><strong>Start with the requirement, in business words.</strong><p>ShopSphere's compliance officer says: "No real customer identity may leave production, in India or Germany. Card data never leaves the payment zone." The reason to write it in plain words is that everything later is traced back to this sentence.</p><p class="expect">A one-page statement of scope: which systems, which data subjects, which laws.</p></li>
 <li><strong>Find candidate sensitive columns.</strong><p>Run discovery (<a href="02-privacy-discovery-subsetting-masking.html#c2-s2">the discovery and subsetting concepts chapter</a>, then the tool chapters). The tool proposes columns and domains from names, patterns and lists.</p><p class="expect">A candidate list of columns with a proposed domain and a match score or conformance percent.</p></li>
-<li><strong>Review with the data steward.</strong><p>Remove false alarms, add misses, resolve doubtful ones such as <code>zip_code</code> and <code>tax_id</code>. Informatica's flow lets you approve each suggested domain (User Guide 10.5.10, p.105). <span class="badge doc">From docs</span></p><p class="expect">An approved list, with a short reason for each yes and no.</p></li>
+<li><strong>Review with the data steward.</strong><p>Remove false alarms, add misses, resolve doubtful ones such as <code>zip_code</code> and <code>tax_id</code>. Informatica's flow lets you approve each suggested domain (User Guide 10.5.10, p.105). </p><p class="expect">An approved list, with a short reason for each yes and no.</p></li>
 <li><strong>Classify.</strong><p>Give each approved column a level (section 2.6) and decide the action for each level: mask, null out, or exclude.</p><p class="expect">A table like the lab answer below, signed off by the compliance officer.</p></li>
 <li><strong>Choose a protection for each domain.</strong><p>Pick techniques that keep data usable for tests (see <a href="02-privacy-discovery-subsetting-masking.html#c2-s3">the masking concepts chapter</a>). In Informatica, attach them as preferred rules and mark one default per domain; in Delphix, choose the default algorithm for each domain.</p><p class="expect">Each domain has one default protection and a written reason.</p></li>
-<li><strong>Bundle into a policy and store it.</strong><p>In Informatica you add the domains to a named policy and assign the policy to a project's data source (p.71). You can export policies, domains and rules to XML files and import them into another TDM repository, so a tested policy can travel from a test setup to the real one (p.80). Importing fails if the object already has assignments, so clear them or rename the file first (pp.80 to 81). <span class="badge doc">From docs</span></p><p class="expect">A versioned policy and a copy of its exported files.</p></li>
+<li><strong>Bundle into a policy and store it.</strong><p>In Informatica you add the domains to a named policy and assign the policy to a project's data source (p.71). You can export policies, domains and rules to XML files and import them into another TDM repository, so a tested policy can travel from a test setup to the real one (p.80). Importing fails if the object already has assignments, so clear them or rename the file first (pp.80 to 81). </p><p class="expect">A versioned policy and a copy of its exported files.</p></li>
 <li><strong>Prove it works.</strong><p>Run on a small sample, look at the results, and have a second person check. <a href="02-privacy-discovery-subsetting-masking.html#c2-s3">The masking concepts chapter</a> lists what to check.</p><p class="expect">A short report: columns covered, rule used, sample before and after.</p></li>
-<li><strong>Repeat on change.</strong><p>New columns appear whenever the application changes. Delphix notes that a profiling job only covers tables and files already in the rule set, and that newly reachable objects must be added by hand (Delphix "Discovering your sensitive data"). <span class="badge doc">From docs</span> Re-run discovery on every release.</p><p class="expect">A standing step in the release checklist.</p></li>
+<li><strong>Repeat on change.</strong><p>New columns appear whenever the application changes. Delphix notes that a profiling job only covers tables and files already in the rule set, and that newly reachable objects must be added by hand (Delphix "Discovering your sensitive data").  Re-run discovery on every release.</p><p class="expect">A standing step in the release checklist.</p></li>
 </ol>
 
 <h2 id="c4-leaks">2.11 Where test copies leak</h2>
 
-<p><span class="badge concept">General concept</span> Protecting the test database is not enough. Real data also escapes through developer laptops ("quick samples"), bug tickets and screenshots, application logs, backups taken before masking finished, files sent to vendors, free-text notes and the TDM tool's own staging area. A good policy states where unmasked data may exist, for how long and who can reach it. GenRocket's G-Subset documentation shows one design answer: data stays behind the customer's firewall, sensitive columns are never read, and temporary dump files are removed after the run (GenRocket "G-Subset Overview"). <span class="badge doc">From docs</span></p>
+<p> Protecting the test database is not enough. Real data also escapes through developer laptops ("quick samples"), bug tickets and screenshots, application logs, backups taken before masking finished, files sent to vendors, free-text notes and the TDM tool's own staging area. A good policy states where unmasked data may exist, for how long and who can reach it. GenRocket's G-Subset documentation shows one design answer: data stays behind the customer's firewall, sensitive columns are never read, and temporary dump files are removed after the run (GenRocket "G-Subset Overview"). </p>
 
 <div class="exercise"><h4 id="c2-lab-classify-the-shopsphere-columns">Lab: classify the ShopSphere columns</h4>
 
@@ -510,11 +497,11 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 
 <h2 id="c4-cases">2.12 A judgement call: free text</h2>
 
-<p>Policies cover the common situations. The interesting work is in the edges. The example below is fictional. <span class="badge concept">General concept</span></p>
+<p>Policies cover the common situations. The interesting work is in the edges. The example below is fictional. </p>
 
 <div class="callout example"><strong class="ctitle">Example: "Support agents paste customer details into notes"</strong>
 
-<p>An <code>ORDER_NOTES</code> column (not in the shared schema, added here to illustrate) contains lines like "Customer 123-45-6789 asked for a refund, call 9876543210". No column name flags it, and a column-level data pattern may miss it because the value is a whole sentence. Options: exclude the column from test copies, null it out, or use a free-text redaction algorithm that looks for patterns inside the text. Delphix provides a Free Text Redaction framework for this and says it needs expertise to configure (Delphix "Free Text Redaction (Algorithm frameworks)"). <span class="badge doc">From docs</span> Always check the output with a search for digit patterns afterwards.</p></div>
+<p>An <code>ORDER_NOTES</code> column (not in the shared schema, added here to illustrate) contains lines like "Customer 123-45-6789 asked for a refund, call 9876543210". No column name flags it, and a column-level data pattern may miss it because the value is a whole sentence. Options: exclude the column from test copies, null it out, or use a free-text redaction algorithm that looks for patterns inside the text. Delphix provides a Free Text Redaction framework for this and says it needs expertise to configure (Delphix "Free Text Redaction (Algorithm frameworks)").  Always check the output with a search for digit patterns afterwards.</p></div>
 
 <h2 id="c4-mistakes">2.13 Common mistakes and gotchas</h2>
 
@@ -543,34 +530,16 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 <li>People decide: the compliance officer sets what is sensitive, the data steward explains the data, the TDM engineer builds and runs the policy.</li>
 </ul></div>
 
-<section class="sources"><h4 id="c4-sources">Sources used in this section</h4><ul>
-<li>Informatica TDM 10.5.10 User Guide (PDF, February 2026), chapter 4 "Policies", pp.71 to 85: policy, data domain, rule, data and metadata patterns, sensitivity level, preferred and default rules, PII/PHI/PCI policy packs (pp.77 to 80), business glossary links, privileges.</li>
-<li>Informatica TDM 10.5.10 User Guide, chapter 5 "Data Discovery", pp.86 to 106 (read for): Sensitive and Restricted column properties (p.89), data domain profile sampling options (p.95), profile results and approval (p.105); chapter 8, p.158 (credit card example number).</li>
-<li>Delphix Continuous Compliance 2026.5 docs: <a href="https://help.delphix.com/cc/current/content/discovering_your_sensitive_data.htm" target="_blank" rel="noopener">Discovering your sensitive data</a> (profile set, domain, classifier frameworks); <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a> (domain, rule set, outlier example); <a href="https://help.delphix.com/cc/current/content/managing_domains.htm" target="_blank" rel="noopener">Managing domains</a> (and its screenshot); <a href="https://help.delphix.com/cc/current/content/out_of_the_box_profiling_settings.htm" target="_blank" rel="noopener">Out of the box profiling settings</a>; <a href="https://help.delphix.com/cc/current/content/asdd_standard_profile_set.htm" target="_blank" rel="noopener">ASDD standard profile set</a> (SSN classifiers); <a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a> (regulation mentions); <a href="https://help.delphix.com/cc/current/content/identifying_sensitive_data.htm" target="_blank" rel="noopener">Identifying sensitive data</a> (section index).</li>
-<li>GenRocket help: <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/pii-discovery-with-data-column-profiling-identify-sensitive-data-columns" target="_blank" rel="noopener">PII Discovery with Data Column Profiling</a> (column-header keyword scanning, 102 built-in names).</li>
-<li>General concepts, not from tool sources: summaries of GDPR, HIPAA, PCI DSS, CCPA and India's DPDP Act, the re-identification discussion, the four-level classification scheme and the roles table. Not legal advice.</li>
-<li>Next chapters: <a href="02-privacy-discovery-subsetting-masking.html#c2-s2">the discovery and subsetting concepts chapter</a> (discovery and subsetting), <a href="02-privacy-discovery-subsetting-masking.html#c2-s3">the masking concepts chapter</a> (masking).</li>
-</ul></section>
 
-<div class="grp" id="c2-s2"><span class="grplabel">Discovery, profiling and subsetting: the concepts</span><span class="day">Day 43-44</span></div>
+
+<div class="grp" id="c2-s2"><span class="grplabel">Discovery, profiling and subsetting: the concepts</span></div>
 <p>Imagine you have to move a flat. Before you pack, you walk through every room and list what is there: which boxes are fragile, which items belong together, which papers are private. Only then do you decide what to take and how to wrap it. Test data work follows the same order. First you <em>look inside</em> the production database (discovery and profiling). Then you <em>take only what you need</em> (subsetting). After that, you protect what you took (masking, covered in <a href="02-privacy-discovery-subsetting-masking.html#c2-s3">the masking concepts chapter</a>).</p>
 
 <p>This section teaches the two first steps as ideas, without any tool buttons. It builds on <a href="01-welcome-why-tdm-and-data-basics.html#c1-s3">the data basics chapter</a> (tables, primary keys, foreign keys) and on <a href="02-privacy-discovery-subsetting-masking.html#c2-s1">the sensitive data chapter</a> (what sensitive data is, and how patterns and names reveal it). The hands-on tool chapters that follow are <a href="04-informatica-architecture-discovery-subset.html#c4-s3">Informatica discovery and profiling</a>, <a href="04-informatica-architecture-discovery-subset.html#c4-s4">Informatica data subset</a> and <a href="08-delphix-connect-keys-profiling.html#c8-s4">Delphix profiling</a>.</p>
 
-<div class="callout recap"><strong class="ctitle">What you will learn</strong><ul>
-<li>What data discovery and profiling are, why they come first, and what a profile reports: types, patterns, sensitive-looking columns, keys and relationships.</li>
-<li>The difference between looking at metadata (names and types) and looking at the data itself, and why a human must review the results.</li>
-<li>What data subsetting is, why teams do it (size, speed, cost, privacy), and the main ways to choose a subset: by filter, by percentage or row count, by time window, by driver table.</li>
-<li>What a driver table is, how related "child" rows come along, and how to keep referential integrity so the subset still works.</li>
-<li>How subsetting and masking combine, and how a subset compares with a full copy.</li>
-<li>A worked ShopSphere subset with before and after rows.</li>
-</ul></div>
 
-<div class="callout note"><strong class="ctitle">What this section is based on</strong>
 
-<p><span class="badge doc">From docs</span> Tool statements come from the Informatica TDM 10.5.10 User Guide (PDF, February 2026, 455 pages): chapter 5 "Data Discovery" (PDF pages 86 to 111), chapter 6 "Creating a Data Subset" (pages 112 to 134) and the plan filtering parts of chapter 13 (pages 294 and 304). From the GenRocket help pages: "Synthetic Data Masking (SDM) and Data Subsetting Overview", "G-Subset Overview", "Data Subsetting - How to Add Tables and Subsetting Conditions", "G-Subset Traverse Full Hierarchy Option", "How to Select Tables for Full Migration During Subsetting", "How to Add Custom Referential Integrity to Imported Table Schemas" and "PII Discovery with Data Column Profiling". From Delphix Continuous Compliance 2026.5 (last published October 16, 2026): "Discovering your sensitive data", "Introduction to Delphix Masking" and "Delphix masking terminology".</p>
 
-<p><span class="badge concept">General concept</span> The ShopSphere examples, the comparison tables and the explanation of random versus targeted sampling are written for this guide. Where a type of subset is not described in the documentation I read, I say so.</p></div>
 
 <h2 id="c5-words-to-know">2.15 Words to know first</h2>
 
@@ -591,7 +560,7 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 
 <h3 id="c5-what-is-profiling">2.16.1 What it is</h3>
 
-<p><dfn>Data profiling</dfn> means scanning a data source with software and producing a report of facts about it. <dfn>Data discovery</dfn> is the wider goal: using those facts to decide what to mask, what to subset, and how tables connect. Informatica puts it plainly: run profiles to discover source data for data masking and data subset operations (User Guide 10.5.10, p.86). <span class="badge doc">From docs</span></p>
+<p><dfn>Data profiling</dfn> means scanning a data source with software and producing a report of facts about it. <dfn>Data discovery</dfn> is the wider goal: using those facts to decide what to mask, what to subset, and how tables connect. Informatica puts it plainly: run profiles to discover source data for data masking and data subset operations (User Guide 10.5.10, p.86). </p>
 
 <p>A profile changes nothing: it measures, lists and flags. Unlike a building survey, its flags are guesses that people must confirm.</p>
 
@@ -608,7 +577,7 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 
 <div class="callout why"><strong class="ctitle">Why it matters</strong>
 
-<p>Both Informatica and Delphix describe profiling as the step that feeds the next one. Informatica says that before masking you can discover which columns to mask with the same rules, and before subsetting you can discover relationships between tables and the entities for the subset (User Guide 10.5.10, p.86). Delphix says that after connecting data, the next step is discovering which of it should be secured (Delphix "Discovering your sensitive data"). <span class="badge doc">From docs</span></p></div>
+<p>Both Informatica and Delphix describe profiling as the step that feeds the next one. Informatica says that before masking you can discover which columns to mask with the same rules, and before subsetting you can discover relationships between tables and the entities for the subset (User Guide 10.5.10, p.86). Delphix says that after connecting data, the next step is discovering which of it should be secured (Delphix "Discovering your sensitive data"). </p></div>
 
 <h3 id="c5-what-it-reports">2.16.3 What a profile reports</h3>
 
@@ -616,7 +585,7 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 
 <h3 id="c5-informatica-types">2.16.4 The four profile types in Informatica</h3>
 
-<p><span class="badge doc">From docs</span> The User Guide lists four kinds of profile (pp.86 to 87). Seeing them side by side shows how one tool splits the work:</p>
+<p> The User Guide lists four kinds of profile (pp.86 to 87). Seeing them side by side shows how one tool splits the work:</p>
 
 <div class="tablewrap"><table><caption>Informatica profile types (User Guide 10.5.10, pp.86-87)</caption>
 <thead><tr><th>Type</th><th>What it determines</th><th>Feeds</th></tr></thead>
@@ -646,7 +615,7 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 
 <ul><li>Slower, because it reads rows.</li><li>Finds a column of SSN-shaped values even when its name is meaningless.</li><li>Needs access to real production data, which is itself a privacy decision.</li></ul></div></div>
 
-<p>The tools expose the same split under different names. <span class="badge doc">From docs</span></p>
+<p>The tools expose the same split under different names. </p>
 
 <div class="tablewrap"><table><caption>Metadata versus data profiling in the three tools</caption>
 <thead><tr><th>Tool</th><th>How it splits the two</th><th>Source</th></tr></thead>
@@ -662,15 +631,15 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 
 <h2 id="c5-keys">2.18 Finding keys and relationships</h2>
 
-<p>Subsetting needs to know which tables are parents and which are children. Ideally the database declares its primary and foreign keys and the tool simply reads them. In practice many databases declare few or none (for performance, or because the application enforces the links). GenRocket's documentation says this directly: custom referential integrity is added "when referential integrity does not exist between tables in the source database" but the user still needs to subset (GenRocket "How to Add Custom Referential Integrity to Imported Table Schemas"). <span class="badge doc">From docs</span> Discovery fills that gap by inferring the links.</p>
+<p>Subsetting needs to know which tables are parents and which are children. Ideally the database declares its primary and foreign keys and the tool simply reads them. In practice many databases declare few or none (for performance, or because the application enforces the links). GenRocket's documentation says this directly: custom referential integrity is added "when referential integrity does not exist between tables in the source database" but the user still needs to subset (GenRocket "How to Add Custom Referential Integrity to Imported Table Schemas").  Discovery fills that gap by inferring the links.</p>
 
 <h3 id="c5-pk-discovery">2.18.1 Primary key discovery</h3>
 
-<p>A primary key candidate is a column, or a small set of columns, whose values are unique. Informatica's primary key profile reports the percentage of unique values and lets you limit how hard it searches (User Guide 10.5.10, pp.92 to 93). <span class="badge doc">From docs</span></p>
+<p>A primary key candidate is a column, or a small set of columns, whose values are unique. Informatica's primary key profile reports the percentage of unique values and lets you limit how hard it searches (User Guide 10.5.10, pp.92 to 93). </p>
 
 <p>Its options and defaults: the maximum number of columns combined into a key (3), the maximum rows to profile (1,000) and a conformance criterion, the minimum percentage of unique values allowed (99 percent) (p.93).</p>
 
-<p>Why would you allow less than 100 percent? Because real data is messy. If 99.8 percent of values are unique and a few rows are duplicates, the column is probably meant to be a key and the duplicates are data-quality bugs. Informatica notes that a primary key profile is useful to find such non-unique rows (p.92). The result table shows, per candidate, the table, the column or combination of columns, the uniqueness percentage, whether it is verified, any existing constraint and a status of verified, approved or rejected (pp.103 to 104). When you approve a candidate, TDM adds it as a key to the table in its repository, not in the source database. Rejecting a candidate does not affect the subset (p.104). <span class="badge doc">From docs</span></p>
+<p>Why would you allow less than 100 percent? Because real data is messy. If 99.8 percent of values are unique and a few rows are duplicates, the column is probably meant to be a key and the duplicates are data-quality bugs. Informatica notes that a primary key profile is useful to find such non-unique rows (p.92). The result table shows, per candidate, the table, the column or combination of columns, the uniqueness percentage, whether it is verified, any existing constraint and a status of verified, approved or rejected (pp.103 to 104). When you approve a candidate, TDM adds it as a key to the table in its repository, not in the source database. Rejecting a candidate does not affect the subset (p.104). </p>
 
 <div class="callout warn"><strong class="ctitle">Unique does not mean a good key</strong>
 
@@ -678,13 +647,13 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 
 <h3 id="c5-fk-discovery">2.18.2 Foreign key and entity discovery</h3>
 
-<p>To find parent-child links, Informatica's entity profile "returns a list of possible entities by comparing column names in the source tables" (p.93). In the guide's example, Employee, Employee_Detail and Employee_Address all contain an EmpID column, so the profile suggests Employee as an entity with two child tables. When you later subset, a filter on EmpID applies to every table in that relationship. <span class="badge doc">From docs</span></p>
+<p>To find parent-child links, Informatica's entity profile "returns a list of possible entities by comparing column names in the source tables" (p.93). In the guide's example, Employee, Employee_Detail and Employee_Address all contain an EmpID column, so the profile suggests Employee as an entity with two child tables. When you later subset, a filter on EmpID applies to every table in that relationship. </p>
 
 <p>The profile options show what matters when matching columns (p.94): whether to compare using the datatypes the tool inferred or the documented ones, whether comparison is case sensitive, whether to trim spaces first, the maximum number of foreign key results to return and the minimum confidence percent (the share of foreign key values that match). A coincidental match is the risk: two unrelated integer columns can overlap by chance, so discovery proposes and a person approves.</p>
 
-<p>One practical detail: if you choose the entity profile type and the physical database has no primary keys, the profile returns nothing. Run the profile as primary key and entity together, and it can discover both the primary and foreign keys even when the database declares none (p.93). <span class="badge doc">From docs</span></p>
+<p>One practical detail: if you choose the entity profile type and the physical database has no primary keys, the profile returns nothing. Run the profile as primary key and entity together, and it can discover both the primary and foreign keys even when the database declares none (p.93). </p>
 
-<p>Delphix says its masking keeps referential integrity by scanning metadata and data to identify and preserve the primary and foreign key relationships between elements, so that data is masked the same way across tables and databases (Delphix "Introduction to Delphix Masking"). <span class="badge doc">From docs</span> How keys are defined in a Delphix rule set is covered in <a href="08-delphix-connect-keys-profiling.html#c8-s3">the Delphix rule sets and keys chapter</a>.</p>
+<p>Delphix says its masking keeps referential integrity by scanning metadata and data to identify and preserve the primary and foreign key relationships between elements, so that data is masked the same way across tables and databases (Delphix "Introduction to Delphix Masking").  How keys are defined in a Delphix rule set is covered in <a href="08-delphix-connect-keys-profiling.html#c8-s3">the Delphix rule sets and keys chapter</a>.</p>
 
 <h2 id="c5-human-review">2.19 Reading the results: false positives, false negatives and human review</h2>
 
@@ -697,7 +666,7 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 <tr><td><strong>False negative</strong></td><td>Real, but not flagged</td><td>A <code>contact_no</code> column of real phone numbers not matched by any pattern</td><td>Real data leaks into test</td></tr>
 </tbody></table></div>
 
-<p>Between the two, false negatives are the more dangerous in a privacy project, because nobody notices them. That is why discovery tools build review into the workflow, and why you should plan for it. In Informatica, each result row has a status, and you can verify, approve or reject it. The guide says the Verified column is for your own tracking and does not affect data subset operations, and that marking the data domain classification as completed does not affect any process either; it simply records that you reviewed everything (pp.104 to 105). <span class="badge doc">From docs</span> The data viewer for a selected column shows the first 200 records, so reviewers can look at real values before approving (p.105).</p>
+<p>Between the two, false negatives are the more dangerous in a privacy project, because nobody notices them. That is why discovery tools build review into the workflow, and why you should plan for it. In Informatica, each result row has a status, and you can verify, approve or reject it. The guide says the Verified column is for your own tracking and does not affect data subset operations, and that marking the data domain classification as completed does not affect any process either; it simply records that you reviewed everything (pp.104 to 105).  The data viewer for a selected column shows the first 200 records, so reviewers can look at real values before approving (p.105).</p>
 
 <h3 id="c5-review-steps">2.19.1 A review routine that works</h3>
 
@@ -710,7 +679,7 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 
 <h3 id="c5-column-profile">2.19.2 The fourth type: the column profile</h3>
 
-<p>Informatica's <strong>column profile</strong> measures range, list of values and patterns of columns, mainly to infer rules for generating test data; it runs on Oracle and Microsoft SQL Server databases (p.97). <span class="badge doc">From docs</span> It returns in <a href="03-generation-etl-and-tdm.html#c3-s1">the test data classification and generation chapter</a>.</p>
+<p>Informatica's <strong>column profile</strong> measures range, list of values and patterns of columns, mainly to infer rules for generating test data; it runs on Oracle and Microsoft SQL Server databases (p.97).  It returns in <a href="03-generation-etl-and-tdm.html#c3-s1">the test data classification and generation chapter</a>.</p>
 
 <div class="exercise"><h4 id="c2-lab-profile-three-mystery-columns-by-hand">Lab: profile three mystery columns by hand</h4>
 
@@ -749,7 +718,7 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 
 <p>Start with the problem. ShopSphere's production database holds eight years of history: tens of millions of customers, hundreds of millions of orders, terabytes in total. A tester working on the checkout screen does not need all of it. Copying everything to every test environment is slow, expensive and risky. <dfn>Data subsetting</dfn> means copying only a <em>slice</em> of the database, small enough to be cheap, and consistent enough to be useful.</p>
 
-<p><span class="badge doc">From docs</span> Informatica describes the goal as a "small, targeted, and referentially intact copy" of production data for use in a nonproduction environment such as development, test or training, and gives the example of financial data for a specific region or time period (User Guide 10.5.10, p.112). GenRocket frames it the same way: production data may contain sensitive data, "you also do not need all that data for application testing, only a subset" (GenRocket "Synthetic Data Masking (SDM) and Data Subsetting Overview").</p>
+<p> Informatica describes the goal as a "small, targeted, and referentially intact copy" of production data for use in a nonproduction environment such as development, test or training, and gives the example of financial data for a specific region or time period (User Guide 10.5.10, p.112). GenRocket frames it the same way: production data may contain sensitive data, "you also do not need all that data for application testing, only a subset" (GenRocket "Synthetic Data Masking (SDM) and Data Subsetting Overview").</p>
 
 <h3 id="c5-why-subset">2.20.1 Why teams subset</h3>
 
@@ -775,18 +744,18 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 <tr><td><strong>By percentage of rows</strong></td><td>Keep a given share of the rows, such as 25 or 50 percent.</td><td>Limit by percentage in the plan (pp.294, 304).</td><td>"% of rows", usable alone or with a Where clause.</td></tr>
 <tr><td><strong>By absolute number of rows</strong></td><td>Keep a fixed number of rows, such as 100.</td><td>Limit by absolute value (pp.294, 304).</td><td>"# of rows".</td></tr>
 <tr><td><strong>By interval of rows</strong></td><td>Keep a defined interval of rows.</td><td>Limit by an interval of rows (pp.294, 304).</td><td>Not described in the pages I read; the overview example starts at customer id 251 and keeps 100 rows.</td></tr>
-<tr><td><strong>By time window</strong> <span class="badge concept">General concept</span></td><td>A filter on a date column: last 90 days, a financial year.</td><td>The guide's example subset is for "a specific region or time period" (p.112); its database-function example uses a date test, <code>HIREDATE &gt; add_months(current_date, -3)</code> (p.119).</td><td>Possible through a Where clause on a date column; the documentation examples I read use id and state filters.</td></tr>
+<tr><td><strong>By time window</strong> </td><td>A filter on a date column: last 90 days, a financial year.</td><td>The guide's example subset is for "a specific region or time period" (p.112); its database-function example uses a date test, <code>HIREDATE &gt; add_months(current_date, -3)</code> (p.119).</td><td>Possible through a Where clause on a date column; the documentation examples I read use id and state filters.</td></tr>
 <tr><td><strong>By entity or driver table</strong></td><td>Pick rows in one table and bring along everything related.</td><td>Entity with a driving table; example: all data for EmpID 10 (p.121).</td><td>The table that holds the subset conditions drives the rest; related rows come with it.</td></tr>
 <tr><td><strong>Whole tables copied in full</strong></td><td>Some tables (lookups, products) are copied entirely.</td><td>A group with residual tables, to copy unfiltered data (p.116).</td><td>Full-load tables (How to Select Tables for Full Migration).</td></tr>
-<tr><td><strong>Random sample</strong> <span class="badge concept">General concept</span></td><td>Rows picked by chance so the subset resembles the whole.</td><td>The documentation excerpt I had does not say whether a percentage limit picks rows at random.</td><td>Not described as random.</td></tr>
-<tr><td><strong>Targeted sample</strong> <span class="badge concept">General concept</span></td><td>Rows picked on purpose to cover a scenario.</td><td>Done with filters on entity criteria.</td><td>Done with the Where clause.</td></tr>
+<tr><td><strong>Random sample</strong> </td><td>Rows picked by chance so the subset resembles the whole.</td><td>The documentation excerpt I had does not say whether a percentage limit picks rows at random.</td><td>Not described as random.</td></tr>
+<tr><td><strong>Targeted sample</strong> </td><td>Rows picked on purpose to cover a scenario.</td><td>Done with filters on entity criteria.</td><td>Done with the Where clause.</td></tr>
 </tbody></table></div>
 
 <p><strong>A percentage limit is not automatically a random sample.</strong> "Keep 25 percent" says how many rows, not which; the pages I read do not say how rows are picked. GenRocket's own example takes a contiguous block (start at customer 251, take 100). Check the tool before relying on representativeness.</p>
 
-<p>In short: a random sample resembles the whole (realistic averages) but may miss rare cases; a targeted subset covers chosen scenarios but is unrepresentative statistically. <span class="badge concept">General concept</span> Most teams combine them. For cases production lacks entirely, generate data instead (<a href="03-generation-etl-and-tdm.html#c3-s1">the test data classification and generation chapter</a>).</p>
+<p>In short: a random sample resembles the whole (realistic averages) but may miss rare cases; a targeted subset covers chosen scenarios but is unrepresentative statistically.  Most teams combine them. For cases production lacks entirely, generate data instead (<a href="03-generation-etl-and-tdm.html#c3-s1">the test data classification and generation chapter</a>).</p>
 
-<p><span class="badge doc">From docs</span> Informatica filters can use a <em>criteria parameter</em> instead of a fixed value, so one entity and workflow can produce different subsets by changing the parameter file (for example EMPID greater than 100, then 500) (User Guide 10.5.10, p.118).</p>
+<p> Informatica filters can use a <em>criteria parameter</em> instead of a fixed value, so one entity and workflow can produce different subsets by changing the parameter file (for example EMPID greater than 100, then 500) (User Guide 10.5.10, p.118).</p>
 
 <h2 id="c5-driver-tables">2.22 Driver tables and child rows</h2>
 
@@ -818,17 +787,17 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 
 <h3 id="c5-driver-in-informatica">2.22.1 Informatica: the entity and its driving table</h3>
 
-<p><span class="badge doc">From docs</span> In Informatica, an <strong>entity</strong> "consists of a driving table and related tables". The driving table is the starting point; TDM finds the tables related to it from physical (declared) and logical (discovered or added) constraints, and adds them to the entity by default. You then define filter criteria on columns of tables in the entity (User Guide 10.5.10, p.114). The guide's example: Employee as the driving table, with primary key EmpID, three child tables holding an EmpID foreign key, and a fourth table, BankAccounts, linked through an account number from one of the children (p.115). The Entity Map shows the star on the driving table.</p>
+<p> In Informatica, an <strong>entity</strong> "consists of a driving table and related tables". The driving table is the starting point; TDM finds the tables related to it from physical (declared) and logical (discovered or added) constraints, and adds them to the entity by default. You then define filter criteria on columns of tables in the entity (User Guide 10.5.10, p.114). The guide's example: Employee as the driving table, with primary key EmpID, three child tables holding an EmpID foreign key, and a fourth table, BankAccounts, linked through an account number from one of the children (p.115). The Entity Map shows the star on the driving table.</p>
 
 <p>The Entity Map can show all tables, the parents or children of a selected table, or cyclic relationships, and you can disable a relationship; a table left unrelated is excluded (p.115). The guide advises running data discovery before creating an entity so the constraints exist (p.116).</p>
 
 <div class="callout example"><strong class="ctitle">The guide's own small example</strong>
 
-<p>An employee has ID 10 and you want everything about that employee. Employee is the driving table; Employee_History and Employee_Order are related to it by EmpID. Define the criteria "EmpID equals 10". After the plan runs, the target database holds one Employee row for EmpID 10, all of that employee's history rows and all of their orders (p.121). <span class="badge doc">From docs</span></p></div>
+<p>An employee has ID 10 and you want everything about that employee. Employee is the driving table; Employee_History and Employee_Order are related to it by EmpID. Define the criteria "EmpID equals 10". After the plan runs, the target database holds one Employee row for EmpID 10, all of that employee's history rows and all of their orders (p.121). </p></div>
 
 <h3 id="c5-driver-in-genrocket">2.22.2 GenRocket: the subset table and the hierarchy</h3>
 
-<p><span class="badge doc">From docs</span> In GenRocket's G-Subset, only <em>one</em> table in a configuration can have subsetting conditions (Where clause and/or row limit). Rows that meet the condition are included, "all records in related tables associated with those meeting the Where Clause condition will be inserted as well" (Subsetting how-to). The Traverse Full Hierarchy page shows what "related" means. Its example database has Organization (1 row), Department (4), Employee (120), Address, Attendance, Payroll and Qualification (120 each) and Project (8). The condition is on Payroll: <code>hours &gt; 10</code>, limited to 10 rows.</p>
+<p> In GenRocket's G-Subset, only <em>one</em> table in a configuration can have subsetting conditions (Where clause and/or row limit). Rows that meet the condition are included, "all records in related tables associated with those meeting the Where Clause condition will be inserted as well" (Subsetting how-to). The Traverse Full Hierarchy page shows what "related" means. Its example database has Organization (1 row), Department (4), Employee (120), Address, Attendance, Payroll and Qualification (120 each) and Project (8). The condition is on Payroll: <code>hours &gt; 10</code>, limited to 10 rows.</p>
 
 <ul>
 <li><strong>Default behaviour:</strong> G-Subset goes <em>up</em> from the subset table to the top-most parent to build its queries, then migrates from the top down: Organization, Department, Employee, Payroll. Only the ancestor rows related to the chosen Payroll rows move: 10 employees, the departments they belong to, and so on.</li>
@@ -843,7 +812,7 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 
 <h2 id="c5-referential-integrity">2.23 Keeping referential integrity</h2>
 
-<p><dfn>Referential integrity</dfn> is the rule that every foreign key value points to a row that exists. It is the one property a subset must never lose. If it breaks, the application crashes or shows empty pages, and testers blame the data. GenRocket's page defines it in the same plain terms: it "refers to the accuracy and consistency of the defined relationships" between parent and child tables (GenRocket "How to Add Custom Referential Integrity to Imported Table Schemas"). <span class="badge doc">From docs</span></p>
+<p><dfn>Referential integrity</dfn> is the rule that every foreign key value points to a row that exists. It is the one property a subset must never lose. If it breaks, the application crashes or shows empty pages, and testers blame the data. GenRocket's page defines it in the same plain terms: it "refers to the accuracy and consistency of the defined relationships" between parent and child tables (GenRocket "How to Add Custom Referential Integrity to Imported Table Schemas"). </p>
 
 <h3 id="c5-how-it-breaks">2.23.1 How a naive subset breaks it</h3>
 
@@ -859,7 +828,7 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 
 <h3 id="c5-integrity-options">2.23.2 Integrity options in Informatica plans</h3>
 
-<p><span class="badge doc">From docs</span> Informatica goes beyond "no orphans". It also offers several ways to decide <em>how much</em> extra data to pull to keep the subset coherent. You choose the option in the plan's advanced settings, so the same entity can yield different subsets (User Guide 10.5.10, pp.121 to 123). By default all constraint relationships in an entity are "major", which can pull in excess data; you can optimise relations so that the entity has the minimum number of major relations while still covering all tables (p.119).</p>
+<p> Informatica goes beyond "no orphans". It also offers several ways to decide <em>how much</em> extra data to pull to keep the subset coherent. You choose the option in the plan's advanced settings, so the same entity can yield different subsets (User Guide 10.5.10, pp.121 to 123). By default all constraint relationships in an entity are "major", which can pull in excess data; you can optimise relations so that the entity has the minimum number of major relations while still covering all tables (p.119).</p>
 
 <div class="tablewrap"><table><caption>Informatica data integrity options for a subset plan (User Guide 10.5.10, pp.121-123), explained in plain words</caption>
 <thead><tr><th>Option</th><th>What it does</th><th>Size of result</th><th>Notes from the guide</th></tr></thead>
@@ -870,7 +839,7 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 <tr><td>One-way</td><td>Applies criteria on individual tables and pushes them downward only; tables above the top-most filtered table are included in full.</td><td>More than Two-way</td><td>Aims for the smallest subset that does not break referential integrity while including all data from tables above the filtered one.</td></tr>
 </tbody></table></div>
 
-<p>The guide also says cyclic and self-referencing relationships (a table that points to itself, such as employees pointing to managers) need a staging connection for recursive evaluation (pp.114 and 122). <span class="badge doc">From docs</span></p>
+<p>The guide also says cyclic and self-referencing relationships (a table that points to itself, such as employees pointing to managers) need a staging connection for recursive evaluation (pp.114 and 122). </p>
 
 <h2 id="c5-worked-example">2.24 Worked example: a ShopSphere subset, before and after</h2>
 
@@ -964,7 +933,7 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 
 <div class="callout real"><strong class="ctitle">Toy numbers, real principle</strong>
 
-<p>Half is a toy ratio with eight customers; one city of a real ShopSphere might keep 2 to 3 percent. Small shared tables such as the product catalogue are usually copied in full: Informatica uses a group with residual tables to copy unfiltered data (p.116), GenRocket uses full-load tables. <span class="badge doc">From docs</span></p></div>
+<p>Half is a toy ratio with eight customers; one city of a real ShopSphere might keep 2 to 3 percent. Small shared tables such as the product catalogue are usually copied in full: Informatica uses a group with residual tables to copy unfiltered data (p.116), GenRocket uses full-load tables. </p></div>
 
 <div class="exercise"><h4 id="c2-lab-subset-by-a-time-window-instead">Lab: subset by a time window instead</h4>
 
@@ -997,13 +966,13 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 
 <p>A subset is one way to make a test copy small. There are other ways to get a test copy, and each has a place. The comparison below is a general guide, with the Delphix statements marked.</p>
 
-<p>A full physical copy is the most realistic but the slowest and most exposed. A subset is small and quick to refresh but may miss rare cases. A virtual copy looks full but shares storage with its source, so it is cheap to create, but it still holds all the data and needs masking. <span class="badge concept">General concept</span></p>
+<p>A full physical copy is the most realistic but the slowest and most exposed. A subset is small and quick to refresh but may miss rare cases. A virtual copy looks full but shares storage with its source, so it is cheap to create, but it still holds all the data and needs masking. </p>
 
-<p><span class="badge doc">From docs</span> Delphix describes virtualization as producing "a functioning database or filesystem copy that is lightweight and ephemeral" (terminology page), and its introduction claims that ten virtual copies can fit into the space of one physical copy. The pages I read describe only simple row filters, not key-following subsets, for Delphix, so treat "virtual copy" and "subset" as two different answers to the same cost problem: Delphix makes full copies cheap; Informatica and GenRocket make copies small.</p>
+<p> Delphix describes virtualization as producing "a functioning database or filesystem copy that is lightweight and ephemeral" (terminology page), and its introduction claims that ten virtual copies can fit into the space of one physical copy. The pages I read describe only simple row filters, not key-following subsets, for Delphix, so treat "virtual copy" and "subset" as two different answers to the same cost problem: Delphix makes full copies cheap; Informatica and GenRocket make copies small.</p>
 
 <h2 id="c5-masking-and-subsetting">2.26 How masking and subsetting combine</h2>
 
-<p>You rarely do one without the other: subsetting shrinks the set of real records, and masking changes what remains. Three orders are possible. <span class="badge concept">General concept</span></p>
+<p>You rarely do one without the other: subsetting shrinks the set of real records, and masking changes what remains. Three orders are possible. </p>
 
 <div class="tablewrap"><table><caption>Possible orders of subsetting and masking</caption>
 <thead><tr><th>Order</th><th>How it works</th><th>Good</th><th>Watch out</th></tr></thead>
@@ -1013,7 +982,7 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 <tr><td>Both in one run</td><td>Select and mask while copying to the target</td><td>Fast, one job, one schedule</td><td>Needs a tool that supports it, and careful setup</td></tr>
 </tbody></table></div>
 
-<p><span class="badge doc">From docs</span> Both Informatica and GenRocket support the third pattern. In Informatica, a plan can contain masking components (policies and rules) and subset components (entities, groups) together (User Guide 10.5.10, p.304; and p.135 for masking plans). The plan also says whether to mask data in place in the source database or in stream into a target database (p.150). In GenRocket, "Mask and subset data set together by providing both the masking and subset parameters in a G-Subset Configuration" (G-Subset Overview). Its sensitive columns are replaced with synthetic values in a temporary file before the rows are inserted, and the sensitive values are never read.</p>
+<p> Both Informatica and GenRocket support the third pattern. In Informatica, a plan can contain masking components (policies and rules) and subset components (entities, groups) together (User Guide 10.5.10, p.304; and p.135 for masking plans). The plan also says whether to mask data in place in the source database or in stream into a target database (p.150). In GenRocket, "Mask and subset data set together by providing both the masking and subset parameters in a G-Subset Configuration" (G-Subset Overview). Its sensitive columns are replaced with synthetic values in a temporary file before the rows are inserted, and the sensitive values are never read.</p>
 
 <p>The key requirement when you combine them is <strong>consistency</strong>. The masked customer 1004 in <code>CUSTOMERS</code> must be the same masked customer 1004 that the kept orders point to. Informatica's docs describe "auto cascades" that mask a parent key and its child foreign keys with the same value (p.91), and Delphix says its masking keeps primary and foreign keys consistent across tables and databases (Delphix "Introduction to Delphix Masking"). <a href="02-privacy-discovery-subsetting-masking.html#c2-s3">The masking concepts chapter</a> explains how.</p>
 
@@ -1029,7 +998,7 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 
 <h3 id="c5-genrocket-subset">2.26.1 GenRocket's subsetting at a glance</h3>
 
-<p><span class="badge doc">From docs</span> GenRocket's database subsetting is called G-Subset (formerly G-Migration+). It plans from the source schema, runs in the customer's environment and migrates to a destination database of the same type. Conditions are a Where clause, a percentage or a number of rows, on one table only; related rows follow, other tables can be marked for full load, and custom referential integrity can be added when the source declares none. It does not support composite keys at present (GenRocket "G-Subset Overview", <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-overview-formerly-g-migration" target="_blank" rel="noopener">source page ↗</a>).</p>
+<p> GenRocket's database subsetting is called G-Subset (formerly G-Migration+). It plans from the source schema, runs in the customer's environment and migrates to a destination database of the same type. Conditions are a Where clause, a percentage or a number of rows, on one table only; related rows follow, other tables can be marked for full load, and custom referential integrity can be added when the source declares none. It does not support composite keys at present (GenRocket "G-Subset Overview", <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-overview-formerly-g-migration" target="_blank" rel="noopener">source page ↗</a>).</p>
 
 <h2 id="c5-mistakes">2.27 Common mistakes and gotchas</h2>
 
@@ -1056,29 +1025,14 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 <li>Subsetting and masking are partners. Keep keys consistent when you combine them, and check for orphans afterwards.</li>
 </ul></div>
 
-<section class="sources"><h4 id="c5-sources">Sources used in this section</h4><ul>
-<li>Informatica TDM 10.5.10 User Guide (February 2026): chapter 5 "Data Discovery" pp.86 to 111 (profile types, options, results, key and entity discovery); chapter 6 "Creating a Data Subset" pp.112 to 134 (entities, driving tables, integrity options, criteria parameters); chapter 7 pp.135 and 150 (masking plans, in place or in stream); p.91 (auto cascades); chapter 13 pp.294 and 304 (limit by percentage, absolute value, interval).</li>
-<li>GenRocket help: <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/synthetic-data-masking-sdm-and-data-subsetting-overview" target="_blank" rel="noopener">SDM and Data Subsetting Overview</a>; <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-overview-formerly-g-migration" target="_blank" rel="noopener">G-Subset Overview</a>; <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/data-subsetting-how-to-add-tables-and-subsetting-conditions" target="_blank" rel="noopener">Data Subsetting: Add Tables and Conditions</a>; <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/how-to-add-custom-referential-integrity-to-imported-table-schemas" target="_blank" rel="noopener">Custom Referential Integrity</a>; <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-traverse-full-hierarchy-option" target="_blank" rel="noopener">Traverse Full Hierarchy</a>; <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/how-to-select-tables-for-full-migration-during-subsetting" target="_blank" rel="noopener">Select Tables for Full Migration</a>; <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/pii-discovery-with-data-column-profiling-identify-sensitive-data-columns" target="_blank" rel="noopener">PII Discovery with Data Column Profiling</a>.</li>
-<li>Delphix Continuous Compliance 2026.5: <a href="https://help.delphix.com/cc/current/content/discovering_your_sensitive_data.htm" target="_blank" rel="noopener">Discovering your sensitive data</a>; <a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a>; <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>.</li>
-<li>General concepts written for this guide: the ShopSphere tables and worked examples, random versus targeted sampling, subset-versus-mask ordering, full versus virtual copy comparison.</li>
-</ul></section>
 
-<div class="grp" id="c2-s3"><span class="grplabel">Data masking: the concepts</span><span class="day">Day 44</span></div>
+
+<div class="grp" id="c2-s3"><span class="grplabel">Data masking: the concepts</span></div>
 <p>You have found the sensitive columns (<a href="02-privacy-discovery-subsetting-masking.html#c2-s1">the sensitive data chapter</a>) and cut the data down to a slice (<a href="02-privacy-discovery-subsetting-masking.html#c2-s2">the discovery and subsetting concepts chapter</a>). Now comes the step that makes the copy safe to hand to testers: <strong>masking</strong>, replacing real sensitive values with realistic fake ones. This section explains the idea and the common techniques in plain words, with before and after values on ShopSphere data. The tool-specific chapters, <a href="05-informatica-masking-generation-workflows.html#c5-s1">Informatica data masking</a> and <a href="09-delphix-masking-files-labs.html#c9-s1">Delphix algorithms and masking jobs</a>, then show where the buttons are.</p>
 
-<div class="callout recap"><strong class="ctitle">What you will learn</strong><ul>
-<li>How masking differs from obfuscation, encryption, tokenization, anonymisation and pseudonymisation.</li>
-<li>What good masked data must be: realistic, safe, consistent, repeatable and still valid for tests.</li>
-<li>The common techniques, each with a before and after example: substitution, shuffle, key masking, encryption, nulling and redaction, date shifting, numeric variance, format-preserving masking, character replacement and algorithm chaining.</li>
-<li>Why the same input must give the same output in every table and system, and how tools achieve it.</li>
-<li>Static versus dynamic masking, in-place versus on-the-fly, the main risks, how to choose a technique, and how to validate the result.</li>
-</ul></div>
 
-<div class="callout note"><strong class="ctitle">What this section is based on</strong>
 
-<p><span class="badge doc">From docs</span> Informatica TDM 10.5.10 User Guide (PDF, February 2026): chapter 7 "Performing a Data Masking Operation" (pp.135 to 150) and chapter 8 "Data Masking Techniques and Parameters" (pp.151 to 185), all technique sections read. Delphix Continuous Compliance 2026.5 (last published October 16, 2026): "Delphix masking terminology", "Algorithms", "Algorithm frameworks", "Secure Lookup", "SecureShuffle", "Date Shift", "Payment Card", "Character Mapping", "Character Replacement", "Free Text Redaction", "String Algorithm Chain", "Tokenization", "Algorithm syncability", "Best practices for Delphix data masking", and the job-creation page for in-place and on-the-fly. One GenRocket page on Synthetic Data Replacement.</p>
 
-<p><span class="badge concept">General concept</span> The comparison of terms, static versus dynamic masking, the risks list and the decision table are explained for this guide. Technique names are marked as coming from the sources or as universally standard.</p></div>
 
 <h2 id="c6-words-to-know">2.29 Words to know first</h2>
 
@@ -1110,7 +1064,7 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 <tr><td><strong>Pseudonymisation</strong></td><td>Replace identifiers with pseudonyms, but a way back exists elsewhere. Still personal data under GDPR.</td><td>Yes, with the extra information</td><td>Yes</td><td>customer_id replaced by a token</td></tr>
 </tbody></table></div>
 
-<p>How the sources use the words: <span class="badge doc">From docs</span></p>
+<p>How the sources use the words: </p>
 
 <ul>
 <li>Delphix says <em>tokenization</em> is "the only type of algorithm that allows you to reverse its masking". Its example is masking data before sending it to a vendor and reversing it afterwards to act on the vendor's findings (terminology page). Its introduction labels masking as anonymisation and tokenization as pseudonymisation. It also says unlike encryption, which can be bypassed by obtaining user credentials, masking irreversibly protects data in downstream environments, and that encryption is ill-suited to protecting non-production environments (Delphix "Introduction to Delphix Masking").</li>
@@ -1141,33 +1095,33 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 <tr><td>Fit for purpose</td><td>Keeps the properties the tests depend on (a customer has several orders, a date precedes another)</td><td>The data is fake but the test no longer tests anything</td></tr>
 </tbody></table></div>
 
-<p><span class="badge doc">From docs</span> Both vendors state these goals. Informatica: replace source data in sensitive columns with "realistic test data" for nonproduction environments (p.135). Delphix: the data stays "production-like in quality", masking is consistent while "maintaining referential integrity across heterogeneous data sources", and it is irreversible (Delphix "Introduction to Delphix Masking").</p>
+<p> Both vendors state these goals. Informatica: replace source data in sensitive columns with "realistic test data" for nonproduction environments (p.135). Delphix: the data stays "production-like in quality", masking is consistent while "maintaining referential integrity across heterogeneous data sources", and it is irreversible (Delphix "Introduction to Delphix Masking").</p>
 
 <p>Some goals pull against each other. Perfect safety says "change everything completely". Perfect fidelity says "keep it as it was". Every technique in the next section is a compromise somewhere between those poles, which is why choosing is a skill.</p>
 
 <h2 id="c6-techniques">2.32 Common masking techniques</h2>
 
-<p>Each technique below is shown with a before and after on ShopSphere data. The masked values are made up for illustration unless marked as taken from the documentation. Names differ between tools, so the table maps them. <span class="badge doc">From docs</span> means the technique appears in the Informatica or Delphix pages I read; <span class="badge concept">General concept</span> means it is a universally standard idea, whatever the tool calls it.</p>
+<p>Each technique below is shown with a before and after on ShopSphere data. The masked values are made up for illustration unless marked as taken from the documentation. Names differ between tools, so the table maps them.  means the technique appears in the Informatica or Delphix pages I read;  means it is a universally standard idea, whatever the tool calls it.</p>
 
 <div class="tablewrap"><table><caption>The techniques and what each tool calls them</caption>
 <thead><tr><th>Technique</th><th>Informatica (chapter 8)</th><th>Delphix</th><th>Status</th></tr></thead>
 <tbody>
-<tr><td>Substitution</td><td>Substitution</td><td>Secure Lookup</td><td><span class="badge doc">From docs</span></td></tr>
-<tr><td>Shuffle</td><td>Shuffle</td><td>SecureShuffle</td><td><span class="badge doc">From docs</span></td></tr>
-<tr><td>Key masking</td><td>Key</td><td>Character Mapping, Segment Mapping, Mapping (unique outputs)</td><td><span class="badge doc">From docs</span></td></tr>
-<tr><td>Encryption</td><td>Encryption (standard and format preserving)</td><td>Tokenization (reversible)</td><td><span class="badge doc">From docs</span></td></tr>
-<tr><td>Nulling, redaction</td><td>Nullification</td><td>Free Text Redaction, null-value lookup</td><td><span class="badge doc">From docs</span></td></tr>
-<tr><td>Date shifting</td><td>Random with date blurring</td><td>Date Shift, Dependent Date Shift</td><td><span class="badge doc">From docs</span></td></tr>
-<tr><td>Numeric variance</td><td>Random with numeric blurring or range</td><td>Min Max</td><td><span class="badge doc">From docs</span></td></tr>
-<tr><td>Format-preserving</td><td>Credit card, Phone, SSN, email, IP, URL masking; format preserving encryption</td><td>Payment Card, Character Mapping</td><td><span class="badge doc">From docs</span></td></tr>
-<tr><td>Character replacement</td><td>Mask format, source and result string characters</td><td>Character Replacement</td><td><span class="badge doc">From docs</span></td></tr>
-<tr><td>Algorithm chaining</td><td>Advanced masking (variable columns), mapplets</td><td>String Algorithm Chain</td><td><span class="badge doc">From docs</span></td></tr>
-<tr><td>Partial redaction ("show last 4")</td><td>Key masking with "+" (no mask) positions</td><td>Preserve ranges in Character Mapping</td><td><span class="badge concept">General concept</span> as a name</td></tr>
+<tr><td>Substitution</td><td>Substitution</td><td>Secure Lookup</td><td></td></tr>
+<tr><td>Shuffle</td><td>Shuffle</td><td>SecureShuffle</td><td></td></tr>
+<tr><td>Key masking</td><td>Key</td><td>Character Mapping, Segment Mapping, Mapping (unique outputs)</td><td></td></tr>
+<tr><td>Encryption</td><td>Encryption (standard and format preserving)</td><td>Tokenization (reversible)</td><td></td></tr>
+<tr><td>Nulling, redaction</td><td>Nullification</td><td>Free Text Redaction, null-value lookup</td><td></td></tr>
+<tr><td>Date shifting</td><td>Random with date blurring</td><td>Date Shift, Dependent Date Shift</td><td></td></tr>
+<tr><td>Numeric variance</td><td>Random with numeric blurring or range</td><td>Min Max</td><td></td></tr>
+<tr><td>Format-preserving</td><td>Credit card, Phone, SSN, email, IP, URL masking; format preserving encryption</td><td>Payment Card, Character Mapping</td><td></td></tr>
+<tr><td>Character replacement</td><td>Mask format, source and result string characters</td><td>Character Replacement</td><td></td></tr>
+<tr><td>Algorithm chaining</td><td>Advanced masking (variable columns), mapplets</td><td>String Algorithm Chain</td><td></td></tr>
+<tr><td>Partial redaction ("show last 4")</td><td>Key masking with "+" (no mask) positions</td><td>Preserve ranges in Character Mapping</td><td> as a name</td></tr>
 </tbody></table></div>
 
 <h3 id="c6-substitution">2.32.1 Substitution</h3>
 
-<p>Replace the value with a different, believable one picked from a list. Informatica: it "replaces a column of data with similar but unrelated data from a dictionary", which can be a flat file or a database table (p.176). Delphix Secure Lookup is the same idea: it picks a replacement from a lookup file using a cryptographic hash of the original value, so the output is consistent for each input (terminology page; the framework page says the default hash method is SHA256). <span class="badge doc">From docs</span></p>
+<p>Replace the value with a different, believable one picked from a list. Informatica: it "replaces a column of data with similar but unrelated data from a dictionary", which can be a flat file or a database table (p.176). Delphix Secure Lookup is the same idea: it picks a replacement from a lookup file using a cryptographic hash of the original value, so the output is consistent for each input (terminology page; the framework page says the default hash method is SHA256). </p>
 
 <div class="tablewrap"><table class="sample"><caption>Substitution on CUSTOMERS (masked values illustrative)</caption>
 <thead><tr><th>customer_id</th><th>first_name before</th><th>after</th><th>last_name before</th><th>after</th></tr></thead>
@@ -1181,7 +1135,7 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 
 <h3 id="c6-shuffle">2.32.2 Shuffle</h3>
 
-<p>Move the existing values of a column between rows. Informatica's own example moves first names between four rows: Tom, Sue, Bob, Eli become Bob, Eli, Tom, Sue (p.173). Delphix SecureShuffle guarantees that each value moves to a different row, but an input can still mask to itself when values repeat (SecureShuffle page). <span class="badge doc">From docs</span></p>
+<p>Move the existing values of a column between rows. Informatica's own example moves first names between four rows: Tom, Sue, Bob, Eli become Bob, Eli, Tom, Sue (p.173). Delphix SecureShuffle guarantees that each value moves to a different row, but an input can still mask to itself when values repeat (SecureShuffle page). </p>
 
 <div class="tablewrap"><table class="sample"><caption>Shuffle of last_name</caption>
 <thead><tr><th>customer_id</th><th>last_name before</th><th>after</th></tr></thead>
@@ -1195,7 +1149,7 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 
 <h3 id="c6-key-masking">2.32.3 Key masking</h3>
 
-<p>Produce a deterministic masked value from the input and a seed: same input, same seed, same output. Informatica's Key technique works for dates, numbers and strings, and you can limit each output character to letters, digits or alphanumerics with a mask format (pp.164 to 168). For numbers, the guide says to use the same seed in the primary key column and the foreign key column so referential integrity is maintained (p.167). <span class="badge doc">From docs</span> Delphix does the same job with Character Mapping, which maps each value to another value built from the same character groups, giving no two inputs the same output, which suits primary and foreign key columns (Character Mapping page).</p>
+<p>Produce a deterministic masked value from the input and a seed: same input, same seed, same output. Informatica's Key technique works for dates, numbers and strings, and you can limit each output character to letters, digits or alphanumerics with a mask format (pp.164 to 168). For numbers, the guide says to use the same seed in the primary key column and the foreign key column so referential integrity is maintained (p.167).  Delphix does the same job with Character Mapping, which maps each value to another value built from the same character groups, giving no two inputs the same output, which suits primary and foreign key columns (Character Mapping page).</p>
 
 <div class="tablewrap"><table class="sample"><caption>Numeric key masking with the same seed everywhere (masked values illustrative)</caption>
 <thead><tr><th>Column</th><th>Before</th><th>After</th></tr></thead>
@@ -1206,15 +1160,15 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 
 <h3 id="c6-encryption">2.32.4 Encryption and tokenization</h3>
 
-<p>Informatica offers standard encryption (AES, CRC, MD5, with a key of 16 characters or fewer) and <em>format preserving encryption</em>. The latter can keep the format and length, and can be decrypted with the same pass phrase and configuration. Its example: <code>Abc123@xyz.com</code> becomes <code>Mpz849#dje!kuw</code>, or <code>Mpz849@dje.kuw</code> if the "@" and "." are excluded from encryption (pp.161 to 162). The Delphix Tokenization framework uses AES-128 and produces longer alphanumeric tokens, built for the vendor round trip described in 6.2 (Tokenization page). <span class="badge doc">From docs</span> Because AES and format preserving encryption can be reversed, use them only for that.</p>
+<p>Informatica offers standard encryption (AES, CRC, MD5, with a key of 16 characters or fewer) and <em>format preserving encryption</em>. The latter can keep the format and length, and can be decrypted with the same pass phrase and configuration. Its example: <code>Abc123@xyz.com</code> becomes <code>Mpz849#dje!kuw</code>, or <code>Mpz849@dje.kuw</code> if the "@" and "." are excluded from encryption (pp.161 to 162). The Delphix Tokenization framework uses AES-128 and produces longer alphanumeric tokens, built for the vendor round trip described in 6.2 (Tokenization page).  Because AES and format preserving encryption can be reversed, use them only for that.</p>
 
 <h3 id="c6-nulling">2.32.5 Nulling and redaction</h3>
 
-<p>Remove the value, or part of it. Informatica's Nullification replaces a column with NULL, works on all data types and has no parameters (p.168). <span class="badge doc">From docs</span> The simplest safe answer for a column the tests do not use, such as <code>tax_id</code>, is NULL. The cost: NOT NULL columns refuse it and the application paths that read the column go untested. <strong>Free text</strong> needs smarter redaction: Delphix's Free Text Redaction finds sensitive words and patterns inside a text column (for example "St", "Blvd", or the shape 123-45-6789 for an SSN) and redacts the whole matched word, but it "requires some expertise to use" (Free Text Redaction page). <span class="badge doc">From docs</span></p>
+<p>Remove the value, or part of it. Informatica's Nullification replaces a column with NULL, works on all data types and has no parameters (p.168).  The simplest safe answer for a column the tests do not use, such as <code>tax_id</code>, is NULL. The cost: NOT NULL columns refuse it and the application paths that read the column go untested. <strong>Free text</strong> needs smarter redaction: Delphix's Free Text Redaction finds sensitive words and patterns inside a text column (for example "St", "Blvd", or the shape 123-45-6789 for an SSN) and redacts the whole matched word, but it "requires some expertise to use" (Free Text Redaction page). </p>
 
 <h3 id="c6-date-shift">2.32.6 Date shifting and blurring</h3>
 
-<p>Move a date by an amount so that the exact date is hidden but the date still looks plausible. Delphix Date Shift masks each date to another within a configured range (for example 3 to 5 days later), based on the algorithm key; a fixed shift (same minimum and maximum) preserves uniqueness and referential integrity, unlike variable ranges. Its docs show <code>2021-02-03 12:30:00</code> becoming <code>2021-02-06 12:30:00</code> (Date Shift page). Informatica blurs a date within a range of years, months, days or hours: a source of 2 February 2006 with a two-year bound becomes a date between 2 February 2004 and 2 February 2008 (p.170). <span class="badge doc">From docs</span></p>
+<p>Move a date by an amount so that the exact date is hidden but the date still looks plausible. Delphix Date Shift masks each date to another within a configured range (for example 3 to 5 days later), based on the algorithm key; a fixed shift (same minimum and maximum) preserves uniqueness and referential integrity, unlike variable ranges. Its docs show <code>2021-02-03 12:30:00</code> becoming <code>2021-02-06 12:30:00</code> (Date Shift page). Informatica blurs a date within a range of years, months, days or hours: a source of 2 February 2006 with a two-year bound becomes a date between 2 February 2004 and 2 February 2008 (p.170). </p>
 
 <div class="tablewrap"><table class="sample"><caption>Date shift of date_of_birth, fixed shift of +3 days (illustrative)</caption>
 <thead><tr><th>customer_id</th><th>Before</th><th>After</th></tr></thead>
@@ -1223,15 +1177,15 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 <tr><td>1002</td><td>1985-11-02</td><td>1985-11-05</td></tr>
 </tbody></table></div>
 
-<p>Related dates need care. If <code>order_date</code> must stay after <code>date_of_birth</code>, shifting them independently can break the order. Delphix's <em>Dependent Date Shift</em> is a multi-column algorithm that masks two date-times while preserving the interval between them (Algorithms page). <span class="badge doc">From docs</span></p>
+<p>Related dates need care. If <code>order_date</code> must stay after <code>date_of_birth</code>, shifting them independently can break the order. Delphix's <em>Dependent Date Shift</em> is a multi-column algorithm that masks two date-times while preserving the interval between them (Algorithms page). </p>
 
 <h3 id="c6-numeric">2.32.7 Numeric variance</h3>
 
-<p>Move a number by a controlled amount. Informatica numeric blurring uses a fixed or percent variance. With the input 66: fixed bounds 10 and 10 give a result between 56 and 76; percent bounds 50 and 50 give 33 to 99 (p.170). A range option returns a number between a minimum and a maximum. Delphix Min Max pulls extreme values toward the middle, because a record with the highest salary may reveal a company's CEO (Min Max Number page). <span class="badge doc">From docs</span> On ShopSphere, a 10 percent blur turns <code>total_amount</code> 1200.00 into something between 1080.00 and 1320.00, which keeps totals plausible but breaks the rule "total equals the sum of its items" unless the items are changed too, so decide whether tests rely on that.</p>
+<p>Move a number by a controlled amount. Informatica numeric blurring uses a fixed or percent variance. With the input 66: fixed bounds 10 and 10 give a result between 56 and 76; percent bounds 50 and 50 give 33 to 99 (p.170). A range option returns a number between a minimum and a maximum. Delphix Min Max pulls extreme values toward the middle, because a record with the highest salary may reveal a company's CEO (Min Max Number page).  On ShopSphere, a 10 percent blur turns <code>total_amount</code> 1200.00 into something between 1080.00 and 1320.00, which keeps totals plausible but breaks the rule "total equals the sum of its items" unless the items are changed too, so decide whether tests rely on that.</p>
 
 <h3 id="c6-format-preserving">2.32.8 Format-preserving masking</h3>
 
-<p>The masked value keeps the format the application checks. Informatica has built-in formats. Credit card masking returns a number with a valid checksum, leaves the six-digit bank identification number unchanged, and can keep or change the card issuer: <code>4539 1596 8210 2773</code> becomes <code>4539 1516 0556 7067</code> (p.158). Phone masking keeps the format: <code>(408)382 0658</code> becomes <code>(408)256 3106</code> (p.169). SSN masking generates valid numbers that avoid ones the Social Security Administration has issued (p.175). Delphix Payment Card preserves the Luhn check and the leading digits you choose: <code>5419033646326699</code> becomes <code>5419036803270758</code> when the first six digits are kept (Payment Card page). <span class="badge doc">From docs</span></p>
+<p>The masked value keeps the format the application checks. Informatica has built-in formats. Credit card masking returns a number with a valid checksum, leaves the six-digit bank identification number unchanged, and can keep or change the card issuer: <code>4539 1596 8210 2773</code> becomes <code>4539 1516 0556 7067</code> (p.158). Phone masking keeps the format: <code>(408)382 0658</code> becomes <code>(408)256 3106</code> (p.169). SSN masking generates valid numbers that avoid ones the Social Security Administration has issued (p.175). Delphix Payment Card preserves the Luhn check and the leading digits you choose: <code>5419033646326699</code> becomes <code>5419036803270758</code> when the first six digits are kept (Payment Card page). </p>
 
 <div class="tablewrap"><table class="sample"><caption>Format-preserving masking of ShopSphere columns (illustrative)</caption>
 <thead><tr><th>Column</th><th>Before</th><th>After</th></tr></thead>
@@ -1243,11 +1197,11 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 
 <h3 id="c6-char-replacement">2.32.9 Character replacement</h3>
 
-<p>Replace characters according to a pattern. In Informatica's key and random techniques you set a <em>mask format</em>: A for letters, D for digits, N for alphanumerics, X for any character, <code>+</code> for "leave as is", and R for the remaining characters (pp.165, 170); and you can mask only chosen source characters or restrict the result to chosen characters. Delphix's Character Replacement framework swaps listed characters (for example vowels to "+") and wraps another string algorithm, and the page notes it has no UI or default instance at present, so it is configured through the API. <span class="badge doc">From docs</span> A ShopSphere use: a tax ID shaped like <code>AKPPM4821Q</code> (five letters, four digits, one letter) masked with format <code>AAAAADDDDA</code> becomes something like <code>TRWQD9037B</code>, same shape, no real content.</p>
+<p>Replace characters according to a pattern. In Informatica's key and random techniques you set a <em>mask format</em>: A for letters, D for digits, N for alphanumerics, X for any character, <code>+</code> for "leave as is", and R for the remaining characters (pp.165, 170); and you can mask only chosen source characters or restrict the result to chosen characters. Delphix's Character Replacement framework swaps listed characters (for example vowels to "+") and wraps another string algorithm, and the page notes it has no UI or default instance at present, so it is configured through the API.  A ShopSphere use: a tax ID shaped like <code>AKPPM4821Q</code> (five letters, four digits, one letter) masked with format <code>AAAAADDDDA</code> becomes something like <code>TRWQD9037B</code>, same shape, no real content.</p>
 
 <h3 id="c6-chaining">2.32.10 Algorithm chaining</h3>
 
-<p>Combine several steps into one result. Informatica's <em>advanced masking</em> uses input, variable and output columns: mask FIRST_NAME and LAST_NAME separately with substitution into variable columns, then output <code>FIRST_MASKED || ' ' || LAST_MASKED</code> as the full name (p.158). Its email masking can build the address from the masked first and last name (p.159). Delphix's String Algorithm Chain runs two to eight string algorithms one after another, and its docs give a reason to chain: with deterministic masking, a very rare input value keeps its low frequency in the output and could be used to infer the original, so a first algorithm can alter such rare values before the main one runs (String Algorithm Chain page). <span class="badge doc">From docs</span></p>
+<p>Combine several steps into one result. Informatica's <em>advanced masking</em> uses input, variable and output columns: mask FIRST_NAME and LAST_NAME separately with substitution into variable columns, then output <code>FIRST_MASKED || ' ' || LAST_MASKED</code> as the full name (p.158). Its email masking can build the address from the masked first and last name (p.159). Delphix's String Algorithm Chain runs two to eight string algorithms one after another, and its docs give a reason to chain: with deterministic masking, a very rare input value keeps its low frequency in the output and could be used to infer the original, so a first algorithm can alter such rare values before the main one runs (String Algorithm Chain page). </p>
 
 <div class="callout why"><strong class="ctitle">Why chain at all?</strong>
 
@@ -1270,10 +1224,10 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 <h3 id="c6-how-tools-do-it">2.33.1 How the tools achieve it</h3>
 
 <ul>
-<li><strong>Informatica seed and repeatable output.</strong> With repeatable output, "John Smith" is masked as "Frank Martinez" in every table, account number 1234 always becomes 6549 and 5678 always becomes 3214, across runs. A seed, a number from 1 through 999 with default 1, is the starting point; use the same seed on the same kind of column in different tables. An administrator can set a central seed that overrides all others, and a seed can come from a parameter file (pp.154 to 155). <span class="badge doc">From docs</span></li>
-<li><strong>Informatica cascades.</strong> An <em>auto cascade</em> masks a parent key and the related foreign keys in child tables with the same value, applied by default where key constraints exist (p.91). A <em>value cascade</em> does the same for similar columns that are not linked by a key, such as <code>employee_num</code> in one table and <code>EmpID</code> in another, by choosing a driving column (p.90). <span class="badge doc">From docs</span></li>
-<li><strong>Delphix key and domain.</strong> Most algorithms carry a key; the same algorithm with the same key gives the same output, and changing the key changes every output (the Algorithms page gives an example where "Michelle" becomes "Rachael" and after rekeying "Ben"). Because each domain has one default algorithm, every column found in that domain is masked the same way (Discovering your sensitive data). <span class="badge doc">From docs</span></li>
-<li><strong>Delphix across engines.</strong> Algorithms can be synchronised between masking engines so that two engines mask the same input the same way. Algorithms that cannot guarantee the same output, such as the variable Date Shift, SecureShuffle and the random Secure Lookup, are called non-deterministic and cannot be used for syncable masking, while a fixed Date Shift is deterministic (Algorithm syncability page). <span class="badge doc">From docs</span></li>
+<li><strong>Informatica seed and repeatable output.</strong> With repeatable output, "John Smith" is masked as "Frank Martinez" in every table, account number 1234 always becomes 6549 and 5678 always becomes 3214, across runs. A seed, a number from 1 through 999 with default 1, is the starting point; use the same seed on the same kind of column in different tables. An administrator can set a central seed that overrides all others, and a seed can come from a parameter file (pp.154 to 155). </li>
+<li><strong>Informatica cascades.</strong> An <em>auto cascade</em> masks a parent key and the related foreign keys in child tables with the same value, applied by default where key constraints exist (p.91). A <em>value cascade</em> does the same for similar columns that are not linked by a key, such as <code>employee_num</code> in one table and <code>EmpID</code> in another, by choosing a driving column (p.90). </li>
+<li><strong>Delphix key and domain.</strong> Most algorithms carry a key; the same algorithm with the same key gives the same output, and changing the key changes every output (the Algorithms page gives an example where "Michelle" becomes "Rachael" and after rekeying "Ben"). Because each domain has one default algorithm, every column found in that domain is masked the same way (Discovering your sensitive data). </li>
+<li><strong>Delphix across engines.</strong> Algorithms can be synchronised between masking engines so that two engines mask the same input the same way. Algorithms that cannot guarantee the same output, such as the variable Date Shift, SecureShuffle and the random Secure Lookup, are called non-deterministic and cannot be used for syncable masking, while a fixed Date Shift is deterministic (Algorithm syncability page). </li>
 </ul>
 
 <div class="callout warn"><strong class="ctitle">Things that quietly break consistency</strong>
@@ -1304,7 +1258,7 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 
 <h2 id="c6-modes">2.35 Static or dynamic, in-place or on-the-fly</h2>
 
-<p>Two different choices are often mixed up. <span class="badge concept">General concept</span> <strong>Static versus dynamic</strong> asks <em>when</em> data is masked. <strong>In-place versus on-the-fly</strong> asks <em>where</em> the masked data ends up.</p>
+<p>Two different choices are often mixed up.  <strong>Static versus dynamic</strong> asks <em>when</em> data is masked. <strong>In-place versus on-the-fly</strong> asks <em>where</em> the masked data ends up.</p>
 
 <div class="compare"><div><h4 id="c2-static-masking">Static masking</h4>
 
@@ -1322,7 +1276,7 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 <tr><td>On-the-fly</td><td>Reads unmasked data from the source and writes masked data to a different target</td><td>Producing a masked copy directly from a source, together with subsetting</td></tr>
 </tbody></table></div>
 
-<p><span class="badge doc">From docs</span> Delphix defines both in its masking job settings: in-place jobs update the source environment with the masked values; on-the-fly jobs read unmasked data from the source and write masked data to the target (create, view, edit, delete, verify jobs page). Informatica says a masking plan indicates whether to mask data in place in the source database or in stream in a target database (p.150). The masked-copy approach fits the rule from <a href="02-privacy-discovery-subsetting-masking.html#c2-s1">the sensitive data chapter</a>: ask at which moment unmasked data exists outside production.</p>
+<p> Delphix defines both in its masking job settings: in-place jobs update the source environment with the masked values; on-the-fly jobs read unmasked data from the source and write masked data to the target (create, view, edit, delete, verify jobs page). Informatica says a masking plan indicates whether to mask data in place in the source database or in stream in a target database (p.150). The masked-copy approach fits the rule from <a href="02-privacy-discovery-subsetting-masking.html#c2-s1">the sensitive data chapter</a>: ask at which moment unmasked data exists outside production.</p>
 
 <h2 id="c6-risks">2.36 Risks and what goes wrong</h2>
 
@@ -1342,7 +1296,7 @@ WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
 
 <h2 id="c6-choosing">2.37 Choosing a technique</h2>
 
-<p>Start from the column, not the technique. Ask four questions: What is it (name, number, date, free text)? Must it stay unique or linked to other tables? Must it keep a format the application checks? Do tests depend on its meaning (for example an age band)? The table gives a reasoned first choice for the ShopSphere columns. <span class="badge concept">General concept</span> (technique names are from section 2.32)</p>
+<p>Start from the column, not the technique. Ask four questions: What is it (name, number, date, free text)? Must it stay unique or linked to other tables? Must it keep a format the application checks? Do tests depend on its meaning (for example an age band)? The table gives a reasoned first choice for the ShopSphere columns.  (technique names are from section 2.32)</p>
 
 <div class="tablewrap"><table><caption>Decision table for ShopSphere columns (a starting point, to be confirmed with the compliance officer)</caption>
 <thead><tr><th>Column</th><th>Constraint</th><th>First choice</th><th>Why</th></tr></thead>
@@ -1392,7 +1346,7 @@ WHERE c.customer_id IS NULL;
 SELECT order_id FROM ORDER_NOTES WHERE notes LIKE '%___-__-____%';
 </code></pre>
 
-<p><span class="badge doc">From docs</span> Tools help with previewing. Informatica's Rule Simulator shows original and masked values for a standard rule before you assign it, using default sample data, your own sample or a connection, with up to 100 rows and a default of 20 (pp.137 and 140). Delphix says its platform generates reports and email notifications to confirm that sensitive data has been masked (Delphix "Introduction to Delphix Masking"). Neither removes the need to inspect the result yourself.</p>
+<p> Tools help with previewing. Informatica's Rule Simulator shows original and masked values for a standard rule before you assign it, using default sample data, your own sample or a connection, with up to 100 rows and a default of 20 (pp.137 and 140). Delphix says its platform generates reports and email notifications to confirm that sensitive data has been masked (Delphix "Introduction to Delphix Masking"). Neither removes the need to inspect the result yourself.</p>
 
 <div class="exercise"><h4 id="c2-lab-design-and-check-a-mask-for-the-shopsphere-customers">Lab: design and check a mask for the ShopSphere customers</h4>
 
@@ -1448,11 +1402,6 @@ SELECT order_id FROM ORDER_NOTES WHERE notes LIKE '%___-__-____%';
 <li>Always validate: rediscover, check joins, formats, uniqueness, repeatability and job warnings.</li>
 </ul></div>
 
-<section class="sources"><h4 id="c6-sources">Sources used in this section</h4><ul>
-<li>Informatica TDM 10.5.10 User Guide (February 2026): chapter 7 pp.135 to 150 (masking overview, rules, rule simulator, plans); chapter 8 pp.151 to 185 (techniques and parameters: advanced, credit card, email, encryption, expression, IP, key, nullification, phone, random, shuffle, SIN, SSN, substitution, URL, examples); chapter 5 pp.90 to 91 (value and auto cascades).</li>
-<li>Delphix Continuous Compliance 2026.5: <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>; <a href="https://help.delphix.com/cc/current/content/algorithms.htm" target="_blank" rel="noopener">Algorithms</a>; <a href="https://help.delphix.com/cc/current/content/algorithm_frameworks.htm" target="_blank" rel="noopener">Algorithm frameworks</a>; <a href="https://help.delphix.com/cc/current/content/secure_lookup__algorithm_frameworks_.htm" target="_blank" rel="noopener">Secure Lookup</a>; <a href="https://help.delphix.com/cc/current/content/secureshuffle.htm" target="_blank" rel="noopener">SecureShuffle</a>; <a href="https://help.delphix.com/cc/current/content/date_shift__algorithm_frameworks_.htm" target="_blank" rel="noopener">Date Shift</a>; <a href="https://help.delphix.com/cc/current/content/payment_card__algorithm_frameworks_.htm" target="_blank" rel="noopener">Payment Card</a>; <a href="https://help.delphix.com/cc/current/content/character_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Character Mapping</a>; <a href="https://help.delphix.com/cc/current/content/character_replacement__algorithm_frameworks_.htm" target="_blank" rel="noopener">Character Replacement</a>; <a href="https://help.delphix.com/cc/current/content/free_text_redaction__algorithm_frameworks_.htm" target="_blank" rel="noopener">Free Text Redaction</a>; <a href="https://help.delphix.com/cc/current/content/string_algorithm_chain__algorithm_frameworks_.htm" target="_blank" rel="noopener">String Algorithm Chain</a>; <a href="https://help.delphix.com/cc/current/content/tokenization__algorithm_frameworks_.htm" target="_blank" rel="noopener">Tokenization</a>; <a href="https://help.delphix.com/cc/current/content/min_max_number__algorithm_frameworks_.htm" target="_blank" rel="noopener">Min Max Number</a>; <a href="https://help.delphix.com/cc/current/content/algorithm_syncability.htm" target="_blank" rel="noopener">Algorithm syncability</a>; <a href="https://help.delphix.com/cc/current/content/best_practices_for_delphix_data_masking.htm" target="_blank" rel="noopener">Best practices for Delphix data masking</a>; <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs</a>; <a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a>.</li>
-<li>GenRocket: <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/what-is-synthetic-data-replacement-sdr" target="_blank" rel="noopener">What is Synthetic Data Replacement</a>; <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/synthetic-data-masking-sdm-and-data-subsetting-overview" target="_blank" rel="noopener">SDM and Data Subsetting Overview</a>.</li>
-<li>General concepts written for this guide: the term comparison, static versus dynamic masking, risks, decision table and validation checklist. All masked sample values are invented.</li>
-</ul></section>
 
-<nav class="chapter-nav" aria-label="Previous and next chapter"><a href="01-welcome-why-tdm-and-data-basics.html">← 1. Welcome: why TDM exists and the data basics you need</a><a href="03-generation-etl-and-tdm.html">3. Synthetic data, ETL from scratch, and how ETL meets TDM →</a></nav></article></div></main><footer class="sitefooter"><div class="wrap">© 2026 Saravan Kumar M K · <a href="https://saravankumar25.github.io/">Portfolio</a> · <a href="index.html">TDM Guide</a> · <a href="syllabus.html">Syllabus index</a> · <a href="sources-and-limitations.html">Sources &amp; limitations</a> · Study notes: always confirm screen details against your own tool version.</div></footer><div id="search-modal" hidden><div class="search-box" role="dialog" aria-label="Search"><input id="search-input" type="search" placeholder="Search the whole guide (e.g. 'primary key', 'shuffle', 'receiver')…" autocomplete="off"><div id="search-results"></div><p class="search-hint">Esc to close · ↑↓ to move · Enter to open</p></div></div><script src="assets/guide.js" defer></script></body></html>
+
+<nav class="chapter-nav" aria-label="Previous and next chapter"><a href="01-welcome-why-tdm-and-data-basics.html">← 1. Welcome: why TDM exists and the data basics you need</a><a href="03-generation-etl-and-tdm.html">3. Synthetic data, ETL from scratch, and how ETL meets TDM →</a></nav></article></div></main><footer class="sitefooter"><div class="wrap">© 2026 Saravan Kumar M K · <a href="https://saravankumar25.github.io/">Portfolio</a> · <a href="index.html">TDM Guide</a></div></footer><div id="search-modal" hidden><div class="search-box" role="dialog" aria-label="Search"><input id="search-input" type="search" placeholder="Search the whole guide (e.g. 'primary key', 'shuffle', 'receiver')…" autocomplete="off"><div id="search-results"></div><p class="search-hint">Esc to close · ↑↓ to move · Enter to open</p></div></div><script src="assets/guide.js" defer></script></body></html>
