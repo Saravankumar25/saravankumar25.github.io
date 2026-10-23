@@ -1,7 +1,11 @@
 <h2 id="c15-plan">15.12 From rules to a running job: the generation plan</h2>
+
 <p>Rules and assignments are only a description. A <strong>plan</strong> turns them into something that runs. The plan lists which entities and tables to generate, how many records, and which connections to use; then TDM generates a workflow from it and the workflow does the work (User Guide 10.5.10, p.207). The plan screens are shared with masking and subsetting, so the full tour is in <a href="16-informatica-plans-workflows-and-warehouse.html">the plans, workflows and warehouse chapter</a>. Here is the generation-specific part.</p>
+
 <h3 id="c15-plan-steps">15.12.1 Creating a generation plan</h3>
+
 <p>From the guide's wizard (User Guide 10.5.10, p.305), with the reason for each step:</p>
+
 <ol class="steps">
 <li><strong>In the project, click Execute, then New Plan, and name it.</strong><p>Plans live in Execute, the project's "run things" tab.</p></li>
 <li><strong>Click Next twice to skip the masking and subset pages.</strong><p>The wizard offers all three operation types on one path. You are skipping the two you must not use.</p></li>
@@ -10,27 +14,38 @@
 <li><strong>Enter the number of records to generate and set connections and target properties.</strong><p>The count is required (p.280).</p></li>
 <li><strong>Optionally edit data generation, error and recovery, and advanced settings. Click Next and Finish.</strong><p>Defaults are usually fine for a first run.</p><p class="expect">The plan appears in the project's Execute tab. It has not run yet.</p></li>
 </ol>
+
 <p>You can also make a <strong>quick ad hoc generation plan</strong> for a single column: in Define | Data Generation select the column, choose Actions &gt; Generate and Execute, name the plan, pick the Integration Service, enter the number of records and answer Yes at the prompt (p.306). It is the fast way to try one rule before you commit to a full plan.</p>
+
 <h3 id="c15-plan-settings">15.12.2 Connections and settings that matter for generation</h3>
+
 <p>The settings that matter for generation (pp.280-285): the target connection (a relational database, a flat file or the test data warehouse); <strong>Number of Records to Generate</strong> (required); a Reference Lookup Connection if any reference lookup rule is assigned; a Dictionary Lookup Connection if the plan has a dictionary rule or a mapplet rule with a transformation; the default Numeric, String, Date and Binary rules with Apply Default Rule to; Minimum and Maximum child records (default 1); and the percentages of parents without children and children without a parent. Target options such as Truncate Table (off by default) and Disable Constraints are covered in <a href="16-informatica-plans-workflows-and-warehouse.html">the plans, workflows and warehouse chapter</a>.</p>
+
 <p>If the target is a flat file you can use the test tool integration properties to copy the output to an integrated HP ALM server. If the target is the <strong>test data warehouse</strong>, you fill in data set properties (name, application, version, tags) and the generated data is stored as a versioned data set (pp.190, 281). That is how generated data gets reused, see <a href="16-informatica-plans-workflows-and-warehouse.html">the plans, workflows and warehouse chapter</a>.</p>
+
 <div class="callout warn"><strong class="ctitle">Heap space and special characters</strong>
 <p>If a "Java heap space" exception occurs while setting an ad hoc rule, ask the administrator to increase the heap size (p.198). Remember also that special characters in table or column names make the generation workflow fail (p.190); the plan setting "Enable special characters in metadata" defaults to No (p.289).</p></div>
 
 <h2 id="c15-restriction">15.13 Why a generation plan stands alone</h2>
+
 <p>The guide is firm: when you add data generation components to a plan, you <strong>cannot</strong> add data masking or data subset components, and the reverse holds too (User Guide 10.5.10, pp.274-276, 305). It repeats the rule in the plan overview, the task list, the component table and the creation steps. A Hadoop plan likewise cannot do subset or generation (p.306).</p>
+
 <p>The guide states the restriction but does not explain it. My explanation, as a concept and not a quote: masking and subsetting both <em>read existing rows</em> from a source, then change or filter them. Generation has no source rows; it builds new rows from rules. A plan that tried to do both would have to decide what the masking rule should act on. Keeping them apart avoids that.</p>
+
 <div class="compare">
 <div><h4>One plan: subset and masking</h4>
 <p>Source connection to target connection. The guide says you can combine them in one plan, or keep separate plans (p.304). If both are present, subset runs first and masking applies only to the subset rows (p.275).</p></div>
 <div><h4>Another plan: generation</h4>
 <p>Only entities, tables or XSD files with generation rule assignments. Number of records to generate. No source data is masked or subsetted in this plan.</p></div>
 </div>
+
 <p><strong>What to do when you need both.</strong> Use two plans:</p>
+
 <ul>
 <li><strong>Masked copy of old customers plus brand-new ones:</strong> run a masking plan into the test database, then a generation plan into the same schema. Make the generation sequences start above the existing ids, or continue with "Start Sequence from Last Value", so keys do not collide.</li>
 <li><strong>Generate once, then make small slices:</strong> send the generation plan to the test data warehouse, then create a <em>related data set</em>, a subset of that data set built from an entity or group (pp.248-251). That is subsetting generated data without breaking the rule.</li>
 </ul>
+
 <div class="callout why"><strong class="ctitle">Why it matters</strong>
 <p>This restriction is a favourite interview and review question, and it shapes how you design a data pipeline: generation is its own track, not a masking option.</p></div>
 
@@ -60,6 +75,7 @@
 </div>
 
 <h2 id="c15-mistakes">15.14 Common mistakes and gotchas</h2>
+
 <div class="callout warn"><strong class="ctitle">Things that go wrong</strong>
 <ul>
 <li><strong>Forgetting to Save each assignment.</strong> The earlier assignment is discarded (p.203).</li>
@@ -72,6 +88,7 @@
 </ul></div>
 
 <h2 id="c15-recap">15.15 Recap</h2>
+
 <div class="callout recap"><strong class="ctitle">Recap</strong>
 <ul>
 <li>Generation builds new rows from rules and never reads production data. It is set up in a project, run from a plan, and executed as a generated workflow.</li>

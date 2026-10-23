@@ -1,13 +1,20 @@
 <h2 id="c16-tdw">16.15 The Test Data Warehouse</h2>
+
 <p>Test data goes stale and gets damaged. A tester deletes orders to check a refund flow; a batch job rewrites prices; another team starts testing on the same tables. Re-running the whole subset and masking plan each time is slow. The <strong>Test Data Warehouse</strong> solves this: it is a central location that stores multiple versions of test data, and multiple Test Data Manager services can use the same warehouse, so teams share one store (User Guide 10.5.10, p.236).</p>
+
 <p>The guide's scenario: before any tests, store the original data as a data set. After each team finishes, store the modified data as another version. To return the environment to its original state, restore the version holding the original data. You can restore any version (p.237).</p>
+
 <h3 id="c16-tdw-arch">16.15.1 What is behind it</h3>
+
 <p>You create a <strong>Test Data Warehouse Service</strong> in the Informatica Administrator tool. That application service manages two relational databases (pp.26-28, 236):</p>
+
 <ul>
 <li>the <strong>test data warehouse repository</strong>, which holds project metadata (plan information, version, tags) and source table metadata of each data set;</li>
 <li>the <strong>test data warehouse</strong> itself, which holds the actual source data you put in data sets.</li>
 </ul>
+
 <p>The service copies the metadata created when you make a data set and creates the data set tables in the warehouse (p.27). Workflows that store data in the warehouse need connections to the external source databases, the repository and the warehouse (p.28). Data coverage tasks run on the Data Integration Service (p.26).</p>
+
 <figure class="diagram"><svg viewBox="0 0 800 260" role="img" aria-label="Architecture of storing a data set: plan runs a workflow through the Integration Service, which reads the source and writes to the Test Data Warehouse via the Test Data Warehouse Service, with metadata in the warehouse repository">
 <g fill="none" stroke="currentColor" stroke-width="1.5">
 <rect x="20" y="100" width="150" height="60" rx="6" fill="var(--surface)"/>
@@ -36,31 +43,44 @@
 </div>
 
 <h2 id="c16-datasets">16.16 Data sets, versions and tags</h2>
+
 <p>A <strong>data set</strong> is a collection of one or more tables from one or more data sources, and generally matches one or more test cases (User Guide 10.5.10, p.238). You create one when you subset production, make a masked copy, or generate data, by selecting the test data warehouse as the target when the plan runs. It stores source table metadata and plan metadata, and you can search by those properties.</p>
+
 <h3 id="c16-create-dataset">16.16.1 Creating a data set</h3>
+
 <ol class="steps">
 <li><strong>Check the tables first.</strong><p>You cannot create a data set from tables with user-defined data types; mark such columns Restricted under Discover &gt; Columns. Tables without primary keys need logical keys, or a reset might fail. Character columns with precision 4000 should be edited to 3,999 or less (p.239).</p></li>
 <li><strong>Build a plan (masking, subset or generation) and in the plan settings select Test Data Warehouse from the target connections.</strong><p>The Data Set Properties section appears.</p></li>
 <li><strong>Enter a data set name (default: the plan name), application name, application version and tags.</strong><p>A new name creates version 1. TDM fills in the version number (p.240).</p></li>
 <li><strong>Finish the plan and click Actions &gt; Generate and Execute.</strong><p>Optionally publish to the self-service portal in the same step.</p><p class="expect">Monitor shows the job. On success the data set appears in the Data Sets view.</p></li>
 </ol>
+
 <p><em>Condensed from User Guide 10.5.10, pp.239-240.</em></p>
+
 <h3 id="c16-versions">16.16.2 Versions and tags</h3>
+
 <p>Test data changes during testing. You make a new version in two ways (p.238):</p>
+
 <ul>
 <li>rerun the same plan without changing the data set name; or</li>
 <li>create and run a different plan and enter the same data set name.</li>
 </ul>
 
 <p><strong>Tags</strong> are comma-separated words (test case name, ticket number) used to filter and search data sets. <strong>Row-level tags</strong> mark individual rows, to track edits or to select rows for a related data set (p.239). Tag text may include spaces and special characters but not a comma (pp.247, 255).</p>
+
 <div class="callout example"><strong class="ctitle">ShopSphere: naming</strong>
 <p>Data set <code>SHOPSPHERE_MASKED</code>, application <code>CustomerOrders</code>, application version <code>2.4</code>, tags <code>baseline, masked, 5pct</code>. After the regression run, rerun the plan or run a different plan with the same data set name to get version 2 tagged <code>after-regression</code>.</p></div>
+
 <div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.237, figure "tasks for storing and using warehouse data" (rendered and enlarged). A left-to-right flow: create project, optional parameters, plan with the warehouse as target, generate and run, view the data set, then optional steps (edit metadata, permissions or lock, edit data, coverage, reset, publish to the portal). What to look for: only the first four boxes are mandatory.</div>
 
 <h2 id="c16-reset">16.17 Restoring: the reset</h2>
+
 <p><strong>Reset</strong> moves data from a data set version in the warehouse to a target, so a test environment goes back to a known state (User Guide 10.5.10, p.240). You can make the reset delete everything in the target and replace it, which suits tables you do not share. Or you can keep other testers' data in the target and replace only the part that overlaps the data set. In selective resets TDM runs an SQL script that backs up the deleted data in the target (p.241).</p>
+
 <h3 id="c16-master-trans">16.17.1 Master and transactional tables</h3>
+
 <p>Reset behaves differently per table, according to how you classify it (p.241):</p>
+
 <div class="tablewrap"><table>
 <caption>Table classification and reset behaviour (pp.241-242)</caption>
 <thead><tr><th>Class</th><th>Meant for</th><th>Reset action by default</th><th>ShopSphere</th></tr></thead>
@@ -68,8 +88,11 @@
 <tr><td>Master</td><td>Records shared by all testers</td><td>No deletes. Upsert: update rows that exist in both, insert rows that exist only in the data set.</td><td>CUSTOMERS, PRODUCTS</td></tr>
 <tr><td>Transactional</td><td>Descendants of master tables; rarely shared</td><td>Insert. If a record already exists the insert fails. Deletes cascade from top-level transactional tables (direct children of master tables).</td><td>ORDERS, ORDER_ITEMS</td></tr>
 </tbody></table></div>
+
 <p>Unclassified tables are treated as transactional. To classify: open the data set, Plan Components tab, Tables tab, Edit Table Type. When you mark a table as master you must choose to mark all descendants as transactional, or all other tables (pp.241-242). Verify the classification before every reset.</p>
+
 <h3 id="c16-reset-options">16.17.2 Reset options</h3>
+
 <ol class="steps">
 <li><strong>Open the data set version you want and click Actions &gt; Reset.</strong><p>The source is fixed: the warehouse.</p></li>
 <li><strong>Select the target connection.</strong><p>Usually your test database.</p></li>
@@ -77,11 +100,17 @@
 <li><strong>Enter reset recovery properties if you are not truncating:</strong> a <em>Backup Recovery Prefix</em> and the <em>Backup Recovery User Name</em> (schema) for backup tables named <code>&lt;prefix&gt;_&lt;tablename&gt;</code>.<p>This is your undo.</p></li>
 <li><strong>Review Error and Recovery and Advanced Settings; optionally override at data source or table level; choose the PowerCenter Integration Service; run now or schedule.</strong><p>Then follow the job in Monitor.</p><p class="expect">A "Reset Data Set from Test Data Warehouse" job reaches Success and the target matches the version.</p></li>
 </ol>
+
 <p><em>Steps from User Guide 10.5.10, pp.243-244.</em></p>
+
 <div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.245, figure "reset process". I rendered this page. It is a flowchart: Reset leads either to "Full restore" (truncate tables, insert tables from the data set, success message) or to "Reset with default settings", which validates table classification (not valid: exit with error), creates staging tables to find candidates for cascade delete, then asks whether to disable constraints and indexes. Yes goes to a parallel transactional cascade delete and insert; No goes to a sequential one. Both then upsert master tables in parallel, re-enable constraints, and show the success message. What to look for: a note says the backup tasks are not drawn.</div>
+
 <h3 id="c16-downtime">16.17.3 Speed versus downtime</h3>
+
 <p>Disabling constraints lets TDM load several tables in parallel, so resets finish sooner. But constraints are disabled for the entire table, and while they are off, other testers' tests that use those tables might fail. If tables are shared, a slower reset may be better than downtime; if no one else is using them, disable constraints (pp.242-243). As good practice, create an index on foreign keys in the target so child-record deletes are quick (p.243).</p>
+
 <h3 id="c16-reset-gotchas">16.17.4 Failure and special cases</h3>
+
 <ul>
 <li><strong>Failed reset:</strong> if recovery was enabled, backups are kept. Restore with a separate plan: put the backed-up tables in a group, add it as a subset component, use the backup schema as source and the real database as target, disable constraints and indexes, set Treat Source Row As Update and Update As "Update else Insert", and put the backup prefix in the Reset Recovery Prefix advanced field (p.247). On success TDM deletes the backup tables (p.246).</li>
 <li><strong>Empty strings in non-null columns:</strong> a reset fails if it must copy empty strings into a non-null column, for example from an Oracle warehouse to SQL Server. The project can supply default values, but a reset fails if the non-null target columns are unique (p.243).</li>
@@ -89,6 +118,7 @@
 </ul>
 
 <h2 id="c16-manage-ds">16.18 Managing data sets</h2>
+
 <ul>
 <li><strong>Permissions.</strong> Whoever runs the plan owns the data set. Owner and domain administrator can grant <strong>Read</strong> (view, monitor, create coverage tasks, run related data set plans), <strong>Write</strong> (create, edit metadata and data, classify, delete, create related plans) and <strong>Execute</strong> (reset). Users also need matching privileges such as View Data Set or Reset Data Set (pp.252-253).</li>
 <li><strong>Lock and unlock.</strong> Owner and administrator can lock a data set so nobody edits or resets it, for example while you check it first. The owner and administrator can still reset it (p.254).</li>
@@ -99,6 +129,7 @@
 </ul>
 
 <h2 id="c16-labs">16.19 Labs: the story in practice</h2>
+
 <div class="exercise"><h4>Lab A: build a masking and subset plan that stores a data set</h4>
 <p>Goal: take the ShopSphere sample from production to a masked, small, versioned data set in the warehouse. Needs an installed TDM with a Test Data Warehouse Service, a project with the four tables imported, an entity with CUSTOMERS as driving table, and masking rules assigned (see the masking and subsetting chapters). Names are mine.</p>
 <ol class="steps">
@@ -142,6 +173,7 @@
 <p>The Warning at 10:02:19 is the root cause: the rejected ORDERS row (orphan or duplicate data) stopped the constraint being enabled. Open the session details for ORDERS to read the rejected rows and last error (p.314).</p></details></div>
 
 <h2 id="c16-mistakes">16.20 Common mistakes and gotchas</h2>
+
 <div class="callout warn"><strong class="ctitle">Things that go wrong</strong>
 <ul>
 <li><strong>Changing a plan and expecting the old workflow to follow.</strong> Generate and run again (p.275).</li>
@@ -154,6 +186,7 @@
 </ul></div>
 
 <h2 id="c16-recap">16.21 Recap</h2>
+
 <div class="callout recap"><strong class="ctitle">Recap</strong>
 <ul>
 <li>A plan defines a masking, subset or generation operation; TDM generates a workflow (an ETL job) from it and the PowerCenter Integration Service runs it.</li>

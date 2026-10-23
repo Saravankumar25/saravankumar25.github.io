@@ -1,5 +1,7 @@
 <h2 id="c15-techniques">15.9 The generation techniques, one by one</h2>
+
 <p>A technique is the method a rule uses to produce values. The guide lists eleven (User Guide 10.5.10, p.209). Which ones you may choose depends on the column's data type, and some are <strong>ad hoc only</strong>, meaning you can use them only when you create a rule directly on a column inside a project (pp.208-209).</p>
+
 <div class="tablewrap"><table>
 <caption>All eleven generation techniques (User Guide 10.5.10, pp.209-235)</caption>
 <thead><tr><th>Technique</th><th>Kind</th><th>Data types</th><th>One-line purpose</th></tr></thead>
@@ -16,21 +18,33 @@
 <tr><td>Advanced</td><td>Combination</td><td>String, numeric, date</td><td>Several techniques and several columns in one rule</td></tr>
 <tr><td>Custom</td><td>Mapplet</td><td>String, numeric, date</td><td>Logic imported from a PowerCenter mapplet</td></tr>
 </tbody></table></div>
+
 <p>For each technique below you get what it does, when to reach for it, its parameters and a ShopSphere example. The example outputs are my illustrations of what such a rule would produce, not captured TDM output, unless I say the guide shows them.</p>
 
 <h3 id="c15-t-sequence">15.9.1 Sequence</h3>
+
 <p><span class="badge doc">From docs</span> A global or ad hoc rule that makes numeric or date values in a sequence. You pick a beginning value and an increment (User Guide 10.5.10, p.230).</p>
+
 <p><strong>When:</strong> ids and anything that must be ascending: customer ids, ticket numbers, consecutive dates. The guide's example is a TICKET_NUMBER column with start 1000 and increment 1 (p.231).</p>
+
 <p>Parameters (pp.231-232): numeric rules take Start Value, Increment Value and <strong>Start Sequence from Last Value</strong>, which makes the next run continue from the previous output (on a string column it restarts from the beginning). Date rules take Start Date and Increment by (a number plus year, month, day, hour, minutes or seconds). Null Values and Invalid Values apply, where invalid means below the start for a positive increment.</p>
+
 <p><strong>ShopSphere:</strong> <code>customer_id</code> with start 1001, increment 1 gives 1001, 1002, 1003 and so on. A date sequence for <code>order_date</code> with start 2026-01-01 and increment 1 day gives one order per consecutive day.</p>
+
 <p><strong>Limits:</strong> you cannot add a conditional constraint to a sequence column (p.201) or put conditions on a sequence rule (p.234).</p>
 
 <h3 id="c15-t-random">15.9.2 Random</h3>
+
 <p><span class="badge doc">From docs</span> A global or ad hoc rule that creates random strings, numbers and dates, for things like salary and birth dates (p.220). For strings you give a minimum and maximum length; for numbers a minimum and maximum value; for dates a range. You can instead supply a <strong>regular expression</strong> (a compact pattern language for text shapes) and say what percentage of rows follow it. If you use several patterns the percentages must total 100.</p>
+
 <div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.210, figure "random string generation rule". I rendered this page. It shows a wizard step titled "New Generation Rule: Step 2 of 2" with a Random option (Minimum Length, Maximum Length), a From Regular Expression option with a Pattern box and a Distribution % box, a Generate Unique Values checkbox, and an Exception Test Data area with Null Values and Invalid Values drop-downs set to "Default" beside percentage boxes showing 0. What to look for: the two radio choices are mutually exclusive ways of making a string.</div>
+
 <p>Parameters (pp.221-223): strings take Minimum Length (default 1) and Maximum Length (default the column maximum); numbers take Minimum Value (default 0) and Maximum Value (default the column maximum); dates take Start and End Date/Time and Exclude (up to two different weekdays). Strings and numbers can instead use <strong>From Regular Expression</strong> with a Pattern and Distribution. <strong>Generate Unique Values</strong> is not available with a pattern, and neither are invalid values. Null Values and Invalid Values apply as usual.</p>
+
 <h4 id="c15-patterns">Writing patterns</h4>
+
 <p>For strings the usable operators are <code>.</code>, <code>\d</code>, <code>\w</code>, alternation <code>(a|b|c)</code>, <code>{n}</code> repeat counts and <code>[ ]</code> sets. To make numbers that contain special characters, use the <em>string</em> technique. To make plain numbers use the <em>numeric</em> technique, which allows <code>\d</code>, alternates like <code>(1|2|3)</code> and <code>[0-9]</code>, and alternates cannot be nested (p.223).</p>
+
 <div class="tablewrap"><table class="sample">
 <caption>ShopSphere pattern examples (my illustrations, using the operators the guide lists on p.223)</caption>
 <thead><tr><th>Goal</th><th>Technique</th><th>Pattern</th><th>Example output</th></tr></thead>
@@ -40,75 +54,112 @@
 <tr><td>ShopSphere tax id</td><td>String</td><td><code>[A-Z]{3}\d{6}</code></td><td>KQM481926</td></tr>
 <tr><td>ShopSphere test email</td><td>String</td><td><code>[a-z]{8}@example\.(com|org)</code></td><td>qkdmpzra@example.org</td></tr>
 </tbody></table></div>
+
 <p>Read a pattern left to right as slots: <code>\d</code> is one digit, <code>{n}</code> repeats the previous piece, <code>[A-Z]</code> is one character from a range, <code>(a|b)</code> is a choice and <code>\.</code> is a literal dot. So <code>(6|7|8|9)\d{9}</code> is a first digit 6 to 9 followed by nine digits. This reading aid is general knowledge. Test a pattern by generating a few rows into a scratch table first.</p>
+
 <div class="callout warn"><strong class="ctitle">Patterns cannot make valid checksummed numbers</strong>
 <p>For credit card, Social Security and Social Insurance numbers the guide warns that pattern-made values might not be valid, because real numbers follow algorithms that a pattern cannot reproduce (p.224). That is fine for "SSN-like" test data, and it is why the Credit Card technique exists.</p></div>
+
 <p><strong>Date example:</strong> a random date rule from 1950-01-01 to 2005-12-31 for <code>date_of_birth</code> gives values such as 1990-04-12 and 1999-07-23. Set Exclude to Saturday and Sunday and no value falls on a weekend; "invalid" for dates means outside the range or on an excluded day (p.221).</p>
 
 <h3 id="c15-t-set">15.9.3 Set of Values</h3>
+
 <p><span class="badge doc">From docs</span> You type the values you want and the percentage of rows for each; the percentages must total 100 (decimals allowed). Works for string, numeric and date, and can be global or ad hoc (pp.232-233). Best for columns with a handful of values, such as membership status.</p>
+
 <p>Parameters: <strong>Value</strong> (one row per value, add rows as needed), <strong>Distribution%</strong>, and the usual Null Values and Invalid Values. For this technique "invalid" means anything not in the list (p.233).</p>
+
 <p>The guide's example is a PAYMENT_TYPE column with Visa 60, MasterCard 30, Paypal 10. <strong>ShopSphere:</strong> <code>zip_code</code> with 560001 at 40, 600017 at 35 and 682001 at 25. Of 50 customers, about 20, 17 or 18, and 12 or 13 will get each zip code. Percentages are targets, so expect small rounding differences.</p>
 
 <h3 id="c15-t-dict">15.9.4 Dictionary</h3>
+
 <p><span class="badge doc">From docs</span> Loads values from a <strong>dictionary</strong> (a flat file or relational table of values) into a column. Good for columns with realistic but finite values: names, states, countries. Before you create the rule, someone with permission must add the dictionary under <strong>Administrator | Dictionaries</strong>. Works for string, numeric, date and binary data; flat file or relational source; binary only from relational (p.215).</p>
+
 <p>Parameters (p.216): Dictionary Name; Dictionary Column (longer values are truncated to the target size); an optional Dictionary Lookup Column plus Table Column to match rows; Serial Number Columns (relational dictionaries, needed for binary); Generate Unique Values (not for flat-file dictionaries or binary); Null and Invalid Values (invalid means not in the dictionary).</p>
+
 <p>If both lookup and table columns are of double data type the process generates nulls (p.216). The guide's example makes two string rules from one names dictionary: one picks the first-name column, one the last-name column (p.215).</p>
+
 <p><strong>ShopSphere:</strong> <code>first_name</code> uses dictionary NAMES column FIRST, <code>last_name</code> uses column LAST. Sample output: Meera, Nair; Ravi, Kumar; Asha, Menon. The dictionary's name and column names here are placeholders I made up. Because the two rules pick independently, "Ravi Menon" is as likely as "Ravi Kumar", which is fine for testing and wrong for anything that needs a believable family name.</p>
 
 <h3 id="c15-t-card">15.9.5 Credit Card</h3>
+
 <p><span class="badge doc">From docs</span> Creates card numbers by issuing network. Output is a <strong>string</strong> (not numeric, date or binary), and numbers must pass verification using Luhn's algorithm, the check-digit formula real cards follow (pp.226-227). Formatted output looks like <code>XXXX-XXXX-XXXX-XXXX</code>.</p>
+
 <p>Parameters (pp.227-228): Issuing Network (required: American Express, Discover, JCB, Mastercard or Visa); an optional Issuer Identification Number of up to six starting digits (a value invalid for the network makes the workflow fail; blank lets TDM use valid ones); Distribution % (must total 100); Generate Formatted Values; Generate Unique Values; Null and Invalid Values. Valid starting digits include Visa 4, Mastercard 51 to 55 and American Express 34 and 37.</p>
 
 <p><strong>ShopSphere:</strong> the four tables hold no card numbers, so imagine a later <code>PAYMENTS.card_no</code> column. A rule with Visa at 60 percent and Mastercard at 40 percent, formatted, gives values shaped like <code>4666-1760-3137-2159</code> and <code>5122-3307-9244-0268</code>. I computed those two to pass the Luhn check, but TDM would produce its own digits.</p>
 
 <h3 id="c15-t-ref">15.9.6 Reference Lookup</h3>
+
 <p><span class="badge doc">From docs</span> An <strong>ad hoc</strong> rule that takes column values from an existing table, for string, numeric and date columns. You name the parent table and map parent columns to child columns. The same rule can fill several child columns from the same parent table (p.229). The guide's example: use the same customer ids that exist in another table.</p>
+
 <p>Parameters (p.230): Minimum (default 1) and Maximum (default 3) child records per parent; Data Source (connection to the parent table); Parent Table; pairs of Child Column and Parent Column; a Parent Table Filter; the percent of parent records without children and of child records without a parent (if that is 0 you must give a Default Value to write instead of nulls).</p>
+
 <p><strong>ShopSphere:</strong> <code>ORDERS.customer_id</code> reads <code>CUSTOMERS.customer_id</code> with minimum 1 and maximum 3, so each existing customer gets one to three orders. Set "Parent records without children" to 10 and about one customer in ten has no orders, a useful edge case. Remember the plan needs a <em>Reference Lookup Connection</em> (p.280), and see <a href="#c15-keys-ref">the note on reference lookup</a> about where the parent rows must already live.</p>
+
 <div class="callout warn"><strong class="ctitle">Reference lookup is not for XML targets</strong>
 <p>You cannot use reference lookup or effective dates rules for an XSD (XML) source (p.206).</p></div>
 
 <h3 id="c15-t-expr">15.9.7 Expression</h3>
+
 <p><span class="badge doc">From docs</span> An <strong>ad hoc</strong> rule that computes a value from an expression you build in the Expression Builder, choosing columns and functions from lists. Works for string, numeric and date (p.219). Parameters: Expression, Null Values, Invalid Values (invalid = does not follow the expression) (p.220). If you tick "Override Data Type to Numeric" on a string column, you cannot enter a numeric expression (p.219).</p>
+
 <p>The guide's example builds a Name column from FirstName and LastName with <code>CONCAT (FirstName+'/'+LastName)</code>. <strong>ShopSphere:</strong> imagine a <code>display_name</code> column built as <code>CONCAT(CONCAT(first_name,' '),last_name)</code>, giving "Asha Menon". I mirrored the nested <code>CONCAT</code> style the guide uses in its advanced example; check the exact function list in your Expression Builder.</p>
+
 <p><strong>When:</strong> any column that is a function of other columns in the same row. The dependent column must still be assignable after its inputs, so assign rules to the inputs too.</p>
 
 <h3 id="c15-t-cond">15.9.8 Conditional</h3>
+
 <p><span class="badge doc">From docs</span> An <strong>ad hoc</strong> rule with one or more rows of "<em>if this condition, then use this generation rule</em>". Conditions are applied in the order listed (reorder with the up and down arrows). Works for string, numeric and date, but you cannot apply conditions to effective dates or sequence rules (p.234).</p>
 
 <p>The guide's example: DEPT_ID 11 gets a 5 percent hike, 22 gets 10, 33 gets 15. The column that the condition reads (DEPT_ID) must itself have a rule, and TDM generates it first, then the dependent column (p.234).</p>
+
 <p><strong>ShopSphere</strong> (hypothetical city column): if <code>zip_code = '560001'</code> then city is "Bengaluru", if <code>'600017'</code> then "Chennai", if <code>'682001'</code> then "Kochi". Each "then" is a one-value Set of Values rule. The guide does not describe a catch-all "else" row, so make sure every possible input value has a condition. <span class="badge unverified">Check how unmatched rows behave</span></p>
 
 <h3 id="c15-t-eff">15.9.9 Effective Dates</h3>
+
 <p><span class="badge doc">From docs</span> An <strong>ad hoc</strong> date rule that fills two related columns, an effective start date and an effective end date, so that periods follow one another without overlap. It makes a random start in a range, an end after it, and the next start right after that end. A <strong>grouping column</strong> decides how many dates are in each sequence: the number of rows sharing the same grouping value (pp.217-218).</p>
+
 <p>You create the rule on either the start or the end column and name the other. Parameters: Start Date/Time, End Date/Time, Exclude (up to two different weekdays), Effective Start Date column, Effective End Date column, Grouping Column, Invalid Values (percent of rows breaking the sequence; the rule is fixed to Default) (pp.218-219).</p>
 
 <p><strong>ShopSphere:</strong> a hypothetical <code>CUSTOMER_ADDRESS_HISTORY</code> table with grouping column <code>customer_id</code> gives each customer a chain of addresses with no gaps. Good for testing "address on the order date" logic.</p>
 
 <h3 id="c15-t-adv">15.9.10 Advanced</h3>
+
 <p><span class="badge doc">From docs</span> A combination of techniques that fills one or several target columns from one or more input, variable and output ports (pp.199, 212). Use it when one column needs two techniques, or the value depends on other columns. You can generate string, numeric and date data.</p>
+
 <p>An <strong>input port</strong> (optional) takes a target column or a parameter. A <strong>variable port</strong> holds intermediate values and uses either <em>Conditional</em> or <em>Generation Rule Set</em> (rules with distribution percentages, optionally grouping records by foreign key). An <strong>output port</strong> receives the data and needs an Expression built from the inputs and variables. Port names need not match column names; you map them when you assign the rule (pp.199, 214-215).</p>
+
 <div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.200, figure "advanced rule parameters". I rendered this page. It shows "New Generation Rule: Step 2 of 2" with a Columns pane listing one input column (Ip_1, string, 10), a variable column (Var_1) with Configure Rule and two default numeric sequence rules, and one output column (Out_1), plus a Properties pane showing the output expression CONCAT(Ip_1,Var_1). What to look for: the three port groups stacked in one list.</div>
+
 <p>The guide also shows 50 "Invoice-n" plus 50 "Order-n" ids built from a conditional sequence (pp.199-200).</p>
+
 <div class="callout example"><strong class="ctitle">ShopSphere: realistic emails (my adaptation of the guide's example)</strong>
 <p>Input <code>in_FirstName</code> mapped to <code>first_name</code>. Variable <code>var_Domain</code> with a Generation Rule Set: <code>example.com</code> 50 percent, <code>example.org</code> 50 percent. Output <code>out_Email</code> with the expression above. Result: Asha@example.com, Ravi@example.org.</p>
 <p>Two customers called Asha get the same email, as in the guide's own example. The guide does not say whether an input port reads the value <em>generated</em> for another column in the same run, so check that <code>first_name</code> is generated before the email. <span class="badge unverified">Verify in your version</span></p></div>
 
 <h3 id="c15-t-custom">15.9.11 Custom</h3>
+
 <p><span class="badge doc">From docs</span> A global rule built from a PowerCenter <strong>mapplet</strong>. You import it, and mark at least one input and one output column as required. Works for string, numeric and date (pp.196, 211). Use it when you need PowerCenter transformations (SQL, Stored Procedure) or logic that the built-in techniques cannot express.</p>
+
 <p>You map your table columns to the mapplet's input ports and its output ports to target columns (p.204).</p>
+
 <p><strong>ShopSphere:</strong> a mapplet that takes first and last name and returns "Asha Menon" for a <code>display_name</code> column. Building mapplets is covered in <a href="14-informatica-data-masking.html">the Informatica masking chapter</a>.</p>
 
 <h2 id="c15-cond-constraint">15.10 Conditional constraints: rules between columns</h2>
+
 <p>Techniques fill one column at a time. A <strong>conditional constraint</strong> is a table-level rule that restricts what may appear in a column based on another column. It becomes part of the target table's metadata (User Guide 10.5.10, p.201).</p>
+
 <p>The guide's example: a flight table with <code>From_City</code> and <code>To_City</code> both filled by the same dictionary rule, plus the constraint <code>To_City != From_City</code> so no ticket flies from a city to itself (p.202). A ShopSphere analogue with hypothetical columns: <code>delivery_date &gt; order_date</code>.</p>
+
 <p>To create one, open Discover &gt; Tables, click the table, open the Constraints tab, choose Create New Constraint, set the type to Conditional and build the expression in the Expression Builder (pp.110-111).</p>
+
 <p><strong>Where the constraint cannot be used:</strong> numeric sequence, date sequence and random data patterns (p.201). On XSD sources you cannot constrain an element that allows more than one child per parent (p.201).</p>
+
 <div class="callout warn"><strong class="ctitle">When the rule and the constraint disagree, the rule wins</strong>
 <p>The guide's example: both <code>Created_Date</code> and <code>Modified_Date</code> use a random date rule ending 31 July 2014, with the constraint <code>Modified_Date &gt; Created_Date</code>. When Created_Date is 31 July 2014 no later date is allowed, so TDM writes a date within the rule's range anyway and <strong>generates warning messages</strong> (p.202). The constraint was broken, quietly. Read the warnings in the Monitor logs (<a href="16-informatica-plans-workflows-and-warehouse.html">the plans, workflows and warehouse chapter</a>) and loosen the rule's range, not just the constraint.</p></div>
 
 <h2 id="c15-pick">15.11 Choosing a technique for every ShopSphere column</h2>
+
 <div class="tablewrap"><table>
 <caption>One reasonable rule set for the four ShopSphere tables (my design; techniques are from the guide)</caption>
 <thead><tr><th>Column</th><th>Technique</th><th>Parameters</th><th>Why</th></tr></thead>
@@ -125,4 +176,3 @@
 <tr><td>order_id</td><td>Entity relationship</td><td>min 1, max 4 children</td><td>Must match a real order</td></tr>
 <tr><td>product_code</td><td>Reference Lookup or Set of Values</td><td>codes that exist in PRODUCTS</td><td>Must match a real product</td></tr>
 </tbody></table></div>
-

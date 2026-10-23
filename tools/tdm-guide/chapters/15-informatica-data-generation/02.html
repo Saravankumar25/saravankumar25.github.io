@@ -1,5 +1,7 @@
 <h2 id="c15-rule-types">15.4 Rule types: standard, custom, advanced and ad hoc</h2>
+
 <p>A rule can be created in four ways. The difference is mostly <em>how many columns</em> it touches and <em>where it lives</em> (User Guide 10.5.10, pp.192-193).</p>
+
 <div class="tablewrap"><table>
 <caption>The four generation rule types</caption>
 <thead><tr><th>Type</th><th>Scope</th><th>What it does</th><th>Created in</th></tr></thead>
@@ -9,14 +11,15 @@
 <tr><td>Advanced</td><td>Global, several columns</td><td>Combines techniques and uses more than one input column.</td><td>Policies</td></tr>
 <tr><td>Ad hoc</td><td>One project, no name</td><td>Created straight on a column. Can use extra techniques that global rules cannot.</td><td>Define | Data Generation of a project</td></tr>
 </tbody></table></div>
+
 <p>Global rules appear in every project and carry a name. Ad hoc rules have no name, cannot be moved, and are defined by the target columns you pick when you create them (p.193). The three techniques that exist <em>only</em> as ad hoc are <strong>reference lookup</strong>, <strong>effective dates</strong> and <strong>expression</strong>; <strong>conditional</strong> is also listed as ad hoc in the technique table (p.209).</p>
 
-
-
 <h3 id="c15-impact">15.4.1 Editing and deleting rules: the "impacted objects" check</h3>
+
 <p>If you edit or delete a global rule that is already assigned somewhere, TDM shows an <strong>Impacted Objects</strong> dialog listing affected columns, plans and data domains. You can export that list as a <code>.csv</code> file, then click Continue to save. <strong>The change does not reach a plan until you generate and run that plan again</strong> (User Guide 10.5.10, pp.195-196). The same dialog appears when you edit an ad hoc rule, assign a rule, or clear an assignment (pp.199, 204-206).</p>
 
 <h3 id="c15-create-standard">15.4.2 Creating a standard rule</h3>
+
 <ol class="steps">
 <li><strong>Open Policies and choose Actions &gt; New &gt; Generation Rule.</strong><p>Creating it in Policies, not inside a project, makes the rule global and reusable.</p></li>
 <li><strong>Enter a name, pick the column's data type, select the standard type and optionally tick Override Allowed.</strong><p>The data type decides which techniques the wizard offers, so choose it first.</p></li>
@@ -24,25 +27,33 @@
 </ol>
 
 <h3 id="c15-override">15.4.3 Override: one rule, small variations</h3>
+
 <p>If a rule has <strong>Override Allowed</strong> set, whoever assigns it can change its parameters for that one column without touching the global rule. The guide's example: a rule that makes random dates from 2011 to 2012 with override on; a user assigns it and adds Saturday and Sunday as excluded days, so that column gets weekday dates only (p.193). To do it, select the column in Define | Data Generation, choose Actions &gt; Override, edit the values and Save. The Override column then reads <strong>Yes-Overridden</strong> (p.196).</p>
 
 <h3 id="c15-custom-rule">15.4.4 Custom and advanced rules, in brief</h3>
+
 <p>A <strong>custom</strong> rule imports a PowerCenter mapplet. You must mark at least one input and one output column as required. The guide's use: combine first and last name into a full name, or use PowerCenter transformations such as an SQL or Stored Procedure transformation (User Guide 10.5.10, p.196). An <strong>advanced</strong> rule has input, variable and output ports and can mix techniques. Both get their own sections in <a href="#c15-techniques">the technique tour</a>.</p>
 
 <h2 id="c15-defaults">15.5 Default rules: what happens to columns you ignore</h2>
+
 <p>Columns without an assigned rule receive the <strong>default rule for their data type</strong> (User Guide 10.5.10, p.193). The defaults (Numeric, String, Date and Binary, plus separate primary key and unique key defaults for each type) are visible on a project's <strong>Overview | Properties</strong> tab (pp.193-194).</p>
 
 <p>Keys get their own defaults because a primary key must never repeat or be empty. The administrator configures the initial defaults (p.193), and in the plan's Data Generation Properties you can adjust them again and tick <strong>Apply Default Rule to</strong> columns without rules (p.285).</p>
+
 <p>Two more shortcuts the guide mentions (pp.194, 205):</p>
+
 <ul>
 <li><strong>Default data domain rule.</strong> You set this when you create and run a data domain profile (<a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>), so discovery can feed generation.</li>
 <li><strong>Auto rule.</strong> After a column profile you review and finalise results. Columns whose <strong>Inferred Rule</strong> shows <em>Yes</em> can take the Auto Rule, which fills the column from the approved profile results. Do not apply an auto rule to a primary key column, because a primary key cannot contain nulls.</li>
 </ul>
+
 <div class="callout warn"><strong class="ctitle">Default rules are not a plan</strong>
 <p>The guide notes that default rules are not filled in if the rules are not part of the project. If the default boxes in the plan are blank, you must choose the default rules yourself (p.284). Random defaults are fine for a column nobody tests, not for one with business meaning such as <code>email</code>.</p></div>
 
 <h2 id="c15-assign">15.6 Assigning rules to columns</h2>
+
 <p>An assignment is made on one screen: <strong>Define | Data Generation</strong> inside the project. It is a grid with one row per target column and these fields (User Guide 10.5.10, p.203):</p>
+
 <div class="tablewrap"><table>
 <caption>Fields of the Data Generation view</caption>
 <thead><tr><th>Field</th><th>Meaning</th></tr></thead>
@@ -54,6 +65,7 @@
 <tr><td>Generation Rule</td><td>Click inside it to pick a rule. The list shows only rules valid for the column's data type. "New Generation Rule" creates an ad hoc rule.</td></tr>
 <tr><td>Override</td><td>Yes if the rule allows override. Yes-Overridden once you changed it.</td></tr>
 </tbody></table></div>
+
 <div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.203, figure "Define | Data Generation view in a project". I rendered this page. It shows the project tab bar (Overview, Discover, Define, Execute, Monitor, Security), the sub-tabs Data Subset, Data Masking and Data Generation, and a grid of a customer table where two string columns already show a rule named StringRule and Override "No". What to look for: the grid has exactly the six columns in the table above, and unassigned rows have an empty Generation Rule cell.</div>
 
 <div class="mock"><div class="mbar">Define | Data Generation (schematic, ShopSphere)</div><div class="mbody"><pre class="ascii">Table      Column         Type     Null  Generation Rule        Override
@@ -71,6 +83,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 <p>In this view you must click the <strong>Save</strong> icon each time you assign a rule. If you pick a rule for the next column without saving, Test Data Manager discards the earlier assignment (User Guide 10.5.10, p.203). It is the most common way to lose twenty minutes of work.</p></div>
 
 <h3 id="c15-assign-steps">15.6.1 How each kind of rule is assigned</h3>
+
 <ul>
 <li><strong>Standard rule:</strong> click inside Generation Rule for the column, choose the rule, click Save (p.204).</li>
 <li><strong>Custom (mapplet) rule:</strong> choose it, and a Custom Rule Assignment dialog shows your table's columns on one side and the mapplet's input ports on the other. Select a column, select a port of the same data type, click the Link icon. Click Next, then link each rule output port to a target column and Save (p.204).</li>
@@ -80,10 +93,15 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 </ul>
 
 <h2 id="c15-keys">15.7 Tables, entities, relationships and keys</h2>
+
 <p>Real data is not a pile of independent tables. Every ShopSphere order must point to a customer that exists, and every order item to an order that exists. If you generate each table separately with random numbers, the foreign keys will point nowhere and the app will fail for reasons unrelated to what you wanted to test. TDM gives you two tools for this.</p>
+
 <h3 id="c15-keys-entity">15.7.1 Entities: generate a parent with its children</h3>
+
 <p>An <strong>entity</strong> defines tables related by physical or logical constraints, and keeps the hierarchy (User Guide 10.5.10, p.277). You can add entities (and plain tables) to a generation plan. You create the entity in the project's Define area, pick a driving table, and TDM finds related tables from the constraints. If your database has no declared foreign keys, add a <strong>logical foreign key</strong> on the Discover | Tables | Constraints tab, mapping the child column to the parent column (<a href="13-informatica-data-subset.html">the Informatica subsetting chapter</a>; User Guide 10.5.10, pp.110, 116).</p>
+
 <p>For each relationship in an entity map there are <strong>Minimum</strong> and <strong>Maximum</strong> properties: the fewest and most child records to generate for each parent record (p.117). The plan-level Data Generation Properties repeat this as Minimum and Maximum (guide default 1 for each), plus <strong>Parent Records Without Children</strong> and <strong>Child Records Without Parent</strong> percentages for self-cyclic tables or reference lookups (p.285). A link between XML elements works the same way. A range set on an individual relationship takes priority over the plan-level ratio (p.207).</p>
+
 <figure class="diagram"><svg viewBox="0 0 800 250" role="img" aria-label="Parent-child fan-out for a ShopSphere entity: one customer has between one and three orders, each order has between one and four items">
 <g fill="none" stroke="currentColor" stroke-width="1.5">
 <rect x="20" y="95" width="170" height="60" rx="6" fill="var(--surface)"/>
@@ -105,11 +123,14 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 <figcaption>Original diagram: the fan-out an entity describes. Each generated parent receives a random number of children between the minimum and maximum, and every child carries its parent's key. The numbers are my ShopSphere illustration.</figcaption></figure>
 
 <h3 id="c15-keys-ref">15.7.2 Reference lookup: borrow values from a table that already exists</h3>
+
 <p>The second tool is the <strong>reference lookup</strong> technique (see <a href="#c15-t-ref">Reference Lookup</a>). Instead of making values, it reads them from an existing parent table, so a child column can only receive keys that exist there. The plan then needs a <strong>Reference Lookup Connection</strong>, a connection to the database that holds the parent tables (User Guide 10.5.10, p.280). Use it for static reference data: ShopSphere's <code>PRODUCTS</code> table is the natural example for <code>ORDER_ITEMS.product_code</code>.</p>
+
 <div class="callout note"><strong class="ctitle">What I could and could not confirm</strong>
 <p>The guide says entities keep parent-child hierarchy and lets you set child counts per parent. It does not spell out, in the pages I read, exactly how TDM copies the parent key into the child's foreign key column, or whether a reference lookup may read a parent table <em>generated in the same plan</em> rather than one already loaded in the database. After a first run, always check keys with a quick join query (the lab does). <span class="badge unverified">Verify in your version</span></p></div>
 
 <h3 id="c15-keys-pk">15.7.3 Primary keys and unique values</h3>
+
 <ul>
 <li>A computed column as primary key blocks generation for an entity: you cannot run generation that includes an entity whose primary key column is a computed column (p.191).</li>
 <li>For multirecord IMS sources imported from PowerCenter, the table sequence is not imported, so you must supply it with the <strong>Manage Sequence</strong> button on the entity's Entity Map tab (pp.191-192). This is a mainframe case you can skip for ShopSphere.</li>
@@ -118,16 +139,21 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 </ul>
 
 <h2 id="c15-count">15.8 How many records? And exception data</h2>
+
 <p>The number of rows is not part of a rule. It is set in the <strong>plan</strong>: the field <strong>Number of Records to Generate</strong> is marked Required for generation plans (User Guide 10.5.10, p.280). In the plan wizard it is step 14: "enter the number of records that you want to generate" (p.305). You can also give criteria per entity on the generation criteria step (p.305).</p>
+
 <p>For a parent-child set, the Minimum and Maximum child settings decide how many children each parent gets, so total rows in the child tables are not a round number. My reading, flagged because the guide gives no worked example of totals: with 50 customers and 1 to 3 orders each, expect between 50 and 150 orders. Confirm with the Row Count report (<a href="16-informatica-plans-workflows-and-warehouse.html">the plans, workflows and warehouse chapter</a>).</p>
+
 <h3 id="c15-exception">15.8.1 Exception test data: nulls and invalid values</h3>
+
 <p>Almost every technique ends with the same two settings, <strong>Null Values</strong> and <strong>Invalid Values</strong> (User Guide 10.5.10, pp.210-211). Each takes a rule (an existing global rule, or "Default") and a percentage, which may have up to two decimal places.</p>
+
 <ul>
 <li><strong>Null Values:</strong> the percentage of rows that will contain a null in this column. Cannot be generated for MongoDB sources (p.210).</li>
 <li><strong>Invalid Values:</strong> the percentage of rows that deliberately break the rule, where "invalid" means whatever does not conform to the rule: outside the numeric range, wrong length, not in the dictionary and so on.</li>
 </ul>
+
 <p>The guide's trick: make a rule "Recent_Dates" for 2012 to 2013 and, in its Invalid Values setting, choose a second saved rule "Dates_2005" (2005 to 2010) at 15 percent. Now 85 percent of dates are recent and 15 percent are old (p.210). So "invalid values" is really a way to mix in a second population.</p>
+
 <div class="callout why"><strong class="ctitle">Why would I want bad data?</strong>
 <p>Good testing needs negative cases. If ShopSphere's checkout rejects a customer with no phone number, you need rows with no phone number. Ten percent nulls in <code>phone</code> and two percent invalid <code>zip_code</code> values give your tests something to reject, without hand-crafting rows.</p></div>
-
-

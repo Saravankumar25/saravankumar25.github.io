@@ -1,5 +1,7 @@
 <h2 id="c16-manage">16.9 Plan management</h2>
+
 <p>After you create a plan you can edit it, copy it, export it to XML, import one exported from another TDM repository, or delete it (User Guide 10.5.10, p.304).</p>
+
 <div class="tablewrap"><table>
 <caption>Plan management tasks (pp.304-308)</caption>
 <thead><tr><th>Task</th><th>How</th><th>Notes</th></tr></thead>
@@ -9,11 +11,14 @@
 <tr><td>Import</td><td>On the Projects list select the project (do not open it), Actions &gt; Import, browse to the XML, Finish</td><td>For moving plans between TDM repositories</td></tr>
 <tr><td>Delete</td><td>Select the plan, Actions &gt; Delete, confirm Yes</td><td>Deleting the plan also deletes its workflow</td></tr>
 </tbody></table></div>
+
 <div class="callout why"><strong class="ctitle">Why export and import?</strong>
 <p>ShopSphere has a development TDM and a production-grade TDM. A plan proved on the first is exported to XML and imported into the second, with connections and parameters adjusted. The command line tool <code>ilmcmd</code>, covered below, can do the same export and import without the web page (pp.330-332).</p></div>
 
 <h2 id="c16-workflow">16.10 Generating and running a workflow</h2>
+
 <p>You generate a workflow from a plan to perform subset, masking and generation. When you generate, the <strong>PowerCenter Repository Service</strong> creates the mappings. When you start, the <strong>PowerCenter Integration Service</strong> performs the work. You can generate and start in a single step (User Guide 10.5.10, p.308).</p>
+
 <ol class="steps">
 <li><strong>Generate: in the project click Execute, select a plan, Actions &gt; Generate Workflow.</strong><p>This builds mappings and stores them. Do it again whenever the plan changes.</p></li>
 <li><strong>Choose whether to run now or later.</strong><p>You may generate now and execute on a schedule.</p></li>
@@ -22,12 +27,18 @@
 <li><strong>Choose parameter values if the plan has parameters.</strong><p>See <a href="#c16-params">the parameters section</a>.</p></li>
 <li><strong>If the target is the warehouse, optionally publish to the self-service portal, then click Generate and Execute.</strong><p>Publishing creates a data pack for testers who cannot use Test Data Manager.</p><p class="expect">The workflow appears in the Workflow Executions view and in Monitor.</p></li>
 </ol>
+
 <p><em>Steps from User Guide 10.5.10, pp.308-311. To do both in one go use Actions &gt; Generate and Execute on the Plan | Properties page.</em></p>
+
 <div class="callout warn"><strong class="ctitle">Constraints that will not turn back on</strong>
 <p>If you ran the workflow with Disable Constraints and TDM then fails to re-enable them after loading, the workflow fails. Enable the constraints in the database by hand and run the workflow again (p.311).</p></div>
+
 <h3 id="c16-execview">16.10.1 The Workflow Executions view</h3>
+
 <p>This view shows the current workflow for the plan and all earlier ones, even for workflows that no longer exist in the plan. Click the Job ID to see the workflow log. Fields: Job ID, Name, Description (profiling, import or workflow), Status (In Queue, Running, Success, Error), Start and End Date/Time, User (pp.311-312). The Sessions tab lists each session, with Source Rows Succeeded and Failed and Target Rows Succeeded and Failed. Click the session name for Session Details, with the tables processed, affected rows, rejected rows, throughput and last error message (pp.313-314).</p>
+
 <p>Tasks you can perform on a workflow here and in Monitor:</p>
+
 <div class="tablewrap"><table>
 <caption>Workflow tasks (pp.312, 318)</caption>
 <thead><tr><th>Task</th><th>What it does</th><th>Use it when</th></tr></thead>
@@ -41,11 +52,13 @@
 </tbody></table></div>
 
 <h2 id="c16-monitor">16.11 The Monitor: watching and reading jobs</h2>
+
 <p>In the Monitor view you check the status of jobs you start in Test Data Manager, stop jobs and view job and session logs. The global Monitor shows jobs for all projects; open a project and click Monitor to see only that project's jobs. For a data set version, open it and click Monitor (User Guide 10.5.10, p.315).</p>
+
 <div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.316, figure "Monitor view". I rendered this page. It shows the Test Data Manager window with the Monitor tab active, a Jobs grid with columns Job ID, Name, Description, Status, Project, Start Date/Time, End Date/Time and User, rows of Execute Workflow, Generate Workflow and Import from Source jobs all with status Succeeded, and a lower panel with Properties and Logs tabs showing the selected job's General details (Job ID, Name, Description, Project, start time, elapsed time, status, user). What to look for: each job has a consecutive Job ID, and one plan run produces a Generate Workflow row and an Execute Workflow row.</div>
 
-
 <h3 id="c16-jobtypes">16.11.1 Job types</h3>
+
 <div class="tablewrap"><table>
 <caption>Job types shown in Monitor (User Guide 10.5.10, pp.316-317)</caption>
 <thead><tr><th>Job type</th><th>What it does</th></tr></thead>
@@ -62,7 +75,9 @@
 <tr><td>Fill Cell</td><td>Moves data from one cell to another in a coverage task</td></tr>
 <tr><td>Session</td><td>One task within a workflow; click a workflow job ID to see its sessions</td></tr>
 </tbody></table></div>
+
 <h3 id="c16-states">16.11.2 Job states</h3>
+
 <div class="tablewrap"><table>
 <caption>Job statuses (User Guide 10.5.10, p.317)</caption>
 <thead><tr><th>Status</th><th>Meaning</th><th>Your move</th></tr></thead>
@@ -73,11 +88,15 @@
 <tr><td>Error</td><td>Did not run successfully. Click the job ID for the log.</td><td>Read the log</td></tr>
 <tr><td>Terminated</td><td>The job was terminated</td><td>Find out who or what stopped it; recover if it is a workflow</td></tr>
 </tbody></table></div>
+
 <p>Job details you can sort and filter by: Job ID, Name, Description (plan, profile, folder or connection), Status, Project, Start and End Date/Time, User (p.317).</p>
 
 <h3 id="c16-logs">16.11.3 Reading the logs</h3>
+
 <p>Select a job and open the <strong>Logs</strong> tab. The TDM server writes TDM logs; the PowerCenter Integration Service writes session and workflow logs (a Data Integration Service does for Hadoop). TDM always writes <strong>console logs</strong> when a job is triggered, so if job logs are missing, read the console log (User Guide 10.5.10, p.318). Each message has a Date/Time, a Severity and a Description that explains the error, its cause and the solution.</p>
+
 <p>Severity levels (p.319): <strong>Error</strong> (the TDM server failed an operation; start here), <strong>Warning</strong> (an operation that might cause an error), <strong>Info</strong> (normal), <strong>Debug</strong> and <strong>Trace</strong> (increasingly detailed server operations, mostly for support).</p>
+
 <ol class="steps">
 <li><strong>Click Monitor, then the job ID, then the Logs tab.</strong><p>The log belongs to that job only.</p></li>
 <li><strong>Filter by severity Error, and by date range or a keyword.</strong><p>Real logs are long; the first Error line is usually the cause and the rest are knock-on effects.</p></li>
@@ -85,13 +104,15 @@
 <li><strong>For a workflow, click its job ID to open the workflow details, then the Sessions tab.</strong><p>Look for a session whose Target Rows Failed is not zero.</p></li>
 <li><strong>Click the Session ID to see tables processed, affected and rejected rows, error messages and the session log.</strong><p>This is where "which table broke" is answered.</p><p class="expect">You can name the failing session, table and message.</p></li>
 </ol>
+
 <p><em>Steps from User Guide 10.5.10, pp.319-320.</em></p>
 
 <p>For Hadoop plans you see mapping logs only: no workflow logs and no row counts (p.320). On a clean copy run the Source and Target Rows Succeeded counts match and both Failed counts are zero; a non-zero Failed count means rejected rows, so read the session's last error message.</p>
 
-
 <h2 id="c16-reports">16.12 Reports</h2>
+
 <p>Reports show detailed information about recent activity, a project or a plan. They open in a new window, so allow pop-ups for the site (User Guide 10.5.10, p.321).</p>
+
 <div class="tablewrap"><table>
 <caption>Reports in Test Data Manager (pp.321-325)</caption>
 <thead><tr><th>Report</th><th>Run it on</th><th>What it contains</th><th>How to run</th></tr></thead>
@@ -102,6 +123,7 @@
 <tr><td>Plan Detail Report</td><td>A plan</td><td>Masking assignments, entities with filter criteria, groups, templates and template components</td><td>Execute, click the plan, Actions &gt; Plan Detail Report</td></tr>
 <tr><td>Row Count Report</td><td>An Execute Workflow job</td><td>Tables that took part and the number of rows the plan affected</td><td>Monitor, click an Execute Workflow job, Actions &gt; Row Count Report</td></tr>
 </tbody></table></div>
+
 <p>Pick the report by question. <em>Who changed what and when?</em> Audit Trail. <em>Which columns have which masking?</em> Data Masking or Plan Detail. <em>Prove to an auditor which rules ran and on how many rows?</em> Plan Audit. <em>How many rows did this run touch?</em> Row Count (the lab and the generation chapter both use it).</p>
 
 <h2 id="c16-coverage">16.13 Data coverage analysis, at overview level</h2>

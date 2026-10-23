@@ -1,4 +1,5 @@
 <p>Every earlier Informatica chapter ended the same way: "then you put it in a plan and run it". The <a href="12-informatica-discovery-and-profiling.html">discovery</a>, <a href="13-informatica-data-subset.html">subsetting</a>, <a href="14-informatica-data-masking.html">masking</a> and <a href="15-informatica-data-generation.html">generation</a> chapters described <em>what</em> to do to data. This chapter covers the machinery that actually does it, and what happens afterwards: the <strong>plan</strong> that packages the work, the <strong>workflow</strong> TDM generates from it, the <strong>Monitor</strong> where you watch it, the <strong>reports</strong> that prove what happened, and the <strong>Test Data Warehouse</strong> where the result can be stored, versioned and restored.</p>
+
 <p>If you already know ETL from <a href="08-etl-from-scratch.html">the ETL from scratch chapter</a> and <a href="09-etl-and-tdm.html">the ETL and TDM chapter</a>, here is the key idea in one line: <strong>a TDM workflow is an ETL job that TDM writes for you.</strong> You describe the data and the rules; TDM builds the mappings and runs them. The Day 45 syllabus asks you to understand generation in Informatica; the plan and workflow side is what turns your rules into rows.</p>
 
 <div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
@@ -19,6 +20,7 @@
 </ul></div>
 
 <h2 id="c16-words">16.1 Words to know first</h2>
+
 <dl class="defs">
 <div><dt>Plan</dt><dd>The saved definition of one operation: which components, which source and target connections, which settings. It does nothing until you generate and run a workflow from it.</dd></div>
 <div><dt>Workflow</dt><dd>The runnable job generated from a plan. It contains PowerCenter mappings and sessions and is run by the PowerCenter Integration Service.</dd></div>
@@ -31,7 +33,9 @@
 </dl>
 
 <h2 id="c16-overview">16.2 Plans and workflows: the big picture</h2>
+
 <p>A plan defines a data subset, data masking or data generation operation, and includes the components you need to generate a workflow (User Guide 10.5.10, p.274). When you start a workflow, the PowerCenter Integration Service completes the operations in the plan (p.275).</p>
+
 <div class="flow">
 <div class="node"><b>Project</b>tables, rules, entities</div><div class="arrow">→</div>
 <div class="node"><b>Plan</b>components + settings</div><div class="arrow">→</div>
@@ -53,9 +57,11 @@
 <tr><td>Job scheduler and monitor</td><td>Run now or schedule; Monitor view</td><td>You</td></tr>
 <tr><td>Staging area</td><td>Staging connection (temporary tables)</td><td>Chosen in plan settings</td></tr>
 </tbody></table></div>
+
 <p>The analogy stops at one point. A hand-written ETL job is a thing you maintain. A TDM workflow is disposable: change the plan, generate again. The guide says so directly: when you update or delete a plan component you must generate and run the plan again to apply the change (p.275).</p>
 
 <h3 id="c16-types">16.2.1 Plan types and what each can contain</h3>
+
 <div class="tablewrap"><table>
 <caption>Plan components by operation (User Guide 10.5.10, pp.274-277, 306)</caption>
 <thead><tr><th>Component</th><th>What it is</th><th>Used in</th></tr></thead>
@@ -68,7 +74,9 @@
 <tr><td>Table</td><td>Target table columns that have generation rule assignments</td><td>Generation plan</td></tr>
 <tr><td>XSD file</td><td>An imported XML source definition</td><td>Subset, masking or generation plan</td></tr>
 </tbody></table></div>
+
 <p>The practical plan types are:</p>
+
 <ul>
 <li><strong>Masking, subset, or masking plus subset in one plan.</strong> If both kinds of component are present, subset has priority: TDM subsets first, then masks columns in the subset data that have assignments. It does <em>not</em> apply masking to source rows outside the subset, even if they are part of a cascade (p.275).</li>
 <li><strong>Generation plan.</strong> Only entities, tables or XSD files. You cannot add masking or subset components to the same plan, and the reverse (pp.274, 276). See <a href="15-informatica-data-generation.html">the Informatica generation chapter</a> for the reasoning.</li>
@@ -78,7 +86,9 @@
 </ul>
 
 <h2 id="c16-story-intro">16.3 The ShopSphere story we will follow</h2>
+
 <p>ShopSphere's QA team needs a safe, small, realistic copy of <code>SHOPSPHERE_PROD</code> for the next release of Customer Orders. They want to refresh it quickly after every destructive test run. The path through this chapter:</p>
+
 <ol class="steps">
 <li><strong>Discovery.</strong><p>A profile has already tagged <code>ssn</code>, <code>tax_id</code>, <code>phone</code>, <code>email</code>, <code>first_name</code> and <code>last_name</code> as sensitive data domains (<a href="12-informatica-discovery-and-profiling.html">the discovery chapter</a>).</p></li>
 <li><strong>Masking plus subset plan.</strong><p>An entity with <code>CUSTOMERS</code> as driving table pulls in its orders and items. A limit keeps about 5 percent of customers. Masking rules disguise the sensitive columns in that small slice.</p></li>
