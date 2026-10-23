@@ -1,6 +1,9 @@
 <p>You have described the data (<a href="18-genrocket-domains-attributes-generators.html">domains, attributes and generators</a>). Two jobs remain: say <em>what format</em> the rows must arrive in, and say <em>how many of what, in which order</em>. The first job belongs to <strong>receivers</strong>, the second to <strong>scenarios</strong>. Once both exist, you download the scenario, run it with the <a href="17-genrocket-overview.html">GenRocket Runtime</a>, and files or database rows appear.</p>
+
 <p>This chapter explains receivers (the common ones in detail, the rest by family), then scenarios, scenario chains and related controls, and finishes with an end-to-end ShopSphere build and a troubleshooting table. Patterns and the 50-record hands-on exercise follow in <a href="20-genrocket-data-patterns.html">the data patterns chapter</a> and <a href="21-genrocket-hands-on-50-records.html">the GenRocket hands-on chapter</a>.</p>
-<div class="callout recap"><strong class="ctitle">What you will learn</strong>
+
+<div class="callout recap">
+<strong class="ctitle">What you will learn</strong>
 <ul>
 <li>What a receiver is, the categories and output formats the vendor lists, and how to add a receiver to one domain or many.</li>
 <li>The receiver dashboard, property keys, file configuration, V2 receivers, resources and bulk-load receivers.</li>
@@ -9,34 +12,54 @@
 <li>What a scenario is, how to create, download and run one, and what the scenario dashboard, variables, state, chains, thread engine and locks do.</li>
 <li>A full walk: ShopSphere CUSTOMERS to CSV and ORDERS to SQL insert statements.</li>
 <li>A troubleshooting table built from the vendor's error pages.</li>
-</ul></div>
-<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
+</ul>
+</div>
+
+<div class="callout note">
+<strong class="ctitle">What this chapter is based on</strong>
 <p>Official GenRocket help-centre pages read in full, with the vendor's screenshots embedded after I viewed them.</p>
 <ul>
 <li>Receivers: <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/receivers-overview" target="_blank" rel="noopener">Receivers Overview</a>, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/genrocket-supported-output-formats" target="_blank" rel="noopener">Supported Output Formats</a>, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/receiver-dashboard" target="_blank" rel="noopener">Receiver Dashboard</a>, adding a receiver to one or many domains, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/what-is-a-configuration-file" target="_blank" rel="noopener">What is a Configuration File?</a>, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/what-are-v2-receivers" target="_blank" rel="noopener">V2 Receivers</a>, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/what-are-bulk-load-receivers" target="_blank" rel="noopener">Bulk Load Receivers</a>, the seven pages under "Common Receivers" (I used five), the JDBC receiver pages and the segment-and-merge and file-masking overviews. The category list comes from the vendor's receiver browser page (<a href="https://app.genrocket.com/browse/receivers" target="_blank" rel="noopener">app.genrocket.com/browse/receivers</a>), which I read.</li>
 <li>Scenarios: Scenarios Overview, How do I create a Scenario?, Scenario Dashboard, How do I run a GenRocket Scenario?, Scenario Variables, Managing Scenario State, the three scenario-chain pages, the Scenario Thread Engine, Scenario Level Locks, scenario-level relationships, the Jenkins page, and the error pages used in the troubleshooting table.</li>
 </ul>
-<p>The ShopSphere build is my own illustration made from documented parameters. Where a page and its screenshots disagree, I say so.</p></div>
+<p>The ShopSphere build is my own illustration made from documented parameters. Where a page and its screenshots disagree, I say so.</p>
+</div>
 
 <h2 id="c19-words">19.1 Words to know first</h2>
+
 <dl class="defs">
-<div><dt>Receiver</dt><dd>The component that takes a domain's raw generated values and writes them in a usable format: file, database insert, message and so on.</dd></div>
-<div><dt>Receiver parameter</dt><dd>A setting for the receiver as a whole (where to write, what to name the file). A star in the web platform marks required ones.</dd></div>
-<div><dt>Attribute property key</dt><dd>A setting for one attribute <em>within</em> a receiver, such as <code>columnName</code> (the header or column) or <code>include</code> (leave it in or out).</dd></div>
-<div><dt>Output format</dt><dd>The shape of the result: delimited file, fixed-width file, JSON, XML, Excel, SQL statements and many others.</dd></div>
-<div><dt>Organization resource</dt><dd>A named folder setting that each user fills in with their own path, for example <code>resource.output.directory</code>. Receivers refer to it instead of a hard-coded path.</dd></div>
-<div><dt>Scenario</dt><dd>The saved instruction sheet: a primary domain, its parents, how many rows of each, and which receivers run.</dd></div>
-<div><dt>Primary domain and root domain</dt><dd>The primary domain is the one the scenario is built for. The root is the first parent at the top of the chain.</dd></div>
-<div><dt>Scenario chain</dt><dd>Several scenarios linked so that one command runs them in order.</dd></div>
-<div><dt>.grs file</dt><dd>The downloaded, encrypted scenario file that you run with <code>genrocket -r</code>.</dd></div>
-<div><dt>Stateful scenario</dt><dd>A scenario that remembers generator positions between runs, so a counter continues where it stopped.</dd></div>
+<div><dt>Receiver</dt><dd>The component that takes a domain's raw generated values and writes them in a usable format: file, database insert, message and so on.</dd>
+</div>
+<div><dt>Receiver parameter</dt><dd>A setting for the receiver as a whole (where to write, what to name the file). A star in the web platform marks required ones.</dd>
+</div>
+<div><dt>Attribute property key</dt><dd>A setting for one attribute <em>within</em> a receiver, such as <code>columnName</code> (the header or column) or <code>include</code> (leave it in or out).</dd>
+</div>
+<div><dt>Output format</dt><dd>The shape of the result: delimited file, fixed-width file, JSON, XML, Excel, SQL statements and many others.</dd>
+</div>
+<div><dt>Organization resource</dt><dd>A named folder setting that each user fills in with their own path, for example <code>resource.output.directory</code>. Receivers refer to it instead of a hard-coded path.</dd>
+</div>
+<div><dt>Scenario</dt><dd>The saved instruction sheet: a primary domain, its parents, how many rows of each, and which receivers run.</dd>
+</div>
+<div><dt>Primary domain and root domain</dt><dd>The primary domain is the one the scenario is built for. The root is the first parent at the top of the chain.</dd>
+</div>
+<div><dt>Scenario chain</dt><dd>Several scenarios linked so that one command runs them in order.</dd>
+</div>
+<div><dt>.grs file</dt><dd>The downloaded, encrypted scenario file that you run with <code>genrocket -r</code>.</dd>
+</div>
+<div><dt>Stateful scenario</dt><dd>A scenario that remembers generator positions between runs, so a counter continues where it stopped.</dd>
+</div>
 </dl>
 
 <h2 id="c19-receivers">19.2 Receivers</h2>
+
 <h3 id="c19-receiver-what">19.2.1 What a receiver is, and what it supports</h3>
+
 <p><span class="badge doc">From docs</span> A receiver receives unformatted raw data from a generator and "morphs it into a usable output format". The overview says 120+ types exist (the count grows), and groups what they reach: SQL databases, NoSQL databases such as MongoDB, web-service formats (REST, SOAP, XML, JSON), fixed-file formats (CSV, Excel, VSAM, NACHA, BAI2), big-data formats (Parquet, Avro), message formats (Kafka, MQ, SWIFT), packaged applications (Salesforce, SAP, Guidewire, Duck Creek), complex feeds (X12 EDI, FHIR), documents and images (PDF, JPEG, TIFF, PNG), and cloud services.</p>
+
 <p>The vendor's receiver browser lists sixteen <strong>categories</strong>:</p>
-<div class="tablewrap"><table>
+
+<div class="tablewrap">
+<table>
 <thead><tr><th>Category</th><th>What it holds (examples from the list)</th></tr></thead>
 <tbody>
 <tr><td>Common</td><td>DelimitedFileReceiver, FixedFileReceiver, JSONFileReceiver, XMLFileReceiver, ExcelFileReceiver, SQLFileInsertReceiver, PDFFileReceiver</td></tr>
@@ -47,46 +70,78 @@
 <tr><td>Partition</td><td>Bulk-load receivers such as MySQLPartitionReceiver and DelimitedPartitionReceiver</td></tr>
 <tr><td>Web Service, Message Broker, Compression</td><td>REST and SOAP callers, Kafka, zip-style receivers</td></tr>
 <tr><td>Image, PDF, Template, In Memory, Parquet, Miscellaneous</td><td>Images, PDFs, template-driven output, memory formats, Parquet files, Groovy and Python script receivers</td></tr>
-</tbody></table></div>
+</tbody>
+</table>
+</div>
+
 <p>The "Supported Output Formats" page is a large checklist rather than prose. For each format it marks whether GenRocket supports it, whether the vendor validated it, whether a bulk-load receiver exists, and for databases whether a JDBC driver exists. It also notes that a missing format can be requested from the vendor. Use it when a project asks "can you produce X?".</p>
-<div class="callout why"><strong class="ctitle">Why it matters</strong>
-<p>Receivers are why the same design can feed a CSV for a spreadsheet user, SQL inserts for a database tester and JSON for an API test. You never change the generators for that, only add or swap a receiver. More than one receiver may be attached to a domain: they run in the order listed, which is useful when you need several outputs or several folders.</p></div>
+
+<div class="callout why">
+<strong class="ctitle">Why it matters</strong>
+<p>Receivers are why the same design can feed a CSV for a spreadsheet user, SQL inserts for a database tester and JSON for an API test. You never change the generators for that, only add or swap a receiver. More than one receiver may be attached to a domain: they run in the order listed, which is useful when you need several outputs or several folders.</p>
+</div>
+
 <h3 id="c19-add-receiver">19.2.2 Adding a receiver to a domain</h3>
+
 <ol class="steps">
 <li><strong>Open the domain's dashboard and click <em>New Receiver</em> in the Domain Receivers pane.</strong>
-<p>A receiver must be on a domain before its values reach any output.</p></li>
+<p>A receiver must be on a domain before its values reach any output.</p>
+</li>
 </ol>
+
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776803599830/U1OZsvImFv-GPJRyjlD29iF8UEPxyG9y2g.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776803599830/U1OZsvImFv-GPJRyjlD29iF8UEPxyG9y2g.png" alt="The Add A Receiver dialog with receiver categories listed on the left (Common Receivers, Compression, Data File, Image, In Memory, JDBC, Masking and others) and receiver tiles on the right such as AmazonS3Receiver, ArrayReceiver, AvroFileReceiver, DelimitedFileReceiver and ExcelFileReceiver, each with plus and help buttons, and a blue arrow at a plus button" loading="lazy"></a>
-<figcaption><strong>Official screenshot:</strong> The Add A Receiver dialog: pick a category on the left or type in the filter, then click the plus on the receiver you want. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/adding-and-configuring-receivers/how-do-i-add-a-receiver-to-a-domain" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figcaption><strong>Official screenshot:</strong> The Add A Receiver dialog: pick a category on the left or type in the filter, then click the plus on the receiver you want. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/adding-and-configuring-receivers/how-do-i-add-a-receiver-to-a-domain" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
 <ol class="steps" start="2">
 <li><strong>Click the plus on the receiver, optionally rename it, and click <em>Save</em>.</strong>
-<p>The name only has to be unique within the domain.</p></li>
+<p>The name only has to be unique within the domain.</p>
+</li>
 <li><strong>If scenarios already exist for the domain, tick the ones that should get the receiver and click <em>Add Receiver</em>.</strong>
-<p>Receivers copied into scenarios are separate from the template. Without this step, old scenarios will not have the new receiver.</p></li>
+<p>Receivers copied into scenarios are separate from the template. Without this step, old scenarios will not have the new receiver.</p>
+</li>
 </ol>
+
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776803629635/GZZAAGLYPJBlDC3uJtQHUWugEpUnl9YUOw.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776803629635/GZZAAGLYPJBlDC3uJtQHUWugEpUnl9YUOw.png" alt="A dialog titled Add DelimitedFileReceiver to Scenarios listing UserScenario with the scenario domain User, with the checkbox ticked and Add Receiver and Cancel buttons" loading="lazy"></a>
-<figcaption><strong>Official screenshot:</strong> Adding the receiver to existing scenarios: tick the scenarios that should receive it. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/adding-and-configuring-receivers/how-do-i-add-a-receiver-to-a-domain" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figcaption><strong>Official screenshot:</strong> Adding the receiver to existing scenarios: tick the scenarios that should receive it. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/adding-and-configuring-receivers/how-do-i-add-a-receiver-to-a-domain" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
 <ol class="steps" start="4">
 <li><strong>Fill in the required parameters (marked with a star) and click <em>Save</em>.</strong>
-<p class="expect">What you should see: the receiver listed in the Domain Receivers pane of the Domain Dashboard.</p></li>
+<p class="expect">What you should see: the receiver listed in the Domain Receivers pane of the Domain Dashboard.</p>
+</li>
 </ol>
+
 <p><strong>Many domains at once.</strong> In the Domain Dashboard open the <em>Global Editing</em> menu and choose "Add a New Receiver to Multiple Domains". This opens the Receiver Assignment Wizard: take ownership, choose the receiver and its parameters, filter to the domains, and execute. The vendor's example adds a DelimitedFileReceiver to the Department, User and Address domains in one pass.</p>
+
 <h3 id="c19-dashboard">19.2.3 The Receiver Dashboard</h3>
+
 <p>Click a receiver's name to open its dashboard. Four tabs matter.</p>
-<div class="tablewrap"><table>
+
+<div class="tablewrap">
+<table>
 <thead><tr><th>Tab</th><th>Use</th></tr></thead>
 <tbody>
 <tr><td>Parameters</td><td>The receiver's own settings. Starred ones are required to download and run a scenario</td></tr>
 <tr><td>Attributes Property Keys</td><td>Per-attribute settings such as column name and include. Drag attributes to reorder output columns, use <em>Sync Receiver Attribute Order</em>, or the name-conversion menus (camel case is the default)</td></tr>
 <tr><td>File Config</td><td>When available: when to start a new output file (for example by a count) and how to name files dynamically</td></tr>
 <tr><td>Directory Config</td><td>When available: how many files per sub-folder and how to name sub-folders</td></tr>
-</tbody></table></div>
+</tbody>
+</table>
+</div>
+
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280315284/A4hcWBF_fX3v8lom_N3LZ4mA1_EB11Rp3A.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280315284/A4hcWBF_fX3v8lom_N3LZ4mA1_EB11Rp3A.png" alt="The Parameters tab of a DelimitedFileReceiver with path set to #{resource.output.directory}, fileName Text.txt, delimiter backslash t, quoteTextData None, booleanValue true/false, nullValue (null), includeHeader True, appendToFile false and a Save button, beside the tabs Attributes Property Keys, File Config and Directory Config" loading="lazy"></a>
-<figcaption><strong>Official screenshot:</strong> A receiver's Parameters tab (DelimitedFileReceiver). Note the default <code>path</code>: <code>#{resource.output.directory}</code>, a reference to the organisation resource, not a typed folder. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-delimited-file-receiver" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figcaption><strong>Official screenshot:</strong> A receiver's Parameters tab (DelimitedFileReceiver). Note the default <code>path</code>: <code>#{resource.output.directory}</code>, a reference to the organisation resource, not a typed folder. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-delimited-file-receiver" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
 <p>The column order of an output file normally follows the attribute order in the domain, which is shaped by the rule that attributes only reference attributes above them. If that order is not what the consumer wants, drag the attributes into the desired order in the Attributes Property Keys tab.</p>
+
 <h3 id="c19-resources">19.2.4 Output folders: organisation resources</h3>
+
 <p>Receivers do not hold a user's folder name. They use resource references. A new account has three: <code>resource.home.directory</code>, <code>resource.jdbc.directory</code> and <code>resource.output.directory</code> (the dashboard screenshot in <a href="17-genrocket-overview.html">the overview chapter</a> shows them). The resource page recommends the home directory be the real home folder, and the other two be different folders, preferably sub-folders of home, because using the same path for all three can cause errors "or, in some cases, a process that never finishes". After changing any resource value you must download your profile again and replace the old file in <code>.genrocket</code>; otherwise you get the error "Unable to Download Users Profile" if a resource has no value, or stale paths if you forget.</p>
+
 <h3 id="c19-more-receiver">19.2.5 Configuration files, V2 receivers and bulk load</h3>
+
 <ul>
 <li><strong>Configuration file.</strong> A file that tells a <em>merge</em> receiver how to combine data from different domains into one nested output. It defines file name segments, the segment files and the element layout. It is created in the Configuration Management tab and its name goes in the merge receiver's <code>configName</code>. Some imports (JSON, XML) create one for you.</li>
 <li><strong>V2 receivers.</strong> Names contain "V2" just before "Receiver", for example GenericSQLInsertV2Receiver. They add two parameters, <code>resourcePath</code> and <code>resourceSubDir</code>, so a receiver can point to different configuration folders without creating more global resources. The vendor says V1 receivers will eventually be hidden from the picker; scenarios that already use them keep working.</li>

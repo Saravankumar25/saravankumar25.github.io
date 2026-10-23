@@ -1,9 +1,13 @@
-
 <h2 id="c19-common">19.3 The common receivers in detail</h2>
+
 <p>These are the ones a beginner meets first. Parameters below are those the vendor pages list; a star means the page marks it required. Defaults and exact spellings can differ between product versions, so check the Parameters tab in your own project.</p>
+
 <h3 id="c19-delimited">19.3.1 DelimitedFileReceiver (CSV and other delimited files)</h3>
+
 <p>Writes attribute values, separated by a delimiter, to a file. This is your CSV maker.</p>
-<div class="tablewrap"><table>
+
+<div class="tablewrap">
+<table>
 <thead><tr><th>Parameter</th><th>Meaning</th></tr></thead>
 <tbody>
 <tr><td><code>path</code>*, <code>subDir</code></td><td>Folder (and optional sub-folder) for the file</td></tr>
@@ -15,23 +19,43 @@
 <tr><td><code>appendToFile</code>*</td><td>True adds to an existing file; false overwrites it</td></tr>
 <tr><td><code>uniqueAttribute</code></td><td>An attribute used to stop a value being written twice</td></tr>
 <tr><td><code>headerFilePath</code>, <code>headerFileName</code></td><td>Optional XML file that defines a multi-row header</td></tr>
-</tbody></table></div>
+</tbody>
+</table>
+</div>
+
 <p>Property keys per attribute: <code>columnName</code> (the header text) and <code>include</code>. With no header file, each attribute's <em>Original Name</em> becomes the header.</p>
+
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280328890/_G9AnlDz3mUjNU-Qv34-RD5v79ieTr2zNg.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280328890/_G9AnlDz3mUjNU-Qv34-RD5v79ieTr2zNg.png" alt="The Attributes Property Keys tab of the DelimitedFileReceiver listing attributes id, firstName, lastName, ssn and dateOfBirth with columnName and include columns, an order handle, and buttons Attribute name conversions, Column name conversions and Sync Receiver Attribute Order" loading="lazy"></a>
-<figcaption><strong>Official screenshot:</strong> Property keys: one row per attribute with the column name that will appear in the header and an include flag. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-delimited-file-receiver" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<div class="callout tip"><strong class="ctitle">Header still showing after setting includeHeader to False?</strong>
-<p>Two vendor reminders: re-download the scenario after any change, because the old file contains the old settings; and if it still shows, your receiver jar may be out of date (the jar-update page explains how to update).</p></div>
+<figcaption><strong>Official screenshot:</strong> Property keys: one row per attribute with the column name that will appear in the header and an include flag. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-delimited-file-receiver" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<div class="callout tip">
+<strong class="ctitle">Header still showing after setting includeHeader to False?</strong>
+<p>Two vendor reminders: re-download the scenario after any change, because the old file contains the old settings; and if it still shows, your receiver jar may be out of date (the jar-update page explains how to update).</p>
+</div>
+
 <h3 id="c19-fixed">19.3.2 FixedFileReceiver</h3>
+
 <p>Writes fixed-width columns (every value padded to a set length), the shape of many mainframe and legacy files. Parameters: <code>outputPath</code>*, <code>outputFileName</code>*, <code>subDir</code>, <code>lineSeparator</code> (for example <code>\n</code>), <code>delimiter</code>, <code>quoteTextData</code>* and <code>includeHeader</code>*. Property keys: <code>columnName</code>, <code>include</code> and <code>length</code>, the width of each attribute. Entering <code>#{BLANK}</code> or <code>#{EMPTY}</code> as a column name blanks a header cell.</p>
+
 <h3 id="c19-json">19.3.3 JSONFileReceiver</h3>
+
 <p>Writes a flat JSON file (<em>not</em> nested). Parameters: <code>path</code>*, <code>subDir</code>, <code>fileName</code>*, <code>rootElementName</code> and <code>alwaysArray</code> (true forces a JSON array even for a single record). Property keys: <code>columnName</code>, <code>include</code>, <code>useQuotes</code> (numbers such as SSNs are often quoted on purpose). One discrepancy worth flagging: the parameter list says <code>path</code>, while the page's use case mentions <code>resourcePath</code>. They are probably the same setting in different versions; trust the Parameters tab you see.</p>
+
 <h3 id="c19-xml">19.3.4 XMLFileReceiver</h3>
+
 <p>Writes flat XML. Parameters include <code>path</code>*, <code>fileName</code>*, <code>rootElementName</code>*, <code>rowElementName</code>* and <code>exportStyle</code>*, which chooses how values appear: <code>ATTRIBUTES_ONLY</code> (each value as an XML attribute of the row element), <code>ELEMENTS_ONLY</code> (child elements with text) or <code>ELEMENT_VALUE</code> (child elements with a <code>value</code> attribute). Property keys: <code>name</code> and <code>include</code>.</p>
+
 <h3 id="c19-excel">19.3.5 ExcelFileReceiver</h3>
+
 <p>Writes an Excel file. The <code>type</code> parameter selects <code>xlsx</code> or <code>xls</code>; <code>path</code>* and <code>fileName</code>* are required, with formatting settings for quotes, booleans and nulls. The page warns that Excel generation is generally slower than delimited files, and that on Linux a "Permission denied" error can mean the temporary <code>profiles</code> folder under <code>/tmp</code> is not writable.</p>
+
 <h3 id="c19-sqlfile">19.3.6 SQLFileInsertReceiver (SQL statements in a file)</h3>
+
 <p>Creates a file of standard SQL insert statements, ready to run in any SQL client. Nothing touches a database while generating, which makes it a safe first choice for learning.</p>
-<div class="tablewrap"><table>
+
+<div class="tablewrap">
+<table>
 <thead><tr><th>Parameter</th><th>Meaning</th></tr></thead>
 <tbody>
 <tr><td><code>path</code>*, <code>subDir</code>, <code>fileName</code>*</td><td>Where the <code>.sql</code> file goes and what it is called</td></tr>
@@ -40,27 +64,49 @@
 <tr><td><code>statementSeparator</code>*, <code>rowDelimiter</code>*</td><td>End-of-statement text (for example a semicolon) and line endings (UNIX/Linux/Mac-LF or Windows-CR/LF)</td></tr>
 <tr><td><code>quoteTextData</code>*, <code>nullValue</code>*, <code>booleanValue</code>*, <code>escapeCharacter</code></td><td>Quoting and special-value formatting</td></tr>
 <tr><td><code>appendToFile</code>*, <code>uniqueAttribute</code></td><td>Append or overwrite; avoid duplicates</td></tr>
-</tbody></table></div>
+</tbody>
+</table>
+</div>
+
 <p>Property keys: <code>columnName</code> (<strong>must match the real column name</strong>, such as <code>first_name</code>), <code>include</code> and <code>useQuotes</code>. This is where the attribute name versus original name distinction from <a href="18-genrocket-domains-attributes-generators.html">the generators chapter</a> pays off.</p>
+
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777287156430/M2VM6hiNYrtSQy1rjT4XxqvORs1IkvSqtA.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777287156430/M2VM6hiNYrtSQy1rjT4XxqvORs1IkvSqtA.png" alt="The Attributes Property Keys tab of the SQLFileInsertReceiver listing attributes id, firstName, lastName, dateOfBirth, phoneNumber, username and password with columnName values id, first_name, last_name, date_of_birth, phone_number, username and password, and include and useQuotes set to true" loading="lazy"></a>
-<figcaption><strong>Official screenshot:</strong> The SQL-insert receiver's property keys: the attribute <code>firstName</code> is written to the column <code>first_name</code>. Make the <code>columnName</code> values match the database. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-sql-file-insert-receiver" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figcaption><strong>Official screenshot:</strong> The SQL-insert receiver's property keys: the attribute <code>firstName</code> is written to the column <code>first_name</code>. Make the <code>columnName</code> values match the database. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-sql-file-insert-receiver" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
 <p>Example output from the vendor page: <code>insert into user(id,first_name,last_name,middle_initial,emailAddress) values ('1','Penelope','Spaeth','F','user@email.com');</code>. If a nullable column should show a real NULL rather than a quoted string, set <code>nullValue</code> to NULL and <code>quoteTextData</code> to Double (or the style your database wants).</p>
+
 <h3 id="c19-sqldirect">19.3.7 Writing straight into a database: the JDBC receivers</h3>
+
 <p><span class="badge doc">From docs</span> <strong>GenericSQLInsertReceiver</strong> inserts generated rows directly into a table through JDBC. Its parameters include <code>resourceName</code>* (the resource that points to the connection information), <code>databaseName</code>*, <code>tableName</code>*, <code>truncate</code>*, <code>statementSeparator</code>*, <code>nullValue</code>* and <code>quoteTextData</code>*. Property keys are <code>columnName</code>, <code>columnType</code> and <code>include</code>. The newer <strong>GenericSQLInsertV2Receiver</strong> adds <code>resourcePath</code>, <code>resourceSubDir</code>, <code>continueOnError</code> and <code>logErrorDetails</code>. The V2 page says it suits "up to 10,000 rows into a table with 25 columns or fewer", and recommends the GenericSQLInsertThreadReceiver for larger loads.</p>
-<div class="callout warn"><strong class="ctitle">truncate empties the table</strong>
-<p>The V2 page warns that its <code>truncate</code> parameter can truncate or delete all existing rows before inserting, and that this cannot be undone. The default is "notApplicable" (nothing deleted). Never point a truncating receiver at a database you have not backed up.</p></div>
+
+<div class="callout warn">
+<strong class="ctitle">truncate empties the table</strong>
+<p>The V2 page warns that its <code>truncate</code> parameter can truncate or delete all existing rows before inserting, and that this cannot be undone. The default is "notApplicable" (nothing deleted). Never point a truncating receiver at a database you have not backed up.</p>
+</div>
+
 <p>Direct database receivers need a <em>JDBC configuration file</em> (<code>config.properties</code>) on the machine running the scenario. It holds <code>driver</code>, <code>user</code>, <code>password</code>, <code>url</code> and, for receivers, <code>batchCount</code>. Its folder comes from <code>resource.jdbc.directory</code>. You can check a connection with the runtime's <code>--test-jdbc</code> option before running a scenario.</p>
+
 <p><strong>Update receivers.</strong> <em>SQLUpdateReceiver</em> runs batched <code>UPDATE</code> statements whose values come from attributes (up to 20 attributes mapped to variables <code>var1</code> to <code>var20</code>), which is the basis of replacing real values with synthetic ones in a table. <em>SQLBatchUpdateReceiver</em> reads one or more update statements from an XML configuration file that can address several databases, using placeholders such as <code>#{firstName}</code>. The FAQ also names <em>StoredProcedureCallReceiver</em> for calling procedures, while the FAQ says SQLUpdateReceiver can run DDL and DML scripts before or after a load, and another page uses <em>SQLUpdateV2Receiver</em> to create a database table.</p>
+
 <h3 id="c19-nested">19.3.8 Nested data: segment-and-merge receivers (overview)</h3>
+
 <p>JSONFileReceiver and XMLFileReceiver are flat. For <em>nested</em> output (customers containing orders containing items) GenRocket uses two receiver types together:</p>
+
 <ol class="steps">
 <li><strong>Add <em>SegmentDataCreatorReceiver</em> to each domain except the merge domain.</strong>
-<p>Each domain writes its rows as a small XML "segment" file, tagged with its parent's id so relationships survive.</p></li>
+<p>Each domain writes its rows as a small XML "segment" file, tagged with its parent's id so relationships survive.</p>
+</li>
 <li><strong>Create a merge domain and add a merge receiver, such as <em>JSONSegmentMergeReceiver</em> or <em>XMLSegmentMergeReceiver</em>.</strong>
-<p>The merge receiver reads the segments and the configuration file, and writes nested files. Others exist for Avro, Parquet, delimited, fixed, EDI, HL7, SWIFT and SOAP.</p></li>
+<p>The merge receiver reads the segments and the configuration file, and writes nested files. Others exist for Avro, Parquet, delimited, fixed, EDI, HL7, SWIFT and SOAP.</p>
+</li>
 <li><strong>Put the merge scenario last in a scenario chain, create the configuration file, and download both.</strong>
-<p>Merging only works once every segment exists. Imports of JSON, XSD and some other models set most of this up for you.</p></li>
+<p>Merging only works once every segment exists. Imports of JSON, XSD and some other models set most of this up for you.</p>
+</li>
 </ol>
+
 <p>The JSON merge page lists parameters such as <code>outputPath</code>, <code>configName</code>, <code>segmentPath</code> and <code>recordsPerFile</code>. If the root domain's loop count is 50 and <code>recordsPerFile</code> is 8, seven files are made (six with 8 records, one with 2). I do not walk through a full nested build here; the vendor pages do it with many screenshots.</p>
+
 <h3 id="c19-masking">19.3.9 Masking receivers (overview)</h3>
+
 <p>GenRocket also masks: it replaces sensitive values with synthetic ones, a method it calls Synthetic Data Replacement. The file-masking receivers take an existing file and write a new one with the targeted values replaced: DelimitedFileMaskReceiver, ExcelFileMaskReceiver, JSONFileMaskReceiver, XMLFileMaskReceiver, ParquetFileMaskReceiver, ORCFileMaskReceiver, EDIFileMaskReceiver and FileMaskMultiBlockReceiver (fixed files such as VSAM). The same documents describe database masking in place (IPM). The vendor states that production data is never sent to GenRocket, since only metadata is used. How this compares with masking in other tools is in <a href="14-informatica-data-masking.html">the Informatica masking chapter</a> and <a href="06-masking-concepts.html">the masking concepts chapter</a>.</p>

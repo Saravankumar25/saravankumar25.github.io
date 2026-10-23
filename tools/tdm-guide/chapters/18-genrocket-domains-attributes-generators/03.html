@@ -1,52 +1,87 @@
-
 <h2 id="c18-generators">18.6 Generators: the recipe for each value</h2>
+
 <p><span class="badge doc">From docs</span> A generator creates synthetic data (or queries existing data) for one attribute. Every attribute needs one. GenRocket advertises over 765 generators (a growing number), grouped by purpose and, for many countries, by country. Generators produce raw values only; receivers format them (<a href="19-genrocket-receivers-and-scenarios.html">receivers and scenarios chapter</a>).</p>
+
 <h3 id="c18-assign">18.6.1 How a generator gets assigned automatically</h3>
+
 <p>You rarely pick generators from scratch. For each new or imported attribute GenRocket tries these steps in order, according to the "How are Generators Assigned" page:</p>
+
 <ol>
 <li>Is there a matching <em>Project generator tag</em>? If yes, use it.</li>
 <li>Otherwise, a matching <em>Organization generator tag</em>?</li>
 <li>Otherwise, an intelligent guess from the domain name, attribute name, the project's industry type and usage patterns of other users. If Enforce Type/Limit is on, the column's type is considered too (a <code>date</code> column gets FlexibleDateRangeGen, a <code>uniqueidentifier</code> gets UUIDGen).</li>
 <li>If nothing fits, <strong>SimplePatternGen</strong>, which builds a value like <code>name1, name2, name3</code> from the attribute name and the row's id.</li>
 </ol>
+
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776438855856/aqBh9kOpRBY2JJ2mxYFA6kez5NilEj9fdw.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776438855856/aqBh9kOpRBY2JJ2mxYFA6kez5NilEj9fdw.png" alt="A flowchart: Import/Create Domains, then Check Project Generator Tags (match found: Assign Generator), Organization Generator Tags (match found: Assign Generator), Intelligent Generator Assignment (yes: Check for Enforce Type/Limit then Assign Generator), and finally No leading to Assign SimplePatternGen" loading="lazy"></a>
-<figcaption><strong>Official screenshot:</strong> The assignment flowchart: project tags first, then organisation tags, then the intelligent guess, and SimplePatternGen as the last resort. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/generators-overview-12/how-are-generators-assigned-to-domain-attributes" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
-<div class="callout tip"><strong class="ctitle">Treat SimplePatternGen as a to-do marker</strong>
-<p>It generates values like <code>street1</code>, which are unique but not realistic. When you see it on an attribute, the tool could not guess; pick a better generator. The Project Version status report flags attributes without a generator.</p></div>
+<figcaption><strong>Official screenshot:</strong> The assignment flowchart: project tags first, then organisation tags, then the intelligent guess, and SimplePatternGen as the last resort. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/generators-overview-12/how-are-generators-assigned-to-domain-attributes" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<div class="callout tip">
+<strong class="ctitle">Treat SimplePatternGen as a to-do marker</strong>
+<p>It generates values like <code>street1</code>, which are unique but not realistic. When you see it on an attribute, the tool could not guess; pick a better generator. The Project Version status report flags attributes without a generator.</p>
+</div>
+
 <h3 id="c18-replace">18.6.2 Replacing a generator on one attribute</h3>
+
 <ol class="steps">
 <li><strong>Open the attribute and use the <em>Quick Generator Replacement</em> menu below the generator.</strong>
-<p>Typing part of a name filters the list (typing "town" offers <code>BulgariaTownGen</code> and <code>UKTownGen</code>).</p></li>
+<p>Typing part of a name filters the list (typing "town" offers <code>BulgariaTownGen</code> and <code>UKTownGen</code>).</p>
+</li>
 <li><strong>Pick the generator and click <em>Replace</em>, then set its parameters and click <em>Save Generator</em>.</strong>
-<p class="expect">What you should see: the new generator's name and parameters, and a fresh preview. Not sure of the name? Use <em>Remove Generator</em> and the <em>Add a Generator</em> dialog, which has categories and a search box.</p></li>
+<p class="expect">What you should see: the new generator's name and parameters, and a fresh preview. Not sure of the name? Use <em>Remove Generator</em> and the <em>Add a Generator</em> dialog, which has categories and a search box.</p>
+</li>
 </ol>
+
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776502260149/VyMNWU4PHI67naN8BQM49ODIdXgwIsSb5Q.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776502260149/VyMNWU4PHI67naN8BQM49ODIdXgwIsSb5Q.png" alt="The Quick Generator Replacement drop-down with the text town typed and two matches, BulgariaTownGen highlighted and UKTownGen, above a Replace button, under the current SimplePatternGen generator" loading="lazy"></a>
-<figcaption><strong>Official screenshot:</strong> Quick Generator Replacement: type any part of a generator's name, choose it, then click Replace. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-do-i-assign-a-generator-to-a-single-attribute" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figcaption><strong>Official screenshot:</strong> Quick Generator Replacement: type any part of a generator's name, choose it, then click Replace. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-do-i-assign-a-generator-to-a-single-attribute" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
 <h3 id="c18-many">18.6.3 Assigning one generator to many attributes</h3>
+
 <p>If <code>first_name</code> and <code>last_name</code> both need NameGen, do it in one go through the gear icon above the attribute list.</p>
+
 <ol class="steps">
 <li><strong>Click the gear icon (Browse and Manage Attributes) and tick the attributes.</strong>
-<p>Selected rows turn blue.</p></li>
+<p>Selected rows turn blue.</p>
+</li>
 <li><strong>Type the generator name in <em>Select Generator</em>, click <em>Set Generator</em> and confirm with <em>Yes</em>.</strong>
-<p>The dialog warns that existing generators on those attributes will be replaced.</p></li>
+<p>The dialog warns that existing generators on those attributes will be replaced.</p>
+</li>
 </ol>
+
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776502781800/HXC5LDTJaqFTtquptsOaom8CK58u8_bR1A.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776502781800/HXC5LDTJaqFTtquptsOaom8CK58u8_bR1A.png" alt="A Confirm Apply Generator dialog asking whether to apply the NameGen generator to 2 attributes and warning that this will replace any generators currently assigned, with No and Yes buttons" loading="lazy"></a>
-<figcaption><strong>Official screenshot:</strong> The confirmation: NameGen will be applied to two attributes, replacing what they have. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-do-i-assign-a-new-generator-to-multiple-attributes" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figcaption><strong>Official screenshot:</strong> The confirmation: NameGen will be applied to two attributes, replacing what they have. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-do-i-assign-a-new-generator-to-multiple-attributes" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
 <ol class="steps" start="3">
 <li><strong>Click <em>Modify Generator Parameters</em> to set a parameter for several attributes together.</strong>
-<p>Here you can give <code>firstName</code> the value <code>firstName</code> in <code>nameType</code> and <code>lastName</code> the value <code>lastName</code>, each in its own row, or tick rows and set a shared parameter such as <code>sortOrder</code>.</p></li>
+<p>Here you can give <code>firstName</code> the value <code>firstName</code> in <code>nameType</code> and <code>lastName</code> the value <code>lastName</code>, each in its own row, or tick rows and set a shared parameter such as <code>sortOrder</code>.</p>
+</li>
 </ol>
+
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776502975886/ICeWBT8nz47Ik9ayCumeJ5xuWyZmwRdW2A.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776502975886/ICeWBT8nz47Ik9ayCumeJ5xuWyZmwRdW2A.png" alt="The Global Edit Generator Parameters for NameGen dialog listing the User domain attributes firstName and lastName with columns nameType, caseType, sortOrder, seed and waitAmount, and a drop-down offering lastName, firstName and maleName for nameType" loading="lazy"></a>
-<figcaption><strong>Official screenshot:</strong> Global Edit of generator parameters: one row per attribute, one column per parameter. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-do-i-assign-a-new-generator-to-multiple-attributes" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figcaption><strong>Official screenshot:</strong> Global Edit of generator parameters: one row per attribute, one column per parameter. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-do-i-assign-a-new-generator-to-multiple-attributes" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
 <p>The Generator Tuning Wizard (step 3 of the XTS wizard) does the same across the whole project version, with statistics on how well generators match attributes. Copying a configured generator to other attributes is possible too: <em>Simple Copy</em> to chosen attributes (up to 20 per bucket; it replaces the target's generator) and <em>Pattern Copy</em> to all attributes whose names follow a pattern.</p>
+
 <h3 id="c18-tags">18.6.4 Generator tags: steering the automatic choice</h3>
+
 <p><span class="badge doc">From docs</span> A <em>generator tag</em> is a rule "if an attribute's name matches this text, assign this generator". Each has a value, a match type (starts with, ends with, contains or matches) and an optional ignore-case flag. Project-level tags apply to all versions of a project; organisation-level tags apply everywhere. The page's example: every attribute named like <code>firstName</code> in a Canadian project should get <code>CanadaNameGen</code>. Tags live in the <em>Generator Tags</em> tab of the Management pane (project) or the Organization menu.</p>
+
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776439248740/v4kkz14IRsBSRYoz9UTStT2SXuttq06axA.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776439248740/v4kkz14IRsBSRYoz9UTStT2SXuttq06axA.png" alt="A New Project Generator Tag dialog with Name first name, Value firstName, Match set to Matches, Ignore Case ticked and Generator CanadaNameGen, with Save and Cancel buttons" loading="lazy"></a>
-<figcaption><strong>Official screenshot:</strong> Creating a project tag: when an attribute name matches <code>firstName</code>, assign <code>CanadaNameGen</code>. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/generators-overview-12/generator-tags-override-default-assigned-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figcaption><strong>Official screenshot:</strong> Creating a project tag: when an attribute name matches <code>firstName</code>, assign <code>CanadaNameGen</code>. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/generators-overview-12/generator-tags-override-default-assigned-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
 <p>To see which generators GenRocket thinks fit an attribute, click the small icon beside it in the attribute list. A ranked list appears (in the vendor's example NameGen 84%, AustraliaNameGen 5%, and so on); the top one is the default, and a tag icon lets you promote another.</p>
+
 <h3 id="c18-families">18.6.5 The families you will use</h3>
+
 <p>The generator overview pages group generators into families. You need only the ideas below; each generator has a "How do I use..." page with parameters.</p>
-<div class="tablewrap"><table>
+
+<div class="tablewrap">
+<table>
 <thead><tr><th>Family</th><th>What it does</th><th>Examples named in the docs</th></tr></thead>
 <tbody>
 <tr><td>Numbers and ranges</td><td>Counting, random numbers</td><td><code>RangeGen</code> (increasing numbers; <code>startRange</code>, <code>endRange</code>, <code>jumpAmount</code>, <code>waitAmount</code>, <code>sortOrder</code>), <code>RandomGen</code> (<code>startRange</code>, <code>endRange</code>, <code>uniqueLimit</code>, <code>seed</code>)</td></tr>
@@ -58,44 +93,80 @@
 <tr><td>Query</td><td>Read real data from a database or file and blend it with generated data</td><td><code>QueryOnceGen</code>, <code>QueryBeforeLoopV2Gen</code>, <code>QueryEachLoopV2Gen</code>, <code>QueryToMapGen</code> (they need a JDBC connection)</td></tr>
 <tr><td>UUID</td><td>128-bit unique identifiers</td><td><code>UUIDGen</code> (random), <code>UUIDSeedGen</code> (patterned), <code>UUIDTimeBasedGen</code></td></tr>
 <tr><td>Reference</td><td>Copy a value generated elsewhere</td><td><code>ReferenceGen</code>, <code>ProxyReferenceGen</code>, <code>LoopSetGen</code> (sets the loop count)</td></tr>
-</tbody></table></div>
+</tbody>
+</table>
+</div>
+
 <p>Conditional generators can express rules such as "if age is under 18, return Child; between 18 and 60, Adult" or "50% Regular, 30% Premium, 20% VIP". The docs contrast them with test data rules (G-Rules), which attach conditions to cases instead of single attributes. The patterns they enable are taken further in <a href="20-genrocket-data-patterns.html">the data patterns chapter</a>.</p>
+
 <h3 id="c18-seed">18.6.6 Seeding: repeatable randomness</h3>
+
 <p>If two runs of a "random" generator give different numbers, test failures cannot be reproduced. A <em>seed</em> fixes this: the docs show a RandomGen for numbers 1 to 25 giving a new set every run when the seed is empty, but the <em>same</em> set whenever the seed is 1; a different seed (2) gives a different, but also repeatable, set. A seed can be set on an attribute's generator or through the domain's <code>seed</code> variable (button <em>Global Seed</em> applies it to the whole domain).</p>
+
 <h3 id="c18-linked">18.6.7 Linked generators</h3>
+
 <p>One attribute can hold several generators in a row (<code>gen1</code>, <code>gen2</code>...). They run left to right, a generator may use any generator to its <em>left</em>, and the <em>last</em> one gives the value. The docs' example builds a full name in a single <code>fullName</code> attribute: NameGen, AlphabetGen (middle initial), NameGen (last name), then ConcatGen joining the three. Without linking you would need four attributes and would have to hide three of them with Visible turned off.</p>
+
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776440951923/VI8HLGQCzWXmYrZZmaAXdugEhYOa2GFBGw.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776440951923/VI8HLGQCzWXmYrZZmaAXdugEhYOa2GFBGw.png" alt="A diagram titled Single Attribute Solution With Linked Generators showing a person icon with one fullName attribute containing four generators gen1 NameGen, gen2 AlphabetGen, gen3 NameGen and gen4 ConcatGen combining gen1, gen2 and gen3" loading="lazy"></a>
-<figcaption><strong>Official screenshot:</strong> Linked generators: one <code>fullName</code> attribute holds four generators; the last one joins the first three. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/linking-generators/linked-generators-overview" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figcaption><strong>Official screenshot:</strong> Linked generators: one <code>fullName</code> attribute holds four generators; the last one joins the first three. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/linking-generators/linked-generators-overview" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
 <h3 id="c18-proxy">18.6.8 ReferenceGen and ProxyReferenceGen: how a child finds its parent key</h3>
+
 <p>This pair is the mechanism behind foreign keys, and it confuses everyone once. The docs explain it as follows.</p>
-<div class="compare"><div><h4>ProxyReferenceGen (domain level)</h4>
+
+<div class="compare">
+<div>
+<h4>ProxyReferenceGen (domain level)</h4>
 <p>A placeholder. Because a template domain cannot see another domain, the foreign-key attribute holds this generator, whose only parameter is <code>startRange</code> (default 1000). It marks "a parent's key goes here".</p>
-<p>Assigned automatically when you import with DDL or XTS and the column has a foreign key.</p></div>
-<div><h4>ReferenceGen (scenario level)</h4>
+<p>Assigned automatically when you import with DDL or XTS and the column has a foreign key.</p>
+</div>
+<div>
+<h4>ReferenceGen (scenario level)</h4>
 <p>The real thing. When a scenario is created and the parent relationship exists, GenRocket swaps the proxy for ReferenceGen. Its one parameter <code>reference</code> points at the parent's primary attribute, such as <code>#{AddressScenario.User.id}</code>.</p>
-<p>It can also be set up manually, as in the docs' "User and Address" example.</p></div></div>
+<p>It can also be set up manually, as in the docs' "User and Address" example.</p>
+</div>
+</div>
+
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777376965995/jFZJdn5xIxfuhptWPDmbnSuGATBt5iebVQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777376965995/jFZJdn5xIxfuhptWPDmbnSuGATBt5iebVQ.png" alt="The Attribute Dashboard for attribute referenceUser in the Address domain with the Type field set to Reference and Table Reference set to User, both marked with green arrows" loading="lazy"></a>
-<figcaption><strong>Official screenshot:</strong> How a manual proxy is set up: the attribute has Type = Reference and Table Reference = User (the parent domain), then the ProxyReferenceGen generator is assigned. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/misc-generators/how-do-i-use-the-proxyreferencegen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figcaption><strong>Official screenshot:</strong> How a manual proxy is set up: the attribute has Type = Reference and Table Reference = User (the parent domain), then the ProxyReferenceGen generator is assigned. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/misc-generators/how-do-i-use-the-proxyreferencegen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
 <p>It explains why the project version status report asks for "foreign key attributes that do not have the ProxyReferenceGen". If the proxy is missing, the child will not find its parent when a scenario is made, and the <code>reference</code> value will not be filled in. The referenced attribute is the parent's <em>primary</em> attribute; if another column should be the target, tick its Primary checkbox.</p>
+
 <h3 id="c18-enforce">18.6.9 Enforcing data type and size</h3>
+
 <p>A generator does not know that <code>first_name</code> is <code>varchar(5)</code> unless you tell it. <span class="badge doc">From docs</span> The <strong>Enforce Type/Limit</strong> option makes the generator keep values within the attribute's <em>Type</em> and <em>Size</em>. It is on automatically for generators assigned by a DDL or XTS import, can be enabled for a whole project version when you create it, and can be set manually per generator. The docs list integer limits it applies, for example 127 for <code>tinyint</code>, 32767 for <code>smallint</code> and 2147483647 for <code>int</code>.</p>
+
 <ol class="steps">
 <li><strong>Open the attribute, set <em>Type</em> (for example <code>varchar</code>) and <em>Size</em> (for example 5) and save.</strong>
-<p>These tell GenRocket the limits.</p></li>
+<p>These tell GenRocket the limits.</p>
+</li>
 <li><strong>Tick <em>Enforce Type/Limit</em> in the generator section and save the generator.</strong>
-<p class="expect">What you should see: the preview now shows names of at most five characters.</p></li>
+<p class="expect">What you should see: the preview now shows names of at most five characters.</p>
+</li>
 </ol>
+
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776504134293/Ow3AUdFxGNzUan7b6TVnXuQt5KGuglGL7w.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776504134293/Ow3AUdFxGNzUan7b6TVnXuQt5KGuglGL7w.png" alt="The attribute firstName with Type varchar and Size 5 highlighted by green arrows above the NameGen generator whose Enforce Type/Limit checkbox is ticked, next to a preview of short first names" loading="lazy"></a>
-<figcaption><strong>Official screenshot:</strong> Type and size set on the attribute, and Enforce Type/Limit ticked on the generator. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-enforce-data-type-and-size-in-generated-data" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figcaption><strong>Official screenshot:</strong> Type and size set on the attribute, and Enforce Type/Limit ticked on the generator. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-enforce-data-type-and-size-in-generated-data" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
 <h3 id="c18-pkmax">18.6.10 Primary keys after the current maximum</h3>
+
 <p>When you insert into a table that already holds rows, new keys must not collide with old ones. The docs' recipe links two generators in the <code>id</code> attribute. <code>gen1</code> is QueryOnceGen with <code>resourceName</code> pointing at the JDBC resource, <code>query = select max(id) + 1 from &lt;tableName&gt;</code> and a <code>sampleValue</code> (5001 in the example) used for previews. <code>gen2</code> is RangeGen whose <code>startRange</code> references <code>gen1</code>.</p>
+
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776529073460/FSTlP0bE7aiePGlXD09XLguPSDkKDzzsnw.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776529073460/FSTlP0bE7aiePGlXD09XLguPSDkKDzzsnw.png" alt="The id attribute with a RangeGen generator named gen2 whose startRange field is outlined and contains a reference to gen1, above a Linked Generators table with gen1 QueryOnceGen and gen2 RangeGen, and a preview list of ids starting at 5001" loading="lazy"></a>
-<figcaption><strong>Official screenshot:</strong> The finished setup: <code>gen2</code> (RangeGen) starts at <code>gen1</code> (QueryOnceGen) and the preview begins at 5001. In a real run the start value comes from the database. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-primary-key-values-after-the-max-value-from-a-database-table" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figcaption><strong>Official screenshot:</strong> The finished setup: <code>gen2</code> (RangeGen) starts at <code>gen1</code> (QueryOnceGen) and the preview begins at 5001. In a real run the start value comes from the database. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-primary-key-values-after-the-max-value-from-a-database-table" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
 <p>The General FAQ adds a second pattern for the parent side: write the parent's ids to a delimited file as you insert, then read them back with a list generator when generating children, so the keys match.</p>
 
 <h2 id="c18-shopsphere">18.7 ShopSphere design: generators for every column</h2>
+
 <p>This is my illustrative design, built from generators whose pages I read, except <code>StringRegexGen</code> (only its description was read). Domain names avoid underscores; the table name keeps them. "Domain variable" shows the setting that gives a sensible start.</p>
-<div class="tablewrap"><table class="sample">
+
+<div class="tablewrap">
+<table class="sample">
 <caption>Domain Customers (table CUSTOMERS): <code>global.Customers.id</code> = 1001, <code>loopCount</code> = 50</caption>
 <thead><tr><th>Attribute (original name)</th><th>Generator</th><th>Key settings</th><th>Why</th></tr></thead>
 <tbody>
@@ -108,8 +179,12 @@
 <tr><td>dateOfBirth (date_of_birth)</td><td>FlexibleDateRangeGen</td><td><code>format</code> yyyy-MM-dd, <code>startDate</code> 1955-01-01, an end range of about 45 years, <code>randomize</code> true</td><td>Adults born across 1955 to 2000</td></tr>
 <tr><td>zipCode (zip_code)</td><td>ListGen</td><td><code>list</code> 560001, 600017, 682001 ..., <code>random</code> true</td><td>A small fixed set, as in the sample rows</td></tr>
 <tr><td>taxId (tax_id)</td><td>StringRegexGen</td><td>a regular expression for the tax-ID pattern</td><td>Pattern-shaped text</td></tr>
-</tbody></table></div>
-<div class="tablewrap"><table class="sample">
+</tbody>
+</table>
+</div>
+
+<div class="tablewrap">
+<table class="sample">
 <caption>Domains Orders and OrderItems (parents: Customers, then Orders)</caption>
 <thead><tr><th>Domain.attribute</th><th>Generator</th><th>Key settings</th><th>Why</th></tr></thead>
 <tbody>
@@ -122,24 +197,36 @@
 <tr><td>OrderItems.productCode</td><td>ListGen</td><td>up to 15 codes</td><td>A fixed product set (PRODUCTS can be a sibling later)</td></tr>
 <tr><td>OrderItems.quantity</td><td>RandomGen</td><td>1 to 5</td><td>Small whole numbers</td></tr>
 <tr><td>OrderItems.unitPrice</td><td>RandomGen</td><td>range of prices</td><td>Positive prices</td></tr>
-</tbody></table></div>
+</tbody>
+</table>
+</div>
+
 <p>Row counts: Customers <code>loopCount</code> 50. How many orders per customer and items per order is set per scenario, which is covered next. Because <code>total_amount</code> is generated independently, it will not equal the sum of its items. If a test needs that, use the conditional and calculation generators from the table above, or a G-Rule (the docs describe both).</p>
-<div class="callout example"><strong class="ctitle">Lab: model ShopSphere in a practice project</strong>
+
+<div class="callout example">
+<strong class="ctitle">Lab: model ShopSphere in a practice project</strong>
 <p><strong>Goal:</strong> Build the three domains with relationships and a preview of each. (Needs a GenRocket account; do it in a trainer's sandbox project.)</p>
 <ol class="steps">
 <li><strong>Create the domains by DDL import or by hand.</strong>
-<p>Use the sample DDL of your team, or create <code>Customers</code>, <code>Orders</code> and <code>OrderItems</code> by hand with attributes from the tables above.</p></li>
+<p>Use the sample DDL of your team, or create <code>Customers</code>, <code>Orders</code> and <code>OrderItems</code> by hand with attributes from the tables above.</p>
+</li>
 <li><strong>Run the Domain Referencing Wizard (or Relationship tabs).</strong>
 <p>Set Customers as the parent of Orders and Orders as the parent of OrderItems.</p>
-<p class="expect">Expected: a three-box chain in the relationship diagram.</p></li>
+<p class="expect">Expected: a three-box chain in the relationship diagram.</p>
+</li>
 <li><strong>Replace generators where the table says so, set parameters, and save each generator.</strong>
-<p class="expect">Expected: previews show names, ids from 1001, emails like <code>customer1001@example.com</code>, and dates in your range.</p></li>
+<p class="expect">Expected: previews show names, ids from 1001, emails like <code>customer1001@example.com</code>, and dates in your range.</p>
+</li>
 <li><strong>Set the Customers loopCount to 50.</strong>
-<p class="expect">Expected: the variable shows 50.</p></li>
-</ol></div>
+<p class="expect">Expected: the variable shows 50.</p>
+</li>
+</ol>
+</div>
 
 <h2 id="c18-mistakes">18.8 Common mistakes and gotchas</h2>
-<div class="callout warn"><strong class="ctitle">Watch for these</strong>
+
+<div class="callout warn">
+<strong class="ctitle">Watch for these</strong>
 <ul>
 <li><strong>Expecting a DDL import to set relationships.</strong> It does not. Run the Domain Referencing Wizard.</li>
 <li><strong>Giving a table several parents.</strong> Use one parent and mark describing tables as siblings.</li>
@@ -148,11 +235,14 @@
 <li><strong>Forgetting Enforce Type/Limit.</strong> Values may not fit the target column.</li>
 <li><strong>Forgetting that a new domain's loopCount is 1.</strong> A first run gives one row.</li>
 <li><strong>Using ListGen for large lists.</strong> It supports up to 15 values. The docs recommend ListCSVV2Gen or another file-based list generator for more. ListCSVGen loads the whole file into memory.</li>
-<li><strong>Exhausted unique values.</strong> RandomGen with <code>uniqueLimit</code> 1 and a loop count equal to the range size ends with "Exhausted attempts to find the next valid random value".</li>
-</ul></div>
+<li><strong>Exhausted unique values.</strong> RandomGen with a small range and <code>uniqueLimit</code> 1 stops with "Exhausted attempts to find the next valid random value" when the loop count is too high (the page's own example is a range of 1 to 20, a limit of 1 and 20 rows). Widen the range, raise the limit or lower the row count.</li>
+</ul>
+</div>
 
 <h2 id="c18-recap">18.9 Recap</h2>
-<div class="callout recap"><strong class="ctitle">Key points</strong>
+
+<div class="callout recap">
+<strong class="ctitle">Key points</strong>
 <ul>
 <li>A domain is a table (template), an attribute is a column, and each attribute needs a generator.</li>
 <li>Create domains by hand, with Scratch Pad, from DDL, or from a database with XTS. Imports do not set relationships or receivers.</li>
@@ -161,9 +251,11 @@
 <li>ProxyReferenceGen is the domain-level placeholder; ReferenceGen is the scenario-level real reference.</li>
 <li>GenRocket assigns generators by tags, then by guess, then SimplePatternGen. Replace them one at a time or in groups.</li>
 <li>Seeds make random data repeatable; linked generators build complex values; Enforce Type/Limit keeps values inside column limits.</li>
-</ul></div>
+</ul>
+</div>
 
-<section class="sources"><h2 id="c18-sources">Sources used in this chapter</h2>
+<section class="sources">
+<h2 id="c18-sources">Sources used in this chapter</h2>
 <ul>
 <li>Domains: <a href="https://genrocket.helpjuice.com/en_US/domains-overview/domains-overview" target="_blank" rel="noopener">Domains Overview</a>, <a href="https://genrocket.helpjuice.com/en_US/domains-overview/domain-dashboard" target="_blank" rel="noopener">Domain Dashboard</a>, <a href="https://genrocket.helpjuice.com/en_US/domains-overview/parent-child-and-sibling-relationships" target="_blank" rel="noopener">Parent, Child, and Sibling Relationships</a>, <a href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-manually-set-parentchild-relationships-between-domains" target="_blank" rel="noopener">manual relationships</a>, <a href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-use-the-domain-referencing-wizard" target="_blank" rel="noopener">Domain Referencing Wizard</a>, <a href="https://genrocket.helpjuice.com/en_US/domains-overview/what-are-domain-variables" target="_blank" rel="noopener">Domain Variables</a>, <a href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-change-the-loopcount-for-a-domain" target="_blank" rel="noopener">loopCounts</a>, <a href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-create-a-domain-category" target="_blank" rel="noopener">Domain Category</a>, <a href="https://genrocket.helpjuice.com/en_US/domains-overview/what-is-a-scenario-domain" target="_blank" rel="noopener">Scenario Domain</a>.</li>
 <li>Creating domains: <a href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-import-my-data-model-into-genrocket" target="_blank" rel="noopener">import methods</a>, <a href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-create-a-new-domain" target="_blank" rel="noopener">New Domain</a>, <a href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-create-a-single-domain-from-ddl" target="_blank" rel="noopener">single DDL</a>, <a href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-create-multiple-domains-from-a-ddl" target="_blank" rel="noopener">multiple DDL</a>, <a href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/using-genrocket-xts-extract-table-schema" target="_blank" rel="noopener">XTS file</a>, <a href="https://genrocket.helpjuice.com/en_US/xts-wizard/how-do-i-use-the-xts-import-wizard" target="_blank" rel="noopener">XTS Import Wizard</a>, <a href="https://genrocket.helpjuice.com/en_US/xts-wizard/xts-wizard-overview" target="_blank" rel="noopener">XTS Wizard Overview</a>, <a href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-use-scratch-pad-to-quickly-create-a-domain" target="_blank" rel="noopener">Scratch Pad</a>.</li>
@@ -172,4 +264,5 @@
 <li>Assigning and configuring: <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-do-i-assign-a-generator-to-a-single-attribute" target="_blank" rel="noopener">single</a>, <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-do-i-assign-a-new-generator-to-multiple-attributes" target="_blank" rel="noopener">multiple</a>, <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-copy-generators-to-other-attributes-simple-copy" target="_blank" rel="noopener">simple copy</a>, <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-enforce-data-type-and-size-in-generated-data" target="_blank" rel="noopener">Enforce Type/Limit</a>, <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-primary-key-values-after-the-max-value-from-a-database-table" target="_blank" rel="noopener">keys after max</a>, <a href="https://genrocket.helpjuice.com/en_US/linking-generators/linked-generators-overview" target="_blank" rel="noopener">Linked Generators</a>.</li>
 <li>Individual generators: <a href="https://genrocket.helpjuice.com/en_US/rangegen-generators/how-do-i-use-the-rangegen-generator" target="_blank" rel="noopener">RangeGen</a>, <a href="https://genrocket.helpjuice.com/en_US/financial-generators/how-do-i-use-the-randomgen-generator" target="_blank" rel="noopener">RandomGen</a>, <a href="https://genrocket.helpjuice.com/en_US/name-generators/how-do-i-use-the-namegen-generator" target="_blank" rel="noopener">NameGen</a>, <a href="https://genrocket.helpjuice.com/en_US/name-generators/how-do-i-use-the-fullnamegen-generator" target="_blank" rel="noopener">FullNameGen</a>, <a href="https://genrocket.helpjuice.com/en_US/user-generators/how-do-i-use-the-emailgen-generator" target="_blank" rel="noopener">EmailGen</a>, <a href="https://genrocket.helpjuice.com/en_US/user-generators/how-do-i-use-the-phonenumbergen-generator" target="_blank" rel="noopener">PhoneNumberGen</a>, <a href="https://genrocket.helpjuice.com/en_US/identification-generators/how-do-i-use-the-ssngen-generator" target="_blank" rel="noopener">SSNGen</a>, <a href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/how-do-i-use-the-flexibledaterangegen-generator" target="_blank" rel="noopener">FlexibleDateRangeGen</a>, <a href="https://genrocket.helpjuice.com/en_US/misc-generators/how-do-i-use-the-listgen-generator" target="_blank" rel="noopener">ListGen</a>, <a href="https://genrocket.helpjuice.com/en_US/misc-generators/how-do-i-use-the-referencegen-generator" target="_blank" rel="noopener">ReferenceGen</a>, <a href="https://genrocket.helpjuice.com/en_US/misc-generators/how-do-i-use-the-proxyreferencegen-generator" target="_blank" rel="noopener">ProxyReferenceGen</a>.</li>
 <li>Also read: <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">General FAQ</a> and <a href="https://genrocket.helpjuice.com/en_US/scenarios-/scenarios-overview" target="_blank" rel="noopener">Scenarios Overview</a> (primary and root domain).</li>
-</ul></section>
+</ul>
+</section>
