@@ -53,10 +53,23 @@ function rewriteHrefs(html) {
 
 const warnings = [], errors = [], leadLinks = [], staleRefs = [];
 
+// Sections that are study-guide material, not subject matter, are not published.
+const META_H2 = /\b(final presentation|self-assessment|rubric for reviewing|pre-submission checklist|what evaluators look for|day-by-day plan|where this fits in the syllabus|day \d+ topics that depend|one-page lab checklist|evidence template|who this guide is for|the learning path|how to read a chapter|study plan|how the hands-on labs work|how this guide was researched|how to use this|sources used in this (?:chapter|section))\b/i;
+const META_UNIT = { 1: /recap|common mistakes|deliverables/i, 30: /deliverables/i };
+function dropSections(html, num) {
+  return html.split(/(?=<h2[\s>])/).filter((p) => {
+    if (!p.startsWith("<h2")) return true;
+    const t = strip((p.match(/<h2[^>]*>([\s\S]*?)<\/h2>/) || [])[1] || "");
+    return !(META_H2.test(t) || (META_UNIT[num] && META_UNIT[num].test(t)));
+  }).join("");
+}
+// "Day 48: Planning..." / "... (Days 51-56)" / "... (Activities 1-3)" lose their syllabus tag
+const noDay = (t) => t.replace(/^\s*Days? \d+(?:\s*[-–]\s*\d+)?\s*:\s*/i, "").replace(/\s*\((?:Days?|Activities)[^)]*\)\s*$/i, "");
+
 // Published pages are pure notes: no source boxes, evidence badges, "what you will learn" boxes, day tags or links to
 // meta pages. (The research ledger stays in the repo under tools/tdm-guide/.)
 function stripMeta(h) {
-  return h
+  return dropSections(h, stripMeta.unit)
     .replace(/<section class="sources">[\s\S]*?<\/section>/g, "")
     .replace(/<div class="callout [a-z]+"><strong class="ctitle">(?:What this (?:section|chapter) is based on|What you will learn|What to say in the walkthrough)<\/strong>[\s\S]*?<\/div>/g, "")
     .replace(/<span class="badge [a-z]+">[\s\S]*?<\/span>/g, "")
@@ -67,7 +80,8 @@ function stripMeta(h) {
 // ---------- renumber one unit into its chapter ----------
 // Old h2 -> new h2 numbered N.j (j runs across the whole chapter); old h3 -> h3 numbered N.j.i.
 // `map` records old numbers ("8.13", "8.13.2") so prose cross references can follow.
-function numberHeadings(html, ch, state, map) {
+function numberHeadings(html, ch, state, map, unit) {
+  stripMeta.unit = unit;
   html = stripMeta(html);
   // a unit's "Sources used" box heading must not become a section of its own
   html = html.replace(/<section class="sources">\s*<h2([^>]*)>([\s\S]*?)<\/h2>/g, '<section class="sources"><h4$1>$2</h4>');
@@ -75,6 +89,7 @@ function numberHeadings(html, ch, state, map) {
     const mm = inner.match(/^\s*(\d+)\.(\d+)(?:\.(\d+))?(?:\.\d+)*\.?\s*/);
     let text = inner, key = null;
     if (mm) { text = inner.slice(mm[0].length); key = mm[3] !== undefined ? `${mm[1]}.${mm[2]}.${mm[3]}` : `${mm[1]}.${mm[2]}`; }
+    text = noDay(text);
     if (tag === "h2") {
       state.j++; state.i = 0;
       const n = `${ch.num}.${state.j}`;
@@ -91,11 +106,11 @@ function numberHeadings(html, ch, state, map) {
 const numberMap = {};
 for (const c of structure.chapters) { // pass 1: learn the old -> new numbers
   const st = { j: 0, i: 0 };
-  for (const m of c.sources) if (minis[m]) numberHeadings(minis[m].html, c, st, numberMap);
+  for (const m of c.sources) if (minis[m]) numberHeadings(minis[m].html, c, st, numberMap, m);
 }
 
-function transformMini(html, c, state) {
-  let h = numberHeadings(html, c, state, {});
+function transformMini(html, c, state, unit) {
+  let h = numberHeadings(html, c, state, {}, unit);
   // the guide carries no quizzes or practice questions: strip any that slip in
   h = h.replace(/<details class="quiz"[\s\S]*?<\/details>/g, "").replace(/<h[234][^>]*>[^<]*(?:Check yourself|Practice questions?|Self-?check)[^<]*<\/h[234]>/gi, "");
   h = h.replace(/\bthis chapter\b/g, "this section").replace(/\bThis chapter\b/g, "This section");
@@ -114,7 +129,7 @@ for (const c of structure.chapters) {
     const mini = minis[m], w = where[m];
     if (!mini) { warnings.push(`chapter ${c.num}: source ${m} not written yet`); return; }
     const days = "";
-    html += `<div class="grp" id="${w.id}"><span class="grplabel">${esc(mini.meta.title)}</span>${days}</div>\n${transformMini(mini.html, c, state)}\n`;
+    html += `<div class="grp" id="${w.id}"><span class="grplabel">${esc(noDay(mini.meta.title))}</span>${days}</div>\n${transformMini(mini.html, c, state, m)}\n`;
     units.push({ id: w.id, title: mini.meta.title, old: m });
   });
   chapters.push({ ...c, html, units, file: `${pad(c.num)}-${c.slug}.html` });

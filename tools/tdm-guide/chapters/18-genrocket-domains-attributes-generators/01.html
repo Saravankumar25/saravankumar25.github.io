@@ -24,13 +24,14 @@
 <li>Attributes: the Attributes Overview, Attribute Dashboard, adding, referencing, hierarchy and copying pages, and the database-changes page.</li>
 <li>Generators: Generators Overview, How are Generators Assigned to Domain Attributes?, assign to one and many attributes, copy (simple), Generator Tags, What is Seeding?, ProxyReferenceGen versus ReferenceGen, Enforce Data Type and Size, Primary Keys after the Max Value, Linked Generators Overview, the list, string, conditional logic, query and UUID overview pages, and the individual pages for RangeGen, NameGen, FullNameGen, EmailGen, PhoneNumberGen, SSNGen, FlexibleDateRangeGen, ListGen, RandomGen, ReferenceGen and ProxyReferenceGen.</li>
 </ul>
+<p>I also use the 2020 Kualitatem and GenRocket webinar (transcript supplied by the learner), in which GenRocket's CTO builds a user domain live and answers questions. It is a vendor demonstration of an older product version, so each use is labelled, checked against the docs above, and marked where the docs differ.</p>
 <p>The ShopSphere design at the end is my own illustration built from those documented generators. The generator parameters I name come from each generator's page; where I did not read a generator's own page, I say so.</p>
 </div>
 
 <h2 id="c18-words">18.1 Words to know first</h2>
 
 <dl class="defs">
-<div><dt>Template domain</dt><dd>A domain as defined in a project version. Think of it as the master copy. When you build a scenario, GenRocket makes a copy of it called a <em>scenario domain</em>.</dd>
+<div><dt>Template domain</dt><dd>A domain as defined in a project version. Think of it as the master copy; a scenario gets a copy called a <em>scenario domain</em>.</dd>
 </div>
 <div><dt>Scenario domain</dt><dd>The per-scenario copy of a template domain. Changes to the template flow down to it unless it is locked.</dd>
 </div>
@@ -60,13 +61,13 @@
 
 <p><span class="badge doc">From docs</span> A domain "defines real-world objects", a noun such as a person, place or thing. When you model a database, a domain is a table and its attributes are the columns. The docs' own example has four tables, Company, Department, User and Address, each becoming a domain with its columns as attributes. At least one domain must exist in a project to generate any data.</p>
 
-<p>A domain inside a project version is a <em>template</em>: it holds the attributes, generators and relationships. When you create a scenario, GenRocket copies the template into a <em>scenario domain</em>. Changes you make to the template cascade down to every scenario unless the scenario (or the scenario domain) is locked. This is similar to a document template and the letters printed from it, with one difference: you can pin a printed letter so that later edits to the template leave it alone.</p>
+<p>A domain inside a project version is a <em>template</em>: it holds the attributes, generators and relationships. When you create a scenario, GenRocket copies the template into a <em>scenario domain</em>. Changes you make to the template cascade down to every scenario unless the scenario (or the scenario domain) is locked. It is like a letter template, except that you can pin a printed letter so later edits leave it alone.</p>
 
 <p>The docs also state a rule that surprises beginners: a template domain works independently and cannot really reference another domain's attributes. Relationships at the domain level are "just probable". The real references are made at the scenario level, where related domains are put together. You will see this again with ProxyReferenceGen below.</p>
 
 <p>Each time a domain is created or imported, it gets three default variables, all initially 1 (<a href="#c18-vars">details below</a>): <code>id</code>, <code>loopCount</code> and <code>seed</code>.</p>
 
-<p>Names have a small rule. The "New Domain" page notes that a domain name should contain only letters and numbers (spaces are now also allowed), so for the ShopSphere table ORDER_ITEMS I would name the domain <code>OrderItems</code> and put the real table name <code>ORDER_ITEMS</code> in the <em>Table Name</em> field you can see on the dashboard. The page does not say what happens with an underscore, so I avoid it.</p>
+<p>The "New Domain" page says a domain name should contain only letters and numbers (spaces are now also allowed), so for ORDER_ITEMS I would name the domain <code>OrderItems</code> and put <code>ORDER_ITEMS</code> in the <em>Table Name</em> field. The page does not say what happens with an underscore, so I avoid it.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776676772282/5PeAO68g2A-SaP41e2H95EtWLyNgR3_xvg.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776676772282/5PeAO68g2A-SaP41e2H95EtWLyNgR3_xvg.png" alt="The GenRocket Project Dashboard for DemoProject1 version 1.0 with the Domains pane listing Address, Department, Organization and User, plus Scenarios, Scenario Chains, Scenario Chain Sets and the Management pane" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> Where domains live: the Domains pane of the Project Dashboard lists the domains (here Address, Department, Organization and User) of the selected project version. Clicking a domain name opens its Domain Dashboard. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/domains-overview/domains-overview" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -97,7 +98,7 @@
 
 <h3 id="c18-domain-create">18.2.3 Four ways to create domains</h3>
 
-<p>The page "How do I import my data model into GenRocket?" counts <strong>seventeen primary methods</strong>: DDL (single or multiple), XTS, CSV, CSV for fixed file, JSON, GenRocket JSON schema, standard JSON schema, XSD, YAML, presets, Spark schema, Avro JSON schema, CopyBook, Salesforce, Scratch Pad, Quick Pattern and New Domain. (A related FAQ answer says sixteen; the count changes between pages, so do not memorise it.) All are reached from the green <em>New Domain</em> button in the Domains pane.</p>
+<p>The page "How do I import my data model into GenRocket?" counts <strong>seventeen primary methods</strong>: DDL (single or multiple), XTS, CSV, CSV for fixed file, JSON, GenRocket JSON schema, standard JSON schema, XSD, YAML, presets, Spark schema, Avro JSON schema, CopyBook, Salesforce, Scratch Pad, Quick Pattern and New Domain. The count changes between pages, so do not memorise it. All are reached from the green <em>New Domain</em> button in the Domains pane.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776686612494/1Rb4vjjedD0gJbbE9SVdf-Egs6M7uj7OOQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776686612494/1Rb4vjjedD0gJbbE9SVdf-Egs6M7uj7OOQ.png" alt="The New Domain menu expanded showing buttons Scratch Pad, New Domain, Quick Pattern, Import From CSV, Import from DDL (marked with an arrow), Import from GenRocket JSON Schema, Import from JSON, Import from CopyBook, Import from Presets, Import from Salesforce, Import from Spark Schema, Import from XSD, Import from XTS, Import from YAML, Import from Avro JSON Schema and Import from CSV for Fixed File" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The New Domain menu: every way of creating domains in one list. The arrow in the vendor's picture points at Import from DDL, the method used below. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-create-multiple-domains-from-a-ddl" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -191,9 +192,17 @@
 <figcaption><strong>Official screenshot:</strong> The XTS wizard hub: six numbered steps (import, referencing, generator tuning, receiver assignment, scenario assignment, domain families) with a completion checklist, plus edit and delete wizards for later changes. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/xts-wizard/how-do-i-use-the-xts-import-wizard" target="_blank" rel="noopener">Source page ↗</a></figcaption>
 </figure>
 
-<p>Why use a wizard hub? Because after importing hundreds of tables, the remaining setup is also repetitive. Each step has its own wizard that works on a filtered set of domains at once, and you tick each step as complete so that the next unlocks.</p>
+<p>Each step has its own wizard that works on many domains at once, because the setup after importing hundreds of tables is also repetitive; you tick each step as complete so that the next unlocks.</p>
 
 <div class="callout example">
 <strong class="ctitle">ShopSphere: which method?</strong>
-<p>ShopSphere has three tables to generate. If the team gives you <code>CREATE TABLE</code> scripts, a DDL import takes minutes and keeps the primary key and sizes. If the QA lead can reach a dev copy of the database with a read-only account, an XTS extract avoids typing anything. For this chapter's walk-through, either works. The docs describe DDL and XTS imports as importing a schema, not rows.</p>
+<p>ShopSphere has three tables. If the team gives you <code>CREATE TABLE</code> scripts, a DDL import takes minutes and keeps the primary key and sizes. If you can reach a dev copy of the database with a read-only account, an XTS extract avoids typing anything. Either imports a schema, not rows.</p>
 </div>
+
+<h3 id="c18-demo-scratch">18.2.7 A live Scratch Pad demo from the 2020 webinar</h3>
+
+<p><span class="badge video">From video</span> In the 2020 webinar, GenRocket's CTO builds a domain on screen in a few minutes, which shows what the Scratch Pad method feels like. He creates a project called "live demo", opens the domain page and chooses Scratch Pad. He types attributes that nearly every application has (first name, last name, middle initial, password, username), then adds social security number, card number and phone number. GenRocket looks each name up in what he calls its data warehouse, a store of the generators most used for common attribute names, and attaches a likely generator to each. It even matched "middle" after he misspelled it. A preview of sample rows appears at once.</p>
+
+<p>The docs describe the same behaviour: <em>Create with Generators</em> assigns generators, guessing from the attribute name, domain name, industry type and what other users chose (<a href="#c18-assign">18.6.1</a>). They say nothing about tolerating misspellings, so type names carefully. They also say an attribute with "password" in its name is given the EncryptGen generator automatically.</p>
+
+<p>Two details from the same session. He says there were nine ways to set up a project in 2020; the docs now count seventeen (<a href="#c18-domain-create">18.2.3</a>). And in the Q&amp;A he describes the schema extract (XTS, <a href="#c18-xts">18.2.6</a>) as reading metadata only (table and attribute names, types, foreign keys), after which a wizard lets you mark each domain's one parent and the rest become siblings. The docs match. His claim of 10,000 tables of 100 attributes loaded in about eight minutes is a 2020 vendor figure that the docs I read do not repeat.</p>

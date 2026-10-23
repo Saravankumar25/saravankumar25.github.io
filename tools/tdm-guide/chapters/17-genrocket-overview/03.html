@@ -1,60 +1,35 @@
 <h3 id="c17-setup">17.6.5 Setting it up: the shape of the steps</h3>
 
-<p>You will not install the runtime in this guide's labs (the hands-on chapter assumes a trainer or lab machine has done it), but you should know what the steps look like. The three operating-system articles are long and similar. Here is the Windows article's skeleton, in my words. Details such as folder paths and the exact variable names belong to the vendor page for your system.</p>
+<p>You will not install the runtime in this guide's labs (a trainer or lab machine has done it), but you should know the outline. This is the Windows article's skeleton in my words; folder paths and exact variable names belong to the vendor page for your system.</p>
 
 <ol class="steps">
 <li><strong>Check the prerequisites.</strong>
-<p>An active GenRocket user account and access to the cloud address from your network, port 443 open, admin rights on the machine, and Java installed.</p>
-<p class="expect">What you should see: <code>java -version</code> prints one of the supported versions.</p>
+<p>An active user account, the cloud address reachable on port 443, admin rights, and Java installed.</p>
+<p class="expect">What you should see: <code>java -version</code> prints a supported version.</p>
 </li>
-<li><strong>Download the runtime zip from the web platform.</strong>
-<p>Log in, open the <em>Options</em> menu, and choose the download for the current runtime version. The docs also show a <code>curl</code> or <code>wget</code> way to fetch it.</p>
-<p class="expect">What you should see: a zip file named with the runtime version number.</p>
-</li>
-<li><strong>Extract it into your home directory and name the folder <code>genrocket</code>.</strong>
-<p>The page warns that you must not end up with a nested folder such as <code>genrocket\genrocket-3.5.x</code>, and that the user name in the path must not itself be "genrocket".</p>
+<li><strong>Download the runtime zip from the web platform (Options menu) and extract it into your home directory as a folder named <code>genrocket</code>.</strong>
+<p>The page warns against a nested folder such as <code>genrocket\genrocket-3.5.x</code>.</p>
 <p class="expect">What you should see: a <code>genrocket</code> folder with <code>bin</code> and <code>lib</code> inside.</p>
 </li>
-<li><strong>Set the environment variables.</strong>
-<p>Point the home variable at the folder, add its <code>bin</code> directory to <code>PATH</code>, check <code>JAVA_HOME</code>, and for Java 11 or later add the documented <code>JAVA_OPTS</code> value.</p>
-<p class="expect">What you should see: after opening a <em>new</em> terminal window, the word <code>genrocket</code> is recognised.</p>
+<li><strong>Set the environment variables, open a <em>new</em> terminal and run <code>genrocket</code> once.</strong>
+<p>The first run downloads the other jars into <code>lib</code> and creates the hidden <code>.genrocket</code> folder.</p>
+<p class="expect">What you should see: no error. "genrocket is not a recognized command" means the folder name, home variable or <code>PATH</code> is wrong.</p>
 </li>
-<li><strong>Run <code>genrocket</code> once.</strong>
-<p>This downloads the other jars into <code>lib</code> and creates the hidden <code>.genrocket</code> folder.</p>
-<p class="expect">What you should see: no error. If you see "genrocket is not a recognized command", the troubleshooting page says to check the folder name, the home variable and <code>PATH</code>.</p>
-</li>
-<li><strong>Download the helper libraries and your user profile.</strong>
-<p>The page uses <code>genrocket -lib</code> for libraries. The profile comes from the <em>Download</em> menu in the Resources pane and goes into <code>.genrocket</code>.</p>
-<p class="expect">What you should see: a <code>.grp</code> profile file inside <code>.genrocket</code>.</p>
-</li>
-<li><strong>Fill in your organisation resources.</strong>
-<p>Three default resources hold folder paths for you (home directory, JDBC config directory and output directory; the screenshots in the next section show them). Set them to real folders, and enter <code>N/A</code> for the JDBC one if you do not connect to a database.</p>
-<p class="expect">What you should see: your own paths in the Resources pane of the web platform.</p>
+<li><strong>Download your user profile into <code>.genrocket</code> and fill in your organisation resources.</strong>
+<p>Resources hold folder paths for home, JDBC configuration and output (enter <code>N/A</code> for JDBC if you connect to no database).</p>
+<p class="expect">What you should see: a <code>.grp</code> profile file in <code>.genrocket</code> and your own paths in the Resources pane.</p>
 </li>
 </ol>
 
-<p><span class="badge doc">From docs</span> Typing <code>genrocket</code> alone, or <code>genrocket -h</code>, prints the list of runtime command-line options. That is the quickest way to see what your installed version supports.</p>
+<p><span class="badge doc">From docs</span> Typing <code>genrocket</code> alone, or <code>genrocket -h</code>, prints the runtime's command-line options for your version.</p>
 
 <h3 id="c17-update">17.6.6 Updates, Docker and Jenkins at overview level</h3>
 
-<p><strong>Updates.</strong> The docs distinguish a full runtime update (replace the whole <code>genrocket</code> folder) from a jar-only update (done from the command line, and sometimes without re-downloading the runtime). Release notes say which is needed, and users see a pop-up after login when a new release arrives.</p>
+<p><strong>Updates.</strong> A full runtime update replaces the whole <code>genrocket</code> folder; a jar-only update is done from the command line. Release notes say which is needed.</p>
 
-<p><strong>Docker.</strong> For teams that run containers, GenRocket provides a Docker image you download from the web platform (or with <code>curl</code>) and load with <code>docker load</code>. The page's basic idea is that a container forgets everything when it stops, so you <em>mount</em> folders from the host for the runtime, the scenarios, the configuration files, the <code>.genrocket</code> profile folder and the output. The page also notes that the runtime must be set up when using a container, and describes a custom-image option.</p>
+<p><strong>Docker.</strong> GenRocket provides a Docker image you download from the web platform and load with <code>docker load</code>. A container forgets everything when it stops, so you <em>mount</em> host folders for the runtime, scenarios, configuration files, the <code>.genrocket</code> profile folder and the output.</p>
 
-<p><strong>Jenkins (continuous integration).</strong> Jenkins is a popular tool that runs build and test jobs automatically. The Windows and Mac/Linux Jenkins pages walk through running a scenario as a Jenkins build step. The outline is the same as a normal setup, applied to the Jenkins server:</p>
-
-<ol class="steps">
-<li><strong>Install the runtime on the Jenkins server and set the variables in Jenkins's own configuration screen.</strong>
-<p>Jenkins builds do not see your personal environment, so the home variable and <code>PATH</code> must be set where Jenkins reads them.</p>
-</li>
-<li><strong>Register the Jenkins server in the web platform and download its Server Profile into the server's <code>.genrocket</code> folder.</strong>
-<p>No person is logged in on a build server, so it uses a server profile, not a user profile.</p>
-</li>
-<li><strong>Create a Freestyle job and add a build step that runs the scenario.</strong>
-<p>First the page has you run the bare <code>genrocket</code> command to prove Jenkins can find it, then replace it with <code>genrocket -d -r SCENARIO_NAME.grs</code>.</p>
-<p class="expect">What you should see: a SUCCESS message in the console output, and your generated files in the output folder.</p>
-</li>
-</ol>
+<p><strong>Jenkins (continuous integration).</strong> Jenkins is a popular tool that runs build and test jobs automatically. The Windows and Mac/Linux Jenkins pages run a scenario as a build step. The outline: install the runtime on the Jenkins server and set the variables where Jenkins reads them (builds do not see your personal environment); register the server in the web platform and download its Server Profile into the server's <code>.genrocket</code> folder (no person is logged in on a build server); then create a Freestyle job whose build step first runs bare <code>genrocket</code> to prove Jenkins can find it, and then <code>genrocket -d -r SCENARIO_NAME.grs</code>. You should see a SUCCESS message in the console and your files in the output folder. <a href="19-genrocket-receivers-and-scenarios.html#c19-pipeline">Section 19.4.10</a> shows how the 2020 webinar combines this with Selenium tests.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776789009863/6Hm3u7dzMermg_YO4EKddCbjoT4WjimzpQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776789009863/6Hm3u7dzMermg_YO4EKddCbjoT4WjimzpQ.png" alt="The Jenkins job configuration Build tab with an Execute Windows batch command box containing the word genrocket and a note saying to run this command to verify it is executed" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The vendor's Jenkins example: the build step first runs plain <code>genrocket</code> to check that Jenkins can find the runtime. Later in the same article the command is replaced by one that runs a named scenario file. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/scenarios-/windows-how-do-i-run-genrocket-scenarios-via-jenkins" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -69,7 +44,7 @@
 
 <h2 id="c17-web">17.7 The web platform and the Project Dashboard</h2>
 
-<p><span class="badge doc">From docs</span> You reach the web platform with a link, a user name and a temporary password from a welcome email. The first-login page lists password rules (8 characters, at least one number, one capital letter and one special character from a stated set, and not one of your previous six passwords). After accepting the licence agreement you may be asked to change the temporary password. Organisations that use single sign-on or multi-factor authentication may log in differently; ask your administrator.</p>
+<p><span class="badge doc">From docs</span> You reach the web platform with a link, a user name and a temporary password from a welcome email. The first-login page lists password rules and, after you accept the licence agreement, may ask you to change the temporary password. Organisations that use single sign-on or multi-factor authentication may log in differently; ask your administrator.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776353923865/869ItwN10srrWJa53giiOh6SuSLIof_2vA.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776353923865/869ItwN10srrWJa53giiOh6SuSLIof_2vA.png" alt="The GenRocket Project Dashboard right after first login, with a top menu bar (Project Dashboard, Options, Management, Presets, Help) and three panes: Projects, Queue Status and Resources listing resource.home.directory, resource.jdbc.directory and resource.output.directory" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The first screen a new user sees: a menu bar and only three panes (Projects, Queue Status and Resources). The Resources pane already lists three default resources for home, JDBC and output directories. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/navigation-overview/genrocket-web-platform-overview" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -99,9 +74,7 @@
 </table>
 </div>
 
-<p>The page also lists common icons: an open padlock locks an item (locked items cannot be deleted, and a lock stops changes made higher up from flowing down); a pencil edits; a trash can removes; an "i" shows more information. You will meet locks again in the receivers and scenarios chapter.</p>
-
-<p>The main menu bar offers Options (downloads such as the runtime), Management, Presets and Help; the Organization menu (visible to administrators) includes "My Organization" for managing users.</p>
+<p>The page also lists common icons. An open padlock locks an item: locked items cannot be deleted, and the lock stops changes made higher up from flowing down (you will meet locks again in the receivers and scenarios chapter). The main menu bar offers Options (downloads such as the runtime), Management, Presets and Help.</p>
 
 <div class="callout tip">
 <strong class="ctitle">Reading order for the Project Dashboard</strong>

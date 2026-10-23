@@ -49,7 +49,7 @@
 
 <h3 id="c18-rel-wizard">18.3.2 The Domain Referencing Wizard</h3>
 
-<p>After importing many tables, setting parents one by one is tedious. The wizard shows every domain with radio buttons for parent and checkboxes for siblings, and a diagram that updates as you click. It opens from the Project Versions pane or from step 2 of the XTS wizard.</p>
+<p>Setting parents one by one is tedious after a big import. The wizard shows every domain with parent radio buttons, sibling checkboxes and a diagram that updates as you click. It opens from the Project Versions pane or step 2 of the XTS wizard.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776679411672/9i5TPN2izvupObn1cy4tCvz-tFdzv9h5kA.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776679411672/9i5TPN2izvupObn1cy4tCvz-tFdzv9h5kA.png" alt="The Domain Referencing Wizard with a list of ten bank domains (Account, AccountLevel, AccountType, Branch, CardProduct, CardType, Customer, CustomerAccount, Transaction, TransactionType) with a Reviewed column, a panel titled References for Account with AccountLevel selected as Parent, a Mark as Reviewed button, a progress pie showing 0 of 10 reviewed and a Domain Relationship Diagram" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The Domain Referencing Wizard. Left: domains and a Reviewed checkbox. Middle: for the selected domain (Account), the parent radio buttons and sibling checkboxes, and a progress pie. Right: a relationship diagram that redraws as you choose. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-use-the-domain-referencing-wizard" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -102,11 +102,17 @@
 <figcaption><strong>Official screenshot:</strong> Editing <code>loopCount</code>: the name is fixed, the value is the number of rows. The vendor example changes it to 25. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-change-the-loopcount-for-a-domain" target="_blank" rel="noopener">Source page ↗</a></figcaption>
 </figure>
 
-<p>For many domains at once, the <em>Global Editing</em> menu has an "Edit Domains LoopCount" screen with checkboxes. One quirk: if a domain's first generator is a ListGen with <code>setLoop</code> set to true, the list length overrides the loop count and you cannot edit it from the scenario.</p>
+<p>For many domains at once, the <em>Global Editing</em> menu has an "Edit Domains LoopCount" screen. One quirk: if a domain's first generator is a ListGen with <code>setLoop</code> true, the list length overrides the loop count.</p>
 
 <h3 id="c18-cat">18.4.2 Domain categories</h3>
 
-<p>When a version has dozens of domains, group them: open a domain, click <em>Categorize</em>, create a category and save. Then filter the Domains pane by category or use Advanced Search. The same categorising works for scenarios, scenario chains and chain sets.</p>
+<p>When a version has dozens of domains, open a domain, click <em>Categorize</em>, create a category and save; then filter the Domains pane by category or use Advanced Search. Scenarios, chains and chain sets can be categorised too.</p>
+
+<h3 id="c18-vars-demo">18.4.3 The id variable and loopCount, as shown in the 2020 demo</h3>
+
+<p><span class="badge video">From video</span> In the same demo, the CTO notes that a new domain already has three variables and starts with <code>id</code>. He calls it the starting point from which GenRocket guarantees referential integrity. The <code>id</code> attribute reads it, and so does the <code>username</code> generator, which builds its value from the id; when he types 1,000 into the variable, both change together. He adds that the <code>id</code> attribute can be made invisible so receivers do not output it while it keeps working; the docs' <em>Visible</em> setting (<a href="#c18-attributes">18.5</a>) is that switch.</p>
+
+<p>The docs agree on the mechanics: the variable is the start of the <code>id</code> range, every parameter that refers to it follows a change, and integrity comes from children referring to the parent's primary attribute (<a href="#c18-vars">18.4</a>). They differ on one point. The demo scenario generated 10,000 users, with the loop count described as the first thing a scenario reads, but the docs say a new domain's <code>loopCount</code> starts at 1. The demo does not show where 10,000 was entered.</p>
 
 <h2 id="c18-attributes">18.5 Attributes: the columns</h2>
 
@@ -135,7 +141,7 @@
 
 <div class="callout note">
 <strong class="ctitle">Name versus original name</strong>
-<p>For ShopSphere's <code>customer_id</code> column the attribute would be named <code>customerId</code> (GenRocket's camel-case convention), while its Original Name stays <code>customer_id</code>. Receivers such as the SQL-insert one use a separate <em>columnName</em> property key to write the real column name in the output.</p>
+<p>ShopSphere's <code>customer_id</code> column becomes the attribute <code>customerId</code> (camel case), while its Original Name stays <code>customer_id</code>. Receivers such as the SQL-insert one use a <em>columnName</em> property key to write the real column name.</p>
 </div>
 
 <h3 id="c18-attr-add">18.5.1 Adding an attribute</h3>

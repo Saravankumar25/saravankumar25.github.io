@@ -20,7 +20,7 @@
 
 <h3 id="c17-four-steps">17.4.1 The four steps</h3>
 
-<p>The course syllabus for Day 46 says "Data generation: model, design, deploy, manage". GenRocket's Methodology page says the product uses exactly this "Model, Design, Deploy, Manage" methodology, and the CI/CD page gives each step a plain meaning.</p>
+<p>The course syllabus for Day 46 says "Data generation: model, design, deploy, manage". That is GenRocket's own name for its method, not a mapping I invented: the Methodology page uses exactly "Model, Design, Deploy, Manage", the CEO states it as "the GenRocket methodology" in the 2022 overview video, and the CI/CD page gives each step a plain meaning.</p>
 
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280852430/1tZBhQ3jEFMfbEvEmfYjekf9iBFxY-1XRQ%20(1).png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280852430/1tZBhQ3jEFMfbEvEmfYjekf9iBFxY-1XRQ%20(1).png" alt="A circular arrow diagram titled Synthetic Data Lifecycle with four segments in order: Model, Design, Deploy, Manage" loading="lazy"></a>
 <figcaption><strong>Official screenshot:</strong> The vendor's "Synthetic Data Lifecycle" ring: Model, Design, Deploy and Manage chase each other in a circle. The circle matters: after Manage, the next release of your application sends you back to Model. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">Source page ↗</a></figcaption>
@@ -38,7 +38,7 @@
 </table>
 </div>
 
-<p>The Deploy row says "more than 100 receivers", while the receivers overview page says "120+" and the architecture is described in terms of a growing list. Treat all such counts as <em>approximate and growing</em>; I quote them only to show scale.</p>
+<p>Counts differ by source and date, so treat them as approximate and growing. The Deploy row says "more than 100" receivers and the receivers overview says "120+". The 2020 webinar spoke of about 258 generators and 61 to 63 receivers (the company started with 13 and 4), and the 2022 video of 680+ generators and 91 receivers. The current help centre is the reference.</p>
 
 <p>The same page also lists the self-service vocabulary used in the Design step, in a table from the vendor's screenshot below. These names matter later (<a href="20-genrocket-data-patterns.html">data patterns chapter</a>), so recognise them now.</p>
 
@@ -50,6 +50,24 @@
 <strong class="ctitle">Do not confuse the stages with the five components</strong>
 <p>Model, Design, Deploy and Manage are <em>phases of work</em>. Domain, attribute, generator, receiver and scenario are <em>things in the product</em>. Several components appear in more than one phase: generators are chosen while designing, but a generator's output is only produced while deploying.</p>
 </div>
+
+<h3 id="c17-demo-steps">17.4.2 The four steps in the 2022 demo</h3>
+
+<p><span class="badge video">From video</span> The 2022 overview video, spoken by GenRocket's CEO, sketches the method like this: a customer uploads a data model to the GenRocket cloud (Model), a test data engineer designs the data each test needs (Design), and a developer or tester wires the data into a CI/CD pipeline or test case and generates it on demand (Deploy). For Manage it names versioning and lifecycle management of the project template. Its short live demo then touches the steps:</p>
+
+<div class="tablewrap">
+<table>
+<thead><tr><th>Step</th><th>What the demo shows</th></tr></thead>
+<tbody>
+<tr><td>Model</td><td>A new project is created with the XTS wizard (extract table schema), which reads the <em>metadata</em>, not the data. A domain referencing wizard then sets the parent and child relationships, and a generator tuning wizard adjusts the generators behind each attribute.</td></tr>
+<tr><td>Design</td><td>A self-service module builds a test data case suite. The examples are unit, negative, load and integration cases, with the volume set per domain (the demo names a branch and an account domain), small and large setups, and rules that control the output.</td></tr>
+<tr><td>Deploy</td><td>Generation is launched from Jenkins, a batch file or a shell script. In the demo the rows go into a SQL database, including a rule-controlled value such as an account balance.</td></tr>
+<tr><td>Manage</td><td>A navigation view lets users move between projects, project versions, domains, attributes and individual generators. The video shows less of this step than the others.</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>The same wizards appear among the Project Versions icons in <a href="#c17-versions">section 17.8.4</a>. The 2020 webinar adds that there are nine ways to set up a project, XTS among them, and that XTS connects to a database over JDBC.</p>
 
 <h2 id="c17-architecture">17.5 Architecture: a cloud for design, your machine for generation</h2>
 
@@ -70,7 +88,17 @@
 <p>For a bank or hospital, the question "does our data leave the building?" decides whether a tool may be used at all. In this design, the cloud holds only the <em>design</em> (a data model and rules, not data). The only place rows are created is on a machine you control. Compare this with a masking tool (<a href="14-informatica-data-masking.html">Informatica masking chapter</a>), where real data is read and transformed.</p>
 </div>
 
-<p>The Architecture page links onward to security, team permissions, the runtime overview and "G-Repository", the component that keeps scenarios and configuration files synchronised across a company's machines. There is also a downloadable PDF, "Components and Ports Configuration Guide", which the docs call a vital resource for core components, diagrams, port configurations and deployment advice. I did not open that PDF; if your organisation deploys GenRocket, that is the document to ask for.</p>
+<p>The Architecture page links onward to security, team permissions, the runtime overview and "G-Repository", the component that keeps scenarios and configuration files synchronised across a company's machines. It also offers a downloadable PDF, "Components and Ports Configuration Guide", which I did not open; if your organisation deploys GenRocket, ask for it.</p>
+
+<h3 id="c17-arch-video">17.5.1 What the 2020 webinar adds to the architecture</h3>
+
+<p><span class="badge video">From video</span> In the webinar the CTO and CEO describe the same hybrid design in plain terms. The CEO lists the hosting choices as on-premises, a dedicated private cloud, and a virtual private cloud (VPC), and says about 90% of customers use the VPC; the current docs name the VPC and the dedicated private cloud. In the live demo the CTO builds a project, a domain and a receiver in the cloud, then downloads the result as an <em>encrypted scenario</em>. The file stays the same size (22 KB in his demo) whether it generates one row or a billion, because it holds instructions, not data. He runs it with the runtime, a set of Java programs, so it works on any machine with Java: Windows, Linux, Mac and even some mainframes. The CEO's conclusion is that all generation can happen on a test automation server inside the corporate network, which is what the "No Customer Data Stored" label in the diagram above means.</p>
+
+<div class="callout note">
+<strong class="ctitle">Speed, scale and patent: the vendor's claims</strong>
+<p><span class="badge video">From video</span> The 2020 webinar claims that a typical automated test case gets its data in about 100 milliseconds, that a run reaches thousands of rows per second, and that parallel runs produce millions or billions of rows in minutes. The CTO adds that importing metadata for 10,000 tables of 100 attributes takes around eight minutes. I could not measure any of this; for contrast, the help centre says JDBC inserts average about 4,000 records per second (<a href="19-genrocket-receivers-and-scenarios.html#c19-more-receiver">section 19.2.5</a>). Real speed depends on the receiver, the database and the machine.</p>
+<p>Both videos say GenRocket holds the only patent for synthetic test data generation (the 2020 webinar dates it to 2017). That is the vendor's statement; I did not check patent records.</p>
+</div>
 
 <h2 id="c17-runtime">17.6 The GenRocket Runtime</h2>
 
@@ -115,7 +143,7 @@
 </table>
 </div>
 
-<p>The runtime needs a few environment variables (settings your operating system hands to programs). The overview page names <code>GENROCKET_HOME</code>, <code>PATH</code>, <code>JAVA_HOME</code> and <code>JAVA_OPTS</code>. A small warning from my own reading: the overview table writes the first one as <code>GENROCKET_HOME</code>, while the Windows setup and troubleshooting pages use <code>GEN_ROCKET_HOME</code>. I cannot tell which is correct for your version. Follow the setup article for your operating system and copy the spelling it uses.</p>
+<p>The runtime needs a few environment variables (settings your operating system hands to programs): <code>GENROCKET_HOME</code>, <code>PATH</code>, <code>JAVA_HOME</code> and <code>JAVA_OPTS</code> on the overview page. The Windows setup and troubleshooting pages spell the first one <code>GEN_ROCKET_HOME</code>. I cannot tell which is right for your version, so copy the spelling from the setup article for your operating system.</p>
 
 <h3 id="c17-profiles">17.6.3 Profiles: how the runtime knows who you are</h3>
 
