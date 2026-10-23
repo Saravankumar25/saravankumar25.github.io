@@ -1,0 +1,68 @@
+<p>Imagine you have to move a flat. Before you pack, you walk through every room and list what is there: which boxes are fragile, which items belong together, which papers are private. Only then do you decide what to take and how to wrap it. Test data work follows the same order. First you <em>look inside</em> the production database (discovery and profiling). Then you <em>take only what you need</em> (subsetting). After that, you protect what you took (masking, covered in <a href="06-masking-concepts.html">the masking concepts chapter</a>).</p>
+<p>This chapter teaches the two first steps as ideas, without any tool buttons. It builds on <a href="03-data-basics.html">the data basics chapter</a> (tables, primary keys, foreign keys) and on <a href="04-sensitive-data-and-regulations.html">the sensitive data chapter</a> (what sensitive data is, and how patterns and names reveal it). The hands-on tool chapters that follow are <a href="12-informatica-discovery-and-profiling.html">Informatica discovery and profiling</a>, <a href="13-informatica-data-subset.html">Informatica data subset</a> and <a href="25-delphix-profiling.html">Delphix profiling</a>.</p>
+<div class="callout recap"><strong class="ctitle">What you will learn</strong><ul>
+<li>What data discovery and profiling are, why they come first, and what a profile reports: types, patterns, sensitive-looking columns, keys and relationships.</li>
+<li>The difference between looking at metadata (names and types) and looking at the data itself, and why a human must review the results.</li>
+<li>What data subsetting is, why teams do it (size, speed, cost, privacy), and the main ways to choose a subset: by filter, by percentage or row count, by time window, by driver table.</li>
+<li>What a driver table is, how related "child" rows come along, and how to keep referential integrity so the subset still works.</li>
+<li>How subsetting and masking combine, and how a subset compares with a full copy.</li>
+<li>A worked ShopSphere subset with before and after rows.</li>
+</ul></div>
+<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
+<p><span class="badge doc">From docs</span> Tool statements come from the Informatica TDM 10.5.10 User Guide (PDF, February 2026, 455 pages): chapter 5 "Data Discovery" (PDF pages 86 to 111), chapter 6 "Creating a Data Subset" (pages 112 to 134) and the plan filtering parts of chapter 13 (pages 294 and 304). From the GenRocket help pages: "Synthetic Data Masking (SDM) and Data Subsetting Overview", "G-Subset Overview", "Data Subsetting - How to Add Tables and Subsetting Conditions", "G-Subset Traverse Full Hierarchy Option", "How to Select Tables for Full Migration During Subsetting", "How to Add Custom Referential Integrity to Imported Table Schemas" and "PII Discovery with Data Column Profiling". From Delphix Continuous Compliance 2026.5 (last published October 16, 2026): "Discovering your sensitive data", "Introduction to Delphix Masking" and "Delphix masking terminology".</p>
+<p><span class="badge concept">General concept</span> The ShopSphere examples, the comparison tables and the explanation of random versus targeted sampling are written for this guide. Where a type of subset is not described in the documentation I read, I say so.</p></div>
+
+<h2 id="c5-words-to-know">5.1 Words to know first</h2>
+<dl class="defs">
+<div><dt>Data discovery</dt><dd>The step of finding out what is in a data source: which tables and columns exist, which hold sensitive data, how tables relate. Informatica uses "data discovery" for the whole activity and "profile" for each job inside it.</dd></div>
+<div><dt>Profile (verb: to profile)</dt><dd>A job that scans a data source and reports facts about it. Delphix and GenRocket also say "profiling".</dd></div>
+<div><dt>Metadata</dt><dd>Data about data: table names, column names, data types, lengths, key definitions. The column <code>ssn</code> and its type "string of 11 characters" are metadata. The value 123-45-6789 is data.</dd></div>
+<div><dt>Primary key (PK)</dt><dd>A column (or set of columns) whose values are unique for every row and identify it, such as <code>customer_id</code>.</dd></div>
+<div><dt>Foreign key (FK)</dt><dd>A column whose values point to a primary key in another table, such as <code>ORDERS.customer_id</code> pointing to <code>CUSTOMERS.customer_id</code>.</dd></div>
+<div><dt>Parent table and child table</dt><dd>The table holding the primary key is the parent; the table holding the foreign key is the child. <code>CUSTOMERS</code> is the parent of <code>ORDERS</code>, and <code>ORDERS</code> is the parent of <code>ORDER_ITEMS</code>.</dd></div>
+<div><dt>Referential integrity</dt><dd>The promise that every foreign key value points to a row that really exists. A child row with no parent is an <dfn>orphan</dfn>, and it means the data is broken.</dd></div>
+<div><dt>Data subset</dt><dd>A smaller copy of a database that still hangs together: fewer rows, same structure, referential integrity intact.</dd></div>
+<div><dt>Driving table (driver table)</dt><dd>The table you start from when you pick a subset. The tool finds related rows in other tables starting from it. Informatica uses exactly this term for the starting table of an entity.</dd></div>
+<div><dt>Entity (Informatica)</dt><dd>A driving table plus all the tables related to it. It is the unit that Informatica copies to a subset database.</dd></div>
+<div><dt>Criteria (filter)</dt><dd>The condition that picks the rows, such as "zip code starts with 560" or "order date in March".</dd></div>
+<div><dt>Residual table</dt><dd>Informatica's term for a table that has not been added to any group or entity (User Guide 10.5.10, p.116).</dd></div>
+</dl>
+
+<h2 id="c5-discovery">5.2 Data discovery and profiling</h2>
+<h3 id="c5-what-is-profiling">What it is</h3>
+<p><dfn>Data profiling</dfn> means scanning a data source with software and producing a report of facts about it. <dfn>Data discovery</dfn> is the wider goal: using those facts to decide what to mask, what to subset, and how tables connect. Informatica puts it plainly: run profiles to discover source data for data masking and data subset operations (User Guide 10.5.10, p.86). <span class="badge doc">From docs</span></p>
+<p>Analogy: a profile is like a building survey before renovation. The surveyor does not change anything. They measure, list and flag. The analogy stops being accurate in one way: a surveyor's report is usually correct, while a profile's flags are guesses that people must confirm.</p>
+<h3 id="c5-why-first">Why it comes first</h3>
+<p>Masking and subsetting are only as good as your knowledge of the data.</p>
+<ul>
+<li>You cannot mask a sensitive column you did not know about. Missing one column of SSNs means a leak.</li>
+<li>You cannot subset safely without knowing the relationships. If you cut <code>ORDERS</code> without knowing it points at <code>CUSTOMERS</code>, you will leave orphans.</li>
+<li>You cannot choose a masking technique without knowing the column's type, length and shape.</li>
+<li>Real databases are rarely documented. Old tables, renamed columns and half-forgotten fields are normal.</li>
+</ul>
+<div class="callout why"><strong class="ctitle">Why it matters</strong>
+<p>Both Informatica and Delphix describe profiling as the step that feeds the next one. Informatica says that before masking you can discover which columns to mask with the same rules, and before subsetting you can discover relationships between tables and the entities for the subset (User Guide 10.5.10, p.86). Delphix says that after connecting data, the next step is discovering which of it should be secured (Delphix "Discovering your sensitive data"). <span class="badge doc">From docs</span></p></div>
+<h3 id="c5-what-it-reports">What a profile reports</h3>
+<div class="tablewrap"><table><caption>What profiling typically reports (general concept), with the tool feature that provides it</caption>
+<thead><tr><th>Finding</th><th>Example on ShopSphere</th><th>Where the tools mention it</th></tr></thead>
+<tbody>
+<tr><td>Column list with data types and lengths</td><td><code>ssn</code> is a string of 11 characters</td><td>Informatica Discover view lists table, column, owner, data type (p.89); Delphix profiling examines names and types</td></tr>
+<tr><td>Value patterns and their share</td><td>99 percent of <code>phone</code> values are 10 digits; 1 percent are blank</td><td>Informatica column profile: patterns and their percentage of distribution (p.97)</td></tr>
+<tr><td>Ranges, minimum and maximum, null share</td><td><code>total_amount</code> ranges from 15.00 to 98,400.00</td><td>Informatica column profile: range of values, percentage of nulls (p.97)</td></tr>
+<tr><td>List of the most common values</td><td>Most frequent <code>zip_code</code> values</td><td>Informatica column profile: list of values (p.97)</td></tr>
+<tr><td>Sensitive-looking columns</td><td><code>email</code> matches the Email Address domain</td><td>Informatica data domain profile (p.94); Delphix domain assignment; GenRocket column-name keywords</td></tr>
+<tr><td>Primary key candidates</td><td><code>customer_id</code> is 100 percent unique</td><td>Informatica primary key profile with uniqueness percentage (p.103)</td></tr>
+<tr><td>Foreign key and relationship candidates</td><td><code>ORDERS.customer_id</code> matches <code>CUSTOMERS.customer_id</code></td><td>Informatica entity profile (p.93)</td></tr>
+</tbody></table></div>
+<h3 id="c5-informatica-types">The four profile types in Informatica</h3>
+<p><span class="badge doc">From docs</span> The User Guide lists four kinds of profile (pp.86 to 87). Seeing them side by side shows how one tool splits the work:</p>
+<div class="tablewrap"><table><caption>Informatica profile types (User Guide 10.5.10, pp.86-87)</caption>
+<thead><tr><th>Type</th><th>What it determines</th><th>Feeds</th></tr></thead>
+<tbody>
+<tr><td>Foreign key (entity)</td><td>Relationships between tables, by evaluating table structure for potential links</td><td>Subsetting (entities, constraints)</td></tr>
+<tr><td>Primary key</td><td>Potential primary keys, with the percentage of unique values in a column or combination of columns</td><td>Subsetting</td></tr>
+<tr><td>Data domain</td><td>Which columns belong in a data domain, from data values or from column names</td><td>Masking</td></tr>
+<tr><td>Column</td><td>Characteristics of columns: range of values, list of values, data patterns</td><td>Data generation</td></tr>
+</tbody></table></div>
+<p>The guide says you can run data domain and primary key profiles at the same time, and also import profiles created in Informatica Developer. Two small but important facts: TDM adds discovered keys and relationships as <em>logical</em> constraints in its own repository and does not change the source tables (p.86 and p.87), and profiles run on relational sources such as Oracle, Microsoft SQL Server, IBM DB2 for Linux, UNIX and Windows, MySQL, Sybase and Teradata, with data domain profiles also supported on Hive and HDFS (p.87). Check your version for the current source list. A later chapter, <a href="12-informatica-discovery-and-profiling.html">Informatica discovery and profiling</a>, walks through the screens.</p>
+<div class="flow"><div class="node"><b>1. Connect</b>point the tool at the source</div><div class="arrow">→</div><div class="node"><b>2. Profile</b>scan names, types, data</div><div class="arrow">→</div><div class="node"><b>3. Review</b>approve or reject findings</div><div class="arrow">→</div><div class="node"><b>4. Use</b>mask rules and subset entities</div></div>
