@@ -5,31 +5,11 @@
 <tr><th>Pattern</th><th>What the values look like</th><th>Mainly serves purpose</th><th>ShopSphere example</th></tr>
 </thead>
 <tbody>
-<tr>
-<td>Boundary conditions</td>
-<td>Values on and just either side of every limit</td>
-<td>Boundary</td>
-<td>Ages 17, 18, 19; <code>quantity</code> 0, 1, max, max+1</td></tr>
-<tr>
-<td>Sequential</td>
-<td>Values that count up (or down) in a fixed step</td>
-<td>Valid, volume, unique keys</td>
-<td><code>customer_id</code> 2001, 2002, 2003 ...</td></tr>
-<tr>
-<td>Random</td>
-<td>Values picked unpredictably from a range or list</td>
-<td>Valid, volume, realism</td>
-<td>First names picked from a list; zip codes in a range</td></tr>
-<tr>
-<td>Edge cases</td>
-<td>Unusual but possible values, placed on purpose</td>
-<td>Edge case, negative</td>
-<td>A negative age every fifth record; names over the length limit 25% of the time</td></tr>
-<tr>
-<td>Null</td>
-<td>Missing, empty or blank values</td>
-<td>Null / empty</td>
-<td>5 customers with no phone</td></tr>
+<tr><td>Boundary conditions</td><td>Values on and just either side of every limit</td><td>Boundary</td><td>Ages 17, 18, 19; <code>quantity</code> 0, 1, max, max+1</td></tr>
+<tr><td>Sequential</td><td>Values that count up (or down) in a fixed step</td><td>Valid, volume, unique keys</td><td><code>customer_id</code> 2001, 2002, 2003 ...</td></tr>
+<tr><td>Random</td><td>Values picked unpredictably from a range or list</td><td>Valid, volume, realism</td><td>First names picked from a list; zip codes in a range</td></tr>
+<tr><td>Edge cases</td><td>Unusual but possible values, placed on purpose</td><td>Edge case, negative</td><td>A negative age every fifth record; names over the length limit 25% of the time</td></tr>
+<tr><td>Null</td><td>Missing, empty or blank values</td><td>Null / empty</td><td>5 customers with no phone</td></tr>
 </tbody>
 </table>
 </div>
@@ -47,26 +27,11 @@
 <tr><th>Pattern</th><th>Values</th><th>Expected application result</th></tr>
 </thead>
 <tbody>
-<tr>
-<td>Boundary</td>
-<td>2009-10-24 (17 years, 364 days), 2008-10-23 (exactly 18), 2008-10-22 (18 years, 1 day)</td>
-<td>Reject, accept, accept</td></tr>
-<tr>
-<td>Sequential</td>
-<td>1980-01-01, 1980-01-02, 1980-01-03 ...</td>
-<td>All accepted; useful for volume and unique ordering</td></tr>
-<tr>
-<td>Random</td>
-<td>Any date between 1950-01-01 and 2008-10-22</td>
-<td>All accepted; realistic age spread</td></tr>
-<tr>
-<td>Edge case</td>
-<td>1900-01-01, 2024-02-29 (a leap day)</td>
-<td>Application decides: accept, or reject as implausible</td></tr>
-<tr>
-<td>Null</td>
-<td>empty</td>
-<td>Reject with a "date of birth required" message</td></tr>
+<tr><td>Boundary</td><td>2009-10-24 (17 years, 364 days), 2008-10-23 (exactly 18), 2008-10-22 (18 years, 1 day)</td><td>Reject, accept, accept</td></tr>
+<tr><td>Sequential</td><td>1980-01-01, 1980-01-02, 1980-01-03 ...</td><td>All accepted; useful for volume and unique ordering</td></tr>
+<tr><td>Random</td><td>Any date between 1950-01-01 and 2008-10-22</td><td>All accepted; realistic age spread</td></tr>
+<tr><td>Edge case</td><td>1900-01-01, 2024-02-29 (a leap day)</td><td>Application decides: accept, or reject as implausible</td></tr>
+<tr><td>Null</td><td>empty</td><td>Reject with a "date of birth required" message</td></tr>
 </tbody>
 </table>
 </div>
@@ -92,46 +57,16 @@
 <tr><th>Question</th><th>Masked production data</th><th>Synthetic data</th></tr>
 </thead>
 <tbody>
-<tr>
-<td><strong>Realism</strong></td>
-<td>High. Real shapes, real mess, real correlations between columns</td>
-<td>As good as your rules. Looks real only for the properties you modelled</td></tr>
-<tr>
-<td><strong>Coverage of rare or future cases</strong></td>
-<td>Only cases that already happened in production</td>
-<td>Any case you can describe, including ones that never happened, and boundary or invalid values on demand</td></tr>
-<tr>
-<td><strong>Privacy</strong></td>
-<td>Depends on masking quality. Weak masking, or unmasked columns, can still identify people</td>
-<td>No real person behind any row, so there is nothing to re-identify</td></tr>
-<tr>
-<td><strong>Setup effort</strong></td>
-<td>Discovery, masking rules, consistency checks</td>
-<td>Modelling the tables, writing rules for each column and relationship</td></tr>
-<tr>
-<td><strong>Cost to refresh</strong></td>
-<td>Re-run extract and mask, which grows with production size</td>
-<td>Re-run the generator; speed depends on the rows asked for, not on production size</td></tr>
-<tr>
-<td><strong>Referential integrity</strong></td>
-<td>Comes from the real data, but masking must keep keys matching across tables</td>
-<td>Must be designed: parent rows first, children point at existing parents (section 7.8)</td></tr>
-<tr>
-<td><strong>Distributions</strong></td>
-<td>Real distributions come free</td>
-<td>You must state them (for example 20% of customers with no orders)</td></tr>
-<tr>
-<td><strong>Repeatability</strong></td>
-<td>Same snapshot until refreshed</td>
-<td>Same output every run if you use a seed</td></tr>
-<tr>
-<td><strong>Volume on demand</strong></td>
-<td>Limited by what production holds</td>
-<td>As many rows as the target can hold</td></tr>
-<tr>
-<td><strong>Main risk</strong></td>
-<td>A leaked or unmasked column</td>
-<td>A model that is too tidy and misses real-world mess</td></tr>
+<tr><td><strong>Realism</strong></td><td>High. Real shapes, real mess, real correlations between columns</td><td>As good as your rules. Looks real only for the properties you modelled</td></tr>
+<tr><td><strong>Coverage of rare or future cases</strong></td><td>Only cases that already happened in production</td><td>Any case you can describe, including ones that never happened, and boundary or invalid values on demand</td></tr>
+<tr><td><strong>Privacy</strong></td><td>Depends on masking quality. Weak masking, or unmasked columns, can still identify people</td><td>No real person behind any row, so there is nothing to re-identify</td></tr>
+<tr><td><strong>Setup effort</strong></td><td>Discovery, masking rules, consistency checks</td><td>Modelling the tables, writing rules for each column and relationship</td></tr>
+<tr><td><strong>Cost to refresh</strong></td><td>Re-run extract and mask, which grows with production size</td><td>Re-run the generator; speed depends on the rows asked for, not on production size</td></tr>
+<tr><td><strong>Referential integrity</strong></td><td>Comes from the real data, but masking must keep keys matching across tables</td><td>Must be designed: parent rows first, children point at existing parents (section 7.8)</td></tr>
+<tr><td><strong>Distributions</strong></td><td>Real distributions come free</td><td>You must state them (for example 20% of customers with no orders)</td></tr>
+<tr><td><strong>Repeatability</strong></td><td>Same snapshot until refreshed</td><td>Same output every run if you use a seed</td></tr>
+<tr><td><strong>Volume on demand</strong></td><td>Limited by what production holds</td><td>As many rows as the target can hold</td></tr>
+<tr><td><strong>Main risk</strong></td><td>A leaked or unmasked column</td><td>A model that is too tidy and misses real-world mess</td></tr>
 </tbody>
 </table>
 </div>

@@ -1,0 +1,93 @@
+<h2 id="c20-coverage">20.11 Pattern coverage table</h2>
+<p>This table is the chapter in one place. Each row is a pattern from the Day 47 syllabus (or a close neighbour), how GenRocket produces it, and the documented generator and parameters to reach for first. Where a row uses a generator I only know by name, the last column says so.</p>
+<div class="tablewrap"><table><caption>Data patterns, GenRocket mechanisms and ShopSphere examples</caption>
+<thead><tr><th>Pattern</th><th>GenRocket mechanism</th><th>Generators and parameters (documented)</th><th>ShopSphere example</th></tr></thead>
+<tbody>
+<tr><td>Sequential id</td><td>Count up</td><td>Domain <code>id</code> attribute; RangeGen <code>startRange</code>, <code>jumpAmount</code>, <code>endRange</code> empty</td><td><code>order_id</code> 5001, 5002 ...</td></tr>
+<tr><td>Repeat each value N times</td><td>Wait before jumping</td><td>RangeGen <code>waitAmount</code>; ListGen <code>waitAmount</code></td><td>3 item rows per order</td></tr>
+<tr><td>Prefixed number</td><td>Range with prefix</td><td>RangeConstantGen <code>startRange</code>, <code>prefix</code> (named on the string generators page)</td><td>ORD-1001</td></tr>
+<tr><td>Continue after existing rows</td><td>Linked query plus range</td><td>QueryOnceGen <code>resourceName</code>, <code>query</code>, <code>sampleValue</code>; RangeGen <code>startRange</code> = <code>#{self.gen1}</code></td><td>Insert into a non-empty table</td></tr>
+<tr><td>Sequential phone numbers</td><td>Sequence generator</td><td>PhoneNumberGen <code>areaCode</code>, <code>prefix</code></td><td>(800) 600-1000 onward</td></tr>
+<tr><td>Random number</td><td>Random in range</td><td>RandomGen <code>startRange</code>, <code>endRange</code>, <code>uniqueLimit</code>, <code>seed</code></td><td>Quantity 1 to 10</td></tr>
+<tr><td>Random names</td><td>Random from a name pool</td><td>NameGen <code>nameType</code>, <code>caseType</code>, <code>sortOrder</code> random, <code>seed</code></td><td>Asha, Menon</td></tr>
+<tr><td>Random from a short list</td><td>Random list pick</td><td>ListGen <code>random</code> True, <code>unique</code>, <code>seed</code></td><td>City from five cities</td></tr>
+<tr><td>Random text or codes</td><td>Random string</td><td>RandomStringGen <code>length</code>, <code>stringType</code>, <code>unique</code>, <code>include</code>, <code>exclude</code></td><td>Voucher PROMO670837</td></tr>
+<tr><td>Repeatable random data</td><td>Seed</td><td><code>seed</code> on the generator; domain Global Seed variable</td><td>Same customers every night</td></tr>
+<tr><td>Weighted values</td><td>Percentage choice</td><td>WeightGen <code>percentage</code>, <code>variable1</code>, <code>variable2</code>; MultiWeightGen <code>valueList</code>, <code>percentList</code>, <code>exactPercentage</code></td><td>70 percent Delivered</td></tr>
+<tr><td>Conditional value</td><td>If/else on another value</td><td>EvalCaseGen <code>equation</code>, <code>var1</code>, <code>caseTrue</code>, <code>caseFalse</code>; SwitchGen; IfThenElseGen</td><td>age &gt;= 18 gives Yes</td></tr>
+<tr><td>Edge case now and then</td><td>Mix normal and edge value</td><td>EdgeCaseGen <code>source</code>, <code>edgeCase</code>, <code>cycle</code> / <code>percentage</code> / <code>condition</code></td><td>Negative age; 12-letter name</td></tr>
+<tr><td>Exact boundary values</td><td>Fixed list, one row each</td><td>ListGen <code>list</code>, <code>setLoop</code> True</td><td>0.00, 999999.99</td></tr>
+<tr><td>Negative numbers</td><td>Descending range</td><td>RangeGen negative <code>startRange</code>, <code>sortOrder</code> descending</td><td>Quantity -1</td></tr>
+<tr><td>All combinations</td><td>Permutations</td><td>PermutationGen <code>list</code></td><td>Size by colour by gift wrap</td></tr>
+<tr><td>Typical versus negative runs</td><td>Test data cases</td><td>G-Cases (Unit, Negative, Load categories)</td><td>Nightly versus edge suite</td></tr>
+<tr><td>Null values</td><td>Attribute null settings</td><td>Attribute <code>% Null</code>, <code>Null Value</code>; NullGen <code>nullType</code></td><td>10 percent null email</td></tr>
+<tr><td>Blank or empty values</td><td>Constant generator</td><td>ConstantGen <code>value</code> <code>#{BLANK}</code> or <code>#{EMPTY}</code></td><td>Empty email</td></tr>
+<tr><td>Omit a key when null</td><td>Output condition</td><td>Attribute <code>Output Condition</code>; <code>Visible</code></td><td>No <code>address2</code> in JSON</td></tr>
+<tr><td>How null is written</td><td>Receiver parameter</td><td>DelimitedFileReceiver <code>nullValue</code></td><td><code>(null)</code> versus empty cell</td></tr>
+<tr><td>Fit the column</td><td>Enforce Type/Limit</td><td>Attribute <code>Type</code>, <code>Size</code>; the checkbox</td><td><code>varchar(5)</code> names</td></tr>
+<tr><td>Fixed decimals</td><td>Number formatting</td><td>NumberFormatGen <code>decimalFormat</code>, <code>padLength</code>; RandomDecimalGen / RangeDecimalGen (named only)</td><td>49.90</td></tr>
+<tr><td>Dates in a range</td><td>Date range</td><td>FlexibleDateRangeGen <code>format</code>, <code>startDate</code>, <code>nextBy</code>, <code>randomize</code></td><td>Birth dates</td></tr>
+<tr><td>Gap between dates</td><td>Date delta</td><td>DateDeltaGen <code>conversion</code>, <code>dateRefOne</code>, <code>dateRefTwo</code></td><td>Age in years</td></tr>
+</tbody></table></div>
+
+<h2 id="c20-lab-mix">20.12 Lab: a realistic orders mix</h2>
+<div class="exercise"><h4>Lab: 100 orders that combine four patterns</h4>
+<p>Goal: one domain that mixes sequential, seeded random, weighted and null data, so you see how patterns stack on different attributes of the same row. Project, domain, receiver and scenario steps are the same as in <a href="21-genrocket-hands-on-50-records.html#c21-lab-steps">the 50-record lab</a>, so this lab only lists what is different. Generator names and parameters are the ones documented above. The two-decimal <code>decimalFormat</code> is by analogy with a screenshot, so check it in Preview.</p>
+<ol class="steps">
+<li><strong>Create a domain <code>OrderMix</code> and set its <code>loopCount</code> to 100.</strong><p>Domain Variables, pencil icon on <code>global.OrderMix.loopCount</code>, Save.</p><p class="expect">The variable shows 100.</p></li>
+<li><strong>Attribute <code>orderId</code>: RangeGen from 5001.</strong><p>Sequential and unique, so it works as a key. Leave <code>endRange</code> empty so it never wraps.</p><p class="expect">Preview: 5001, 5002, 5003 ...</p></li>
+<li><strong>Attribute <code>totalAmount</code>: RandomDecimalGen 1 to 5000 with a seed.</strong><p>Realistic variety, repeatable because of the seed. Format to two decimals.</p><p class="expect">Preview: amounts such as 1834.27. Regenerating gives the same list.</p></li>
+<li><strong>Attribute <code>status</code>: MultiWeightGen Delivered 70, Shipped 15, Pending 10, Cancelled 5, <code>exactPercentage</code> True.</strong><p>Exact shares let you check the file by counting.</p><p class="expect">In the output, 70, 15, 10 and 5 rows respectively.</p></li>
+<li><strong>Attribute <code>email</code>: EmailGen with <code>% Null</code> 10.</strong><p>EmailGen (assigned automatically to names containing "email") needs <code>prefix</code>, <code>reference</code>, <code>suffix</code> and <code>extension</code>. Reference <code>orderId</code> so each address is unique. Set the Null Value as described in <a href="#c20-null-attribute">20.7.2</a>.</p><p class="expect">Roughly one row in ten has a null email.</p></li>
+<li><strong>Add a DelimitedFileReceiver, scenario and run.</strong><p>Set <code>nullValue</code> to what your downstream loader expects.</p><p class="expect">100 data rows. Count the statuses, check that orderId runs 5001 to 5100, and count empty emails.</p></li>
+</ol>
+<details class="sol"><summary>Show what to check</summary>
+<ul>
+<li>Row count 100 plus one header line.</li>
+<li>Status counts exactly 70/15/10/5 because <code>exactPercentage</code> is True. If counts drift, check that setting.</li>
+<li>Null email count near 10 (the page does not promise an exact count for <code>% Null</code>).</li>
+<li>Run twice: <code>totalAmount</code> should be identical both times because of the seed, while the null positions may or may not be, depending on whether you also seeded that part. Note which behaviour you see.</li>
+</ul></details>
+</div>
+
+<h2 id="c20-mistakes">20.13 Common mistakes and gotchas</h2>
+<div class="callout warn"><strong class="ctitle">Messages and mistakes the documentation names</strong>
+<div class="tablewrap"><table>
+<thead><tr><th>Symptom</th><th>Cause</th><th>Fix</th></tr></thead>
+<tbody>
+<tr><td>"Exhausted attempts to find the next valid random value"</td><td>RandomGen <code>uniqueLimit</code> too small for the loop count</td><td>Raise <code>loopCount</code>, <code>endRange</code> or <code>uniqueLimit</code></td></tr>
+<tr><td>"startRange cannot be less than or equal to endRange"</td><td>Descending RangeGen with a positive end</td><td>Use a negative <code>endRange</code> or ascending order</td></tr>
+<tr><td>ListGen throws when <code>random</code> and <code>unique</code> are True</td><td>Loop count larger than the list</td><td>Shorten the loop count or lengthen the list; the Preview cannot show this case</td></tr>
+<tr><td>Referenced value comes out empty or null</td><td>The referenced attribute or generator is below or to the right</td><td>Rearrange Attributes; reorder linked generators</td></tr>
+<tr><td>Scenario loop count shows "N" and cannot be edited</td><td>First ListGen has <code>setLoop</code> True</td><td>Intended; set <code>setLoop</code> False to edit the count</td></tr>
+<tr><td><code>OutOfMemoryError: GC overhead limit exceeded</code></td><td>Unique limits, big files or big queries loaded into memory</td><td>Set <code>JAVA_OPTS</code>, loosen uniqueness, or use a batch-loading generator (the error page names CSVToMapGen)</td></tr>
+<tr><td>Preview looks right but output has "(null)" text</td><td>Receiver <code>nullValue</code> left at its default</td><td>Set <code>nullValue</code> for your loader</td></tr>
+<tr><td>Edge value never appears</td><td>Enforce Type/Limit trimmed it, or <code>percentage</code> too low for the row count</td><td>Switch it off for that generator, raise the percentage or use an exact list</td></tr>
+</tbody></table></div></div>
+<div class="callout tip"><strong class="ctitle">Always read the Preview pane</strong>
+<p>Several documentation pages in this chapter contradict themselves in small ways (the EdgeCaseGen condition example, the null-mix generator order, the FlexibleDateRangeGen directions). The Preview pane shows what your version really does. Treat it as the final authority and the help page as a guide.</p></div>
+
+<h2 id="c20-recap">20.14 Recap</h2>
+<div class="callout recap"><strong class="ctitle">Recap</strong>
+<ul>
+<li>Test data needs patterns: typical data for positive tests, tricky data (boundary, edge, null) for negative tests.</li>
+<li>Sequential: RangeGen (<code>startRange</code>, <code>jumpAmount</code>, <code>waitAmount</code>), the domain <code>id</code>, ListGen in order, PhoneNumberGen. A range that wraps is not unique.</li>
+<li>Random: RandomGen, NameGen, ListGen and RandomStringGen; a <code>seed</code> makes random data repeatable, and two attributes with the same seed and settings repeat each other.</li>
+<li>Weights: WeightGen for two-way splits, MultiWeightGen with <code>exactPercentage</code> True for exact shares.</li>
+<li>Linked and conditional generators run left to right and may only reference what is to their left (and attributes above them). EvalCaseGen handles if/else; EdgeCaseGen mixes in edge values by cycle, percentage or condition.</li>
+<li>Null and blank: attribute <code>% Null</code> and <code>Null Value</code>, NullGen, ConstantGen with <code>#{BLANK}</code> or <code>#{EMPTY}</code>, Output Condition, and the receiver's <code>nullValue</code>.</li>
+<li>Boundary value analysis: test just below, on and just above each limit, plus one typical value. In GenRocket use exact lists (ListGen with <code>setLoop</code> True) for boundaries.</li>
+<li>Enforce Type/Limit keeps values inside the column; NumberFormatGen fixes decimals; FlexibleDateRangeGen and DateDeltaGen cover dates. Verify uncertain behaviour in Preview.</li>
+</ul></div>
+
+<section class="sources"><h2 id="c20-sources">Sources used in this chapter</h2>
+<p>All pages are from the GenRocket help centre (genrocket.helpjuice.com), read in full for this chapter; screenshots are the vendor's, embedded from the page named in each caption.</p>
+<ul>
+<li><a href="https://genrocket.helpjuice.com/en_US/rangegen-generators/how-do-i-use-the-rangegen-generator" target="_blank" rel="noopener">RangeGen</a> and <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-primary-key-values-after-the-max-value-from-a-database-table" target="_blank" rel="noopener">primary keys after the max value</a>: sequential data.</li>
+<li><a href="https://genrocket.helpjuice.com/en_US/financial-generators/how-do-i-use-the-randomgen-generator" target="_blank" rel="noopener">RandomGen</a>, <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/-what-is-seeding" target="_blank" rel="noopener">What is Seeding?</a>, <a href="https://genrocket.helpjuice.com/en_US/name-generators/how-do-i-use-the-namegen-generator" target="_blank" rel="noopener">NameGen</a>, <a href="https://genrocket.helpjuice.com/en_US/string-manipulation-generators/how-do-i-use-the-randomstringgen" target="_blank" rel="noopener">RandomStringGen</a>, <a href="https://genrocket.helpjuice.com/en_US/user-generators/how-do-i-use-the-phonenumbergen-generator" target="_blank" rel="noopener">PhoneNumberGen</a>: random and phone data.</li>
+<li><a href="https://genrocket.helpjuice.com/en_US/misc-generators/how-do-i-use-the-listgen-generator" target="_blank" rel="noopener">ListGen</a>, <a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-weightgen-generator" target="_blank" rel="noopener">WeightGen</a>, <a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-multiweightgen-generator" target="_blank" rel="noopener">MultiWeightGen</a>: lists and weights.</li>
+<li><a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/conditional-logic-generators" target="_blank" rel="noopener">Conditional Logic Generators</a>, <a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-evalcasegen-generator" target="_blank" rel="noopener">EvalCaseGen</a>, <a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-edgecasegen-generator" target="_blank" rel="noopener">EdgeCaseGen</a>, <a href="https://genrocket.helpjuice.com/en_US/linking-generators/linked-generators-overview" target="_blank" rel="noopener">Linked Generators Overview</a>, <a href="https://genrocket.helpjuice.com/en_US/attributes/when-can-an-attribute-not-reference-another-attribute" target="_blank" rel="noopener">attribute referencing</a>, <a href="https://genrocket.helpjuice.com/en_US/permutation-generators/how-do-i-use-the-permutationgen-generator" target="_blank" rel="noopener">PermutationGen</a>, <a href="https://genrocket.helpjuice.com/en_US/test-data-cases-g-cases/test-data-cases-g-cases-overview" target="_blank" rel="noopener">G-Cases</a>: conditions, edge cases, combinations.</li>
+<li><a href="https://genrocket.helpjuice.com/en_US/attributes/attribute-dashboard" target="_blank" rel="noopener">Attribute Dashboard</a>, <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/flatnested-json-hide-an-attribute-when-value-is-null-or-blank" target="_blank" rel="noopener">hide an attribute when NULL or blank</a>, <a href="https://genrocket.helpjuice.com/en_US/string-manipulation-generators/how-do-i-use-the-constantgen-generator" target="_blank" rel="noopener">ConstantGen</a>, <a href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-delimited-file-receiver" target="_blank" rel="noopener">DelimitedFileReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/string-generators-compare-evaluate-combine-or-alter-string-values-print" target="_blank" rel="noopener">string generators list</a>: null and blank.</li>
+<li><a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-enforce-data-type-and-size-in-generated-data" target="_blank" rel="noopener">Enforce Type and Size</a>, <a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-numberformatgen-generator" target="_blank" rel="noopener">NumberFormatGen</a>, <a href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/how-do-i-use-the-flexibledaterangegen-generator" target="_blank" rel="noopener">FlexibleDateRangeGen</a>, <a href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/how-do-i-use-the-datedeltagen-generator" target="_blank" rel="noopener">DateDeltaGen</a>, <a href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/date-and-time-format" target="_blank" rel="noopener">Date and Time format</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/error-javalangoutofmemoryerror-gc-overhead-limit-exceeded" target="_blank" rel="noopener">GC overhead error</a>: size, numbers, dates, errors.</li>
+<li><a href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">Automating Data Generation using CI/CD Pipeline</a>: the list of data kinds the platform can design.</li>
+</ul></section>

@@ -106,36 +106,12 @@
 <tr><th>Source class</th><th>How it is made</th><th>Typical risk</th><th>Where this guide covers it</th></tr>
 </thead>
 <tbody>
-<tr>
-<td>Production copy (raw)</td>
-<td>Straight copy of the real database</td>
-<td>Exposes real personal data; not allowed in test for regulated data</td>
-<td><a href="02-why-tdm.html">Why TDM exists</a></td></tr>
-<tr>
-<td>Production subset</td>
-<td>A cut-down, consistent slice of production</td>
-<td>Still real data until masked</td>
-<td><a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a></td></tr>
-<tr>
-<td>Masked production</td>
-<td>Production (or a subset) with sensitive values replaced</td>
-<td>Weak masking can leak; masking must stay consistent across tables</td>
-<td><a href="06-masking-concepts.html">the masking concepts chapter</a></td></tr>
-<tr>
-<td>Synthetic (generated)</td>
-<td>Created from rules, no real person behind any row</td>
-<td>May not look like the messy real world unless the rules are good</td>
-<td>This chapter</td></tr>
-<tr>
-<td>Hand-crafted</td>
-<td>A person types or edits specific rows</td>
-<td>Slow, hard to repeat, tiny volume</td>
-<td>This chapter</td></tr>
-<tr>
-<td>Hybrid</td>
-<td>Masked or queried production plus generated rows added</td>
-<td>Needs a clear plan for which part comes from where</td>
-<td>Section 7.6</td></tr>
+<tr><td>Production copy (raw)</td><td>Straight copy of the real database</td><td>Exposes real personal data; not allowed in test for regulated data</td><td><a href="02-why-tdm.html">Why TDM exists</a></td></tr>
+<tr><td>Production subset</td><td>A cut-down, consistent slice of production</td><td>Still real data until masked</td><td><a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a></td></tr>
+<tr><td>Masked production</td><td>Production (or a subset) with sensitive values replaced</td><td>Weak masking can leak; masking must stay consistent across tables</td><td><a href="06-masking-concepts.html">the masking concepts chapter</a></td></tr>
+<tr><td>Synthetic (generated)</td><td>Created from rules, no real person behind any row</td><td>May not look like the messy real world unless the rules are good</td><td>This chapter</td></tr>
+<tr><td>Hand-crafted</td><td>A person types or edits specific rows</td><td>Slow, hard to repeat, tiny volume</td><td>This chapter</td></tr>
+<tr><td>Hybrid</td><td>Masked or queried production plus generated rows added</td><td>Needs a clear plan for which part comes from where</td><td>Section 7.6</td></tr>
 </tbody>
 </table>
 </div>
@@ -147,26 +123,10 @@
 <tr><th>Level</th><th>Meaning</th><th>ShopSphere example</th><th>Allowed in test?</th></tr>
 </thead>
 <tbody>
-<tr>
-<td>Public</td>
-<td>Harmless if seen by anyone</td>
-<td><code>PRODUCTS.product_name</code></td>
-<td>Yes</td></tr>
-<tr>
-<td>Internal</td>
-<td>Business data, not personal</td>
-<td><code>ORDERS.total_amount</code> with no customer link</td>
-<td>Yes</td></tr>
-<tr>
-<td>Personal</td>
-<td>Identifies or relates to a person</td>
-<td><code>first_name</code>, <code>email</code>, <code>phone</code>, <code>zip_code</code></td>
-<td>Only masked or synthetic</td></tr>
-<tr>
-<td>Highly restricted</td>
-<td>Identifiers regulators care most about</td>
-<td><code>ssn</code>, <code>tax_id</code>, <code>date_of_birth</code></td>
-<td>Only masked or synthetic, and strongly protected</td></tr>
+<tr><td>Public</td><td>Harmless if seen by anyone</td><td><code>PRODUCTS.product_name</code></td><td>Yes</td></tr>
+<tr><td>Internal</td><td>Business data, not personal</td><td><code>ORDERS.total_amount</code> with no customer link</td><td>Yes</td></tr>
+<tr><td>Personal</td><td>Identifies or relates to a person</td><td><code>first_name</code>, <code>email</code>, <code>phone</code>, <code>zip_code</code></td><td>Only masked or synthetic</td></tr>
+<tr><td>Highly restricted</td><td>Identifiers regulators care most about</td><td><code>ssn</code>, <code>tax_id</code>, <code>date_of_birth</code></td><td>Only masked or synthetic, and strongly protected</td></tr>
 </tbody>
 </table>
 </div>
@@ -178,34 +138,13 @@
 <tr><th>Purpose</th><th>What it proves</th><th>ShopSphere example</th></tr>
 </thead>
 <tbody>
-<tr>
-<td>Positive / valid</td>
-<td>The normal path works</td>
-<td>Asha Menon, 560001, valid email, two orders</td></tr>
-<tr>
-<td>Negative / invalid</td>
-<td>Bad input is rejected with a clear message</td>
-<td>Phone <code>98765abcde</code>; email with no <code>@</code></td></tr>
-<tr>
-<td>Boundary</td>
-<td>The edges of each rule behave exactly right</td>
-<td>Customer aged 17, 18 and 19; surname of 1 and of the maximum length</td></tr>
-<tr>
-<td>Edge case</td>
-<td>Rare or odd but legal situations</td>
-<td>Surname <code>O'Brien</code>, hyphenated name, name with leading spaces, order with 50 items</td></tr>
-<tr>
-<td>Null / empty</td>
-<td>Missing values do not crash anything</td>
-<td>No phone; empty <code>zip_code</code>; customer with zero orders</td></tr>
-<tr>
-<td>Volume / performance</td>
-<td>The system copes with realistic size</td>
-<td>2 million customers, 10 million orders</td></tr>
-<tr>
-<td>Security</td>
-<td>Hostile input is blocked</td>
-<td>Name field containing <code>'; DROP TABLE ORDERS;--</code></td></tr>
+<tr><td>Positive / valid</td><td>The normal path works</td><td>Asha Menon, 560001, valid email, two orders</td></tr>
+<tr><td>Negative / invalid</td><td>Bad input is rejected with a clear message</td><td>Phone <code>98765abcde</code>; email with no <code>@</code></td></tr>
+<tr><td>Boundary</td><td>The edges of each rule behave exactly right</td><td>Customer aged 17, 18 and 19; surname of 1 and of the maximum length</td></tr>
+<tr><td>Edge case</td><td>Rare or odd but legal situations</td><td>Surname <code>O'Brien</code>, hyphenated name, name with leading spaces, order with 50 items</td></tr>
+<tr><td>Null / empty</td><td>Missing values do not crash anything</td><td>No phone; empty <code>zip_code</code>; customer with zero orders</td></tr>
+<tr><td>Volume / performance</td><td>The system copes with realistic size</td><td>2 million customers, 10 million orders</td></tr>
+<tr><td>Security</td><td>Hostile input is blocked</td><td>Name field containing <code>'; DROP TABLE ORDERS;--</code></td></tr>
 </tbody>
 </table>
 </div>

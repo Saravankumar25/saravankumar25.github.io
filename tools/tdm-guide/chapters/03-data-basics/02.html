@@ -73,34 +73,16 @@
 
 <h3 id="c3-sample-rows">The linked sample data</h3>
 <p>Here are the other three ShopSphere tables with fake rows, linked to the customers. Trace the keys with your finger: order 5001 belongs to customer 1001, and its items 9001 and 9002 point to products P100 and P200.</p>
-<div class="tablewrap"><table class="sample">
-<caption>ORDERS</caption>
-<thead><tr><th>order_id (PK)</th><th>customer_id (FK)</th><th>order_date</th><th>total_amount</th></tr></thead>
-<tbody>
-<tr><td>5001</td><td>1001</td><td>2026-01-15</td><td>1098.00</td></tr>
+<div class="tablewrap"><table class="sample"><caption>ORDERS</caption><thead><tr><th>order_id (PK)</th><th>customer_id (FK)</th><th>order_date</th><th>total_amount</th></tr></thead><tbody><tr><td>5001</td><td>1001</td><td>2026-01-15</td><td>1098.00</td></tr>
 <tr><td>5002</td><td>1001</td><td>2026-02-03</td><td>1499.00</td></tr>
-<tr><td>5003</td><td>1002</td><td>2026-02-10</td><td>598.00</td></tr>
-</tbody>
-</table></div>
-<div class="tablewrap"><table class="sample">
-<caption>ORDER_ITEMS</caption>
-<thead><tr><th>item_id (PK)</th><th>order_id (FK)</th><th>product_code (FK)</th><th>quantity</th><th>unit_price</th></tr></thead>
-<tbody>
-<tr><td>9001</td><td>5001</td><td>P100</td><td>1</td><td>799.00</td></tr>
+<tr><td>5003</td><td>1002</td><td>2026-02-10</td><td>598.00</td></tr></tbody></table></div>
+<div class="tablewrap"><table class="sample"><caption>ORDER_ITEMS</caption><thead><tr><th>item_id (PK)</th><th>order_id (FK)</th><th>product_code (FK)</th><th>quantity</th><th>unit_price</th></tr></thead><tbody><tr><td>9001</td><td>5001</td><td>P100</td><td>1</td><td>799.00</td></tr>
 <tr><td>9002</td><td>5001</td><td>P200</td><td>1</td><td>299.00</td></tr>
 <tr><td>9003</td><td>5002</td><td>P300</td><td>1</td><td>1499.00</td></tr>
-<tr><td>9004</td><td>5003</td><td>P200</td><td>2</td><td>299.00</td></tr>
-</tbody>
-</table></div>
-<div class="tablewrap"><table class="sample">
-<caption>PRODUCTS</caption>
-<thead><tr><th>product_code (PK)</th><th>product_name</th><th>price</th></tr></thead>
-<tbody>
-<tr><td>P100</td><td>Wireless Mouse</td><td>799.00</td></tr>
+<tr><td>9004</td><td>5003</td><td>P200</td><td>2</td><td>299.00</td></tr></tbody></table></div>
+<div class="tablewrap"><table class="sample"><caption>PRODUCTS</caption><thead><tr><th>product_code (PK)</th><th>product_name</th><th>price</th></tr></thead><tbody><tr><td>P100</td><td>Wireless Mouse</td><td>799.00</td></tr>
 <tr><td>P200</td><td>USB-C Cable</td><td>299.00</td></tr>
-<tr><td>P300</td><td>Laptop Stand</td><td>1499.00</td></tr>
-</tbody>
-</table></div>
+<tr><td>P300</td><td>Laptop Stand</td><td>1499.00</td></tr></tbody></table></div>
 <p>These rows are illustrative and fake. Customer 1003 (Meera) has no orders: a parent with no children is perfectly legal. The reverse is not.</p>
 
 <h3 id="c3-ri">Referential integrity</h3>
@@ -112,26 +94,18 @@
 <p>Every TDM operation reshapes data. Each one can break referential integrity if done carelessly.</p>
 </div>
 <div class="tablewrap"><table>
-<thead><tr><th>Operation</th><th>How it can break keys</th><th>What it must do instead</th></tr></thead>
-<tbody>
-<tr><td><strong>Subsetting</strong></td><td>Pick 100 customers but leave out their orders (missing children), or pick orders but leave out their customers (orphans).</td><td>Follow the keys: choose a starting table, then bring along every related row in the other tables.</td></tr>
+<thead><tr><th>Operation</th><th>How it can break keys</th><th>What it must do instead</th></tr></thead><tbody><tr><td><strong>Subsetting</strong></td><td>Pick 100 customers but leave out their orders (missing children), or pick orders but leave out their customers (orphans).</td><td>Follow the keys: choose a starting table, then bring along every related row in the other tables.</td></tr>
 <tr><td><strong>Masking</strong></td><td>Mask <code>customer_id</code> in <code>CUSTOMERS</code> to a new value but leave <code>ORDERS.customer_id</code> unchanged, or mask them differently. Orders no longer match customers.</td><td>Apply the same masking to the parent key and every child foreign key so the values still match, or leave keys alone.</td></tr>
 <tr><td><strong>Generation</strong></td><td>Generate 1,000 orders with customer IDs that no generated customer has.</td><td>Generate parents first and give each child a valid parent ID.</td></tr>
-<tr><td><strong>Provisioning</strong></td><td>Load child tables before parent tables so foreign key checks fail.</td><td>Load parents first; delete children first.</td></tr>
-</tbody>
-</table></div>
+<tr><td><strong>Provisioning</strong></td><td>Load child tables before parent tables so foreign key checks fail.</td><td>Load parents first; delete children first.</td></tr></tbody></table></div>
 <p>Each tool has its own way to say this. The Informatica documentation says a data subset retains primary and foreign key relations so that the data stays referentially intact (User Guide 10.5.10, p.23). The Delphix introduction says it scans metadata and data to identify and preserve primary/foreign key relationships so that data is masked the same way across tables and databases (<a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a>). <span class="badge doc">From docs</span></p>
 
 <h3 id="c3-logical-keys">Logical keys: keys the database does not know about</h3>
 <p>Everything above assumed the keys are <em>declared</em> in the database. In real life they often are not. Older systems, performance-minded designs and imported data frequently have tables with no declared primary or foreign keys at all, even though the application treats certain columns as keys. The relationships exist in the developers' heads and in the code, not in the schema.</p>
 <p>TDM tools cannot follow a relationship they do not know about. So they let you (or their profilers) describe the relationships separately. Keys defined this way are called <dfn>logical keys</dfn> in this guide: the tool is told "treat this column as the key" without any change to the real database.</p>
 <div class="tablewrap"><table>
-<thead><tr><th>Tool</th><th>What its documentation says</th></tr></thead>
-<tbody>
-<tr><td>Informatica</td><td>Primary-key and foreign-key profiles can discover potential relationships (p.21). The foreign key profile adds the discovered logical constraints to the TDM repository but does not apply them in the source tables; the subset workflow uses them to produce referentially intact data (p.86). You can also add a logical primary key to a table (p.109) and a logical foreign key choosing a column from a parent table (p.110). In its worked example the database contains no primary or foreign keys, so the developer creates logical ones (p.34). For data sets it advises creating logical keys in transactional tables that have no primary keys (p.239).</td></tr>
-<tr><td>Delphix</td><td>In a rule set, a logical key is a unique, non-null value identifying a row. If a table has no primary key defined and you use in-place masking, you must name an existing column or columns as the logical key. It does not change the target database; it only informs Delphix. Without one, an identity column may be created, which requires permission to modify the schema or the job may fail. The rule set "Checklist" validates that every table has a primary key, an indexed identity column or a logical key (<a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>).</td></tr>
-</tbody>
-</table></div>
+<thead><tr><th>Tool</th><th>What its documentation says</th></tr></thead><tbody><tr><td>Informatica</td><td>Primary-key and foreign-key profiles can discover potential relationships (p.21). The foreign key profile adds the discovered logical constraints to the TDM repository but does not apply them in the source tables; the subset workflow uses them to produce referentially intact data (p.86). You can also add a logical primary key to a table (p.109) and a logical foreign key choosing a column from a parent table (p.110). In its worked example the database contains no primary or foreign keys, so the developer creates logical ones (p.34). For data sets it advises creating logical keys in transactional tables that have no primary keys (p.239).</td></tr>
+<tr><td>Delphix</td><td>In a rule set, a logical key is a unique, non-null value identifying a row. If a table has no primary key defined and you use in-place masking, you must name an existing column or columns as the logical key. It does not change the target database; it only informs Delphix. Without one, an identity column may be created, which requires permission to modify the schema or the job may fail. The rule set "Checklist" validates that every table has a primary key, an indexed identity column or a logical key (<a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>).</td></tr></tbody></table></div>
 <span class="badge doc">From docs</span>
 <p>The idea is the same in both: <strong>a key you declare to the tool, which the database may know nothing about</strong>. Chapters on <a href="13-informatica-data-subset.html">Informatica subsetting</a> and <a href="24-delphix-rule-sets-and-keys.html">Delphix rule sets and keys</a> show the screens.</p>
 <div class="callout note">

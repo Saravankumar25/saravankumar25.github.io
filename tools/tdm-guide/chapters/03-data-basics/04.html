@@ -7,29 +7,17 @@
 <p><code>SELECT</code> chooses columns; <code>FROM</code> names the table.</p>
 <pre><code>SELECT first_name, last_name, zip_code
 FROM customers;</code></pre>
-<div class="tablewrap"><table class="sample">
-<caption>Result</caption>
-<thead><tr><th>first_name</th><th>last_name</th><th>zip_code</th></tr></thead>
-<tbody>
-<tr><td>Asha</td><td>Menon</td><td>560001</td></tr>
+<div class="tablewrap"><table class="sample"><caption>Result</caption><thead><tr><th>first_name</th><th>last_name</th><th>zip_code</th></tr></thead><tbody><tr><td>Asha</td><td>Menon</td><td>560001</td></tr>
 <tr><td>Ravi</td><td>Kumar</td><td>600017</td></tr>
-<tr><td>Meera</td><td>Nair</td><td>682001</td></tr>
-</tbody>
-</table></div>
+<tr><td>Meera</td><td>Nair</td><td>682001</td></tr></tbody></table></div>
 <p><code>SELECT *</code> means "all columns". Handy for a quick look, but on a big table it returns everything, which can be slow and can display sensitive columns you did not need.</p>
 
 <h3 id="c3-where">WHERE: choose rows</h3>
 <p><code>WHERE</code> keeps only the rows that satisfy a condition.</p>
 <pre><code>SELECT * FROM orders
 WHERE customer_id = 1001;</code></pre>
-<div class="tablewrap"><table class="sample">
-<caption>Result: Asha's two orders</caption>
-<thead><tr><th>order_id</th><th>customer_id</th><th>order_date</th><th>total_amount</th></tr></thead>
-<tbody>
-<tr><td>5001</td><td>1001</td><td>2026-01-15</td><td>1098.00</td></tr>
-<tr><td>5002</td><td>1001</td><td>2026-02-03</td><td>1499.00</td></tr>
-</tbody>
-</table></div>
+<div class="tablewrap"><table class="sample"><caption>Result: Asha's two orders</caption><thead><tr><th>order_id</th><th>customer_id</th><th>order_date</th><th>total_amount</th></tr></thead><tbody><tr><td>5001</td><td>1001</td><td>2026-01-15</td><td>1098.00</td></tr>
+<tr><td>5002</td><td>1001</td><td>2026-02-03</td><td>1499.00</td></tr></tbody></table></div>
 <p>Text values go in quotes; numbers do not. Because <code>zip_code</code> is text in our table, <code>WHERE zip_code = '600017'</code> returns Ravi Kumar. You can combine conditions with <code>AND</code> and <code>OR</code>, and compare with <code>&lt;</code>, <code>&gt;</code>, <code>LIKE</code> and others.</p>
 <div class="callout why">
 <strong class="ctitle">Why this matters</strong>
@@ -41,15 +29,9 @@ WHERE customer_id = 1001;</code></pre>
 <pre><code>SELECT c.first_name, o.order_id, o.total_amount
 FROM customers c
 JOIN orders o ON o.customer_id = c.customer_id;</code></pre>
-<div class="tablewrap"><table class="sample">
-<caption>Result</caption>
-<thead><tr><th>first_name</th><th>order_id</th><th>total_amount</th></tr></thead>
-<tbody>
-<tr><td>Asha</td><td>5001</td><td>1098.00</td></tr>
+<div class="tablewrap"><table class="sample"><caption>Result</caption><thead><tr><th>first_name</th><th>order_id</th><th>total_amount</th></tr></thead><tbody><tr><td>Asha</td><td>5001</td><td>1098.00</td></tr>
 <tr><td>Asha</td><td>5002</td><td>1499.00</td></tr>
-<tr><td>Ravi</td><td>5003</td><td>598.00</td></tr>
-</tbody>
-</table></div>
+<tr><td>Ravi</td><td>5003</td><td>598.00</td></tr></tbody></table></div>
 <p><code>c</code> and <code>o</code> are short nicknames (aliases) for the tables. The <code>ON</code> line states the key match. Meera does not appear: she has no orders, and a plain <code>JOIN</code> keeps only matches. A <code>LEFT JOIN</code> keeps every customer and shows empty (null) where there is no order:</p>
 <pre><code>SELECT c.first_name, o.order_id
 FROM customers c
@@ -130,7 +112,6 @@ WHERE c.customer_id IS NULL;</code></pre>
 <details class="sol"><summary>Show a worked answer</summary>
 <p><strong>(a)</strong> <code>SELECT order_id, COUNT(*) AS item_count FROM order_items GROUP BY order_id;</code> returns 5001 with 2, 5002 with 1, 5003 with 1.</p>
 <p><strong>(b)</strong> <code>SELECT c.first_name FROM customers c LEFT JOIN orders o ON o.customer_id = c.customer_id WHERE o.order_id IS NULL;</code> returns Meera. This is the same "LEFT JOIN then look for nulls" trick as the orphan check, aimed the other way.</p>
-<p>Step 4 note: some databases refuse the delete while the constraint is on; if yours does, that confirms the rule. To see an orphan you need the constraint disabled or a database that does not enforce it, as with many legacy systems.</p>
 </details>
 </div>
 
