@@ -54,7 +54,54 @@
 <p>The Users and roles page warns that a user allowed to add or update JDBC drivers can upload code that runs inside the engine's JVM, which is effectively running code on the engine host. The built-in DBA role includes that permission by default; the page suggests a custom role or fewer DBA assignments if you separate database work from driver installation. Treat JDBC-driver permission as administrative.</p></div>
 <p>Creating a user needs: user name, email (the engine mails job completion to it), optionally first and last name and a principal for OAuth2, a password (at least eight and at most 65 characters, with an uppercase letter, a special character from a short list and a number), the Administrator checkbox, a role and the environments. An account locks after three invalid login attempts. Roles and users can also be managed through the engine's API.</p>
 
-<h2 id="c22-syllabus">22.10 How Delphix fits the syllabus (Days 51 to 56)</h2>
+<h2 id="c22-multi">22.10 Moving work between engines: export, import and sync</h2>
+<p>Real organisations rarely have one engine. The "managing multiple engines" introduction gives two reasons. One is the software development life cycle (SDLC): separate engines for development, QA and production, so you build and test a masking setup in one and promote it. The other is horizontal scale: one engine cannot handle the whole workload, so several production engines share it. Both need a way to copy objects (connectors, rule sets, jobs and more) from one engine to another. The docs describe two tools. <span class="badge doc">From docs</span></p>
+<div class="tablewrap"><table><thead><tr><th>Tool</th><th>What it moves</th><th>How you use it</th></tr></thead><tbody>
+<tr><td>Export / Import Settings</td><td>Settings objects: Domain, Algorithm, File Format and so on.</td><td>On the Environments page, the Actions list has Export Settings (optional passphrase) and Import Settings (passphrase, Force Override checkbox and the file). Each returns an Async Task ID.</td></tr>
+<tr><td>Export / Import Environment</td><td>Everything inside one environment: connectors, rule sets, inventory, jobs.</td><td>From the Actions (...) menu of the environment, or the Export Environment button on the Jobs tab. Import has more options: whether to include settings, force overwrite, which application and environment to import into, and a passphrase.</td></tr>
+<tr><td>Sync (API based)</td><td>Syncable objects such as connectors, rule sets, jobs, domains, JDBC drivers and keys.</td><td>Through the engine's API. The multiple-engines introduction recommends moving objects in one direction only: export from one engine, import into others, never back.</td></tr>
+</tbody></table></div>
+<p>Three cautions from these pages are worth writing down:</p>
+<ul>
+<li>After an import, you must re-enter connector passwords or SSH keys and sensitive fields of a password-vault configuration. The Import Settings dialog in the screenshot says the sync operation does not sync those objects.</li>
+<li>Sync does not currently support the Application object, and certain algorithms cannot be synced (<a href="24-delphix-rule-sets-and-keys.html">the keys chapter</a> explains which and why).</li>
+<li>Sync bundles from a newer engine may not import into an older one. Older bundles import into newer engines unless they contain a feature that no longer exists.</li>
+</ul>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_environments3.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_environments3.png" alt="The Import Settings dialog with a blue note about updating connector passwords after import, a Force Override checkbox, an optional passphrase box and a Choose File button" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The dialog you use to bring settings from another engine. The blue note matters: passwords are not carried across, so every imported connector needs its password set again before it can connect. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+
+<h2 id="c22-story">22.11 ShopSphere, start to finish, in object terms</h2>
+<p>Here is the whole running example mapped onto the objects. The names are my illustration. The shape is what the documentation describes.</p>
+<div class="tablewrap"><table class="sample"><caption>ShopSphere's masking setup, object by object (illustrative values)</caption><thead><tr><th>Object</th><th>ShopSphere value</th><th>Set up in</th></tr></thead><tbody>
+<tr><td>Application</td><td>SHOPSPHERE_APP</td><td>Environments page, + Application</td></tr>
+<tr><td>Environment</td><td>SHOPSPHERE_DEV (purpose: Mask)</td><td>Environments page, + Environment</td></tr>
+<tr><td>Connector</td><td>SHOPSPHERE_VDB_CONN, pointing at the VDB that holds an unmasked copy of SHOPSPHERE_PROD</td><td>Inside the environment, Connectors tab (<a href="23-delphix-connectors-and-vdb.html">next chapter</a>)</td></tr>
+<tr><td>Rule set</td><td>SHOPSPHERE_RS: CUSTOMERS, ORDERS, ORDER_ITEMS, PRODUCTS</td><td>Rule Sets tab (<a href="24-delphix-rule-sets-and-keys.html">keys chapter</a>)</td></tr>
+<tr><td>Inventory</td><td>One row per column; sensitive ones carry a domain and algorithm</td><td>Click the rule set name</td></tr>
+<tr><td>Domains used</td><td>First name, last name, email, phone, SSN, date of birth, zip, tax ID (names depend on the built-in set)</td><td>Settings > Domains</td></tr>
+<tr><td>Profile job</td><td>PROFILE_SHOPSPHERE</td><td>Jobs tab, + Profiling Job (<a href="25-delphix-profiling.html">profiling chapter</a>)</td></tr>
+<tr><td>Masking job</td><td>MASK_SHOPSPHERE (in-place)</td><td>Jobs tab, + Masking Job (<a href="26-delphix-algorithms-and-masking-jobs.html">jobs chapter</a>)</td></tr>
+<tr><td>Roles</td><td>TDM engineer: All Privileges; data steward: SME; DBA: DBA</td><td>Admin > Roles, Admin > Users</td></tr>
+</tbody></table></div>
+<p>Notice that CUSTOMERS.customer_id and ORDERS.customer_id both need the <em>same</em> algorithm, so that every order still points to the right customer after masking. The inventory is where you will check that, and <a href="24-delphix-rule-sets-and-keys.html">the keys chapter</a> spends its middle sections on it.</p>
+
+<div class="exercise"><h4>Lab: find your way around an engine</h4>
+<p>Goal: confirm you can locate every object type in this chapter on a real engine (or on the screenshots, if you have no engine yet). This lab uses documented screens only, with ShopSphere names as illustration. Do not click Delete anywhere.</p>
+<ol class="steps">
+<li><strong>Sign in and note the version.</strong><p>Open the engine's address in a browser and sign in with the account your administrator gave you.</p><p class="expect">The Environments page appears, with menus Environments, Monitor, Settings, Admin and Audit. A version number sits next to the logo in the top bar.</p></li>
+<li><strong>Add an application.</strong><p>Click + Application, enter <code>SHOPSPHERE_APP</code> and Save. This needs a role that allows it.</p><p class="expect">You return to the Environments list. If the button is missing or disabled, your role lacks permission, which tells you how roles work.</p></li>
+<li><strong>Add an environment.</strong><p>Click + Environment. Choose the application, name it <code>SHOPSPHERE_DEV</code>, leave Purpose as Masking and leave the approval checkbox clear. Click Save And View.</p><p class="expect">The environment opens with tabs Jobs, Rule Sets and Connectors, all empty. The line under the name shows Application, Purpose and Approval.</p></li>
+<li><strong>Visit each tab.</strong><p>Open Connectors, then Rule Sets, then Jobs.</p><p class="expect">Each shows an empty grid. Connectors offers a connection button, Rule Sets an add button, Jobs the profiling and masking job buttons.</p></li>
+<li><strong>Visit the shared Settings.</strong><p>Open Settings and click Algorithms, then Domains.</p><p class="expect">A long list of built-in algorithms (Owner: System) and domains. Note the framework name column, for example Secure Lookup.</p></li>
+<li><strong>Try the grid.</strong><p>In the algorithms grid, hover the Algorithm Name header, open the menu, filter by "contains" with the text <code>NAME</code>, and read the chips above the grid. Then press Reset.</p><p class="expect">Only matching rows remain while the filter chip is shown, and all rows return after Reset.</p></li>
+<li><strong>Look at Monitor.</strong><p>Open Monitor, then Async Tasks and Job Executions.</p><p class="expect">Probably empty on a new engine. If you already used one, you will see earlier runs.</p></li>
+<li><strong>Look at Admin.</strong><p>Open Admin, then Roles.</p><p class="expect">Default roles (All Privileges, DBA, Environment Owner, IT Security Analyst, Operator, SME), each with type DEFAULT. If Admin is missing, you are not an administrator.</p></li>
+</ol>
+<details class="sol"><summary>Show a worked answer</summary>
+<p>You should be able to say, without looking: (1) the application is a label, (2) the environment holds the connector, rule set and jobs, (3) algorithms, domains and profile sets live in Settings, (4) job and task progress lives under Monitor, and (5) roles and users live under Admin. If the Application button or the Admin menu was missing, that was the role system working, not a bug.</p>
+<p>Docs versus illustration: the steps and field names come from the Managing environments page. The names SHOPSPHERE_APP and SHOPSPHERE_DEV and the filter text are mine.</p></details></div>
+
+<h2 id="c22-syllabus">22.12 How Delphix fits the syllabus (Days 51 to 56)</h2>
 <p>The syllabus spends six days on Delphix. This chapter is the vocabulary for all of them.</p>
 <div class="tablewrap"><table><thead><tr><th>Syllabus day</th><th>What the syllabus asks</th><th>Where to learn it</th></tr></thead><tbody>
 <tr><td>Day 51</td><td>Primary key basics and discovery, key integrity in primary and foreign key columns, and creating a connector to a VDB from the masking engine</td><td><a href="03-data-basics.html">Data basics</a>, <a href="23-delphix-connectors-and-vdb.html">connectors and VDB</a>, <a href="24-delphix-rule-sets-and-keys.html">rule sets and keys</a></td></tr>
@@ -64,7 +111,7 @@
 </tbody></table></div>
 <p>The mandatory hands-on list also includes <em>TDM_Handson4</em>: create a connector to a VDB from the Delphix masking engine. <a href="23-delphix-connectors-and-vdb.html">The connectors and VDB chapter</a> builds that lab step by step. Day 54 also mentions mapplets (an Informatica idea), which is not a Delphix feature; see <a href="14-informatica-data-masking.html">the Informatica masking chapter</a> for that part.</p>
 
-<h2 id="c22-versions">22.11 Frequent releases: expect your screen to differ</h2>
+<h2 id="c22-versions">22.13 Frequent releases: expect your screen to differ</h2>
 <p>The documentation set has a release-notes page for each of 2025.1 through 2026.5, and the 2026.5 notes are dated September 2026. That is eleven releases in under two years. Several facts in this chapter already show how fast the product moves:</p>
 <ul>
 <li>The screenshots on the documentation pages carry different version numbers in the corner (for example 21.0.0.0, 22.0.0.0, 24.0.0.0, 26.0.0.0 and 2025.6.0.0), so the same documentation mixes pictures from different generations.</li>
@@ -76,7 +123,7 @@
 <div class="callout tip"><strong class="ctitle">A habit that saves hours</strong>
 <p>Before following any procedure in this guide on a real engine, find the version of your engine (the screenshots show it in the corner of the top bar; the Admin menu also has an About page, which I did not read) and compare it with the page you are reading. When screen and text disagree, trust the screen and tell your trainer.</p></div>
 
-<h2 id="c22-mistakes">22.12 Common mistakes and gotchas</h2>
+<h2 id="c22-mistakes">22.14 Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Things that trip beginners</strong>
 <ul>
 <li><strong>Looking for algorithms inside the environment.</strong> They live under Settings, shared by all environments. A deleted environment never takes them with it.</li>
@@ -88,7 +135,7 @@
 <li><strong>Believing a screenshot is exact.</strong> Versions differ; read the labels on your screen.</li>
 </ul></div>
 
-<h2 id="c22-recap">22.13 Recap</h2>
+<h2 id="c22-recap">22.15 Recap</h2>
 <div class="callout recap"><strong class="ctitle">Recap</strong>
 <ul>
 <li>Delphix Continuous Compliance is the masking engine: it profiles to find sensitive data, masks irreversibly, or tokenizes reversibly.</li>

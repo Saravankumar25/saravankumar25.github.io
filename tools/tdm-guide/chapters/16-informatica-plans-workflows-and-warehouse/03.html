@@ -1,0 +1,162 @@
+<h2 id="c16-manage">16.9 Plan management</h2>
+<p>After you create a plan you can edit it, copy it, export it to XML, import one exported from another TDM repository, or delete it (User Guide 10.5.10, p.304).</p>
+<div class="tablewrap"><table>
+<caption>Plan management tasks (pp.304-308)</caption>
+<thead><tr><th>Task</th><th>How</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td>Copy</td><td>Execute tab, click the plan's Description or Status field (do not open it), Actions &gt; Duplicate</td><td>Default name "Copy of &lt;original name&gt;". Edit the copy.</td></tr>
+<tr><td>Export</td><td>Select the plan the same way, Actions &gt; Export, save the XML</td><td>Default file name starts with "Plan_" plus date and time</td></tr>
+<tr><td>Import</td><td>On the Projects list select the project (do not open it), Actions &gt; Import, browse to the XML, Finish</td><td>For moving plans between TDM repositories</td></tr>
+<tr><td>Delete</td><td>Select the plan, Actions &gt; Delete, confirm Yes</td><td>Deleting the plan also deletes its workflow</td></tr>
+</tbody></table></div>
+<div class="callout why"><strong class="ctitle">Why export and import?</strong>
+<p>ShopSphere has a development TDM and a production-grade TDM. A plan proved on the first is exported to XML and imported into the second, with connections and parameters adjusted. The command line tool <code>ilmcmd</code>, covered below, can do the same export and import without the web page (pp.330-332).</p></div>
+
+<h2 id="c16-workflow">16.10 Generating and running a workflow</h2>
+<p>You generate a workflow from a plan to perform subset, masking and generation. When you generate, the <strong>PowerCenter Repository Service</strong> creates the mappings. When you start, the <strong>PowerCenter Integration Service</strong> performs the work. You can generate and start in a single step (User Guide 10.5.10, p.308).</p>
+<ol class="steps">
+<li><strong>Generate: in the project click Execute, select a plan, Actions &gt; Generate Workflow.</strong><p>This builds mappings and stores them. Do it again whenever the plan changes.</p></li>
+<li><strong>Choose whether to run now or later.</strong><p>You may generate now and execute on a schedule.</p></li>
+<li><strong>Execute: Actions &gt; Execute Workflow from the Plan properties or Workflow view.</strong><p>If the plan has several workflows, open the Workflow view, select one and execute it. A workflow name contains the project, plan, connection and table names (p.309).</p></li>
+<li><strong>Pick the Integration Service and run now or schedule.</strong><p>You must select the service configured in the Test Data Manager Service.</p></li>
+<li><strong>Choose parameter values if the plan has parameters.</strong><p>See 16.8.</p></li>
+<li><strong>If the target is the warehouse, optionally publish to the self-service portal, then click Generate and Execute.</strong><p>Publishing creates a data pack for testers who cannot use Test Data Manager.</p><p class="expect">The workflow appears in the Workflow Executions view and in Monitor.</p></li>
+</ol>
+<p><em>Steps from User Guide 10.5.10, pp.308-311. To do both in one go use Actions &gt; Generate and Execute on the Plan | Properties page.</em></p>
+<div class="callout warn"><strong class="ctitle">Constraints that will not turn back on</strong>
+<p>If you ran the workflow with Disable Constraints and TDM then fails to re-enable them after loading, the workflow fails. Enable the constraints in the database by hand and run the workflow again (p.311).</p></div>
+<h3 id="c16-execview">16.10.1 The Workflow Executions view</h3>
+<p>This view shows the current workflow for the plan and all earlier ones, even for workflows that no longer exist in the plan. Click the Job ID to see the workflow log. Fields: Job ID, Name, Description (profiling, import or workflow), Status (In Queue, Running, Success, Error), Start and End Date/Time, User (pp.311-312). The Sessions tab lists each session, with Source Rows Succeeded and Failed and Target Rows Succeeded and Failed. Click the session name for Session Details, with the tables processed, affected rows, rejected rows, throughput and last error message (pp.313-314).</p>
+<p>Tasks you can perform on a workflow here and in Monitor:</p>
+<div class="tablewrap"><table>
+<caption>Workflow tasks (pp.312, 318)</caption>
+<thead><tr><th>Task</th><th>What it does</th><th>Use it when</th></tr></thead>
+<tbody>
+<tr><td>Auto Refresh</td><td>Refreshes every ten seconds</td><td>Watching a run</td></tr>
+<tr><td>Workflow Stop</td><td>Stops after the next commit</td><td>You want a clean stop</td></tr>
+<tr><td>Workflow Abort</td><td>Stops immediately without waiting for a commit</td><td>Something is badly wrong</td></tr>
+<tr><td>Workflow Recover</td><td>Recovers a stopped or aborted workflow. With high availability recovery, restarts from the last checkpoint; otherwise follows the plan's recovery strategy.</td><td>After fixing the cause</td></tr>
+<tr><td>Abort (a job)</td><td>Stops a non-workflow job immediately</td><td>A stuck profile or import. Workflows are stopped or aborted with the two tasks above, not this one.</td></tr>
+<tr><td>Unschedule</td><td>Removes a job you scheduled for later</td><td>Cancelling a scheduled run</td></tr>
+</tbody></table></div>
+
+<h2 id="c16-monitor">16.11 The Monitor: watching and reading jobs</h2>
+<p>In the Monitor view you check the status of jobs you start in Test Data Manager, stop jobs and view job and session logs. The global Monitor shows jobs for all projects; open a project and click Monitor to see only that project's jobs. For a data set version, open it and click Monitor (User Guide 10.5.10, p.315).</p>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.316, figure "Monitor view". I rendered this page. It shows the Test Data Manager window with the Monitor tab active, a Jobs grid with columns Job ID, Name, Description, Status, Project, Start Date/Time, End Date/Time and User, rows of Execute Workflow, Generate Workflow and Import from Source jobs all with status Succeeded, and a lower panel with Properties and Logs tabs showing the selected job's General details (Job ID, Name, Description, Project, start time, elapsed time, status, user). What to look for: each job has a consecutive Job ID, and one plan run produces a Generate Workflow row and an Execute Workflow row.</div>
+<div class="mock"><div class="mbar">Monitor (schematic, ShopSphere)</div><div class="mbody"><pre class="ascii">Job ID  Name              Description              Status    User
+ 41     Execute Workflow  Plan: PLAN_MASK_SUBSET   Success   qa_lead
+ 40     Generate Workflow Plan: PLAN_MASK_SUBSET   Success   qa_lead
+ 39     Import from Source Connection: SHOP_PROD   Success   tdm_eng
+
+Properties | Logs        (select a job, then open a tab)</pre></div><div class="mnote">Schematic illustration drawn for this guide, not an official screenshot. Names are mine.</div></div>
+
+<h3 id="c16-jobtypes">16.11.1 Job types</h3>
+<div class="tablewrap"><table>
+<caption>Job types shown in Monitor (User Guide 10.5.10, pp.316-317)</caption>
+<thead><tr><th>Job type</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td>Import from Source</td><td>Imports source data from a source file</td></tr>
+<tr><td>Import from PowerCenter</td><td>Imports a source from the PowerCenter repository</td></tr>
+<tr><td>Profiling</td><td>Discovery of primary keys, entities and data domains</td></tr>
+<tr><td>Generate Workflow</td><td>Generates a workflow from a plan</td></tr>
+<tr><td>Execute Workflow</td><td>Runs a workflow after generation; may run several workflows</td></tr>
+<tr><td>Workflow</td><td>Runs the subset, masking or generation operation</td></tr>
+<tr><td>Upload to test tool</td><td>Uploads flat files to the integrated HP ALM location</td></tr>
+<tr><td>Reset Data Set from Test Data Warehouse</td><td>Resets target data from a data set</td></tr>
+<tr><td>Data Coverage Analysis</td><td>The analysis in a data coverage task</td></tr>
+<tr><td>Fill Cell</td><td>Moves data from one cell to another in a coverage task</td></tr>
+<tr><td>Session</td><td>One task within a workflow; click a workflow job ID to see its sessions</td></tr>
+</tbody></table></div>
+<h3 id="c16-states">16.11.2 Job states</h3>
+<div class="tablewrap"><table>
+<caption>Job statuses (User Guide 10.5.10, p.317)</caption>
+<thead><tr><th>Status</th><th>Meaning</th><th>Your move</th></tr></thead>
+<tbody>
+<tr><td>In Queue</td><td>Waiting to run</td><td>Wait. If it never moves, check the Integration Service and the eight-workflow limit.</td></tr>
+<tr><td>Running</td><td>In progress</td><td>Watch, or turn on Auto Refresh</td></tr>
+<tr><td>Success</td><td>Ran successfully</td><td>Verify the data, run reports</td></tr>
+<tr><td>Error</td><td>Did not run successfully. Click the job ID for the log.</td><td>Read the log</td></tr>
+<tr><td>Terminated</td><td>The job was terminated</td><td>Find out who or what stopped it; recover if it is a workflow</td></tr>
+</tbody></table></div>
+<p>Job details you can sort and filter by: Job ID, Name, Description (plan, profile, folder or connection), Status, Project, Start and End Date/Time, User (p.317).</p>
+
+<h3 id="c16-logs">16.11.3 Reading the logs</h3>
+<p>Select a job and open the <strong>Logs</strong> tab. The TDM server writes TDM logs; the PowerCenter Integration Service writes session and workflow logs (a Data Integration Service does for Hadoop). TDM always writes <strong>console logs</strong> when a job is triggered, so if job logs are missing, read the console log (User Guide 10.5.10, p.318). Each message has a Date/Time, a Severity and a Description that explains the error, its cause and the solution.</p>
+<div class="tablewrap"><table>
+<caption>Severity levels (p.319)</caption>
+<thead><tr><th>Severity</th><th>Meaning</th><th>How to react</th></tr></thead>
+<tbody>
+<tr><td>Error</td><td>The TDM server failed to perform an operation or to answer a client</td><td>Start here</td></tr>
+<tr><td>Warning</td><td>An operation that might cause an error</td><td>Read it; a conflicting generation constraint ends up here</td></tr>
+<tr><td>Info</td><td>Normal operation, no problem</td><td>Skim for the timeline</td></tr>
+<tr><td>Debug</td><td>Detailed server operations, usually success or failure of each</td><td>When Error alone is not enough</td></tr>
+<tr><td>Trace</td><td>More specific than Debug, code paths</td><td>Rare, for support</td></tr>
+</tbody></table></div>
+<ol class="steps">
+<li><strong>Click Monitor, then the job ID, then the Logs tab.</strong><p>The log belongs to that job only.</p></li>
+<li><strong>Filter by severity Error, and by date range or a keyword.</strong><p>Real logs are long; the first Error line is usually the cause and the rest are knock-on effects.</p></li>
+<li><strong>Select a message and click Download to keep the log file.</strong><p>Attach it to a ticket. To see console logs, select the job ID and use Actions &gt; View Console Logs.</p></li>
+<li><strong>For a workflow, click its job ID to open the workflow details, then the Sessions tab.</strong><p>Look for a session whose Target Rows Failed is not zero.</p></li>
+<li><strong>Click the Session ID to see tables processed, affected and rejected rows, error messages and the session log.</strong><p>This is where "which table broke" is answered.</p><p class="expect">You can name the failing session, table and message.</p></li>
+</ol>
+<p><em>Steps from User Guide 10.5.10, pp.319-320.</em></p>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.319, figure "session details for a workflow job". I rendered this page. It shows a job's workflow details (one workflow row with status Succeeded) above a Sessions tab whose rows show the session Name, Status, Source Rows Succeeded, Source Rows Failed, Target Rows Succeeded, Target Rows Failed, start and end times and user. What to look for: on a clean run the two Succeeded counts match and both Failed counts are zero.</div>
+<p>Session fields: Session ID, Name, Status, Source Rows Succeeded and Failed, Target Rows Succeeded and Failed, Start and End Date/Time, User (p.320). For Hadoop plans you see mapping logs only: no workflow logs and no row counts (p.320).</p>
+<div class="callout tip"><strong class="ctitle">Two numbers that should agree</strong>
+<p>For a straight copy, Source Rows Succeeded and Target Rows Succeeded should match. If targets are lower and Failed is zero, check for an update strategy or a filter in the plan. If Failed is not zero, rows were rejected; look at the session's last error message.</p></div>
+
+<h2 id="c16-reports">16.12 Reports</h2>
+<p>Reports show detailed information about recent activity, a project or a plan. They open in a new window, so allow pop-ups for the site (User Guide 10.5.10, p.321).</p>
+<div class="tablewrap"><table>
+<caption>Reports in Test Data Manager (pp.321-325)</caption>
+<thead><tr><th>Report</th><th>Run it on</th><th>What it contains</th><th>How to run</th></tr></thead>
+<tbody>
+<tr><td>Audit Trail Report</td><td>The Overview (Recent Activities)</td><td>All recent activities: type of activity, type and name of object, user, date and time. Ignores permissions. Filter by date range. Download as CSV.</td><td>Click the Audit Trail Report button in the Recent Activities tab</td></tr>
+<tr><td>Data Masking Report</td><td>A project</td><td>All table columns with the rules and policies assigned</td><td>Define &gt; Data Masking &gt; Print Masking Report</td></tr>
+<tr><td>Plan Audit Report</td><td>A plan with at least one successful run</td><td>Policy assignments (data source, table, column, data type, data domain, policy, rule, rule type, masking properties, exception handling) and plan execution (connections, dates, total rows processed, status)</td><td>Execute, click the plan, Actions &gt; Plan Audit Report</td></tr>
+<tr><td>Plan Detail Report</td><td>A plan</td><td>Masking assignments, entities with filter criteria, groups, templates and template components</td><td>Execute, click the plan, Actions &gt; Plan Detail Report</td></tr>
+<tr><td>Row Count Report</td><td>An Execute Workflow job</td><td>Tables that took part and the number of rows the plan affected</td><td>Monitor, click an Execute Workflow job, Actions &gt; Row Count Report</td></tr>
+</tbody></table></div>
+<p>Pick the report by question. <em>Who changed what and when?</em> Audit Trail. <em>Which columns have which masking?</em> Data Masking or Plan Detail. <em>Prove to an auditor which rules ran and on how many rows?</em> Plan Audit. <em>How many rows did this run touch?</em> Row Count (the lab and the generation chapter both use it).</p>
+
+<h2 id="c16-coverage">16.13 Data coverage analysis, at overview level</h2>
+<p>Having a data set is not the same as having <em>enough of the right data</em>. Data coverage analysis checks whether a data set holds a minimum amount of data for specific test cases. It does <strong>pairwise</strong> analysis: you choose two columns and see how many rows exist for every combination of their values, drawn as a grid (User Guide 10.5.10, p.259). The guide's example: a card application needs enough customers for every card type in every location.</p>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.266, figure "data coverage analysis page". I rendered this page. It shows a grid with one column's values (DEPARTMENT) along the bottom axis and another's (JOB) up the side, with most cells white, some light blue and a few darker blue, a green-bordered selected cell, and a side panel listing the task columns, with numbered callouts for axes, filters, Analyze, Fill Cell and Mark as invalid. What to look for: white cells are gaps.</div>
+<p>Cell colour tells density: white means no data, light blue means below the minimum threshold you set, dark blue means more than the threshold (p.261). Steps in outline (pp.260-261):</p>
+<ol class="steps">
+<li><strong>Open the data set, click Data Coverage, Actions &gt; New, give a name and a minimum threshold.</strong><p>The threshold is the least number of rows you accept as "dense enough".</p></li>
+<li><strong>Select a master table and optionally related tables.</strong><p>Related tables let the axes come from joined tables.</p></li>
+<li><strong>Create task columns</strong> as <em>Use as is</em> (individual values, good for low-cardinality columns), <em>Range</em> (numeric or date ranges) or <em>Mapping</em> (group values, for example states into regions) (pp.261-262).<p>Binary columns cannot be used, and some types are excluded for each column type (p.263).</p></li>
+<li><strong>Put one column on the X axis and one on the Y axis, optionally add up to two filter columns, click Analyze.</strong><p>The grid shows data density.</p></li>
+<li><strong>Fix gaps:</strong> mark meaningless cells as invalid, or select a gap and use Fill to move rows from dense cells.<p>Fill runs a separate job per source cell. If a needed parent row is missing, a dialog asks you to type values, matching the column data types (pp.267-269).</p></li>
+</ol>
+<div class="mock"><div class="mbar">Coverage grid (schematic, ShopSphere)</div><div class="mbody"><pre class="ascii">threshold = 5 customers      total_amount band
+zip band        under 500    500-2000    over 2000
+56xxxx              9           7           0   &lt;- gap
+60xxxx              6           2           1   &lt;- below threshold
+68xxxx              0           8           5   &lt;- gap</pre></div><div class="mnote">Schematic illustration drawn for this guide, not an official screenshot. Numbers are mine.</div></div>
+<p>In this sketch the test case "large order from a Bengaluru customer" has no data. Fill moves a few rows from the dense cells, or you generate more. The result changes the data set itself (p.268), so keep a version before you start. Coverage jobs appear in Monitor as Data Coverage Analysis and Fill Cell, and the Data Integration Service performs coverage tasks (pp.26, 316-317).</p>
+
+<h2 id="c16-cli">16.14 Command-line tools: ilmcmd, tdwcmd and tdwquery</h2>
+<p>TDM ships three small command-line programs. All are batch files on Windows and shell scripts on UNIX. Command, option and object names are case sensitive, and you can show syntax with the <code>-h</code> option. Why bother with a command line? Scripts and schedulers can call it, so a nightly refresh needs no human clicking.</p>
+<div class="tablewrap"><table>
+<caption>The three tools at a glance (User Guide 10.5.10, pp.326-350)</caption>
+<thead><tr><th>Tool</th><th>Purpose</th><th>Default install folder</th></tr></thead>
+<tbody>
+<tr><td><code>ilmcmd</code></td><td>A subset of Test Data Manager tasks: import and export XML objects, search, validate, delete, generate and run workflows, show workflow status, reset data sets, list plans of a data set version, generate and run data set subset plans</td><td><code>&lt;installation directory&gt;\utilities\ilmcli\bin</code></td></tr>
+<tr><td><code>tdwcmd</code></td><td>List test data warehouse details: the repository, the warehouse, connections, data sets, data set versions and version tables</td><td><code>&lt;TDM installation directory&gt;\utilities\tdwcli\bin</code></td></tr>
+<tr><td><code>tdwquery</code></td><td>Run SELECT queries (joins, aggregates, WHERE) on tables of one data set in the warehouse</td><td><code>&lt;Informatica installation directory&gt;/TDM/utilities/tdwquery</code></td></tr>
+</tbody></table></div>
+<h3 id="c16-ilmcmd">16.14.1 ilmcmd</h3>
+<p>Limits: you need the required privileges and, for project tasks, project permission. You cannot use it to search data generation objects (pp.327, 333). If Test Data Manager runs on HTTPS you must first import the browser certificate, create a keystore with <code>keytool</code> and set the trust store location and password in <code>userConfig.ilm</code> (p.327).</p>
+<p>Examples printed in the guide (pp.329-336):</p>
+<pre><code>ilmcmd -wf -g -Project Infa_Project -pn Plan_NameMasking
+ilmcmd -wf -gs -JobId 360
+ilmcmd -wf -ex -Project TDM -pn Plan_NameMasking -is PCInteg
+ilmcmd -e -ot Policy -n Policy_Customer -f C:\Informatica\ILMServer\CLI\Policy_Customer.xml
+ilmcmd -r -dvn "RESET Version1" -rf "C:\Documents\ResetObject.json" -ris PIS</code></pre>
+<p>They generate a workflow, get a workflow's status, run a workflow, export a policy, and reset a data set version using a reset file. The guide also lists commands to import and delete objects, <code>ListPlans</code> (plans in a data set version), <code>TDWPlanGenerate</code>, <code>TDWPlanExecute</code> and <code>TDWPlanGenExe</code> for related data set plans, <code>Update Host</code> for moving plans to another host, and a way to update stored passwords (pp.334-342). Exportable object types include rules, policies, data domains, entities, groups, templates, profiles, projects, data sources, source definitions, connections and plans (p.330).</p>
+<h3 id="c16-tdwcmd">16.14.2 tdwcmd and tdwquery</h3>
+<p><code>tdwcmd --list</code> with one of Repository, TestDataWarehouse, Connection, Dataset, DatasetVersion or DatasetVersionTable, plus the host, port, user, password, security domain, domain name and Test Data Warehouse Service name, prints details (pp.345-347). It lists; it does not change anything. For <code>tdwquery</code> you first edit <code>userConfig.ilm</code> with the service URL, user, password, domain, namespace, service and warehouse names and the data set version name. Then you run, for example, <code>tdwquery "SELECT * FROM td_empdetails"</code> (pp.348-349). The user needs the View Data in Data Set privilege and at least read permission on the data set.</p>
+<div class="callout warn"><strong class="ctitle">Passwords on the command line</strong>
+<p>The guide's <code>tdwcmd</code> examples place the password right in the command (<code>-pd Administrator</code>). Anyone who can read your shell history or the process list can read it too. In real scripts, follow your organisation's secret-handling rules, and never commit such a script. That advice is mine, not the guide's.</p></div>

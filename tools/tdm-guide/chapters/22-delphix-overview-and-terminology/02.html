@@ -40,6 +40,30 @@
 <div class="callout tip"><strong class="ctitle">Name things safely from day one</strong>
 <p>Use letters, digits, underscores and hyphens. <code>SHOPSPHERE_DEV</code> and <code>shopsphere-rules-v1</code> are fine. <code>ShopSphere (Dev) #1</code> is not.</p></div>
 
+<h3 id="c22-monitor">22.4.4 Monitor: Async Tasks and Job Executions</h3>
+<p>Many actions in the engine do not finish instantly. Saving a database rule set, exporting an environment, importing settings and adding logical keys all return an <dfn>Async Task</dfn> ID in a message at the bottom of the screen. You follow that task under Monitor. <span class="badge doc">From docs</span></p>
+<ol class="steps">
+<li><strong>Do the long action.</strong><p>For example, click Save on a database rule set.</p><p class="expect">A status message appears in the bottom sheet with an Async Task ID.</p></li>
+<li><strong>Open Monitor, then Async Tasks.</strong><p>The grid lists every asynchronous operation, newest first. Type the task ID into the search box under the "Task ID" header to find yours.</p><p class="expect">A row for your task with its status.</p></li>
+<li><strong>Act on the result.</strong><p>For a finished export, the row's Actions menu offers Download File. For a failed import or export, a Download File link gives you the log. A task that can be cancelled has a Cancel Task action.</p></li>
+</ol>
+<p>The second Monitor page, <strong>Job Executions</strong>, is the history of job runs. The screenshot above shows its columns, and the three counters at the top (jobs queued, jobs running and memory usage). The job-running page adds that stopping a RUNNING job leaves semi-masked data, and that indexes, constraints or triggers the job dropped are <em>not</em> re-created. So cancelling a masking job is a recovery situation, not a harmless undo. A QUEUED job can be cancelled with no effect on the data source.</p>
+<div class="callout warn"><strong class="ctitle">Do not cancel a running in-place job casually</strong>
+<p>Imagine ShopSphere's masking job has masked CUSTOMERS but not yet ORDERS when someone presses Cancel. The copy now holds half-masked data, and if the job had dropped any index, it is still gone. You would restore the VDB (see <a href="23-delphix-connectors-and-vdb.html">the VDB chapter</a>) rather than try to repair it by hand.</p></div>
+<h3 id="c22-admin">22.4.5 Admin: application settings and the About page</h3>
+<p>Beyond Roles and Users (covered later in this chapter), the Admin menu has <em>Application Settings</em>. It is an administrator-only screen with two parts: a Login Screen Customization section (an image of at least 150 by 150 pixels, up to 1 MB, and a message of up to 255 characters shown on the login page) and a grid of engine settings, grouped by name. The page lists these groups: LDAP, General, Mask, ASDD, JOB, SMTP, engineSync, Async, Algorithm, FileUpload, Database and Profile settings. Two of them matter to you early. The default number of update threads and streams used by jobs come from the "mask" group, and the default for non-conformant data handling is also an application setting (Admin > Application Settings > Default Non-Conformant Data Handling, as the terminology page says).</p>
+<p>To change a value you click the pencil icon in its row, type the new value (booleans offer a true and false list), click outside the field and then save or discard in the confirmation box. The page warns that these settings are not meant to be changed often and can strongly affect the application. As a TDM engineer you usually only read them.</p>
+<h3 id="c22-audit">22.4.6 Audit: who did what</h3>
+<p>The Audit tab shows a record of user actions taken in the UI or through the REST APIs: what happened, who did it and when. Only an admin can open it. Every column is filterable and sortable, and an Export PDF option at the top right downloads the log with the same filters and sort order. The page lists the kinds of action that are recorded (Create, Edit, Delete, Run, Test, Export, Import, Login, Logout and a few more) and the kinds of object they target (algorithm, application, connectors, environment, rule sets, domain and many others). For a compliance officer this is the evidence that a masking job really ran, and who ran it. <span class="badge doc">From docs</span></p>
+<p><strong>Where to look when something goes wrong.</strong></p>
+<div class="tablewrap"><table class="sample"><caption>Quick finder, built from the pages above</caption><thead><tr><th>You wonder...</th><th>Look at</th></tr></thead><tbody>
+<tr><td>Did my save or import finish?</td><td>Monitor > Async Tasks, search by task ID</td></tr>
+<tr><td>Did my masking job pass, warn or fail?</td><td>Monitor > Job Executions (status and Warning triangle)</td></tr>
+<tr><td>Which algorithms exist and who owns them?</td><td>Settings > Algorithms (Owner column)</td></tr>
+<tr><td>Who changed this connector?</td><td>Audit (administrators only)</td></tr>
+<tr><td>Why can't this person see the Masking Job button?</td><td>Admin > Roles and Admin > Users</td></tr>
+</tbody></table></div>
+
 <h2 id="c22-model">22.5 The object model in plain words</h2>
 <p>This is the most important picture in the chapter. The engine stores a handful of kinds of objects, and almost every confusion is "where does X live?". The short answer is that <strong>work objects live inside an environment</strong>, and <strong>shared objects live in Settings</strong>.</p>
 <figure class="diagram"><svg viewBox="0 0 820 440" role="img" aria-label="Nested boxes: an Application contains Environments; an Environment contains Connectors, Rule Sets with Inventories, and Jobs. A separate Settings box holds Domains, Algorithms, Profile Sets, Classifiers, File Formats and JDBC Drivers, which the work objects use.">
