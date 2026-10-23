@@ -10,20 +10,16 @@
 <div class="callout why"><strong class="ctitle">Why it matters</strong>
 <p>Without domains you would assign a rule to one column at a time, and forget one. With them, "any column that is a phone number" gets the phone rule, today and in the next project. This is also why the compliance officer, not the developer, owns the policy in the guide's example: it is a business decision about what is sensitive.</p></div>
 <p><strong>Policies task flow</strong> (p.72): create masking rules, define data domains that describe which columns can receive the same rules, assign the rules to the domains, create a policy, assign the domains to the policy. The order is flexible; you can create a policy first and fill it later.</p>
-
 <h3 id="c11-rules">Rules</h3>
 <p>A rule defines logic to mask sensitive data <em>or</em> to generate test data (p.72). You can create rules for string, numeric and date data types. You can add rules to data domains and then use the domains in policies and plans. After you add rules to a project, you still assign them to columns, matching the column's data type. The built-in masking techniques (substitution, shuffle, key masking and so on) are the subject of the <a href="14-informatica-data-masking.html">Informatica masking chapter</a>; generation rules are in the <a href="15-informatica-data-generation.html">Informatica data generation chapter</a>.</p>
-
 <h3 id="c11-data-domains">Data domains</h3>
 <p>A data domain represents the functional meaning of a column, based on its data or its name. Assign a masking rule to the domain and <strong>all columns in that domain are masked with the same rule</strong>. You can also give it generation rules so generated data follows the same logic (p.73). The guide says to assign at least one masking rule to each domain.</p>
 <p>The guide's Social Security example: the number might be in a column called <code>SSN</code>, in a column called <code>SOCIAL_SECURITY</code> in another table, or buried in a <code>COMMENTS</code> column. One domain describes all three: a data expression for the format <code>999-99-9999</code> and metadata expressions for the likely column names such as SSN or Social (p.73).</p>
 <p>If you do not have Data Discovery, you can still use domains to group data, but you must associate columns with domains <strong>manually</strong> (p.73). With discovery, a profile does the assignment for you (<a href="12-informatica-discovery-and-profiling.html">the discovery and profiling chapter</a>).</p>
-
 <h4 id="c11-preferred-rules">Preferred rules and the default rule</h4>
 <p>Rules you attach to a domain are called <strong>preferred rules</strong>. If there are several, you mark one as the <strong>default</strong>, which applies to every column in the domain. You may change an individual column to another preferred rule, and you can even apply more than one rule to a column (p.73).</p>
 <div class="callout example"><strong class="ctitle">Guide example, with a ShopSphere twist</strong>
 <p>The guide's Last_Name domain has a shuffle rule as default and a substitution rule as another preferred rule: shuffle for customer last names in one table, substitution in another (p.73). In ShopSphere: <code>last_name</code> in <code>CUSTOMERS</code> uses the default, while a hypothetical <code>shipping_contact_last_name</code> in another table uses the second preferred rule. Generation rules work the same way: in the guide, Date_of_Birth defaults to date random generation and also offers date sequence generation (p.74). The ShopSphere column is ours.</p></div>
-
 <h3 id="c11-patterns">Data patterns and metadata patterns</h3>
 <p>A <dfn>regular expression</dfn> (regex) is a text string that describes a search pattern; it matches strings of characters in the source data (p.74). TDM uses regexes in two ways, and a domain may hold several of each. A column belongs to the domain if <strong>any</strong> expression matches (pp.74-75).</p>
 <div class="compare">
@@ -37,42 +33,28 @@
 <h4 id="c11-regex-primer">A regex primer, using only what the guide lists</h4>
 <p>Regexes are <strong>case sensitive</strong>. The guide lists these building blocks (pp.74-75), and gives a tutorial site for more. I added the ShopSphere reading.</p>
 <div class="tablewrap"><table>
-<thead>
-<tr><th>Piece</th><th>Guide's meaning</th><th>Reading</th></tr>
-</thead>
-<tbody>
+<thead><tr><th>Piece</th><th>Guide's meaning</th><th>Reading</th></tr></thead><tbody>
 <tr><td>Ordinary characters</td><td>All except <code>[\^$.|?*+()</code> match themselves; <code>abc</code> matches abc.</td><td><code>ssn</code> matches the letters s, s, n in order (and not SSN, because of case).</td></tr>
 <tr><td><code>\</code></td><td>Escapes a special character so it loses its special meaning.</td><td><code>\.</code> means a real dot.</td></tr>
 <tr><td><code>*</code></td><td>Matches the previous token zero or more times.</td><td><code>.*SSN*</code> style names.</td></tr>
 <tr><td><code>[ ]</code></td><td>One character from a set; a hyphen gives a range, such as <code>[a-zA-Z0-9]</code>.</td><td><code>[0-9]</code> is one digit.</td></tr>
 <tr><td><code>?</code></td><td>Makes the previous item optional.</td><td><code>-?</code> an optional dash.</td></tr>
-<tr><td><code>{n}</code></td><td>Repeats the previous item n times (n is 1 or more).</td><td><code>[0-9]{4}</code> is four digits.</td></tr>
-</tbody></table></div>
+<tr><td><code>{n}</code></td><td>Repeats the previous item n times (n is 1 or more).</td><td><code>[0-9]{4}</code> is four digits.</td></tr></tbody></table></div>
 <div class="tablewrap"><table class="sample">
 <caption>Illustrative patterns for ShopSphere columns (our examples, built from the pieces above; test them in your tool)</caption>
-<thead>
-<tr><th>Domain</th><th>Data pattern idea</th><th>Metadata pattern idea</th><th>Matches in <code>CUSTOMERS</code></th></tr>
-</thead>
-<tbody>
+<thead><tr><th>Domain</th><th>Data pattern idea</th><th>Metadata pattern idea</th><th>Matches in <code>CUSTOMERS</code></th></tr></thead><tbody>
 <tr><td>Social Security Number</td><td><code>[0-9]{3}-[0-9]{2}-[0-9]{4}</code> (the guide's)</td><td><code>.*SSN*</code></td><td><code>ssn</code> values like 123-45-6789. Note the pattern is also true for any other column with that shape.</td></tr>
 <tr><td>Zip code (India style)</td><td><code>[0-9]{6}</code></td><td><code>.*ZIP*</code></td><td><code>zip_code</code> values like 560001, 600017, 682001.</td></tr>
-<tr><td>Phone (10 digits)</td><td><code>[0-9]{10}</code></td><td><code>.*PHONE*</code></td><td><code>phone</code> values like 9876543210.</td></tr>
-</tbody></table></div>
+<tr><td>Phone (10 digits)</td><td><code>[0-9]{10}</code></td><td><code>.*PHONE*</code></td><td><code>phone</code> values like 9876543210.</td></tr></tbody></table></div>
 <div class="callout warn"><strong class="ctitle">Case and shape traps</strong>
 <p>Because regexes are case sensitive, a pattern in capitals may not match a lower-case column name such as <code>ssn</code>. Whether TDM treats metadata expressions case-insensitively is not stated in the part of the guide I read, so test it on your own data. And a 10-digit phone pattern also matches any other 10-digit column. This is why you review profile results rather than approving everything blindly.</p></div>
-
 <h3 id="c11-domain-options">Data domain options</h3>
 <div class="tablewrap"><table>
-<thead>
-<tr><th>Option</th><th>Meaning (p.75)</th></tr>
-</thead>
-<tbody>
+<thead><tr><th>Option</th><th>Meaning (p.75)</th></tr></thead><tbody>
 <tr><td>Name</td><td>The data domain name.</td></tr>
 <tr><td>Sensitivity level</td><td>Applies to all columns in the domain. The administrator defines which levels you can choose from. The Overview dashboards use this.</td></tr>
 <tr><td>Description</td><td>Free text.</td></tr>
-<tr><td>Status</td><td>Enabled or disabled. When enabled, a data discovery profile includes the domain. Default enabled.</td></tr>
-</tbody></table></div>
-
+<tr><td>Status</td><td>Enabled or disabled. When enabled, a data discovery profile includes the domain. Default enabled.</td></tr></tbody></table></div>
 <h3 id="c11-create-domain">Creating a data domain</h3>
 <div class="exercise">
 <h4>Task: create a "Customer SSN" data domain</h4>
@@ -96,7 +78,6 @@
 <details class="sol"><summary>Show a worked answer</summary>
 <p>Result (illustrative): domain <code>Customer_SSN</code>, status Enabled, one data pattern, two metadata patterns, one preferred masking rule marked default. When you later run a data domain profile on <code>CUSTOMERS</code>, <code>ssn</code> should appear as a candidate for this domain, with both the column name and values matching. <code>tax_id</code> may or may not match depending on its format, which is the kind of question you review in the <a href="12-informatica-discovery-and-profiling.html">discovery and profiling chapter</a>.</p></details>
 </div>
-
 <h3 id="c11-domain-manage">Copying, editing and deleting a domain</h3>
 <ul>
 <li><strong>Copy:</strong> in Policies, click a data domain <em>description</em> to select it without opening it, Actions &gt; Duplicate, change the name and description, Save (p.76).</li>

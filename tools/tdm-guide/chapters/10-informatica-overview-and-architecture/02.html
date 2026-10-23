@@ -1,6 +1,5 @@
 <h2 id="c10-use-cases">10.3 Use cases: performance, security, and verified data</h2>
 <p>The guide groups what TDM is used for into three families (User Guide 10.5.10, pp.23-24). Seeing them as three <em>goals</em> helps you choose the right feature later.</p>
-
 <h3 id="c10-uc-performance">Performance in testing environments</h3>
 <p>Here "performance" means the testing team's speed and agility, not database speed. The guide lists these ways TDM helps <span class="badge doc">From docs</span> (p.23):</p>
 <ul>
@@ -12,7 +11,6 @@
 </ul>
 <div class="callout example"><strong class="ctitle">ShopSphere example</strong>
 <p>The Customer Orders team runs a "refund" test that deletes orders. After the run, the test environment is in a strange state. Without TDM, someone re-copies the database (hours). With a stored data set, a tester resets the environment to "masked set v1" from the Data Sets view. This restore idea is the guide's "restore a data set version" use case. The refund story is ours, not the guide's.</p></div>
-
 <h3 id="c10-uc-security">Security and compliance</h3>
 <p>The guide frames the challenge as finding sensitive information in huge volumes of production data and making sure it does not appear in test data (p.24). Its three suggestions:</p>
 <ol>
@@ -20,19 +18,15 @@
 <li>Run a <strong>data masking</strong> operation to remove sensitive values, with standard formats (such as credit card or Social Security numbers) or custom formats.</li>
 <li>Store results in the <strong>test data warehouse</strong> so fewer uncontrolled copies exist.</li>
 </ol>
-
 <h3 id="c10-uc-dvo">Verified test data with Data Validation Option</h3>
 <p><dfn>Data Validation Option</dfn> (DVO) is a separate Informatica solution used with PowerCenter to check that target data is accurate and that the transformation did not introduce errors (p.24). Used with TDM, it can compare production and development data. The guide's example is a team that must send compliance reports for test data made from production, and needs "verifiable proof" that the test data holds no sensitive values.</p>
 <p>The documentation excerpt I used mentions DVO only at this level. It does not describe how DVO is configured, so this book does not either. If your project uses it, ask your trainer or read the DVO guide.</p>
-
 <div class="compare">
 <div><h4>Goal: performance</h4><p>"Give testers the right data quickly, and let them get it back."</p><p>Features: subset, flat-file copy to test tool, data generation, test data warehouse, restore.</p></div>
 <div><h4>Goal: security and compliance</h4><p>"Prove sensitive data is not in the test lab."</p><p>Features: profiles with PII, PCI, PHI domains, masking, a single controlled warehouse, DVO for proof.</p></div>
 </div>
-
 <h2 id="c10-architecture">10.4 The architecture: what runs behind the web page</h2>
 <p>The guide says TDM consists of <strong>tools</strong>, the <strong>Test Data Manager Service and other application services</strong>, and <strong>databases</strong> (User Guide 10.5.10, p.25). A useful picture is a restaurant. Tools are the dining room and the order pad (where people ask). Services are the kitchen stations (grill, pastry, dishwashing), each doing one job. Databases are the pantry and the recipe books. The analogy breaks down in one place: here the "waiter" (the TDM Server) also keeps the plans and definitions in its own book (the TDM repository).</p>
-
 <figure class="diagram"><svg viewBox="0 0 820 450" role="img" aria-label="Architecture sketch: tools on the left, services in the middle, databases on the right, joined by lines">
 <g font-family="inherit" font-size="12" fill="currentColor" stroke="currentColor" stroke-width="1.2">
 <text x="10" y="22" font-weight="bold" stroke="none">TOOLS (people use these)</text>
@@ -65,9 +59,7 @@
 <g fill="none"><path d="M200 63H280M530 63H620M200 131H280M530 131H620M200 199H280M530 199H620M200 267H280M530 267H620M200 335H280M200 403H280M530 403H620"/></g>
 </g></svg>
 <figcaption>Original diagram, simplified from the component list in the User Guide 10.5.10, p.25-30. Lines show "talks to", not every real connection. The Test Data Manager web client is drawn twice (rows 1 and 4) only to keep the lines straight.</figcaption></figure>
-
 <div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.25, Figure "components of TDM". What to look for: tool boxes down the left (Developer Tool, PowerCenter Client, Test Data Manager Web Client, Analyst Tool, Informatica Administrator), a Test Data Manager Service with its own TDM Repository next to the web client, application services in the middle (grouped Model Repository and Data Integration services, grouped PowerCenter services, Test Data Warehouse Service, Content Management Service, Analyst Service, Service Manager), and cylinders on the right for the Model repository, Profiling warehouse, PowerCenter repository, Test data warehouse repository, Test data warehouse and Domain configuration repository.</div>
-
 <h3 id="c10-tools">The TDM tools</h3>
 <p>The guide names four tools (User Guide 10.5.10, pp.25-27). You will spend nearly all your time in the first.</p>
 <div class="tablewrap"><table>
@@ -76,9 +68,7 @@
 <tr><td>Test Data Manager</td><td>Web-based client</td><td>Configure masking, subset, generation and discovery profiles; configure connections; manage project permissions; manage data sets.</td></tr>
 <tr><td>Informatica Developer</td><td>Client application ("thick client", installed on a computer)</td><td>Create and export profiles for data discovery, and run them.</td></tr>
 <tr><td>Informatica Administrator</td><td>Web-based client for a domain administrator</td><td>Manage application services; create users and user groups.</td></tr>
-<tr><td>PowerCenter Client</td><td>Client application</td><td>Manage the repository and design mappings, mapplets and sessions; set permissions on folders and on connection objects of the PowerCenter repository.</td></tr>
-</tbody></table></div>
+<tr><td>PowerCenter Client</td><td>Client application</td><td>Manage the repository and design mappings, mapplets and sessions; set permissions on folders and on connection objects of the PowerCenter repository.</td></tr></tbody></table></div>
 <p>A <dfn>mapplet</dfn> is a small reusable piece of transformation logic built in PowerCenter. In TDM you can create a data masking rule from a mapplet that has been imported (p.31). Later chapters return to this.</p>
-
 <h3 id="c10-server">The TDM Server</h3>
 <p>One sentence in the guide: the TDM Server is the interface between Test Data Manager and the application services (p.27). Elsewhere the guide says "the TDM Server sends a request to the Data Integration Service" when you run a profile, and that the Test Data Manager Service "creates and manages the TDM repository" (pp.27-29). The guide does not say in one place how the "Server" and the "Service" relate. In the figure on p.25 only the Test Data Manager Service appears. I treat them as the same hub, and you should read "TDM Server" as "the part that takes your click and calls the right service". That is my reading, so check it with your administrator.</p>

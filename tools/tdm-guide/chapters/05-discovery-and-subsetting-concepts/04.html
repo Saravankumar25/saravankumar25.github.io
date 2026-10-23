@@ -1,0 +1,127 @@
+<h2 id="c5-referential-integrity">5.9 Keeping referential integrity</h2>
+<p><dfn>Referential integrity</dfn> is the rule that every foreign key value points to a row that exists. It is the one property a subset must never lose. If it breaks, the application crashes or shows empty pages, and testers blame the data. GenRocket's page defines it in the same plain terms: it "refers to the accuracy and consistency of the defined relationships" between parent and child tables (GenRocket "How to Add Custom Referential Integrity to Imported Table Schemas"). <span class="badge doc">From docs</span></p>
+<h3 id="c5-how-it-breaks">How a naive subset breaks it</h3>
+<p>Suppose someone takes the first 6 rows of <code>ORDERS</code> and the first 4 rows of <code>CUSTOMERS</code> "to keep it small". Order 5006 belongs to customer 1005, who is the fifth customer and was left out. Order 5006 is now an orphan.</p>
+<pre><code>SELECT o.order_id, o.customer_id
+FROM   ORDERS o
+LEFT JOIN CUSTOMERS c ON c.customer_id = o.customer_id
+WHERE  c.customer_id IS NULL;      -- any row returned is an orphan order
+</code></pre>
+<p>On the naive subset this query returns one row (order 5006, customer 1005). On a correct subset it returns nothing. The same check works one level down (<code>ORDER_ITEMS</code> to <code>ORDERS</code>, and <code>ORDER_ITEMS</code> to <code>PRODUCTS</code>). Run these checks after every subset: they are cheap and catch the commonest failure.</p>
+<h3 id="c5-integrity-options">Integrity options in Informatica plans</h3>
+<p><span class="badge doc">From docs</span> Informatica goes beyond "no orphans". It also offers several ways to decide <em>how much</em> extra data to pull to keep the subset coherent. You choose the option in the plan's advanced settings, so the same entity can yield different subsets (User Guide 10.5.10, pp.121 to 123). By default all constraint relationships in an entity are "major", which can pull in excess data; you can optimise relations so that the entity has the minimum number of major relations while still covering all tables (p.119).</p>
+<div class="tablewrap"><table><caption>Informatica data integrity options for a subset plan (User Guide 10.5.10, pp.121-123), explained in plain words</caption>
+<thead><tr><th>Option</th><th>What it does</th><th>Size of result</th><th>Notes from the guide</th></tr></thead>
+<tbody>
+<tr><td>Transactional Integrity for Major Relation Type</td><td>A selected child row pulls in its parents; those parents pull in all of their children; those children may point to more parents, and so on until nothing new is added.</td><td>Can include extra records</td><td>Maintains transactional and referential integrity. Criteria apply to the entity as a whole; multiple criteria combine with AND, which can return nothing if they select unrelated tables.</td></tr>
+<tr><td>Referential Integrity Only</td><td>Selects the fewest rows needed to keep every foreign key valid.</td><td>Fewer rows</td><td>May not include all the children of a parent, so transactional integrity can break. Falls back to the transactional option if the entity has more than one criterion.</td></tr>
+<tr><td>Two-way</td><td>Pushes the criteria down, then back up, alternately, until every table in the entity has some data.</td><td>More than the first two</td><td>Keeps referential integrity and ensures every table meeting the criteria has data. Requires a staging connection.</td></tr>
+<tr><td>One-way</td><td>Applies criteria on individual tables and pushes them downward only; tables above the top-most filtered table are included in full.</td><td>More than Two-way</td><td>Aims for the smallest subset that does not break referential integrity while including all data from tables above the filtered one.</td></tr>
+</tbody></table></div>
+<p>The guide also says cyclic and self-referencing relationships (a table that points to itself, such as employees pointing to managers) need a staging connection for recursive evaluation (pp.114 and 122). <span class="badge doc">From docs</span></p>
+<h3 id="c5-ri-example">The difference, on ShopSphere rows</h3>
+<p>Say the criteria is "orders placed in March 2026", on the sample data shown in the next section: orders 5006 to 5010, belonging to customers 1005, 1007, 1006, 1004 and 1008. Customer 1004 also has an earlier order, 5005 (February).</p>
+<ul>
+<li><strong>Referential integrity only:</strong> keep orders 5006 to 5010 and their five customers. Every order has its customer, so there are no orphans. But customer 1004 appears with one order (5009) although they have two. A test "show all orders for this customer" would silently give a wrong answer.</li>
+<li><strong>Transactional integrity:</strong> order 5009 pulls customer 1004, who pulls all of their orders, so order 5005 joins the subset. Result: six orders (5005 to 5010) and the same five customers. Now every kept customer is complete.</li>
+</ul>
+<p>The first is smaller, the second is more trustworthy. Choose by what the tests need. (This is our illustration of the guide's description. The exact rows a real tool returns depend on how the entity and relationships are configured, so verify on your own data.)</p>
+
+<h2 id="c5-worked-example">5.10 Worked example: a ShopSphere subset, before and after</h2>
+<p>Requirement from the test lead: "Give me the Bengaluru customers (zip code starting with 560), with all of their orders, items and the products those items use." The driving table is <code>CUSTOMERS</code>; the filter is <code>zip_code</code> starting with 560. All rows are fictional. Only the columns we need are shown, and customers 1004 to 1008 are extra rows added for this example (1001 to 1003 are the shared sample rows).</p>
+<h3 id="c5-before">Before: the full source</h3>
+<div class="tablewrap"><table class="sample"><caption>CUSTOMERS (8 rows) with the filter result</caption>
+<thead><tr><th>customer_id</th><th>first_name</th><th>last_name</th><th>zip_code</th><th>In subset?</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>Asha</td><td>Menon</td><td>560001</td><td><strong>Yes</strong></td></tr>
+<tr><td>1002</td><td>Ravi</td><td>Kumar</td><td>600017</td><td>No</td></tr>
+<tr><td>1003</td><td>Meera</td><td>Nair</td><td>682001</td><td>No</td></tr>
+<tr><td>1004</td><td>Kiran</td><td>Rao</td><td>560034</td><td><strong>Yes</strong></td></tr>
+<tr><td>1005</td><td>Divya</td><td>Iyer</td><td>600042</td><td>No</td></tr>
+<tr><td>1006</td><td>Arjun</td><td>Das</td><td>700001</td><td>No</td></tr>
+<tr><td>1007</td><td>Neha</td><td>Shah</td><td>560001</td><td><strong>Yes</strong></td></tr>
+<tr><td>1008</td><td>Sameer</td><td>Khan</td><td>400001</td><td>No</td></tr>
+</tbody></table></div>
+<div class="tablewrap"><table class="sample"><caption>ORDERS (12 rows): kept because their customer was kept</caption>
+<thead><tr><th>order_id</th><th>customer_id</th><th>order_date</th><th>total_amount</th><th>In subset?</th></tr></thead>
+<tbody>
+<tr><td>5001</td><td>1001</td><td>2026-01-14</td><td>1200.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>5002</td><td>1002</td><td>2026-01-20</td><td>450.00</td><td>No</td></tr>
+<tr><td>5003</td><td>1001</td><td>2026-02-02</td><td>890.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>5004</td><td>1003</td><td>2026-02-11</td><td>150.00</td><td>No</td></tr>
+<tr><td>5005</td><td>1004</td><td>2026-02-15</td><td>2300.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>5006</td><td>1005</td><td>2026-03-01</td><td>99.00</td><td>No</td></tr>
+<tr><td>5007</td><td>1007</td><td>2026-03-05</td><td>700.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>5008</td><td>1006</td><td>2026-03-09</td><td>595.00</td><td>No</td></tr>
+<tr><td>5009</td><td>1004</td><td>2026-03-12</td><td>99.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>5010</td><td>1008</td><td>2026-03-20</td><td>300.00</td><td>No</td></tr>
+<tr><td>5011</td><td>1002</td><td>2026-04-02</td><td>550.00</td><td>No</td></tr>
+<tr><td>5012</td><td>1001</td><td>2026-04-10</td><td>99.00</td><td><strong>Yes</strong></td></tr>
+</tbody></table></div>
+<div class="tablewrap"><table class="sample"><caption>ORDER_ITEMS (15 rows): kept because their order was kept</caption>
+<thead><tr><th>item_id</th><th>order_id</th><th>product_code</th><th>quantity</th><th>unit_price</th><th>In subset?</th></tr></thead>
+<tbody>
+<tr><td>9001</td><td>5001</td><td>P-100</td><td>1</td><td>1200.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>9002</td><td>5002</td><td>P-200</td><td>3</td><td>150.00</td><td>No</td></tr>
+<tr><td>9003</td><td>5003</td><td>P-300</td><td>2</td><td>445.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>9004</td><td>5004</td><td>P-200</td><td>1</td><td>150.00</td><td>No</td></tr>
+<tr><td>9005</td><td>5005</td><td>P-100</td><td>1</td><td>1200.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>9006</td><td>5005</td><td>P-400</td><td>2</td><td>550.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>9007</td><td>5006</td><td>P-500</td><td>1</td><td>99.00</td><td>No</td></tr>
+<tr><td>9008</td><td>5007</td><td>P-400</td><td>1</td><td>550.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>9009</td><td>5007</td><td>P-200</td><td>1</td><td>150.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>9010</td><td>5008</td><td>P-300</td><td>1</td><td>445.00</td><td>No</td></tr>
+<tr><td>9011</td><td>5008</td><td>P-200</td><td>1</td><td>150.00</td><td>No</td></tr>
+<tr><td>9012</td><td>5009</td><td>P-500</td><td>1</td><td>99.00</td><td><strong>Yes</strong></td></tr>
+<tr><td>9013</td><td>5010</td><td>P-200</td><td>2</td><td>150.00</td><td>No</td></tr>
+<tr><td>9014</td><td>5011</td><td>P-400</td><td>1</td><td>550.00</td><td>No</td></tr>
+<tr><td>9015</td><td>5012</td><td>P-500</td><td>1</td><td>99.00</td><td><strong>Yes</strong></td></tr>
+</tbody></table></div>
+<div class="tablewrap"><table class="sample"><caption>PRODUCTS (7 rows): kept only if a kept item uses them</caption>
+<thead><tr><th>product_code</th><th>product_name</th><th>price</th><th>In subset?</th></tr></thead>
+<tbody>
+<tr><td>P-100</td><td>Headphones</td><td>1200.00</td><td><strong>Yes</strong> (items 9001, 9005)</td></tr>
+<tr><td>P-200</td><td>USB cable</td><td>150.00</td><td><strong>Yes</strong> (item 9009)</td></tr>
+<tr><td>P-300</td><td>Desk lamp</td><td>445.00</td><td><strong>Yes</strong> (item 9003)</td></tr>
+<tr><td>P-400</td><td>Keyboard</td><td>550.00</td><td><strong>Yes</strong> (items 9006, 9008)</td></tr>
+<tr><td>P-500</td><td>Mouse pad</td><td>99.00</td><td><strong>Yes</strong> (items 9012, 9015)</td></tr>
+<tr><td>P-600</td><td>Webcam</td><td>2100.00</td><td>No</td></tr>
+<tr><td>P-700</td><td>Monitor arm</td><td>1800.00</td><td>No</td></tr>
+</tbody></table></div>
+<h3 id="c5-steps">Step by step: how the tool arrives at the result</h3>
+<ol class="steps">
+<li><strong>Apply the filter to the driving table.</strong><p><code>CUSTOMERS</code> where zip_code starts with 560.</p><p class="expect">Customers 1001, 1004 and 1007 (3 rows).</p></li>
+<li><strong>Follow the relationship down to orders.</strong><p>Keep every order whose customer_id is in the kept set.</p><p class="expect">Orders 5001, 5003, 5012 (customer 1001), 5005, 5009 (customer 1004) and 5007 (customer 1007): 6 rows.</p></li>
+<li><strong>Follow the relationship down to order items.</strong><p>Keep items whose order_id is in the kept orders.</p><p class="expect">Items 9001, 9003, 9015, 9005, 9006, 9012, 9008, 9009: 8 rows.</p></li>
+<li><strong>Follow the items up to products.</strong><p>Items point at products, and a kept item must not point at a missing product.</p><p class="expect">P-100 to P-500 are kept (5 rows). P-600 and P-700 are not needed.</p></li>
+<li><strong>Check for orphans.</strong><p>Run the left-join checks from section 5.9 on each parent-child pair.</p><p class="expect">Zero orphans.</p></li>
+</ol>
+<h3 id="c5-after">After: the subset</h3>
+<div class="tablewrap"><table class="sample"><caption>Subset result: row counts and ids, before to after</caption>
+<thead><tr><th>Table</th><th>Before</th><th>After</th><th>Rows kept</th></tr></thead>
+<tbody>
+<tr><td>CUSTOMERS</td><td>8</td><td>3</td><td>1001, 1004, 1007</td></tr>
+<tr><td>ORDERS</td><td>12</td><td>6</td><td>5001, 5003, 5005, 5007, 5009, 5012</td></tr>
+<tr><td>ORDER_ITEMS</td><td>15</td><td>8</td><td>9001, 9003, 9005, 9006, 9008, 9009, 9012, 9015</td></tr>
+<tr><td>PRODUCTS</td><td>7</td><td>5</td><td>P-100, P-200, P-300, P-400, P-500</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>42</strong></td><td><strong>22</strong></td><td>about half of the rows in this toy example</td></tr>
+</tbody></table></div>
+<div class="callout real"><strong class="ctitle">Toy numbers, real principle</strong>
+<p>Half is a toy ratio because the example has eight customers. On a real ShopSphere with 8 million customers, selecting one city might keep 2 to 3 percent. The mechanism is identical. Notice also that <code>PRODUCTS</code> shrank only because we pulled in just the products that kept items need. A product catalogue is often small and shared by everyone, so teams usually copy it in full: Informatica does this with a group that includes residual tables to copy unfiltered data (p.116) and GenRocket with its full-load tables (which cannot be the subset table or its descendants, to protect referential integrity). <span class="badge doc">From docs</span></p></div>
+<div class="exercise"><h4>Lab: subset by a time window instead</h4>
+<p>Goal: repeat the exercise driving from <code>ORDERS</code> with the filter "order_date in March 2026", using the tables above. You will see how the choice of driving table changes the result.</p>
+<ol class="steps">
+<li><strong>Filter the driving table.</strong><p>List the orders whose order_date falls in March 2026.</p></li>
+<li><strong>Pull the parents.</strong><p>Which customers do those orders point to? They must be in the subset or the orders become orphans.</p></li>
+<li><strong>Pull the children.</strong><p>List the items belonging to the kept orders.</p></li>
+<li><strong>Pull the products those items use.</strong></li>
+<li><strong>Count rows per table and compare with the zip code subset.</strong></li>
+<li><strong>Apply transactional integrity.</strong><p>For each kept customer, also keep all of that customer's other orders (and their items and products). What is added?</p></li>
+</ol>
+<details class="sol"><summary>Show a worked answer</summary>
+<p>1. March orders: 5006, 5007, 5008, 5009, 5010 (5 rows).</p>
+<p>2. Their customers: 1005, 1007, 1006, 1004, 1008 (5 rows).</p>
+<p>3. Items: 9007 (order 5006); 9008, 9009 (5007); 9010, 9011 (5008); 9012 (5009); 9013 (5010): 7 rows.</p>
+<p>4. Products used: P-500, P-400, P-200, P-300 (4 rows; P-100, P-600, P-700 are not needed).</p>
+<p>5. Total: 5 + 5 + 7 + 4 = 21 rows. Different driver, different shape: here <em>customers</em> are partial (each has only their March orders) while in the zip code subset customers were complete.</p>
+<p>6. Customer 1004 also has order 5005 (February). Adding it brings its items 9005 and 9006 and product P-100. Result: 6 orders, 9 items, 5 products, 5 customers (25 rows). The other kept customers have no other orders, so nothing else is added. This extra round is the "loop" the Informatica guide describes for transactional integrity.</p></details></div>

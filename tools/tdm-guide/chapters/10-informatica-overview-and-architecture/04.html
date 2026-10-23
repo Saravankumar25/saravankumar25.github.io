@@ -12,7 +12,6 @@
 <li><strong>Generate and run the workflow</strong> for masking, subset or generation.<p>The PowerCenter Integration Service does the work.</p></li>
 <li><strong>Monitor the workflow.</strong><p>Check status and logs.</p></li>
 </ol>
-
 <div class="flow">
 <div class="node"><b>Policy</b>who and what to protect</div><div class="arrow">→</div>
 <div class="node"><b>Project</b>import metadata</div><div class="arrow">→</div>
@@ -22,16 +21,13 @@
 <div class="node"><b>Run and monitor</b>workflow</div>
 </div>
 <p>Notice the split of roles in this order. The <em>policy</em> is design work (the guide's example gives it to a compliance officer). Everything from the project onward is build work (a project developer). <em>Reviewing</em> profile results and validating the output goes back to compliance. Keep that hand-off in mind for the example in <a href="#c10-example">the example section</a>.</p>
-
 <h3 id="c10-p-policy">Create a data masking policy</h3>
 <p>A policy contains <strong>data domains</strong> that describe what you want to mask. It has no data source, so one policy can serve many projects (p.31). A data domain groups sensitive fields by column name or by the data inside, using patterns written as <dfn>regular expressions</dfn> (a compact way to describe text shapes; <a href="11-informatica-tdm-tour.html">the guided tour of Test Data Manager</a> has a short primer). A domain also holds masking rules. A <dfn>rule</dfn> is a built-in masking technique plus specific settings; rules can also be built from imported mapplets.</p>
 <p><strong>ShopSphere:</strong> a policy named for customer personal data, with domains for SSN, email, phone, first name and last name. <span class="badge concept">Illustrative</span> (the policy name and domain list are ours).</p>
-
 <h3 id="c10-p-project">Create a project and import metadata</h3>
 <p>A project organises everything for discovery, masking, subset and generation. You import metadata for the sources you want to subset or mask, and target metadata if you want to generate data. You can import from a PowerCenter folder, from the Model repository, or from an external database. You also create a target schema, and the guide warns that TDM overwrites any data that already exists in the target schema (p.31).</p>
 <div class="callout warn"><strong class="ctitle">Target schema warning</strong>
 <p>Point your plan at a schema made for test data. "TDM overwrites data that already exists in the target schema" is the guide's own wording (p.31). Never aim a target connection at <code>SHOPSPHERE_PROD</code>.</p></div>
-
 <h3 id="c10-p-discover">Discover source information</h3>
 <p>Profiles can discover three things (pp.31-32):</p>
 <ul>
@@ -40,7 +36,6 @@
 <li><strong>Data domains</strong>. A data domain profile searches columns that fit each domain, so you can mask all of them with the same rules.</li>
 </ul>
 <p>Running a profile makes the TDM Server ask the Data Integration Service to extract source data, and the results go to the profiling warehouse. Constraints you add are stored in the TDM repository. The TDM server does not update the data sources (p.32). All of this is the subject of <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>.</p>
-
 <h3 id="c10-p-define-ms">Define data masking and data subset operations</h3>
 <p>For <strong>subset</strong>, you define which tables to include and how they relate (p.32). Three building blocks appear:</p>
 <div class="tablewrap"><table>
@@ -48,13 +43,10 @@
 <tbody>
 <tr><td>Entity</td><td>A set of tables related by physical or logical constraints.</td><td><code>CUSTOMERS</code> with its <code>ORDERS</code> and <code>ORDER_ITEMS</code>.</td></tr>
 <tr><td>Group</td><td>A set of <em>unrelated</em> tables.</td><td><code>PRODUCTS</code>, copied whole as reference data (our design choice).</td></tr>
-<tr><td>Template</td><td>Optional container holding entities and groups.</td><td>"Customer Orders subset kit".</td></tr>
-</tbody></table></div>
+<tr><td>Template</td><td>Optional container holding entities and groups.</td><td>"Customer Orders subset kit".</td></tr></tbody></table></div>
 <p>You also assign masking rules to source columns, create a subset plan from entities, groups and templates (with optional filters on parent-table columns), and create a masking plan that carries the policies and rules. Rules outside policies are allowed too. TDM stores projects, entities, groups, templates and plans in the TDM repository (p.32). <a href="13-informatica-data-subset.html">The Informatica data subset chapter</a> and <a href="14-informatica-data-masking.html">14</a> teach these in detail.</p>
-
 <h3 id="c10-p-define-gen">Define a data generation operation</h3>
 <p>Three tasks (p.32): create the entities for the plan, create generation rules and assign them to target-table columns, then create a generation plan with entities and tables, assigning default generation rules to columns that have none. <a href="15-informatica-data-generation.html">The Informatica data generation chapter</a> covers it.</p>
-
 <h3 id="c10-p-plans">Create plans</h3>
 <p>A <dfn>plan</dfn> holds what a workflow needs. Two rules matter for planning (pp.32-33):</p>
 <ul>
@@ -62,10 +54,8 @@
 <li>A <strong>data generation operation cannot be combined</strong> with masking or subset in the same plan. It needs its own plan.</li>
 </ul>
 <p>In either plan you can choose the test data warehouse as a target connection to save the result as a data set, and you can enter test tool integration properties to copy flat file results to an integrated HP ALM server. A generation plan also asks for the number of records. Then you generate the workflow and run it. <a href="16-informatica-plans-workflows-and-warehouse.html">The Informatica plans, workflows and warehouse chapter</a> covers plans and the warehouse.</p>
-
 <h3 id="c10-p-monitor">Monitor the workflow</h3>
 <p>Each workflow appears as a job in the Monitor view, together with jobs such as metadata imports and profiling (p.33). You can run the <strong>Row Count Report</strong> on a successfully run workflow to see how many rows the plan affected, and open the TDM job log to troubleshoot. In ShopSphere terms: after the masking run, the compliance officer checks that the row counts in the test target match the intended subset, and the QA lead opens the job log if the workflow failed.</p>
-
 <h2 id="c10-example">10.6 The guide's TDM example, retold with ShopSphere</h2>
 <p>The guide's example (User Guide 10.5.10, pp.33-34) is about an organisation that wants to mask sensitive employee stock data for a new employee stock plan. Its test database needs data from several applications: personal data, salary, stock purchases and job information. Several teams must share it and be able to put the original test data back. The company builds a policy and keeps the result in the test data warehouse.</p>
 <p>The table maps each of the guide's 13 steps onto ShopSphere. The first column is the guide. The second column is our retelling, and it is illustrative (the guide never mentions ShopSphere).</p>
@@ -85,7 +75,6 @@
 <tr><td>10</td><td>One plan for subset and masking; add entities, groups and the policy; run the workflow.</td><td>Project developer</td><td>A plan that copies a masked subset into a test schema.</td></tr>
 <tr><td>11</td><td>Validate results in the subset database.</td><td>Compliance officer</td><td>Spot-check masked names and SSNs in the test schema.</td></tr>
 <tr><td>12</td><td>Plan with the subset database as source and the test data warehouse as target; run to create a data set.</td><td>Project developer</td><td>Store the masked subset as "masked set v1".</td></tr>
-<tr><td>13</td><td>Reset a data set from the test data warehouse to a required connection.</td><td>Project developer</td><td>Restore "masked set v1" into a QA schema after a refund test.</td></tr>
-</tbody></table></div>
+<tr><td>13</td><td>Reset a data set from the test data warehouse to a required connection.</td><td>Project developer</td><td>Restore "masked set v1" into a QA schema after a refund test.</td></tr></tbody></table></div>
 <div class="callout why"><strong class="ctitle">What the example teaches</strong>
 <p>Two things. First, the <em>order</em>: design (policy, domains, rules) before build (project, profile, entities, plan) before run (workflow, data set). Second, the <em>hand-offs</em>: the same person does not do everything. The people who understand the regulations choose and approve; the people who understand the tables build. In a real engagement (<a href="29-planning-real-engagements.html">the chapter on planning real engagements</a>) the same split shows up as roles on your team.</p></div>

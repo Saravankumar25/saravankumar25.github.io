@@ -3,18 +3,13 @@
 <p>The three names are explained in <a href="04-sensitive-data-and-regulations.html">the sensitive data and regulations chapter</a>: PII is personally identifiable information, PHI is protected health information, PCI is payment card information.</p>
 <div class="tablewrap"><table>
 <caption>Policy packs and their data domains with default rules (pp.78-80)</caption>
-<thead>
-<tr><th>Pack</th><th>Industry focus (guide)</th><th>Data domains (each has a default rule of a matching name)</th></tr>
-</thead>
-<tbody>
+<thead><tr><th>Pack</th><th>Industry focus (guide)</th><th>Data domains (each has a default rule of a matching name)</th></tr></thead><tbody>
 <tr><td>PII</td><td>Personal information</td><td>Age; Birth Date; Birth Place; Country; Credit Card; Drivers License Number; Email Address; First Name; Full Address UPPER; Full Name; Gender; Grades; IP Address; Job Position; Last Name; Organization Name; Passport; Phone; Salary; School Name; Social Security Number; State; Street Name; UK National Identifier; Vehicle Registration Number; ZIP</td></tr>
 <tr><td>PHI</td><td>Healthcare and pharmaceutical</td><td>Account Number; Birth Date; Certificate License Number; Device Identifier Serial Number; Email Address; First Name; Health Plan Beneficiary Number; IP Address; Last Name; Medical Record Number; Phone; Primary Account Number; Social Security Number; State; Unique Identifier; Web URL; ZIP</td></tr>
-<tr><td>PCI</td><td>Banking and finance</td><td>Account Number; Birth Date; Credit Card; Expiration Date; First Name; Last Name</td></tr>
-</tbody></table></div>
+<tr><td>PCI</td><td>Banking and finance</td><td>Account Number; Birth Date; Credit Card; Expiration Date; First Name; Last Name</td></tr></tbody></table></div>
 <p>Look at how this fits ShopSphere. The PII pack already has First Name, Last Name, Email Address, Phone, Social Security Number, Birth Date and ZIP, which cover almost every personal column in <code>CUSTOMERS</code> (<code>first_name</code>, <code>last_name</code>, <code>email</code>, <code>phone</code>, <code>ssn</code>, <code>date_of_birth</code>, <code>zip_code</code>). Nothing in the packs obviously covers <code>tax_id</code>: that is a case where you would add your own domain or assign one manually. The guide's pack tables do not list a "tax ID" domain.</p>
 <div class="callout note"><strong class="ctitle">A small oddity in the guide's tables</strong>
 <p>The PHI and PCI tables label their columns "Policy Pack" and "Description" instead of "Data Domain Name" and "Default Rule", but the content is clearly domain and default rule, matching the PII table (pp.79-80). I read them as the same layout.</p></div>
-
 <h3 id="c11-import-export">Importing and exporting policy components</h3>
 <p>You can export policies, domains and rules to XML files and import them into another TDM repository (pp.80-81). The details matter:</p>
 <ul>
@@ -27,7 +22,6 @@
 <li><strong>Export:</strong> in the Policies view tick the objects, click Actions &gt; Export, then Open or Save. Test Data Manager prompts once for each type of file.</li>
 <li><strong>Import:</strong> in the Policies view click Actions &gt; Import, browse for the XML file, click Finish.</li>
 </ol>
-
 <h4 id="c11-import-domains">Importing data domains from the Model repository</h4>
 <p>Data domains created in the Informatica Developer tool live in the Model repository. Import them <strong>before</strong> you import a data domain profile (pp.81-82).</p>
 <ol class="steps">
@@ -37,7 +31,6 @@
 <p>If a same-name domain exists, you can overwrite or cancel.</p></li>
 </ol>
 <p>What comes across: <strong>name, description and links to business terms</strong>. What does <em>not</em>: data patterns, metadata patterns and preferred rules. So an imported domain is a shell that you finish in Test Data Manager. If you overwrite, TDM updates the description and linked terms but keeps the patterns and rules you set in TDM. Linked business terms are merged, and a term deleted in Developer is kept in TDM until you delete it by hand (p.81).</p>
-
 <h3 id="c11-glossary">Linking Business Glossary terms</h3>
 <p>You can link Informatica Business Glossary terms to global objects: policies, domains, masking rules and generation rules (p.82). A business term has a business definition and examples of use, stored centrally so people can look things up. Link a term to a TDM object and you can see the object from the term in the Analyst tool. You need an Analyst Service configured in the Test Data Manager Service properties, as the <a href="10-informatica-overview-and-architecture.html">Informatica architecture chapter</a> listed.</p>
 <ol class="steps">
@@ -50,7 +43,6 @@
 <p>Side effects: deleting the TDM object deletes the link; renaming a linked object shows the new name in the glossary; deleting a term from a glossary deletes the link.</p>
 <div class="callout real"><strong class="ctitle">ShopSphere use</strong>
 <p>The data steward owns a glossary term "Customer Government ID". Linking it to the Customer_SSN domain lets anyone reading the glossary jump to how that data is masked in test. This is our illustration of a use the guide describes in general terms.</p></div>
-
 <h3 id="c11-policy-management">Policy management: create, copy, edit, delete</h3>
 <p>You can create a policy before or after you define rules and domains, and add domains later. A copy contains the rules and domains of the original, and a policy can be exported to XML and imported elsewhere (p.83).</p>
 <div class="exercise">
@@ -74,7 +66,6 @@
 <li><strong>Edit a policy:</strong> click the name, Actions &gt; Edit; change name, description or status; on the Data Domains tab click Add, select, OK, then Save. Deleting a domain that has rule assignments shows Impacted Objects, with Export for a CSV and Continue to proceed. Regenerate and run affected plans afterwards (p.84).</li>
 <li><strong>Delete a policy:</strong> open it, Actions &gt; Delete, confirm. The domains and rules inside are <strong>not</strong> deleted, but all assignments made through the policy <strong>are</strong>. If assignments exist you see Impacted Objects; Export, then Continue (pp.84-85).</li>
 </ul>
-
 <h2 id="c11-mistakes">11.14 Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Watch out</strong>
 <ul>
@@ -88,7 +79,6 @@
 <li><strong>Assuming Search finds connections.</strong> It does not (p.39).</li>
 <li><strong>Treating a policy pack as complete.</strong> Check that columns like <code>tax_id</code> are covered.</li>
 </ul></div>
-
 <h2 id="c11-recap">11.15 Recap</h2>
 <div class="callout recap"><strong class="ctitle">Key points</strong>
 <ul>
@@ -101,7 +91,6 @@
 <li>A policy is a set of data domains; a domain finds columns by data patterns and metadata patterns (regular expressions) and carries preferred masking and generation rules, one marked default.</li>
 <li>PII, PHI and PCI policy packs come ready-made.</li>
 </ul></div>
-
 <section class="sources"><h2 id="c11-sources">Sources used in this chapter</h2>
 <ul>
 <li>Informatica Test Data Management 10.5.10 User Guide (PDF, February 2026, 455 pages): chapter 2 "Test Data Manager" (PDF pages 37 to 48), chapter 3 "Projects" (pages 49 to 70) and chapter 4 "Policies" (pages 71 to 85). Read in full. Page figures on pp.38, 41, 43, 45, 47 and 49 were viewed to describe them in the visual reference boxes.</li>

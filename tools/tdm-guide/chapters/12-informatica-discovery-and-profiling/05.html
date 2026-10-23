@@ -6,8 +6,7 @@
 <tbody>
 <tr><td>Range</td><td>Max and min length of values, first and last values, and percentage of nulls.</td><td>Numeric and date</td></tr>
 <tr><td>Patterns</td><td>Data patterns in the column with their percentage distribution, which must sum to 100%.</td><td>String and numeric</td></tr>
-<tr><td>List of Values</td><td>Unique and non-unique values with percentage distribution; the distribution must sum to 100% when used to generate data.</td><td>String, numeric and date</td></tr>
-</tbody></table></div>
+<tr><td>List of Values</td><td>Unique and non-unique values with percentage distribution; the distribution must sum to 100% when used to generate data.</td><td>String, numeric and date</td></tr></tbody></table></div>
 <p>The inferred rules appear as <strong>auto rules</strong> that you can assign to target columns in Define &gt; Data Generation when the inferred rule status is Yes; you can edit their properties there (p.97).</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Sampling option</th><th>Meaning</th><th>Default</th></tr></thead>
@@ -15,8 +14,7 @@
 <tr><td>Minimum conformance percentage for patterns</td><td>Patterns below this percentage are not shown. Required.</td><td>5</td></tr>
 <tr><td>Maximum number of rows to be profiled</td><td>All rows or a number. Required.</td><td>All</td></tr>
 <tr><td>Minimum data coverage to show List of Values</td><td>Percent of data the list must cover. Required.</td><td>80</td></tr>
-<tr><td>Maximum number of values in List of Values</td><td>Required.</td><td>20</td></tr>
-</tbody></table></div>
+<tr><td>Maximum number of values in List of Values</td><td>Required.</td><td>20</td></tr></tbody></table></div>
 <p>The guide's example for the last two: if the list is capped at 20 values, those 20 must account for at least 80% of the data (p.98).</p>
 <h3 id="c12-column-create">Creating and running a column profile</h3>
 <ol class="steps">
@@ -28,7 +26,6 @@
 </ol>
 <p>Results (p.106-107): the <strong>Profile &gt; Column Discovery</strong> view lists table, column, data type, % null, Inferred Rule (default a hyphen; select Yes to apply) and Select Inferred Type (pattern, list of values or range, depending on type: string allows list or pattern, date allows list or range, numeric allows list, pattern or range). Accept, reject or edit the profiled patterns, then save.</p>
 <div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.106, Figure "column profile results". What to look for: a grid of columns with an Inferred Rule drop-down and a Selected Inferred Type, and a lower Properties pane showing the range, patterns and list of values (with value and distribution percentages) for the selected column.</div>
-
 <h2 id="c12-profile-mgmt">12.9 Managing profiles</h2>
 <ul>
 <li><strong>Run many times.</strong> You can edit a profile between runs. Each run <strong>overwrites</strong> the earlier results (p.101).</li>
@@ -42,13 +39,10 @@
 <li><strong>Select the profile types, enter column profile properties if you chose Column, and click Finish.</strong><p class="expect">The imported profile appears in the Discover view.</p></li>
 </ol>
 <p>Two gotchas the guide gives: if you delete the project metadata after importing a profile, the profile shows no results; and if you re-import the metadata and import the profile again under a different name, the results appear in the first profile as well (pp.102-103).</p>
-
 <h2 id="c12-constraints">12.10 Constraints and relationships</h2>
 <p>Discovery suggests; constraints are what TDM actually uses. Foreign key constraints define parent-child relationships between source tables, and TDM uses them to decide which tables go into a subset and to limit the values in subset columns (User Guide 10.5.10, p.107). When you create an entity you pick one table as the <strong>driving table</strong>, and TDM adds other tables based on the constraints of that table (p.107). The <a href="13-informatica-data-subset.html">Informatica data subset chapter</a> builds on this.</p>
-
 <h3 id="c12-table-class">Table classification</h3>
 <p>In Discover &gt; Tables you can classify tables as <em>Temporary, Master, Configuration, Transactional, Log</em> or <em>Seed</em>. It does not affect profiles, but you can filter tables by it when creating entities or plans. The guide's reason: knowing which tables are master helps you decide driving tables, and transaction and log tables are candidates for extra filter criteria (p.107). ShopSphere reading: <code>CUSTOMERS</code> and <code>PRODUCTS</code> look like master tables; <code>ORDERS</code> and <code>ORDER_ITEMS</code> look transactional (our classification).</p>
-
 <h3 id="c12-constraint-types">Constraint types</h3>
 <div class="tablewrap"><table>
 <thead><tr><th>Type</th><th>Meaning (pp.108-109)</th><th>Notes</th></tr></thead>
@@ -57,9 +51,7 @@
 <tr><td>Foreign Key</td><td>A column or combination in a table related to a parent column.</td><td>Defined on the child table.</td></tr>
 <tr><td>Logical Manual</td><td>Parent-child relationship based on columns that are not keys. Either accepted from discovery profiles or defined in TDM.</td><td>You can delete both kinds.</td></tr>
 <tr><td>Unique Key</td><td>Column(s) that define a unique key; may contain nulls; you can add more than one.</td><td>Also helps bulk generation rule assignment.</td></tr>
-<tr><td>Conditional</td><td>An expression that restricts generated data in a column based on another column.</td><td>For data generation; becomes part of the target table metadata.</td></tr>
-</tbody></table></div>
-
+<tr><td>Conditional</td><td>An expression that restricts generated data in a column based on another column.</td><td>For data generation; becomes part of the target table metadata.</td></tr></tbody></table></div>
 <h3 id="c12-severity">Major and minor constraint severity</h3>
 <p>When you define a foreign key constraint you choose a <strong>severity</strong>, which decides how much data a subset pulls in (pp.108-109). The severity does not change the structure of the entity; you can change it after creating an entity and at run time in a subset plan (the run-time change does not change the entity).</p>
 <div class="compare">
@@ -75,7 +67,6 @@
 <li>For a smaller subset, choose the <strong>Referential Integrity Only</strong> option in a plan at run time. The data stays referentially intact, but it may not include every child of a parent, so transactional integrity might not be kept.</li>
 <li>If constraints form <strong>cycles</strong>, or an object has more than one major parent constraint, TDM does recursive evaluation and needs a <strong>staging connection</strong>. Using the source connection as the staging connection is recommended (p.109).</li>
 </ul>
-
 <h3 id="c12-manual-keys">Adding keys by hand</h3>
 <p>You can add keys yourself and skip discovery (p.109). In every case the source database is not updated. Steps are the same up to the type.</p>
 <div class="exercise">
@@ -90,7 +81,6 @@
 <p>Illustrative result: <code>CUSTOMERS</code> has primary key constraint on <code>customer_id</code>; <code>ORDERS</code> has a foreign key constraint to <code>CUSTOMERS</code> with severity Major if you want a customer's other orders to come with a filtered order. Repeat for <code>ORDER_ITEMS.order_id</code> to <code>ORDERS.order_id</code>. For the <code>ORDER_ITEMS.product_code</code> to <code>PRODUCTS</code> link, Minor is a reasonable choice because you do not want every item that uses a product. That severity choice is a design judgement of ours.</p></details>
 </div>
 <p>For a <strong>unique key</strong>, choose Unique Key instead of Primary Key and add columns (pp.110-111). For a <strong>conditional constraint</strong>, enter a name, choose Conditional, click Next, build an expression in the Expression Builder (see <a href="11-informatica-tdm-tour.html#c11-expression-builder">the Expression Builder section</a>), and click Finish (p.111).</p>
-
 <h2 id="c12-performance">12.11 Performance and accuracy tips collected from the guide</h2>
 <p>The guide has no dedicated performance section for discovery. These tips are scattered through the chapter; I collected them and cite where each came from.</p>
 <ul>

@@ -1,6 +1,5 @@
 <h2 id="c14-compare">14.7 Comparison and decision table</h2>
-<p>Datatypes and properties below come from the guide's technique table and technique sections (User Guide 10.5.10, p.152 to 177).
-The "good ShopSphere fit" column is my suggestion.</p>
+<p>Datatypes and properties below come from the guide's technique table and technique sections (User Guide 10.5.10, p.152 to 177). The "good ShopSphere fit" column is my suggestion.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Technique</th><th>Datatypes</th><th>Output looks real?</th><th>Repeatable?</th><th>Reversible?</th><th>Good ShopSphere fit</th></tr></thead>
 <tbody>
@@ -32,12 +31,10 @@ The "good ShopSphere fit" column is my suggestion.</p>
 <li><strong>Do you need to undo the masking later?</strong><p>Format preserving encryption, knowing the privacy trade-off.</p></li>
 <li><strong>Does a masked value depend on more than one column?</strong><p>An advanced rule, or a mapplet if PowerCenter logic already exists.</p></li>
 </ol>
-<p>The tool-neutral reasoning behind these choices is in <a href="06-masking-concepts.html">the masking concepts chapter</a>.
-If you meet the same ideas in Delphix, the equivalent algorithms are in <a href="26-delphix-algorithms-and-masking-jobs.html">the Delphix algorithms and masking jobs chapter</a>.</p>
+<p>The tool-neutral reasoning behind these choices is in <a href="06-masking-concepts.html">the masking concepts chapter</a>. If you meet the same ideas in Delphix, the equivalent algorithms are in <a href="26-delphix-algorithms-and-masking-jobs.html">the Delphix algorithms and masking jobs chapter</a>.</p>
 
 <h2 id="c14-advanced">14.8 Advanced masking rules in depth</h2>
-<p>An advanced rule is a small program built from columns of three types (User Guide 10.5.10, p.137 to 138, p.156 to 158) <span class="badge doc">From docs</span>: <strong>input</strong> (receives the source value), <strong>variable</strong> (a scratch column that holds an intermediate result from an expression or a masking technique, so you can combine several techniques) and <strong>output</strong> (the target column that receives the final value).
-Column names inside the rule are your own; at assignment time you map them to real columns.</p>
+<p>An advanced rule is a small program built from columns of three types (User Guide 10.5.10, p.137 to 138, p.156 to 158) <span class="badge doc">From docs</span>: <strong>input</strong> (receives the source value), <strong>variable</strong> (a scratch column that holds an intermediate result from an expression or a masking technique, so you can combine several techniques) and <strong>output</strong> (the target column that receives the final value). Column names inside the rule are your own; at assignment time you map them to real columns.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Property</th><th>For</th><th>Meaning</th></tr></thead>
 <tbody>
@@ -48,8 +45,7 @@ Column names inside the rule are your own; at assignment time you map them to re
 <tr><td>Dependent</td><td>variable, output</td><td>Dependent masking: replaces a column's value with the value from the <em>same dictionary row</em> that another column's substitution returned. You must define substitution on another column first. Sub-options: <strong>Input column</strong> (the column configured for substitution) and <strong>Dictionary column</strong></td></tr>
 </tbody></table></div>
 <h3 id="c14-full-name">Worked example: a masked full name</h3>
-<p>The guide's example (p.158) builds a masked full name from first and last name, and it fits ShopSphere.
-Say the target has a <code>full_name</code> column derived from <code>first_name</code> and <code>last_name</code>:</p>
+<p>The guide's example (p.158) builds a masked full name from first and last name, and it fits ShopSphere. Say the target has a <code>full_name</code> column derived from <code>first_name</code> and <code>last_name</code>:</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Column</th><th>Type</th><th>Technique</th><th>Expression</th></tr></thead>
 <tbody>
@@ -61,60 +57,34 @@ Say the target has a <code>full_name</code> column derived from <code>first_name
 </tbody></table></div>
 <p>Result for customer 1001, illustrative: input Asha and Menon; variables Divya and Iyer; output "Divya Iyer". The guide's advice: build expressions by point-and-click to minimise errors, and check that the expression returns the output column's datatype.</p>
 <h3 id="c14-name-subst">Worked example: first names by gender and nationality (guide)</h3>
-<p>The guide's longer example (p.177 to 182) preserves gender and nationality when masking first names.
-In outline: (1) add a dictionary in Administrator | Dictionaries with columns <code>SNO, COUNTRY, GENDER, FIRSTNAME</code> (sample rows: 1, US, M, Adam; 2, US, F, Sarah; 3, JP, M, Mahito; 4, JP, F, Kyoko); (2) create a standard string substitution rule with Override Allowed, Masked Value FIRSTNAME, Lookup column GENDER and a serial number column; (3) create an advanced rule with inputs <code>in_Country</code>, <code>in_FirstName</code>, <code>in_Gender</code>; variable columns <code>var_FirstName_us</code> (condition <code>in_Country='us'</code>) and <code>var_FirstName_jp</code> (condition <code>in_Country='jp'</code>), each applying the substitution rule with Repeatable Output and Unique Substitution Data overridden on, lookup column in_Gender and input column in_FirstName; and an output column <code>o_FirstName</code> using <code>in_FirstName</code> as conditional input.
-The lesson: a condition on a variable column lets one advanced rule choose a different substitution for different rows.</p>
+<p>The guide's longer example (p.177 to 182) preserves gender and nationality when masking first names. In outline: (1) add a dictionary in Administrator | Dictionaries with columns <code>SNO, COUNTRY, GENDER, FIRSTNAME</code> (sample rows: 1, US, M, Adam; 2, US, F, Sarah; 3, JP, M, Mahito; 4, JP, F, Kyoko); (2) create a standard string substitution rule with Override Allowed, Masked Value FIRSTNAME, Lookup column GENDER and a serial number column; (3) create an advanced rule with inputs <code>in_Country</code>, <code>in_FirstName</code>, <code>in_Gender</code>; variable columns <code>var_FirstName_us</code> (condition <code>in_Country='us'</code>) and <code>var_FirstName_jp</code> (condition <code>in_Country='jp'</code>), each applying the substitution rule with Repeatable Output and Unique Substitution Data overridden on, lookup column in_Gender and input column in_FirstName; and an output column <code>o_FirstName</code> using <code>in_FirstName</code> as conditional input. The lesson: a condition on a variable column lets one advanced rule choose a different substitution for different rows.</p>
 <h3 id="c14-shuffle-address">Worked example: shuffle addresses, keep ZIP (guide)</h3>
-<p>The other long example (p.183 to 189): you want to shuffle address lines but leave ZIP unmasked and keep each address's lines together.
-Create a string shuffle rule with Shuffle Type Random and Constrained, then an advanced rule with inputs <code>i_AddressLine1</code>, <code>i_AddressLine2</code>, <code>i_AddressLine3</code>, <code>i_ZIP</code>.
-A variable <code>v_AddressLine3</code> applies the shuffle rule with lookup column <code>i_ZIP</code>.
-Variables <code>v_AddressLine2</code> and <code>v_AddressLine1</code> use <strong>dependent masking</strong> on <code>v_AddressLine3</code>, with dictionary columns <code>i_AddressLine2</code> and <code>i_AddressLine1</code>, so they follow the same row.
-Output columns repeat the dependent settings.
-The ShopSphere parallel would be shuffling a street, city and state together while keeping <code>zip_code</code> as is.</p>
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.183 and p.189 (rule column lists for the name substitution and the shuffle address examples) and p.179 to 188 (rule parameter screens).
-These pages contain a sequence of small dialog screenshots for each column in the advanced rule; I did not inspect each one.
-The text steps on those pages are complete and are what I summarised.</div>
+<p>The other long example (p.183 to 189): you want to shuffle address lines but leave ZIP unmasked and keep each address's lines together. Create a string shuffle rule with Shuffle Type Random and Constrained, then an advanced rule with inputs <code>i_AddressLine1</code>, <code>i_AddressLine2</code>, <code>i_AddressLine3</code>, <code>i_ZIP</code>. A variable <code>v_AddressLine3</code> applies the shuffle rule with lookup column <code>i_ZIP</code>. Variables <code>v_AddressLine2</code> and <code>v_AddressLine1</code> use <strong>dependent masking</strong> on <code>v_AddressLine3</code>, with dictionary columns <code>i_AddressLine2</code> and <code>i_AddressLine1</code>, so they follow the same row. Output columns repeat the dependent settings. The ShopSphere parallel would be shuffling a street, city and state together while keeping <code>zip_code</code> as is.</p>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.183 and p.189 (rule column lists for the name substitution and the shuffle address examples) and p.179 to 188 (rule parameter screens). These pages contain a sequence of small dialog screenshots for each column in the advanced rule; I did not inspect each one. The text steps on those pages are complete and are what I summarised.</div>
 
 <h2 id="c14-custom">14.9 Custom rules: mapplets and the Data Masking transformation</h2>
 <p>This is the Day 54 topic "masking rules, algorithms, mapplet creation, using transformations". I will separate three things: what the guide says, what it does not say, and the general idea.</p>
 <h3 id="c14-mapplet-docs">What the guide says <span class="badge doc">From docs</span></h3>
 <ul>
-<li><strong>Purpose.</strong> Mapplet rules let you use PowerCenter masking techniques that are "not available in Test Data Manager" (User Guide 10.5.10, p.150).
-The mapplet holds the logic to mask the input columns and return data to the target columns (p.137, p.152).</li>
-<li><strong>How it gets in.</strong> You export the mapplet to an XML file from the PowerCenter repository or the Model repository, then import it in Test Data Manager as a rule (p.137, p.140).
-To mask Hadoop data you import mapplets built in the Developer tool (p.137).
-The TDM repository then stores the mapplet logic, and <strong>you cannot change the mapplet inside Test Data Manager</strong> (p.137).</li>
-<li><strong>What it must contain.</strong> One or more <strong>Data Masking transformations</strong>, and all transformations must be <strong>passive</strong> (they must not add or remove rows) (p.137, p.150).
-It can have multiple input and multiple output columns (p.137).</li>
+<li><strong>Purpose.</strong> Mapplet rules let you use PowerCenter masking techniques that are "not available in Test Data Manager" (User Guide 10.5.10, p.150). The mapplet holds the logic to mask the input columns and return data to the target columns (p.137, p.152).</li>
+<li><strong>How it gets in.</strong> You export the mapplet to an XML file from the PowerCenter repository or the Model repository, then import it in Test Data Manager as a rule (p.137, p.140). To mask Hadoop data you import mapplets built in the Developer tool (p.137). The TDM repository then stores the mapplet logic, and <strong>you cannot change the mapplet inside Test Data Manager</strong> (p.137).</li>
+<li><strong>What it must contain.</strong> One or more <strong>Data Masking transformations</strong>, and all transformations must be <strong>passive</strong> (they must not add or remove rows) (p.137, p.150). It can have multiple input and multiple output columns (p.137).</li>
 <li><strong>Required ports.</strong> Mark at least one input and one output column as mandatory; mandatory columns need source and target assignments when you assign the rule (p.137, p.141, p.155).</li>
 <li><strong>Custom masking parameters</strong> (p.156): Column Name, Column Type (input or output), Data Type, Precision, Mandatory, Group Name (input, output or another name you gave in the mapplet).</li>
 <li><strong>Single port mapplets.</strong> For one input and one output port you may use the same source port for both; you can do this for several ports at once when assigning (p.150).</li>
 <li><strong>Exporting the other way.</strong> You can also export rules as PowerCenter mapplets (p.150).</li>
-<li><strong>Assignment.</strong> Select the rule in the Masking Rule column, then link source input columns to rule input ports and rule output ports to source columns (p.142 to 143).
-Sybase to Hadoop limit: 20 columns.</li>
-<li><strong>Hadoop engine limits.</strong> With a Blaze engine a mapplet rule may use Expression, Data Masking, Case Converter, Comparison, Decision, Labeler, Merge, Parser, Weighted Average, Standardizer and Java Passive transformations.
-With Spark: Expression, Data Masking and Java Passive.
-Importing mapplets to mask Hadoop data cannot use sequence generator, lookup or classifier transformations (p.62, p.137).</li>
-<li><strong>Lookups in plans.</strong> If a mapplet rule contains multiple Lookup transformations, the plan shows a Mapplet Settings section where you choose a connection type and value for each (p.281).
-A lookup connection also appears in source settings (p.295).</li>
-<li><strong>Update strategy.</strong> If an imported mapplet contains a transformation set to define the update strategy, the default Treat source rows as option is Insert (p.284).
-The plan Advanced Options include a Mapplet setting to reuse or replace mapplets in PowerCenter (p.287).</li>
+<li><strong>Assignment.</strong> Select the rule in the Masking Rule column, then link source input columns to rule input ports and rule output ports to source columns (p.142 to 143). Sybase to Hadoop limit: 20 columns.</li>
+<li><strong>Hadoop engine limits.</strong> With a Blaze engine a mapplet rule may use Expression, Data Masking, Case Converter, Comparison, Decision, Labeler, Merge, Parser, Weighted Average, Standardizer and Java Passive transformations. With Spark: Expression, Data Masking and Java Passive. Importing mapplets to mask Hadoop data cannot use sequence generator, lookup or classifier transformations (p.62, p.137).</li>
+<li><strong>Lookups in plans.</strong> If a mapplet rule contains multiple Lookup transformations, the plan shows a Mapplet Settings section where you choose a connection type and value for each (p.281). A lookup connection also appears in source settings (p.295).</li>
+<li><strong>Update strategy.</strong> If an imported mapplet contains a transformation set to define the update strategy, the default Treat source rows as option is Insert (p.284). The plan Advanced Options include a Mapplet setting to reuse or replace mapplets in PowerCenter (p.287).</li>
 <li><strong>Changes.</strong> If you change the name or type of a field of a custom rule, existing assignments do not see it; import the mapplet again (p.144).</li>
 <li><strong>The Data Masking transformation's session properties</strong> (User Guide chapter 3, p.52 to 53): SSN High Group File path, DMO Cache Directory (dictionary cache, default <code>$PMCacheDir</code>), Cache Size (default 8 MB; recommended minimum 32 MB for 100,000 records), Shared Storage Table (default disabled; enable it when two transformations or ports use the same dictionary column, connection, seed and locale) and Storage Commit Interval (default 100,000 rows).</li>
-<li><strong>What TDM generates itself.</strong> When you run a masking plan, the PowerCenter Integration Service creates mappings, transformations, mapplets, sessions and workflows in the PowerCenter repository.
-The guide warns that if you edit these generated components in the PowerCenter Client, the session might give unexpected results (p.150).</li>
+<li><strong>What TDM generates itself.</strong> When you run a masking plan, the PowerCenter Integration Service creates mappings, transformations, mapplets, sessions and workflows in the PowerCenter repository. The guide warns that if you edit these generated components in the PowerCenter Client, the session might give unexpected results (p.150).</li>
 </ul>
 <h3 id="c14-mapplet-not">What the guide does not say</h3>
-<p>The guide tells you to export a mapplet that contains Data Masking transformations; it does <strong>not</strong> teach how to build one in PowerCenter Designer or the Developer tool.
-There are no steps for creating the mapplet, no list of the Data Masking transformation's port properties or its masking types, and no example of a finished mapplet in the chapters I read.
-It points to PowerCenter documentation for that.
-So "mapplet creation" in the syllabus, as a click-by-click task, is outside this guide; ask your trainer which PowerCenter material your course uses.</p>
+<p>The guide tells you to export a mapplet that contains Data Masking transformations; it does <strong>not</strong> teach how to build one in PowerCenter Designer or the Developer tool. There are no steps for creating the mapplet, no list of the Data Masking transformation's port properties or its masking types, and no example of a finished mapplet in the chapters I read. It points to PowerCenter documentation for that. So "mapplet creation" in the syllabus, as a click-by-click task, is outside this guide; ask your trainer which PowerCenter material your course uses.</p>
 <h3 id="c14-mapplet-concept">The general idea <span class="badge concept">General concept</span></h3>
-<p>This paragraph is explanatory background and is not from the guide.
-A <em>transformation</em> in PowerCenter is one processing step on rows of data (calculate, look up, filter, mask).
-A <em>mapplet</em> is a reusable bundle of such steps with defined input and output ports, which you can drop into many mappings, like a function you write once and call from many programs.
-A <em>Data Masking transformation</em> is the PowerCenter step that applies masking techniques to a port, and TDM's built-in techniques are the same family of logic exposed through a form.
-So a mapplet rule means "run my own bundle of steps instead of one built-in technique": for example check a country code first, then mask the phone number differently per country, then write two output columns.</p>
+<p>This paragraph is explanatory background and is not from the guide. A <em>transformation</em> in PowerCenter is one processing step on rows of data (calculate, look up, filter, mask). A <em>mapplet</em> is a reusable bundle of such steps with defined input and output ports, which you can drop into many mappings, like a function you write once and call from many programs. A <em>Data Masking transformation</em> is the PowerCenter step that applies masking techniques to a port, and TDM's built-in techniques are the same family of logic exposed through a form. So a mapplet rule means "run my own bundle of steps instead of one built-in technique": for example check a country code first, then mask the phone number differently per country, then write two output columns.</p>
 <figure class="diagram"><svg viewBox="0 0 800 160" role="img" aria-label="Custom mapplet rule path from PowerCenter to a masked column">
 <defs><marker id="c14b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
 <g font-family="sans-serif" font-size="12" fill="currentColor" stroke="currentColor">
@@ -129,8 +99,7 @@ So a mapplet rule means "run my own bundle of steps instead of one built-in tech
 <line x1="640" y1="75" x2="663" y2="75" stroke-width="2" marker-end="url(#c14b)"/>
 <text x="75" y="135" text-anchor="middle" stroke="none" font-size="11">not covered by the guide</text>
 </g></svg>
-<figcaption>Original diagram: the path of a custom mapplet rule.
-The first box, building the mapplet, is not taught in the User Guide; the other four steps follow User Guide 10.5.10, p.140 to 143.</figcaption></figure>
+<figcaption>Original diagram: the path of a custom mapplet rule. The first box, building the mapplet, is not taught in the User Guide; the other four steps follow User Guide 10.5.10, p.140 to 143.</figcaption></figure>
 <h3 id="c14-day54">Day 54 in one table</h3>
 <div class="tablewrap"><table>
 <thead><tr><th>Syllabus phrase</th><th>Where it is in this chapter</th></tr></thead>
@@ -141,6 +110,4 @@ The first box, building the mapplet, is not taught in the User Guide; the other 
 <tr><td>Using transformations</td><td>14.8 (expressions in advanced rules) and 14.9 (Data Masking transformation in a mapplet, session properties)</td></tr>
 </tbody></table></div>
 <p>The architecture behind this, with PowerCenter running the workflows that TDM generates, is in <a href="10-informatica-overview-and-architecture.html">the Informatica overview and architecture chapter</a>.</p>
-<p>Related video (transcript not available; not used as a source): <a href="https://www.youtube.com/watch?v=DVyJqMi7QtY" target="_blank" rel="noopener">"How to create mapplet in informatica" by LearningMart</a>.
-I could not read or watch it, so nothing in this chapter depends on it.
-It is listed only because its title matches the syllabus topic.</p>
+<p>Related video (transcript not available; not used as a source): <a href="https://www.youtube.com/watch?v=DVyJqMi7QtY" target="_blank" rel="noopener">"How to create mapplet in informatica" by LearningMart</a>. I could not read or watch it, so nothing in this chapter depends on it. It is listed only because its title matches the syllabus topic.</p>
