@@ -14,9 +14,6 @@
 <p><em>Steps from User Guide 10.5.10, pp.304-305.</em></p>
 <h3 id="c16-create-gen">16.4.2 A data generation plan</h3>
 <p>The wizard is the same, but you skip the masking and subset pages, add generation components (entities and tables), enter the number of records and set connections (p.305). The full walk-through, with ShopSphere examples, is in <a href="15-informatica-data-generation.html">the Informatica generation chapter</a>. There is also a one-column ad hoc generation plan reached from Define | Data Generation with Actions &gt; Generate and Execute (p.306).</p>
-<h3 id="c16-create-hadoop">16.4.3 Hadoop plans in one paragraph</h3>
-<p>Choose the Hadoop plan type when you create a plan. You can add masking components and groups only; sources can be Oracle, DB2, Sybase, Microsoft SQL Server, Hive, flat file or HDFS, and targets relational (including Hive) or HDFS in None, Avro or Parquet format. The engine can be Blaze or Spark, and a Data Integration Service runs it instead of PowerCenter (pp.291-292, 306). We do not use Hadoop in ShopSphere.</p>
-
 <h2 id="c16-components">16.5 Plan components in practice</h2>
 <h3 id="c16-comp-mask">16.5.1 Masking and subset components</h3>
 <p><strong>Masking components</strong> are policies and rules. You may restrict a run to some of them, and you can turn masking on or off for a specific column when you set plan criteria. A catch: if a plan contains a Format Preserving Encryption rule set to decrypt, no other masking rules may be in that plan, so disable the others (p.292). <strong>Subset components</strong> are entities, groups, templates or XSD files (p.293).</p>
@@ -71,8 +68,6 @@
 <tr><td>Optimize Relationship Type for Entities</td><td>Optimizes relations at plan level; needs plan-level criteria</td><td>Leave default</td></tr>
 </tbody></table></div>
 <p>Two platform notes from the guide: on a DB2 for z/OS target, disabling constraints leaves the tablespace in Check Pending state until a Check Data utility is run; on PostgreSQL, exclusion constraints are not disabled (p.283).</p>
-<h3 id="c16-update">16.6.2 Update strategy</h3>
-<p><strong>Treat source rows as</strong> Insert or Update, and <strong>Update as</strong> Update, Insert or Update else Insert (update rows that exist, insert the rest). Choosing the same connection for source and target switches "treat as" to Update (p.284). Update else Insert is also what the guide uses when restoring from a backup after a failed reset (p.247).</p>
 <h3 id="c16-error">16.6.3 Error and recovery</h3>
 <div class="tablewrap"><table>
 <caption>Error and recovery options (User Guide 10.5.10, pp.285-286)</caption>
@@ -100,29 +95,6 @@
 <li><strong>Reset Recovery prefix:</strong> used only to restore after a failed reset (p.289).</li>
 <li><strong>Locale, Datetime Format String, Enable High Precision, DTM Buffer Size, SSN High Group File, Use SoftHSM:</strong> specialised settings (pp.287-290).</li>
 </ul>
-<h3 id="c16-logsettings">16.6.5 Log settings</h3>
-<p>You can keep workflow and session logs <em>by run</em> (a set number of historical logs plus the latest) or <em>by time stamp</em> (a log for every run, with a time stamp). Session logs can roll over by maximum size in megabytes or by time period, and you can also write a text version in addition to the binary log (pp.290-291). The default for rollover size and time is zero, meaning no limit.</p>
-<h3 id="c16-datasetprops">16.6.6 Data set properties (when the target is the warehouse)</h3>
-<p>Choosing the test data warehouse as the target connection makes a <strong>Data Set Properties</strong> section appear: Name (required), Description, Data Set Version (not editable), Application, Application Version and Tags separated by commas (p.281). More in the warehouse section.</p>
-
-<h3 id="c16-goal-table">16.6.7 Which setting for which goal</h3>
-<div class="tablewrap"><table>
-<caption>Quick lookup (my summary of options already described above)</caption>
-<thead><tr><th>You want to</th><th>Change this</th><th>Page</th></tr></thead>
-<tbody>
-<tr><td>Rerun into the same private schema</td><td>Target options: Truncate Table</td><td>282</td></tr>
-<tr><td>Load faster</td><td>Disable Indexes, Disable Constraints, Target Load Type Bulk</td><td>282-288</td></tr>
-<tr><td>Keep going past a few bad rows</td><td>Stop on Error above zero</td><td>285</td></tr>
-<tr><td>Stop at the first problem and fix it</td><td>Suspend on Error: Yes</td><td>285</td></tr>
-<tr><td>Resume a half-finished run</td><td>Recover Strategy and High Availability Recovery</td><td>285</td></tr>
-<tr><td>Be told when a run ends</td><td>Advanced Options: Email</td><td>287</td></tr>
-<tr><td>Write into a different schema</td><td>Target Schema Name (value or parameter)</td><td>288</td></tr>
-<tr><td>Prepare or tidy the target around the load</td><td>Target Pre SQL, Target Post SQL</td><td>277-278, 289</td></tr>
-<tr><td>Run something before or after the whole plan</td><td>Pre-Workflow, Post-Workflow</td><td>277, 287</td></tr>
-<tr><td>Store the result for reuse</td><td>Target connection: Test Data Warehouse</td><td>281</td></tr>
-<tr><td>Keep logs of many runs</td><td>Log Settings: save by time stamp</td><td>290</td></tr>
-</tbody></table></div>
-
 <h2 id="c16-source-override">16.7 Source, table and file overrides</h2>
 <p>Many plan settings can be overridden for one data source or one table. If a property is not offered at the data source level, the plan level value applies (p.295). Overridable examples: connections, flat-file name, directory and delimiter (Delimited by default, comma), row separator, optional quotes, headers (default Yes), file encoding, source and target schema names, pre and post SQL, batch size, table name overrides and partitioning (Pass Through, Key Range or Database Partitioning) (pp.295-301).</p>
 <p>For flat-file sources you can supply a <strong>file list</strong>: a text file naming one source file per line (with a path if it is not in the same directory). All files in the list must share the same properties (p.303). XML (XSD) sources have their own directory, file name and null-representation settings (pp.302-303).</p>

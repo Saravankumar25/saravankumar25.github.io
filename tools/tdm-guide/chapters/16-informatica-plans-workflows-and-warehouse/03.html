@@ -105,24 +105,6 @@ Properties | Logs        (select a job, then open a tab)</pre></div><div class="
 <div class="callout tip"><strong class="ctitle">Two numbers that should agree</strong>
 <p>For a straight copy, Source Rows Succeeded and Target Rows Succeeded should match. If targets are lower and Failed is zero, check for an update strategy or a filter in the plan. If Failed is not zero, rows were rejected; look at the session's last error message.</p></div>
 
-<h3 id="c16-read-example">16.11.4 A healthy run and a sick run, side by side</h3>
-<p>The numbers below are invented for ShopSphere. Compare two Sessions tabs for the same plan.</p>
-<div class="tablewrap"><table class="sample">
-<caption>Sessions tab, healthy run (illustrative)</caption>
-<thead><tr><th>Session</th><th>Status</th><th>Source Rows Succeeded</th><th>Source Rows Failed</th><th>Target Rows Succeeded</th><th>Target Rows Failed</th></tr></thead>
-<tbody>
-<tr><td>S1</td><td>Success</td><td>120</td><td>0</td><td>120</td><td>0</td></tr>
-<tr><td>S2</td><td>Success</td><td>310</td><td>0</td><td>310</td><td>0</td></tr>
-</tbody></table></div>
-<div class="tablewrap"><table class="sample">
-<caption>Sessions tab, sick run (illustrative)</caption>
-<thead><tr><th>Session</th><th>Status</th><th>Source Rows Succeeded</th><th>Source Rows Failed</th><th>Target Rows Succeeded</th><th>Target Rows Failed</th></tr></thead>
-<tbody>
-<tr><td>S1</td><td>Success</td><td>120</td><td>0</td><td>120</td><td>0</td></tr>
-<tr><td>S2</td><td>Error</td><td>310</td><td>0</td><td>287</td><td>23</td></tr>
-</tbody></table></div>
-<p>In the sick run S2 read all 310 rows but could not write 23 of them. Open S2's Session Details: the Rejected Rows column and the last error message name the table and the reason (p.314). Only then open the full session log. This top-down route, job then workflow then session then table, is faster than reading a 10,000-line log from the top.</p>
-
 <h2 id="c16-reports">16.12 Reports</h2>
 <p>Reports show detailed information about recent activity, a project or a plan. They open in a new window, so allow pop-ups for the site (User Guide 10.5.10, p.321).</p>
 <div class="tablewrap"><table>
@@ -148,17 +130,6 @@ Properties | Logs        (select a job, then open a tab)</pre></div><div class="
 <li><strong>Put one column on the X axis and one on the Y axis, optionally add up to two filter columns, click Analyze.</strong><p>The grid shows data density.</p></li>
 <li><strong>Fix gaps:</strong> mark meaningless cells as invalid, or select a gap and use Fill to move rows from dense cells.<p>Fill runs a separate job per source cell. If a needed parent row is missing, a dialog asks you to type values, matching the column data types (pp.267-269).</p></li>
 </ol>
-<p>The guide's own small example (p.270): regions on the X axis and paygrade on the Y axis give this grid from three tables.</p>
-<div class="tablewrap"><table class="sample">
-<caption>Row counts per cell in the guide's example (p.270)</caption>
-<thead><tr><th>Region / Paygrade</th><th>Low</th><th>Medium</th><th>High</th></tr></thead>
-<tbody>
-<tr><td>East</td><td>0</td><td>1</td><td>0</td></tr>
-<tr><td>West</td><td>0</td><td>0</td><td>0</td></tr>
-<tr><td>North</td><td>0</td><td>1</td><td>0</td></tr>
-<tr><td>South</td><td>2</td><td>1</td><td>0</td></tr>
-</tbody></table></div>
-<p>South has two Low rows but the tests do not need Low. The team moves one record from South-Low to East-Medium: the move edits one existing row. To fill West-High they must add a branch for the West region, so a dialog asks them to type the new branch's values (pp.270-271).</p>
 <div class="mock"><div class="mbar">Coverage grid (schematic, ShopSphere)</div><div class="mbody"><pre class="ascii">threshold = 5 customers      total_amount band
 zip band        under 500    500-2000    over 2000
 56xxxx              9           7           0   &lt;- gap
