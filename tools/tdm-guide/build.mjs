@@ -62,6 +62,11 @@ function transformMini(html, oldNum, w) {
   // the guide carries no quizzes or practice questions: strip any that slip in
   h = h.replace(/<details class="quiz"[\s\S]*?<\/details>/g, "").replace(/<h[23][^>]*>[^<]*(?:Check yourself|Practice questions?|Self-?check)[^<]*<\/h[23]>/gi, "");
   h = h.replace(/\bthis chapter\b/g, "this section").replace(/\bThis chapter\b/g, "This section").replace(/Sources used in this section/g, "Sources used in this section");
+  // prose references to guide sections ("section 8.13") follow the renumbering (8.13 -> 3.1.13)
+  h = h.replace(/\b(Sections?\s+)(\d{1,2})\.(\d+)((?:\.\d+)?)/gi, (m, pre, a, b, rest) => {
+    const t = where[Number(a)];
+    return t ? `${pre}${t.ch.num}.${t.k}.${b}${rest}` : m;
+  });
   return rewriteHrefs(h);
 }
 

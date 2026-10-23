@@ -1,0 +1,123 @@
+<h2 id="c21-output">21.6 What the output should look like</h2>
+<p>Your file will contain different names, but the shape must match. This is an <strong>illustrative sample</strong> I wrote to show the shape (names are invented combinations; it is not captured from a real run). The phone format follows the vendor's PhoneNumberGen preview screenshot.</p>
+<div class="tablewrap"><table class="sample"><caption>Illustrative first 5 data rows of Customers.csv (plus the header)</caption>
+<thead><tr><th>FirstName</th><th>LastName</th><th>Full Name</th><th>Phone Number</th></tr></thead>
+<tbody>
+<tr><td>Venice</td><td>Brough</td><td>Venice Alecia Brough</td><td>(800) 600-1000</td></tr>
+<tr><td>Lonna</td><td>Carnevale</td><td>Lonna Hector Carnevale</td><td>(800) 600-1001</td></tr>
+<tr><td>Ileana</td><td>Hollifield</td><td>Ileana Rosalind Hollifield</td><td>(800) 600-1002</td></tr>
+<tr><td>Towanda</td><td>Studer</td><td>Towanda Elwood Studer</td><td>(800) 600-1003</td></tr>
+<tr><td>Barbera</td><td>Ignacio</td><td>Barbera Kuehl Ignacio</td><td>(800) 600-1004</td></tr>
+</tbody></table></div>
+<p>In the raw file each row is one comma-separated line, for example <code>Venice,Brough,Venice Alecia Brough,(800) 600-1000</code>. Notice that the Full Name's first word equals FirstName and its last word equals LastName. That relationship is the proof that the reference approach worked.</p>
+
+<h2 id="c21-verify">21.7 Verification checks</h2>
+<p>A file that "looks fine" in the first few rows can still be wrong in row 37. Check it deliberately. The commands below are general shell commands (macOS, Linux or Git Bash on Windows), not from the GenRocket documentation; a spreadsheet can do the same with COUNTA, LEN and conditional formatting.</p>
+<div class="tablewrap"><table><caption>Checks, how to run them and what you expect</caption>
+<thead><tr><th>Check</th><th>Command</th><th>Expected</th></tr></thead>
+<tbody>
+<tr><td>Row count</td><td><code>wc -l Customers.csv</code></td><td>51 (header plus 50). It shows 50 if the file has no final newline, so also check the last row number.</td></tr>
+<tr><td>Header names</td><td><code>head -1 Customers.csv</code></td><td><code>FirstName,LastName,Full Name,Phone Number</code></td></tr>
+<tr><td>Four columns per row</td><td><code>awk -F, 'NR&gt;1 &amp;&amp; NF!=4' Customers.csv</code></td><td>No output.</td></tr>
+<tr><td>No empty values</td><td><code>awk -F, 'NR&gt;1{for(i=1;i&lt;=NF;i++) if($i=="") bad++} END{print bad+0}' Customers.csv</code></td><td><code>0</code></td></tr>
+<tr><td>Full Name consistent</td><td><code>awk -F, 'NR&gt;1{n=split($3,p," "); if(n!=3||p[1]!=$1||p[3]!=$2) print NR}' Customers.csv</code></td><td>No output.</td></tr>
+<tr><td>Phone length</td><td><code>awk -F, 'NR&gt;1{print length($4)}' Customers.csv | sort | uniq -c</code></td><td>One line: 50 rows with the same length (14 characters for the <code>(800) 600-1000</code> format).</td></tr>
+<tr><td>Phones unique</td><td><code>cut -d, -f4 Customers.csv | tail -n +2 | sort | uniq -d</code></td><td>No output (no duplicates).</td></tr>
+</tbody></table></div>
+<p>Full checklist before you call the lab finished:</p>
+<ul>
+<li>The file is where <code>resource.output.directory</code> says, and is named <code>Customers.csv</code>.</li>
+<li>Exactly 50 data rows; the header is present once.</li>
+<li>Only the four wanted columns: no <code>id</code>, no middle name.</li>
+<li>No empty or "null" cells in any column.</li>
+<li>Full Name equals FirstName, a middle name and LastName for every row.</li>
+<li>All phone numbers have the same length and are unique.</li>
+<li>Running the scenario a second time still gives 50 rows, not 100 (<code>appendToFile</code> false). If you set a <code>seed</code>, the names are the same as before.</li>
+</ul>
+<div class="callout why"><strong class="ctitle">Why verify at all?</strong>
+<p>Test data is an input to other tests. If the data silently has 49 rows or an empty phone, every test that uses it can fail for reasons that have nothing to do with the application. A five-minute check protects hours of debugging.</p></div>
+
+<h2 id="c21-troubleshoot">21.8 Troubleshooting</h2>
+<div class="tablewrap"><table><caption>Problems, causes and fixes (documentation-based unless marked)</caption>
+<thead><tr><th>Symptom</th><th>Likely cause and fix</th></tr></thead>
+<tbody>
+<tr><td>No New Project button</td><td>You lack permission to create projects; ask the organization admin (project creation page).</td></tr>
+<tr><td><code>'genrocket' is not recognized</code> or <code>command not found: genrocket</code></td><td>The Runtime folder or environment variables are wrong. Check the <code>genrocket</code> folder is in your home directory, <code>GEN_ROCKET_HOME</code> is set and <code>PATH</code> includes it (<a href="@@URL genrocket_runtime_genrocket_runtime_setup_warnings_and_errors@@" target="_blank" rel="noopener">Runtime setup warnings and errors</a>).</td></tr>
+<tr><td><code>Could not find the required profile: GRXXXXXXXProfile.grp</code>, "INVALID ACCESS KEY"</td><td>Download your user profile and place it in the <code>.genrocket</code> folder, replacing an older one, then re-run (<a href="@@URL scenarios_error_could_not_find_the_required_profile_grxxxxxxxprofilegrp@@" target="_blank" rel="noopener">error page</a>).</td></tr>
+<tr><td>"Unable to Download Users Profile"</td><td>Every resource in the dashboard needs a valid value; enter N/A for resources you do not use.</td></tr>
+<tr><td>Run succeeds but there is no file</td><td>The receiver is missing or disabled for the scenario, or the output folder is not where you looked. Check the Scenario Dashboard's receiver pane and your <code>resource.output.directory</code>.</td></tr>
+<tr><td>Only 1 row</td><td>The domain loop count is still 1. Set <code>global.Customer.loopCount</code> to 50, and download the scenario again.</td></tr>
+<tr><td>Changed something online, nothing changed in the file</td><td>The scenario file is a snapshot. Download it again after every change. The DelimitedFileReceiver page says this explicitly for <code>includeHeader</code>, and adds that an outdated receiver jar can still show headers.</td></tr>
+<tr><td>Full Name column empty</td><td><code>fullName</code> is above the attributes it references. Use Rearrange Attributes.</td></tr>
+<tr><td>Full Name has no spaces</td><td>Add Space items missing from the ConcatGen <code>list</code>.</td></tr>
+<tr><td>A MiddleName column appears</td><td><code>Visible</code> still ticked, or <code>include</code> true on the receiver. Untick it and re-download.</td></tr>
+<tr><td>Same names every run</td><td>A <code>seed</code> is set on NameGen. Clear it for fresh names.</td></tr>
+<tr><td><code>OutOfMemoryError: GC overhead limit exceeded</code></td><td>Unlikely at 50 rows; for large runs set <code>JAVA_OPTS</code> and avoid tight uniqueness limits (<a href="@@URL scenarios_error_javalangoutofmemoryerror_gc_overhead_limit_exceeded@@" target="_blank" rel="noopener">error page</a>).</td></tr>
+</tbody></table></div>
+
+<h2 id="c21-lab-extension">21.9 Extension lab: an email and a nullable column</h2>
+<div class="exercise"><h4>Lab: add Email and a nullable Alternate Phone</h4>
+<p>Goal: the same 50 rows with two more columns, one of them sometimes empty. This puts the null pattern from <a href="20-genrocket-data-patterns.html#c20-null-blank">the null and blank section of the patterns chapter</a> into practice.</p>
+<ol class="steps">
+<li><strong>Add <code>email</code> with EmailGen.</strong><p>New Attribute <code>email</code>; names containing "email" get EmailGen automatically. <span class="badge doc">From docs</span> Its parameters are <code>prefix</code> (the local part), <code>reference</code> (another attribute, to make the local part unique), <code>suffix</code> (the first part of the domain) and <code>extension</code> (com, net and so on) (<a href="@@URL user_generators_how_do_i_use_the_emailgen_generator@@" target="_blank" rel="noopener">EmailGen</a>). Set <code>prefix</code> <code>user</code>, <code>reference</code> the <code>id</code> attribute, <code>suffix</code> <code>example</code>, <code>extension</code> <code>com</code>. Referencing <code>id</code> makes each address unique.</p><p class="expect">Preview shows addresses like <code>user1@example.com</code> (illustrative, based on the pattern in the vendor's API example).</p></li>
+<li><strong>Add <code>alternatePhone</code> and make it nullable.</strong><p>Give it PhoneNumberGen with <code>areaCode</code> 900 so it differs from the main phone. On the Attribute Dashboard set <strong>% Null</strong> to 30. That field is "the percentage of time the null value is used for negative testing". Click Save.</p><p class="expect">Preview shows a mix of numbers and empty or null cells.</p></li>
+<li><strong>Decide how null is written.</strong><p>On the receiver, check <code>nullValue</code> (default <code>(null)</code> in the screenshot). Set it to an empty string if your consumer expects an empty cell. Add the two attributes to the receiver's Attributes Property Keys with column names <code>Email</code> and <code>Alternate Phone</code>.</p></li>
+<li><strong>Download and run again.</strong><p>The earlier checks change: six columns; no empty values in the first four; roughly 15 of 50 <code>Alternate Phone</code> cells empty (the docs give no exact count for <code>% Null</code>).</p></li>
+</ol>
+<details class="sol"><summary>Idea: ten-digit phone numbers instead</summary>
+<p>ShopSphere's sample phones are 10 plain digits. Make <code>phoneNumber</code> a linked set: <code>gen1</code> PhoneNumberGen, <code>gen2</code> StringReplacementGen with <code>value</code> <code>#{self.gen1}</code>, <code>fromText</code> <code>\D</code> and <code>toText</code> empty. The StringReplacementGen page says a match with no replacement is removed, and lists <code>\D</code> as "any non-decimal digit" (<a href="@@URL string_manipulation_generators_how_do_i_use_the_stringreplacementgen@@" target="_blank" rel="noopener">StringReplacementGen</a>). Expect 8006001000 for the first row, 10 characters, but check the Preview. For a nullable phone, EmailGen-style: use <code>% Null</code> as above.</p></details>
+</div>
+
+<h2 id="c21-lab-parent-child">21.10 Extension lab: customers with a varying number of orders</h2>
+<p>Real data has parents and children: one customer, several orders. GenRocket models this with a parent domain and a child domain, and each domain "has one parent but many siblings" (<a href="@@URL domains_overview_how_do_i_manually_set_parentchild_relationships_between_domains@@" target="_blank" rel="noopener">manual parent and child relationships</a>). This lab follows the vendor's page "How to generate Children based on Weights (Percentages)" (<a href="@@URL assigning_and_configuring_generators_how_to_generate_children_based_on_weights_percentages@@" target="_blank" rel="noopener">link</a>), with ShopSphere names.</p>
+<div class="exercise"><h4>Lab: 10 customers, each with 1, 2 or 3 orders</h4>
+<p>Goal: 10 customers; 5 of them (50 percent) have 2 orders, 2 (20 percent) have 3 and 3 (30 percent) have 1. Total orders: 19.</p>
+<ol class="steps">
+<li><strong>Create the child domain and set the parent.</strong><p>Create a domain <code>Order</code> with a RangeGen order id and a delimited receiver (as in the main lab). In <code>Order</code>'s Domain Dashboard open the <strong>Relationship</strong> tab, click <strong>Add Referential Parent</strong>, choose <code>Customer</code>, Save. Set <code>Customer</code>'s loop count to 10. A parent domain must exist so that each order points at a real customer.</p><p class="expect">A small diagram shows Customer above Order.</p>
+@@SHOT assigning_and_configuring_generators_how_to_generate_children_based_on_weights_percentages 2 | Relationship tab diagram with User as parent of Address | The Relationship tab drawing of the vendor example: a <code>User</code> box above an <code>Address</code> box. Ours is Customer above Order. @@</li>
+<li><strong>Add an attribute to the parent that holds the child count.</strong><p>In <code>Customer</code>, add <code>childLoopCount</code>, untick Visible (it is a helper), and replace its generator with <strong>MultiWeightGen</strong>: <code>valueList</code> 2, 3, 1; <code>percentList</code> 50, 20, 30; <code>exactPercentage</code> True. Save Generator.</p><p class="expect">The attribute exists, hidden, and its preview shows 2, 3 and 1.</p>
+@@SHOT assigning_and_configuring_generators_how_to_generate_children_based_on_weights_percentages 8 | MultiWeightGen percentList 50, 20, 30 with exactPercentage True | The percent list (50, 20, 30) and <code>exactPercentage</code> True on the vendor's example. @@</li>
+<li><strong>Create the scenario for the child and point its loop count at the parent's attribute.</strong><p>Create a scenario with <code>Order</code> as the primary domain (Quick Scenario adds the parent). On the Scenario Dashboard double-click <code>Order</code>'s Loop Count Value, choose the Domain Attributes tab, select <code>Customer</code>, click <strong>+</strong> beside <code>childLoopCount</code>, and save with the disk icon.</p><p class="expect">The Summary column reads "N Order for each Customer", where N comes from <code>childLoopCount</code>.</p>
+@@SHOT assigning_and_configuring_generators_how_to_generate_children_based_on_weights_percentages 12 | Scenario Domains table showing the child loop count referencing childLoopCount and the summary 1 Address For Each User | The Scenario Domains table after the change: the child's Loop Count Value references the parent's <code>childLoopCount</code> and the Summary says "N Address For Each User". @@</li>
+<li><strong>Download and run.</strong><p>Run <code>genrocket -r &lt;scenario&gt;.grs</code>. <span class="badge doc">From docs</span> The vendor's output shows ten users with 3, 1 or 2 addresses in the stated proportions, as the annotated screenshot shows.</p><p class="expect">19 order rows. Count orders per customer id: five customers with 2, two with 3, three with 1.</p>
+@@SHOT assigning_and_configuring_generators_how_to_generate_children_based_on_weights_percentages 16 | Address file with groups outlined as 20 percent, 30 percent and 50 percent | The vendor's output with the groups outlined: 20 percent of users have 3 addresses, 30 percent have 1 and 50 percent have 2. @@</li>
+</ol>
+<details class="sol"><summary>Show a foreign key column and notes</summary>
+<p>To carry the customer id into each order, give <code>Order</code> a <code>customerId</code> attribute that references the parent's id. The ReferenceGen page defines it as referencing "the value of another Domain Attribute's generated value", with a <code>reference</code> parameter such as <code>#{com.acme.User.id}</code> (<a href="@@URL misc_generators_how_do_i_use_the_referencegen_generator@@" target="_blank" rel="noopener">ReferenceGen</a>). The ProxyReferenceGen page adds that attributes can only reference parent or sibling domains in a scenario, and that a proxy placeholder is replaced by ReferenceGen. I did not run this step, so check the Preview after you set it.</p></details>
+</div>
+<h3 id="c21-lab-boundary">21.10.1 Third lab: the boundary suite</h3>
+<p>The third lab is in the patterns chapter: <a href="20-genrocket-data-patterns.html#c20-lab-boundary">a boundary-value suite for ShopSphere orders</a>. It reuses steps 11 to 15 here (receiver, scenario, download, run) with a ListGen whose <code>setLoop</code> is True, so the row count is the number of boundary cases, not 50. Run it, then check that you get exactly seven rows.</p>
+
+<h2 id="c21-presentation">21.11 What you would explain in the final presentation</h2>
+<ol>
+<li><strong>The problem:</strong> why testing needs data that is safe, plentiful and shaped for tests, and why copying production fails (<a href="02-why-tdm.html">the chapter on why TDM exists</a>).</li>
+<li><strong>The plan:</strong> the four stages of 21.2, with one use case per stage and this lab as the POC.</li>
+<li><strong>The model:</strong> the five GenRocket components and how each appeared in the lab: domain <code>Customer</code>, five attributes, three generators, one receiver, one scenario.</li>
+<li><strong>The design decisions:</strong> why a separate middle name, why a reference-based Full Name, why Visible off for the helper, why <code>appendToFile</code> false.</li>
+<li><strong>The result:</strong> a 50-row file and the verification table with what passed.</li>
+<li><strong>The patterns:</strong> sequential phone numbers, random names with an optional seed, a null column in the extension, and a boundary suite.</li>
+<li><strong>Limits and risks:</strong> what the docs did not specify (middle-name generator, phone format options), what you would check in your version, and the need for the Runtime and licence on the machine that runs it.</li>
+<li><strong>Next steps:</strong> import the real data model, add parent and child domains, schedule through a pipeline or G-Repository, and move to <a href="22-delphix-overview-and-terminology.html">Delphix</a> for the masking half of the story.</li>
+</ol>
+
+<h2 id="c21-recap">21.12 Recap</h2>
+<div class="callout recap"><strong class="ctitle">Recap</strong>
+<ul>
+<li>A TDG plan has four stages: use cases, proof of concept, environment assessment and deployment plan. The 50-record lab is a POC.</li>
+<li>Lab path: project, domain <code>Customer</code>, loop count 50, five attributes, a DelimitedFileReceiver, a scenario, download, <code>genrocket -r</code>, open the file.</li>
+<li>FirstName and LastName use NameGen (<code>nameType</code> firstName and lastName); the middle name uses NameGen too, because no middle-name type is documented.</li>
+<li>Full Name is a ConcatGen whose <code>list</code> references the three name attributes with spaces between; it must sit below them, and the helper attribute is hidden with Visible off.</li>
+<li>Phone Number is PhoneNumberGen, a sequence of numbers.</li>
+<li>The receiver's <code>columnName</code> and <code>include</code> property keys set the headers and drop <code>id</code>; <code>appendToFile</code> false keeps reruns at 50 rows.</li>
+<li>Verify the output: 50 rows, four columns, no empties, consistent Full Name, equal-length unique phones. Download the scenario again after every change.</li>
+<li>Extensions: EmailGen and <code>% Null</code> for a nullable column; MultiWeightGen for child counts; ListGen with <code>setLoop</code> for boundary rows.</li>
+</ul></div>
+
+<section class="sources"><h2 id="c21-sources">Sources used in this chapter</h2>
+<p>All from the GenRocket help centre (genrocket.helpjuice.com), read in full; screenshots are the vendor's, embedded from the page named in each caption. The Day 48 planning section is general practice, anchored to the pages marked.</p>
+<ul>
+<li>Planning: <a href="@@URL cicd_pipeline_and_cots_integrations_automating_data_generation_using_cicd_pipeline@@" target="_blank" rel="noopener">CI/CD pipeline page</a>, <a href="@@URL welcome_to_genrocket_the_genrocket_methodology@@" target="_blank" rel="noopener">Methodology</a>, <a href="@@URL welcome_to_genrocket_test_data_workflow@@" target="_blank" rel="noopener">Test Data Workflow</a>, <a href="@@URL genrocket_runtime_genrocket_runtime_overview@@" target="_blank" rel="noopener">Runtime Overview</a>, <a href="@@URL test_data_projects_how_do_i_create_a_test_data_project@@" target="_blank" rel="noopener">creating a project</a>.</li>
+<li>Build: <a href="@@URL importing_and_creating_domains_how_do_i_create_a_new_domain@@" target="_blank" rel="noopener">New Domain</a>, <a href="@@URL domains_overview_how_do_i_change_the_loopcount_for_a_domain@@" target="_blank" rel="noopener">loopCount</a>, <a href="@@URL attributes_how_do_i_add_an_attribute_to_a_domain@@" target="_blank" rel="noopener">add an Attribute</a>, <a href="@@URL attributes_attribute_dashboard@@" target="_blank" rel="noopener">Attribute Dashboard</a>, <a href="@@URL name_generators_how_do_i_use_the_namegen_generator@@" target="_blank" rel="noopener">NameGen</a>, <a href="@@URL name_generators_how_do_i_use_the_fullnamegen_generator@@" target="_blank" rel="noopener">FullNameGen</a>, <a href="@@URL string_manipulation_generators_how_do_i_use_the_concatgen_generator@@" target="_blank" rel="noopener">ConcatGen</a>, <a href="@@URL linking_generators_linked_generators_overview@@" target="_blank" rel="noopener">Linked Generators</a>, <a href="@@URL user_generators_how_do_i_use_the_phonenumbergen_generator@@" target="_blank" rel="noopener">PhoneNumberGen</a>.</li>
+<li>Output and run: <a href="@@URL common_receivers_how_do_i_use_the_delimited_file_receiver@@" target="_blank" rel="noopener">DelimitedFileReceiver</a>, <a href="@@URL adding_and_configuring_receivers_how_do_i_add_a_receiver_to_a_domain@@" target="_blank" rel="noopener">add a Receiver</a>, <a href="@@URL receivers_overview_receivers_overview@@" target="_blank" rel="noopener">Receivers Overview</a>, <a href="@@URL scenarios_how_do_i_create_a_scenario@@" target="_blank" rel="noopener">create a Scenario</a>, <a href="@@URL scenarios_scenario_dashboard@@" target="_blank" rel="noopener">Scenario Dashboard</a>, <a href="@@URL scenarios_how_do_i_run_a_genrocket_scenario@@" target="_blank" rel="noopener">run a Scenario</a>, <a href="@@URL organization_resources_how_do_i_change_resource_values_and_download_my_user_profile@@" target="_blank" rel="noopener">resources and user profile</a>.</li>
+<li>Extensions and errors: <a href="@@URL user_generators_how_do_i_use_the_emailgen_generator@@" target="_blank" rel="noopener">EmailGen</a>, <a href="@@URL assigning_and_configuring_generators_how_to_generate_children_based_on_weights_percentages@@" target="_blank" rel="noopener">children by weights</a>, <a href="@@URL string_manipulation_generators_how_do_i_use_the_stringreplacementgen@@" target="_blank" rel="noopener">StringReplacementGen</a>, <a href="@@URL misc_generators_how_do_i_use_the_referencegen_generator@@" target="_blank" rel="noopener">ReferenceGen</a>, <a href="@@URL genrocket_runtime_genrocket_runtime_setup_warnings_and_errors@@" target="_blank" rel="noopener">Runtime errors</a>, <a href="@@URL scenarios_error_could_not_find_the_required_profile_grxxxxxxxprofilegrp@@" target="_blank" rel="noopener">profile error</a>, <a href="@@URL scenarios_error_javalangoutofmemoryerror_gc_overhead_limit_exceeded@@" target="_blank" rel="noopener">GC overhead error</a>.</li>
+</ul></section>
