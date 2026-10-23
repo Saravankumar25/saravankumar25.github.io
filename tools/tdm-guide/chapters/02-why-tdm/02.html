@@ -1,0 +1,87 @@
+<h2 id="c2-naive">2.4 The naive approach: copy production</h2>
+<p>The quickest way to get realistic, consistent data is to take a backup of the production database and restore it into the test environment. It is what many teams do first, because it works on day one and needs no special tool. This is the <dfn>production copy</dfn> approach.</p>
+<p>It feels right: the data is as real as data can be, and every relationship between tables is already correct. The problems appear later, and they are serious. Here are eight, each shown with ShopSphere.</p>
+
+<figure class="diagram">
+<svg viewBox="0 0 800 230" role="img" aria-label="A full copy of production goes to several test environments, with warning labels on size, privacy, staleness and missing edge cases">
+<defs><marker id="c2b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+<rect x="15" y="80" width="170" height="80" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="100" y="112" text-anchor="middle" fill="currentColor" font-size="15" font-weight="700">SHOPSPHERE_PROD</text>
+<text x="100" y="135" text-anchor="middle" fill="currentColor" font-size="12">4 TB, real people</text>
+<line x1="185" y1="120" x2="330" y2="120" stroke="currentColor" stroke-width="2" marker-end="url(#c2b)"/>
+<text x="258" y="108" text-anchor="middle" fill="currentColor" font-size="12">full backup restore</text>
+<rect x="335" y="30" width="200" height="50" rx="8" fill="var(--surface)" stroke="currentColor"/>
+<text x="435" y="60" text-anchor="middle" fill="currentColor" font-size="14">Dev: 4 TB copy</text>
+<rect x="335" y="95" width="200" height="50" rx="8" fill="var(--surface)" stroke="currentColor"/>
+<text x="435" y="125" text-anchor="middle" fill="currentColor" font-size="14">QA: 4 TB copy</text>
+<rect x="335" y="160" width="200" height="50" rx="8" fill="var(--surface)" stroke="currentColor"/>
+<text x="435" y="190" text-anchor="middle" fill="currentColor" font-size="14">UAT: 4 TB copy</text>
+<text x="660" y="60" text-anchor="middle" fill="var(--accent)" font-size="13">real names and IDs in every copy</text>
+<text x="660" y="100" text-anchor="middle" fill="var(--accent)" font-size="13">days to restore each copy</text>
+<text x="660" y="140" text-anchor="middle" fill="var(--accent)" font-size="13">stale the day after the copy</text>
+<text x="660" y="180" text-anchor="middle" fill="var(--accent)" font-size="13">rare cases may not exist</text>
+</svg>
+<figcaption>Original diagram: what "just copy production" produces. The 4 TB size is an invented illustration for ShopSphere, not a measurement.</figcaption>
+</figure>
+
+<h3 id="c2-problem-privacy">Problem 1: privacy and security leaks</h3>
+<p>Production holds real names, phone numbers, ID numbers and dates of birth. A full copy puts all of that into environments where far more people have access: every developer, every tester, contractors, sometimes outside vendors. Non-production systems usually have weaker access controls, weaker monitoring and more people logged in.</p>
+<p><strong>ShopSphere example.</strong> The row for customer 1001 (Asha Menon, her email, her phone, her SSN) is now in the dev database, in the QA database, in the UAT database, in a test engineer's laptop dump, and in a screenshot attached to a bug report. Any one of those is a breach waiting to happen.</p>
+<p>It is also often a legal problem. Laws and standards such as GDPR, HIPAA and PCI restrict how personal data can be used. The Delphix introduction names exactly these three (HIPAA, PCI and GDPR) as mandates organisations must stay compliant with, and notes that growing pressure from regulators and consumers makes protecting sensitive data across the enterprise essential (<a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a>). <span class="badge doc">From docs</span> Chapter 4 explains the regulations.</p>
+
+<h3 id="c2-problem-size">Problem 2: huge size</h3>
+<p>Production databases grow for years. A full copy needs the same disk space as production, multiplied by the number of environments. Storage costs add up, and so does the time to move and back up the copies.</p>
+<p><strong>ShopSphere example.</strong> If production is 4 TB (invented for illustration), five test environments need 20 TB, and most of the content is orders from five years ago that no current test will ever read.</p>
+
+<h3 id="c2-problem-slow">Problem 3: slow refreshes</h3>
+<p>Copying terabytes takes hours or days. Teams therefore refresh rarely, queue for the operations team, and sometimes freeze the data for weeks to avoid doing it again.</p>
+<p><strong>ShopSphere example.</strong> QA breaks the data while testing refunds. Restoring it takes two days. Everyone waits, or carries on with broken data and gets false test results.</p>
+
+<h3 id="c2-problem-stale">Problem 4: stale data</h3>
+<p>A copy is a snapshot of one moment. The day after, production has moved on. New products, new account types and new features may be missing from the copy, so tests of the newest code run against data that does not contain it.</p>
+<p><strong>ShopSphere example.</strong> A "gift card" payment type launched last week. The copy taken last month has no orders that use it, so the gift-card tests find nothing to test.</p>
+
+<h3 id="c2-problem-edge">Problem 5: missing edge cases</h3>
+<p>Real data contains the cases that happened. It does not contain the cases that have not happened yet, or have happened too rarely to be in your copy. Tests need values at the boundary: the largest allowed order, an empty field, a name with an apostrophe, a negative quantity that the app must reject.</p>
+<p><strong>ShopSphere example.</strong> Nobody in production has a 300-character last name, so no test checks that the screen handles one. The first customer who does crashes the checkout page.</p>
+<p>This is where synthetic data comes in. GenRocket's help site defines synthetic test data as data manufactured by an algorithm rather than collected from real-world events, and says companies can maximise test coverage by using it to test all permutations and combinations (<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/why-synthetic-test-data" target="_blank" rel="noopener">Why Synthetic Test Data?</a>). <span class="badge doc">From docs</span></p>
+
+<h3 id="c2-problem-broken">Problem 6: broken relationships when people shrink or edit it</h3>
+<p>Realising the copy is too big, someone tries to cut it down by hand: "delete orders older than 2023". But orders are linked to customers and order items are linked to orders. Delete in the wrong order or the wrong rows and you leave order items pointing to orders that no longer exist, or orders for customers who have been removed. The application then crashes or gives nonsense, for reasons unrelated to the code being tested.</p>
+<p><strong>ShopSphere example.</strong> A script deletes customers who have not logged in since 2022. It forgets their rows in <code>ORDERS</code>. Now there are orders with a <code>customer_id</code> that matches nobody. The "my orders" page fails for the wrong reason.</p>
+<p>The same breakage happens if someone replaces names with random text by hand and uses different replacements in different tables: the customer is "Asha" in one table and "Priya" in another. Chapter 3 explains the keys that tie tables together and why every TDM operation must respect them. The Informatica documentation describes the goal directly: a data subset keeps primary and foreign key relationships so that the data stays referentially intact (User Guide 10.5.10, p.23). <span class="badge doc">From docs</span></p>
+
+<h3 id="c2-problem-cost">Problem 7: cost</h3>
+<p>The costs are not only disk space. Add the time of people who run restores, the delay while testers wait, the licence and infrastructure cost of big environments, and the risk cost of a breach or regulator fine. None of it appears as a line "test data" on a budget, which is partly why the problem lingers.</p>
+
+<h3 id="c2-problem-repeat">Problem 8: no repeatability and no control</h3>
+<p>If every team makes its own copy at its own time, nobody knows which data version a bug was found on. Tests that passed Monday fail Tuesday because the data under them changed. Nobody can say who has a copy of what.</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>#</th><th>Problem</th><th>Symptom you would see</th><th>TDM capability that addresses it</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Privacy leaks</td><td>Real names and IDs in dev databases</td><td>Discover and mask</td></tr>
+<tr><td>2</td><td>Huge size</td><td>Disk full; slow restores</td><td>Subset (or virtual copies)</td></tr>
+<tr><td>3</td><td>Slow refreshes</td><td>Waiting days for new data</td><td>Provision and refresh</td></tr>
+<tr><td>4</td><td>Stale data</td><td>New features have no test data</td><td>Refresh; generate</td></tr>
+<tr><td>5</td><td>Missing edge cases</td><td>Bugs only appear in production</td><td>Generate</td></tr>
+<tr><td>6</td><td>Broken relationships</td><td>Orders with no customer</td><td>Subset and mask while keeping keys</td></tr>
+<tr><td>7</td><td>Cost</td><td>Big storage and waiting bills</td><td>All of the above, plus governance</td></tr>
+<tr><td>8</td><td>No repeatability or control</td><td>"It passed on my copy"</td><td>Govern: catalogue, versions, access</td></tr>
+</tbody>
+</table></div>
+
+<div class="callout warn">
+<strong class="ctitle">"But we only use it internally" is not a defence</strong>
+<p>A breach through a test environment is still a breach of the people whose data it is. Internal staff, contractors and vendors can all misuse or lose data, and many regulations make no exception for non-production systems. Chapter 4 goes through this carefully.</p>
+</div>
+
+<div class="callout example">
+<strong class="ctitle">Worked example: one bug report, three failures</strong>
+<p>A ShopSphere tester finds that the "order history" screen shows an empty page for customer 1002 in the QA environment. She files a bug. The developer cannot reproduce it on his machine because his data is different. After a day of investigation they discover that the QA database was a partial manual copy in which customer 1002's orders were not copied. The bug is not in the code at all.</p>
+<p>That one incident shows three problems from the list: broken relationships (problem 6), no control (8) and slow refresh (3: fixing it means a new copy). It also cost a day of two people's time. Multiply by a team and a year and the cost of unmanaged test data becomes visible.</p>
+</div>
+
+<h3 id="c2-analogy">An analogy, and where it stops</h3>
+<p>Copying production for testing is like photocopying the whole customer ledger of a bank branch to train new tellers. It is realistic, but you have handed every trainee other people's private details, the pile is enormous, and the day after it is out of date.</p>
+<p>TDM is more like giving trainees a purpose-made practice ledger: a small number of pages, with names changed, with some deliberately awkward entries added, and fresh pages on request. <strong>Where the analogy stops:</strong> a paper ledger is read, not changed; test data is also written to, broken and reset thousands of times, which is why speed of refresh matters so much in real TDM.</p>

@@ -44,11 +44,27 @@
 <h3 id="c10-p-define-ms">Define data masking and data subset operations</h3>
 <p>For <strong>subset</strong>, you define which tables to include and how they relate (p.32). Three building blocks appear:</p>
 <div class="tablewrap"><table>
-<thead><tr><th>Block</th><th>Meaning in the guide</th><th>ShopSphere reading</th></tr></thead>
+<thead><tr>
+<th>Block</th>
+<th>Meaning in the guide</th>
+<th>ShopSphere reading</th>
+</tr></thead>
 <tbody>
-<tr><td>Entity</td><td>A set of tables related by physical or logical constraints.</td><td><code>CUSTOMERS</code> with its <code>ORDERS</code> and <code>ORDER_ITEMS</code>.</td></tr>
-<tr><td>Group</td><td>A set of <em>unrelated</em> tables.</td><td><code>PRODUCTS</code>, which has no parent in the customer chain.</td></tr>
-<tr><td>Template</td><td>Optional container holding entities and groups.</td><td>"Customer Orders subset kit".</td></tr>
+<tr>
+<td>Entity</td>
+<td>A set of tables related by physical or logical constraints.</td>
+<td><code>CUSTOMERS</code> with its <code>ORDERS</code> and <code>ORDER_ITEMS</code>.</td>
+</tr>
+<tr>
+<td>Group</td>
+<td>A set of <em>unrelated</em> tables.</td>
+<td><code>PRODUCTS</code>, which has no parent in the customer chain.</td>
+</tr>
+<tr>
+<td>Template</td>
+<td>Optional container holding entities and groups.</td>
+<td>"Customer Orders subset kit".</td>
+</tr>
 </tbody></table></div>
 <p>You also assign masking rules to source columns, create a subset plan from entities, groups and templates (with optional filters on parent-table columns), and create a masking plan that carries the policies and rules. Rules outside policies are allowed too. TDM stores projects, entities, groups, templates and plans in the TDM repository (p.32). Chapters <a href="13-informatica-data-subset.html">13</a> and <a href="14-informatica-data-masking.html">14</a> teach these in detail.</p>
 
@@ -71,21 +87,91 @@
 <p>The table maps each of the guide's 13 steps onto ShopSphere. The first column is the guide. The second column is our retelling, and it is illustrative (the guide never mentions ShopSphere).</p>
 <div class="tablewrap"><table>
 <caption>The guide's 13 steps and a ShopSphere version</caption>
-<thead><tr><th>#</th><th>Guide (employee stock)</th><th>Who</th><th>ShopSphere version (illustrative)</th></tr></thead>
+<thead><tr>
+<th>#</th>
+<th>Guide (employee stock)</th>
+<th>Who</th>
+<th>ShopSphere version (illustrative)</th>
+</tr></thead>
 <tbody>
-<tr><td>1</td><td>Create an <code>Employee_Stock</code> policy.</td><td>Compliance officer</td><td>Create a customer-data policy listing what must be masked.</td></tr>
-<tr><td>2</td><td>Define data domains; columns named like Employee_Salary, Yearly_Salary, Salary_History share a "Salary" domain.</td><td>Compliance officer</td><td>An "SSN" domain for <code>ssn</code>, <code>tax_id</code>; a "Phone" domain for <code>phone</code>.</td></tr>
-<tr><td>3</td><td>Define masking rules: substitution from a dictionary for names, random masking for salary, Social Security masking for SSNs.</td><td>Compliance officer</td><td>Substitution for names, Social Security masking for <code>ssn</code>.</td></tr>
-<tr><td>4</td><td>Define a project; import sources.</td><td>Project developer</td><td>Project "Customer Orders"; import the four ShopSphere tables.</td></tr>
-<tr><td>5</td><td>Run a data discovery profile; it fills the data domains.</td><td>Project developer</td><td>Run a data domain profile; <code>email</code>, <code>phone</code>, <code>ssn</code> appear against their domains.</td></tr>
-<tr><td>6</td><td>The database has no primary or foreign keys, so run a profile for primary keys and entities; create logical keys.</td><td>Project developer</td><td>Suppose the test copy of the metadata lacks declared keys; profile them and add <code>customer_id</code> as a logical primary key.</td></tr>
-<tr><td>7</td><td>Create entities and a group (Employee, JobHistory, Salary, Employee_Stock as an entity; Stock_History in a group).</td><td>Project developer</td><td>Entity: <code>CUSTOMERS</code>, <code>ORDERS</code>, <code>ORDER_ITEMS</code>. Group: <code>PRODUCTS</code>.</td></tr>
-<tr><td>8</td><td>Approve or reject profile results.</td><td>Compliance officer</td><td>Approve <code>ssn</code> to SSN domain; reject any wrong match.</td></tr>
-<tr><td>9</td><td>Verify all sensitive fields are masked, using reports.</td><td>Compliance officer</td><td>Check that every personal-data column has a rule.</td></tr>
-<tr><td>10</td><td>One plan for subset and masking; add entities, groups and the policy; run the workflow.</td><td>Project developer</td><td>A plan that copies a masked subset into a test schema.</td></tr>
-<tr><td>11</td><td>Validate results in the subset database.</td><td>Compliance officer</td><td>Spot-check masked names and SSNs in the test schema.</td></tr>
-<tr><td>12</td><td>Plan with the subset database as source and the test data warehouse as target; run to create a data set.</td><td>Project developer</td><td>Store the masked subset as "masked set v1".</td></tr>
-<tr><td>13</td><td>Reset a data set from the test data warehouse to a required connection.</td><td>Project developer</td><td>Restore "masked set v1" into a QA schema after a refund test.</td></tr>
+<tr>
+<td>1</td>
+<td>Create an <code>Employee_Stock</code> policy.</td>
+<td>Compliance officer</td>
+<td>Create a customer-data policy listing what must be masked.</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Define data domains; columns named like Employee_Salary, Yearly_Salary, Salary_History share a "Salary" domain.</td>
+<td>Compliance officer</td>
+<td>An "SSN" domain for <code>ssn</code>, <code>tax_id</code>; a "Phone" domain for <code>phone</code>.</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Define masking rules: substitution from a dictionary for names, random masking for salary, Social Security masking for SSNs.</td>
+<td>Compliance officer</td>
+<td>Substitution for names, Social Security masking for <code>ssn</code>.</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Define a project; import sources.</td>
+<td>Project developer</td>
+<td>Project "Customer Orders"; import the four ShopSphere tables.</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Run a data discovery profile; it fills the data domains.</td>
+<td>Project developer</td>
+<td>Run a data domain profile; <code>email</code>, <code>phone</code>, <code>ssn</code> appear against their domains.</td>
+</tr>
+<tr>
+<td>6</td>
+<td>The database has no primary or foreign keys, so run a profile for primary keys and entities; create logical keys.</td>
+<td>Project developer</td>
+<td>Suppose the test copy of the metadata lacks declared keys; profile them and add <code>customer_id</code> as a logical primary key.</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Create entities and a group (Employee, JobHistory, Salary, Employee_Stock as an entity; Stock_History in a group).</td>
+<td>Project developer</td>
+<td>Entity: <code>CUSTOMERS</code>, <code>ORDERS</code>, <code>ORDER_ITEMS</code>. Group: <code>PRODUCTS</code>.</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Approve or reject profile results.</td>
+<td>Compliance officer</td>
+<td>Approve <code>ssn</code> to SSN domain; reject any wrong match.</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Verify all sensitive fields are masked, using reports.</td>
+<td>Compliance officer</td>
+<td>Check that every personal-data column has a rule.</td>
+</tr>
+<tr>
+<td>10</td>
+<td>One plan for subset and masking; add entities, groups and the policy; run the workflow.</td>
+<td>Project developer</td>
+<td>A plan that copies a masked subset into a test schema.</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Validate results in the subset database.</td>
+<td>Compliance officer</td>
+<td>Spot-check masked names and SSNs in the test schema.</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Plan with the subset database as source and the test data warehouse as target; run to create a data set.</td>
+<td>Project developer</td>
+<td>Store the masked subset as "masked set v1".</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Reset a data set from the test data warehouse to a required connection.</td>
+<td>Project developer</td>
+<td>Restore "masked set v1" into a QA schema after a refund test.</td>
+</tr>
 </tbody></table></div>
 <div class="callout why"><strong class="ctitle">What the example teaches</strong>
 <p>Two things. First, the <em>order</em>: design (policy, domains, rules) before build (project, profile, entities, plan) before run (workflow, data set). Second, the <em>hand-offs</em>: the same person does not do everything. The people who understand the regulations choose and approve; the people who understand the tables build. In a real engagement (<a href="29-planning-real-engagements.html">chapter 29</a>) the same split shows up as roles on your team.</p></div>
