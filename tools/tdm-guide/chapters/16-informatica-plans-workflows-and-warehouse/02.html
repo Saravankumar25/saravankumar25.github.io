@@ -16,13 +16,13 @@
 <p>The wizard is the same, but you skip the masking and subset pages, add generation components (entities and tables), enter the number of records and set connections (p.305). The full walk-through, with ShopSphere examples, is in <a href="15-informatica-data-generation.html">the Informatica generation chapter</a>. There is also a one-column ad hoc generation plan reached from Define | Data Generation with Actions &gt; Generate and Execute (p.306).</p>
 <h2 id="c16-components">16.5 Plan components in practice</h2>
 <h3 id="c16-comp-mask">16.5.1 Masking and subset components</h3>
-<p><strong>Masking components</strong> are policies and rules. You may restrict a run to some of them, and you can turn masking on or off for a specific column when you set plan criteria. A catch: if a plan contains a Format Preserving Encryption rule set to decrypt, no other masking rules may be in that plan, so disable the others (p.292). <strong>Subset components</strong> are entities, groups, templates or XSD files (p.293).</p>
-<p><strong>Component criteria.</strong> For each column of a subset component, choose a filter method in the Plan Components panel: <em>Custom</em> (a Basic expression with an operator and operand, or an Advanced expression with several columns, functions and parameters) or <em>Limit</em> (percentage, absolute value or interval of rows). Global parameters carry an asterisk in lists but not inside an advanced expression (p.294). To disable masking for a column click the masking component, select the column in the Criteria panel and click OFF (or ON) (p.294).</p>
+<p><strong>Masking components</strong> are policies and rules. You may restrict a run to some of them, and turn masking on or off per column in the plan criteria. A plan that decrypts with a Format Preserving Encryption rule cannot include other masking rules (p.292). <strong>Subset components</strong> are entities, groups, templates or XSD files (p.293).</p>
+<p><strong>Component criteria.</strong> For each column of a subset component, choose a filter method in the Plan Components panel: <em>Custom</em> (a Basic expression with an operator and operand, or an Advanced expression with several columns, functions and parameters) or <em>Limit</em> (percentage, absolute value or interval of rows). To disable masking for a column click the masking component, select the column in the Criteria panel and click OFF (or ON) (p.294).</p>
 <div class="callout example"><strong class="ctitle">ShopSphere: shrink to about 5 percent</strong>
-<p>The plan holds one entity (driving table <code>CUSTOMERS</code>, children <code>ORDERS</code> and <code>ORDER_ITEMS</code>) and one policy <code>PII_Policy</code>. For the entity's customer criteria choose <strong>Limit</strong> by percentage and enter 5. Subset runs first, so only the customers in the slice, and their orders and items, are masked (p.275). Whether 5 percent applies to the driving table or the whole entity follows the subset rules explained in the subsetting chapter, so check the Row Count report after the first run.</p></div>
+<p>The plan holds one entity (driving table <code>CUSTOMERS</code>, children <code>ORDERS</code> and <code>ORDER_ITEMS</code>) and one policy <code>PII_Policy</code>. For the entity's customer criteria choose <strong>Limit</strong> by percentage and enter 5. Subset runs first, so only the customers in the slice, and their orders and items, are masked (p.275). Check the Row Count report after the first run to see how the limit applied to the entity.</p></div>
 
 <h4 id="c16-order-example">What subset-then-mask does to three rows</h4>
-<p>This is my illustration of the rule on p.275. Suppose the entity keeps customers 1001 and 1003 and leaves out 1002. Subset happens first, so 1002 never reaches the target. Masking then changes columns only in the rows that arrived.</p>
+<p>My illustration of the rule on p.275: subset runs first, so customer 1002 never reaches the target, and masking then changes only the rows that arrived.</p>
 <div class="tablewrap"><table class="sample">
 <caption>Illustrative: before and after a plan with an entity and a PII policy</caption>
 <thead><tr><th>customer_id</th><th>In production</th><th>In the subset?</th><th>In the target</th></tr></thead>
@@ -31,7 +31,7 @@
 <tr><td>1002</td><td>Ravi Kumar, 234-56-7890</td><td>No</td><td>not present</td></tr>
 <tr><td>1003</td><td>Meera Nair, 345-67-8901</td><td>Yes</td><td>Kiran Rao, 567-89-0123 (masked)</td></tr>
 </tbody></table></div>
-<p>Rows that are not in the subset are not masked and not copied, even when they are part of a cascade (p.275). That is exactly what you want: the less sensitive data you move, the less you must protect.</p>
+
 
 <h3 id="c16-connections">16.5.2 Connections</h3>
 <p>A workflow connects to the Integration Service, the TDM repository and one or more connection objects. You choose them in the plan (p.276):</p>
@@ -96,10 +96,9 @@
 <li><strong>Locale, Datetime Format String, Enable High Precision, DTM Buffer Size, SSN High Group File, Use SoftHSM:</strong> specialised settings (pp.287-290).</li>
 </ul>
 <h2 id="c16-source-override">16.7 Source, table and file overrides</h2>
-<p>Many plan settings can be overridden for one data source or one table. If a property is not offered at the data source level, the plan level value applies (p.295). Overridable examples: connections, flat-file name, directory and delimiter (Delimited by default, comma), row separator, optional quotes, headers (default Yes), file encoding, source and target schema names, pre and post SQL, batch size, table name overrides and partitioning (Pass Through, Key Range or Database Partitioning) (pp.295-301).</p>
-<p>For flat-file sources you can supply a <strong>file list</strong>: a text file naming one source file per line (with a path if it is not in the same directory). All files in the list must share the same properties (p.303). XML (XSD) sources have their own directory, file name and null-representation settings (pp.302-303).</p>
-<div class="callout tip"><strong class="ctitle">Start at the plan level</strong>
-<p>Set everything at the plan level first and override only the one table that needs it. Every override is one more thing to forget when you copy the plan to another environment.</p></div>
+<p>Many plan settings can be overridden for one data source or one table; where a property is not offered at that level, the plan-level value applies (p.295). Examples: connections, flat-file name, delimiter and encoding, schema names, pre and post SQL, batch size, table name overrides and partitioning (pp.295-301).</p>
+<p>For flat-file sources you can supply a <strong>file list</strong>, a text file naming one source file per line; all listed files must share the same properties (p.303).</p>
+
 
 <h2 id="c16-params">16.8 Parameters and parameter files</h2>
 <p>Parameters let one plan serve many runs. You may use <strong>project parameters</strong> and <strong>global parameters</strong> (created by an administrator, shown with an asterisk) in connections, owner names and filter criteria (pp.275, 279). In an entity or plan you can use a parameter instead of a fixed value in a criterion.</p>

@@ -1,7 +1,11 @@
 <h2 id="c13-entities">13.4 Entities and the driving table</h2>
+
 <h3 id="c13-entity-concept">What an entity is</h3>
+
 <p>An entity is a <em>shape</em>: "start at this table, and include everything connected to it". The guide says an entity "consists of a driving table and related tables" (User Guide 10.5.10, p.114) <span class="badge doc">From docs</span>. The driving table is the starting point. TDM works out the other tables from the constraints that involve the driving table and adds them by default. You then put a filter on columns of the tables in the entity to say which rows you want.</p>
+
 <p>Here is the same idea on ShopSphere. We choose <code>CUSTOMERS</code> as the driving table because the business question is "give me some customers and everything they did". <code>ORDERS</code> points at <code>CUSTOMERS</code> through <code>customer_id</code>, <code>ORDER_ITEMS</code> points at <code>ORDERS</code> through <code>order_id</code>, and <code>ORDER_ITEMS</code> points at <code>PRODUCTS</code> through <code>product_code</code>. (The first two links are in the shared ShopSphere model. The <code>product_code</code> link is my assumption for this example: in the source it is a column that names a product, so I treat it as a foreign key.)</p>
+
 <figure class="diagram"><svg viewBox="0 0 800 250" role="img" aria-label="Entity map for ShopSphere: CUSTOMERS is the driving table, ORDERS and ORDER_ITEMS are children, PRODUCTS is a parent of ORDER_ITEMS">
 <defs><marker id="c13a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
 <g font-family="sans-serif" font-size="14" fill="currentColor" stroke="currentColor">
@@ -30,7 +34,9 @@
 <figcaption>Original diagram: the ShopSphere entity with CUSTOMERS as the driving table. The star marks the driving table, as the guide says TDM does in its own entity map. The dotted line is my drawing style for "minor"; in the real tool, dotted means disabled (p.120).</figcaption></figure>
 
 <h3 id="c13-entity-views">The three views of an entity</h3>
+
 <p>Once saved, an entity can be seen three ways in the Define | Data Subset view of a project (User Guide 10.5.10, p.114 to 116) <span class="badge doc">From docs</span>.</p>
+
 <div class="tablewrap"><table>
 <thead><tr><th>View</th><th>What it shows</th><th>What you can do there</th></tr></thead>
 <tbody>
@@ -38,51 +44,95 @@
 <tr><td>Tables</td><td>A list: table name, description, database name, and a status (included or excluded).</td><td>Edit filter criteria for each table.</td></tr>
 <tr><td>Relationships</td><td>A list of constraints: parent table, child table, database names, and enabled or disabled status. A table with more than one relationship appears more than once.</td><td>Enable or disable relationships. Select a relationship and give the number of child records to keep (min and max, see below).</td></tr>
 </tbody></table></div>
+
 <p>The Entity Map can show <strong>All</strong> tables, <strong>All parents</strong> of the selected table, <strong>All immediate relationships</strong> (one level up and down), <strong>All children</strong>, or <strong>All cyclic relationships</strong> (TDM shows at most 1000). By default it shows only enabled relationships; tick <strong>Show excluded tables</strong> to see disabled ones (p.115). Selecting a link in the map highlights the matching row in the Relationships view, and the other way round.</p>
 
 <h3 id="c13-physical-logical">Where the relationships come from: physical and logical constraints</h3>
+
 <p>TDM can only follow links it knows about. Those links are the <strong>constraints</strong> stored in the project (User Guide 10.5.10, p.107 to 109) <span class="badge doc">From docs</span>. Foreign keys that already exist in the database are physical. If the database does not declare a foreign key (common in older systems), you can accept one that data discovery inferred (see <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>), or add one by hand as a <em>logical</em> constraint. Adding keys in TDM does not change the source database (p.109). The guide's advice before you build an entity is: run data discovery to identify constraints, and add constraints to the source to define the child tables (p.116).</p>
 
 <h3 id="c13-create-entity">Creating an entity, step by step</h3>
+
 <p>This is the guide's procedure (User Guide 10.5.10, p.116 to 117) <span class="badge doc">From docs</span>, with the reason for each step.</p>
+
 <ol class="steps">
-<li><strong>Open the project, then click Define > Data Subset.</strong><p>The Define area is where all the "design" objects live: subset components here, masking assignments in Define | Data Masking (see <a href="14-informatica-data-masking.html">the Informatica masking chapter</a>).</p><p class="expect">You see a list of entities and groups in the project, possibly empty.</p></li>
-<li><strong>Click Actions > New > Entities.</strong><p>This starts the New Entity dialog.</p></li>
-<li><strong>Enter a name and an optional description.</strong><p>Names matter later: plans list components by name. Something like <code>ShopSphere_Customer_Entity</code> beats <code>Entity1</code>.</p></li>
-<li><strong>Click Select Table, choose the driving table, click OK.</strong><p>This is the key decision. Choose the table that answers your business question: "customers" for ShopSphere.</p></li>
-<li><strong>Click Save.</strong><p>TDM now looks at the constraints of the driving table and adds every related table.</p><p class="expect">A diagram of the tables and their relationships appears, and you can switch to the list views.</p></li>
-<li><strong>To filter, click Edit in the Properties pane. The Edit Criteria dialog opens.</strong><p>Without a filter, the entity copies everything it reaches. The filter is what makes it a subset.</p></li>
-<li><strong>On the Entity Criteria tab, click Add Criteria, select the columns to filter on, click OK.</strong><p>The columns you chose now appear in the list.</p></li>
-<li><strong>For each column, pick the attribute: Value (type a value) or Parameter (pick a parameter). Pick an operator. Then type the value or choose the parameter. Click Save for each criterion.</strong><p>Parameters let you change the value later without editing the entity (13.7).</p></li>
-<li><strong>Click Save to leave the Edit Criteria dialog.</strong><p class="expect">The entity is ready to add to a plan.</p></li>
+<li><strong>Open the project, then click Define > Data Subset.</strong>
+<p>The Define area is where all the "design" objects live: subset components here, masking assignments in Define | Data Masking (see <a href="14-informatica-data-masking.html">the Informatica masking chapter</a>).</p>
+<p class="expect">You see a list of entities and groups in the project, possibly empty.</p>
+</li>
+<li><strong>Click Actions > New > Entities.</strong>
+<p>This starts the New Entity dialog.</p>
+</li>
+<li><strong>Enter a name and an optional description.</strong>
+<p>Names matter later: plans list components by name. Something like <code>ShopSphere_Customer_Entity</code> beats <code>Entity1</code>.</p>
+</li>
+<li><strong>Click Select Table, choose the driving table, click OK.</strong>
+<p>This is the key decision. Choose the table that answers your business question: "customers" for ShopSphere.</p>
+</li>
+<li><strong>Click Save.</strong>
+<p>TDM now looks at the constraints of the driving table and adds every related table.</p>
+<p class="expect">A diagram of the tables and their relationships appears, and you can switch to the list views.</p>
+</li>
+<li><strong>To filter, click Edit in the Properties pane. The Edit Criteria dialog opens.</strong>
+<p>Without a filter, the entity copies everything it reaches. The filter is what makes it a subset.</p>
+</li>
+<li><strong>On the Entity Criteria tab, click Add Criteria, select the columns to filter on, click OK.</strong>
+<p>The columns you chose now appear in the list.</p>
+</li>
+<li><strong>For each column, pick the attribute: Value (type a value) or Parameter (pick a parameter). Pick an operator. Then type the value or choose the parameter. Click Save for each criterion.</strong>
+<p>Parameters let you change the value later without editing the entity (13.7).</p>
+</li>
+<li><strong>Click Save to leave the Edit Criteria dialog.</strong>
+<p class="expect">The entity is ready to add to a plan.</p>
+</li>
 </ol>
+
 <p>When you have several criteria in one entity the guide says the filter conditions act as "AND" (p.117). So <code>customer_id &lt;= 1002</code> and <code>zip_code = '560001'</code> together would keep only rows that satisfy both.</p>
 
 <h2 id="c13-groups">13.5 Groups, residual tables and templates</h2>
+
 <h3 id="c13-group-concept">Groups</h3>
+
 <p>A <strong>group</strong> is "one or more unrelated tables" you want copied to the subset database. The guide gives two uses: add unrelated tables to a plan, or "copy unfiltered data to a target" (User Guide 10.5.10, p.116) <span class="badge doc">From docs</span>. When you add tables to a group you can include <em>residual tables</em>: tables that are not yet in any group or entity. Tick them when you want every table of the source to be in the subset plan.</p>
+
 <p>An entity only reaches tables linked by constraints, so unlinked tables go in a group. The guide's example: an employee-skills table and an organization-location table are unrelated, you want both, so you put them in one group and add the group to the plan (p.116).</p>
+
 <h3 id="c13-create-group">Creating a group</h3>
+
 <ol class="steps">
-<li><strong>In the project, open Define | Data Subset and click Actions > New > Groups.</strong><p>Same place as entities, different menu item (User Guide 10.5.10, p.123).</p></li>
+<li><strong>In the project, open Define | Data Subset and click Actions > New > Groups.</strong>
+<p>Same place as entities, different menu item (User Guide 10.5.10, p.123).</p>
+</li>
 <li><strong>In the Create Group dialog, enter a name and optional description, then Next.</strong></li>
-<li><strong>Click Add Tables, optionally filter the list to search, select tables, click OK.</strong><p>The filter box helps when a schema has hundreds of tables.</p></li>
-<li><strong>Click Save.</strong><p class="expect">The group appears in the Define | Data Subset list next to your entities. Editing a group later lets you add or remove tables (p.124).</p></li>
+<li><strong>Click Add Tables, optionally filter the list to search, select tables, click OK.</strong>
+<p>The filter box helps when a schema has hundreds of tables.</p>
+</li>
+<li><strong>Click Save.</strong>
+<p class="expect">The group appears in the Define | Data Subset list next to your entities. Editing a group later lets you add or remove tables (p.124).</p>
+</li>
 </ol>
+
 <h3 id="c13-templates">Templates: what the guide actually says</h3>
+
 <p>The guide mentions templates only in passing: "an optional component that contains the entities and groups" (User Guide 10.5.10, p.32 and p.293) <span class="badge doc">From docs</span>. Chapter 6 has no section on creating a template and I found no steps elsewhere, so I give none. Ask your trainer if your course uses them.</p>
 
 <h2 id="c13-related-rows">13.6 How related rows are pulled</h2>
+
 <p>This is the part that makes subsetting more than a filter. When your filter selects customer 1001, which other rows must come with it? The answer depends on the <strong>constraint severity</strong> and on the <strong>data integrity option</strong> you pick in the plan. Both are covered in the guide (User Guide 10.5.10, p.108 to 109, 119 to 123).</p>
+
 <h3 id="c13-major-minor">Major and minor constraints</h3>
+
 <p>When a foreign key is defined, you give it a severity. The guide's rules <span class="badge doc">From docs</span>:</p>
+
 <ul>
 <li><strong>Major</strong> constraints move in both directions, child to parent and parent to child. A selected child pulls in its parent, and the parent then pulls in <em>all</em> of its children. This keeps referential and transactional integrity (p.108).</li>
 <li><strong>Minor</strong> constraints move one way only, child to parent. The parent row comes along, but the parent's other children do not (p.108 to 109).</li>
 <li>You define the constraint on the child table. Severity does not change the entity's structure. You can change it after the entity exists, and also at run time in a subset plan, which leaves the entity unchanged (p.108).</li>
 <li><strong>By default every constraint in an entity is major</strong> (p.119).</li>
 </ul>
+
 <p>The guide's own example (p.108 to 109) uses Customer as parent and Leads as child, with a filter on Leads that keeps only high-quality leads. With a <em>major</em> constraint, the subset receives each qualifying lead, its customer, and <em>all</em> leads of that customer. With a <em>minor</em> constraint it receives only the qualifying leads and their customers.</p>
+
 <pre class="ascii">
 MAJOR (both ways)                     MINOR (child to parent only)
 
@@ -95,5 +145,7 @@ MAJOR (both ways)                     MINOR (child to parent only)
 </pre>
 
 <h3 id="c13-loop">The loop that surprises beginners</h3>
+
 <p>With major relations the pulling can chain. The guide describes it (p.108, p.122): a selected child record pulls in its parents; each parent then selects all its related children; those children might point to <em>other</em> parents not yet in the subset, which pull in more children, "in a loop until there are no more related records to select". This is how a small filter can grow into a big subset. You will see exactly this in the ShopSphere example when <code>PRODUCTS</code> is related by a major constraint (13.11).</p>
+
 <p>For schemas with cycles, or objects that have more than one major parent, TDM uses <em>recursive evaluation</em> to compute the subset, and that needs a staging connection. The guide recommends using the source connection as the staging connection (p.109).</p>
