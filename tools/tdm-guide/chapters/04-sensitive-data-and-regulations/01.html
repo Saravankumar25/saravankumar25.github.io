@@ -1,0 +1,57 @@
+<p>In <a href="02-why-tdm.html">chapter 2</a> you saw why teams cannot simply copy production into testing. The main reason is simple: production is full of real people's private details. In <a href="03-data-basics.html">chapter 3</a> you learned what tables, columns and keys are. This chapter joins the two ideas. Before any tool can protect data, someone has to say what "sensitive" means, which laws care about it, and how a tool can recognise it among thousands of columns.</p>
+<p>This is the vocabulary layer of TDM. Every later chapter (discovery, subsetting, masking, and all three tools) uses the words defined here: PII, PHI, PCI, policy, rule, data domain, classification. If those words are fuzzy, the tools will feel like a maze of unexplained menus. If they are clear, the tools will feel like different dialects of the same language.</p>
+<div class="callout recap"><strong class="ctitle">What you will learn</strong><ul>
+<li>What "sensitive data" means, and the three families you will hear about all the time: PII, PHI and PCI.</li>
+<li>The difference between direct and indirect identifiers, and why removing names is not enough to make data anonymous.</li>
+<li>What GDPR and HIPAA are in plain words, who they apply to, and the ideas behind them (consent, minimum necessary, de-identification). Other laws are mentioned only in general terms.</li>
+<li>How data is classified by sensitivity, and how a tool finds sensitive columns using column names, data patterns and lists of values.</li>
+<li>What a TDM <em>policy</em>, <em>rule</em> and <em>data domain</em> are, with the exact structure Informatica uses and the matching Delphix words.</li>
+<li>Who owns which decision: compliance officer, data steward, TDM engineer.</li>
+</ul></div>
+<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
+<p><span class="badge doc">From docs</span> The tool statements come from the Informatica TDM 10.5.10 User Guide (PDF, February 2026, 455 pages), chapter 4 "Policies" (PDF pages 71 to 85, especially the PII, PHI and PCI policy packs on pages 77 to 80), and from the Delphix Continuous Compliance 2026.5 documentation (last published October 16, 2026): the pages "Discovering your sensitive data", "Delphix masking terminology", "Managing domains", "Out of the box profiling settings" and "ASDD standard profile set". One GenRocket help page on column profiling is mentioned briefly.</p>
+<p><span class="badge concept">General concept</span> The legal summaries (GDPR, HIPAA and others) and the identifier examples are general background written for this guide. They are not taken from the tool documentation.</p>
+<p><strong>This is not legal advice.</strong> The laws below are summarised in plain words so you can follow conversations at work. Real compliance decisions belong to your organisation's compliance officer and legal team.</p></div>
+
+<h2 id="c4-words-to-know">4.1 Words to know first</h2>
+<dl class="defs">
+<div><dt>Sensitive data</dt><dd>Any data that could hurt a person or a company if it leaked or was misused: identity details, health records, payment details, passwords, trade secrets. "Sensitive" is a business and legal judgement, not just a technical one.</dd></div>
+<div><dt>PII (Personally Identifiable Information)</dt><dd>Data that identifies a person, alone or combined with other data. Examples: name, email, phone number, a government ID number, a home address.</dd></div>
+<div><dt>PHI (Protected Health Information)</dt><dd>Health-related data that can be tied to a person: diagnoses, treatments, medical record numbers, insurance member IDs. Informatica describes its PHI pack as aimed at the healthcare and pharmaceutical industries (User Guide 10.5.10, p.79).</dd></div>
+<div><dt>PCI (Payment Card Industry) data</dt><dd>Payment card details such as the card number and expiry date. Informatica describes its PCI pack as aimed at banking and finance (User Guide 10.5.10, p.80).</dd></div>
+<div><dt>Identifier</dt><dd>A piece of data that points to one person. A <dfn>direct identifier</dfn> does it on its own (an SSN). An <dfn>indirect identifier</dfn> (also called a quasi-identifier) only does it when combined with others (zip code plus birth date).</dd></div>
+<div><dt>Re-identification</dt><dd>Working out who a "nameless" record belongs to by combining it with other information.</dd></div>
+<div><dt>Data classification</dt><dd>Sorting data into sensitivity levels (for example public, internal, confidential, restricted) so each level gets the right protection.</dd></div>
+<div><dt>Data domain</dt><dd>A named kind of data, such as "Social Security number" or "First name", described by how the data looks and what its column is usually called. Both Informatica and Delphix use this word, with slightly different meanings.</dd></div>
+<div><dt>Rule</dt><dd>In Informatica, the logic that changes a value: a masking rule uses a masking technique (such as substitution) with chosen settings. Rules are covered in <a href="06-masking-concepts.html">chapter 6</a>.</dd></div>
+<div><dt>Policy</dt><dd>In TDM, a named bundle that says which kinds of data are sensitive and how to protect each kind. Section 4.8 shows the exact Informatica structure.</dd></div>
+<div><dt>Data steward</dt><dd>The person who knows a data set's meaning and quality and answers questions such as "what is in this column and who may see it?".</dd></div>
+<div><dt>Compliance officer</dt><dd>The person responsible for making sure the organisation follows laws and internal rules about data.</dd></div>
+</dl>
+
+<h2 id="c4-what-is-sensitive">4.2 What is sensitive data?</h2>
+<p>Start with the ShopSphere database from <a href="03-data-basics.html">chapter 3</a>. Here are three real-looking (but fictional) rows from <code>CUSTOMERS</code>:</p>
+<div class="tablewrap"><table class="sample"><caption>ShopSphere CUSTOMERS, first three rows (all fake)</caption>
+<thead><tr><th>customer_id</th><th>first_name</th><th>last_name</th><th>email</th><th>phone</th><th>ssn</th><th>date_of_birth</th><th>zip_code</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>Asha</td><td>Menon</td><td>asha.menon@example.com</td><td>9876543210</td><td>123-45-6789</td><td>1990-04-12</td><td>560001</td></tr>
+<tr><td>1002</td><td>Ravi</td><td>Kumar</td><td>ravi.k@example.com</td><td>9123456780</td><td>234-56-7890</td><td>1985-11-02</td><td>600017</td></tr>
+<tr><td>1003</td><td>Meera</td><td>Nair</td><td>meera.n@example.com</td><td>9988776655</td><td>345-67-8901</td><td>1999-07-23</td><td>682001</td></tr>
+</tbody></table></div>
+<p>Ask one question of each column: <em>if this leaked, could someone be harmed or could ShopSphere be in trouble?</em></p>
+<ul>
+<li><code>customer_id</code> is just a number the system made up. On its own it harms nobody. But it links to orders, so it still needs careful handling (more in chapter 6).</li>
+<li><code>first_name</code> and <code>last_name</code> tell you who the person is.</li>
+<li><code>email</code> and <code>phone</code> let a stranger contact, spam, phish or impersonate the person.</li>
+<li><code>ssn</code> (a government ID number) is the classic example: with a name and a birth date it is enough to open credit in someone's name.</li>
+<li><code>date_of_birth</code> is used by banks and call centres to "prove" who you are.</li>
+<li><code>zip_code</code> looks harmless. Section 4.4 shows why it is not.</li>
+</ul>
+<div class="callout why"><strong class="ctitle">Why it matters in testing</strong>
+<p>Production data is protected by firewalls, access reviews and monitoring. A test database usually has none of that. Many people can log in, copies get passed around, and some environments live with outside vendors or in the cloud. If a real SSN sits in a test table, it carries production's legal weight into a place with a fraction of production's security. That mismatch is the whole reason this chapter exists.</p></div>
+<p>Delphix's own introduction makes the same point from the tool side: organisations face data breaches and pressure from regulators, and encryption helps protect data on disks and in transit but is, in their words, ill-suited for protecting non-production environments used for development, testing and reporting. Their answer is to replace confidential values with fictitious but realistic ones. <span class="badge doc">From docs</span> (Delphix "Introduction to Delphix Masking", <a class="badge-link" href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">source page ↗</a>).</p>
+
+<h3 id="c4-sensitive-beyond-people">Sensitive data is not only about people</h3>
+<p>Most of this chapter is about personal data because that is what privacy laws and the three tools focus on. Remember that companies also hold sensitive data that is not about a person: unreleased prices, source code, contract terms, internal salary bands, encryption keys, passwords. A good classification (section 4.6) covers these too, even though a masking tool rarely finds them automatically.</p>
+<div class="callout tip"><strong class="ctitle">A quick test you can apply at work</strong>
+<p>Look at a column and ask three questions: (1) Does it identify a person? (2) Would a regulator or customer be upset if it leaked? (3) Would a tester still be able to do their job if it held a believable fake value instead? If the answers are yes, yes, yes, the column is a masking candidate. Question 3 matters: if the column cannot be faked without breaking the test, you have found a design problem to solve, not a reason to leave real data in place.</p></div>
