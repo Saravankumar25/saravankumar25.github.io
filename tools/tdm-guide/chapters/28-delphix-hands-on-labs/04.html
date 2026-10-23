@@ -70,13 +70,14 @@ phone,10</code></pre>
 <pre><code>diff original/customers.dat customers.dat
 awk -F'|' '{print NF}' customers.dat | sort | uniq -c
 awk '{print length($0)}' customers_fixed.txt | sort | uniq -c
-cut -c1-4,38-45 customers_fixed.txt original/customers_fixed.txt</code></pre>
+diff &lt;(cut -c1-4,36-45 original/customers_fixed.txt) &lt;(cut -c1-4,36-45 customers_fixed.txt)</code></pre>
+<p>The last command compares only the customer_id (characters 1 to 4) and phone (characters 36 to 45) columns of the fixed-width file. It should print nothing. It needs a shell that supports process substitution, such as bash.</p>
 <ol>
 <li>Names and SSN differ between original and masked, and the SSN still looks like <code>ddd-dd-dddd</code>.</li>
 <li>customer_id and phone are identical to the original (they were out of scope).</li>
 <li>Every line of the delimited file has 5 fields, and every line of the fixed-width file is still 45 characters. A different count means the masked value did not fit the field or the format did not match the data.</li>
 <li>Row count is unchanged: 3 lines in each file.</li>
-<li>Consistency: copy the original into a spare file and mask it again with the same algorithm. A given input must produce the same output, because the docs describe the Name and Character Mapping algorithms as deterministic for a fixed key.</li>
+<li>Consistency: save the masked files as <code>run1</code>, copy the originals back into the working folder, run both jobs again, and run <code>diff</code> against the <code>run1</code> copies. It should print nothing, because the docs describe the Name and Character Mapping frameworks as deterministic for the same configuration and key.</li>
 </ol>
 <h3 id="c28-lab6-wrong">What can go wrong</h3>
 <div class="tablewrap"><table>
