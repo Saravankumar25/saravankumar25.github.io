@@ -122,11 +122,10 @@
 <li><strong>Classify the tables.</strong><p>Open the data set, Plan Components tab, Tables tab, select CUSTOMERS and click Edit Table Type, choose Master and then "Mark all descendant tables as transactional".</p><p class="expect">ORDERS and ORDER_ITEMS show as transactional (pp.241-242).</p></li>
 <li><strong>Reset version 1 into the test database once.</strong><p>Actions &gt; Reset, target connection = test database, tick Truncate Tables (the schema is yours), run. That creates your working copy.</p><p class="expect">A reset job reaches Success. Row counts in the test database match the data set.</p></li>
 <li><strong>Damage the data.</strong><p>In the test database run <code>DELETE FROM order_items;</code> and <code>UPDATE customers SET zip_code = '000000';</code> This simulates a destructive test.</p><p class="expect">Order items are gone and zip codes are wrong.</p></li>
-<li><strong>Reset again, this time without truncate and with recovery.</strong><p>Actions &gt; Reset, leave Truncate off, enter Backup Recovery Prefix <code>BK</code> and a backup schema user name, run.</p><p class="expect">Order items return. Master CUSTOMERS rows are upserted, so the damaged zip codes are updated back from the data set. On success the backup tables are deleted (p.246).</p></li>
-<li><strong>Compare with production counts for the slice.</strong><p>Run counts again in the test database and compare with the Row Count report from Lab A.</p><p class="expect">Counts equal the version 1 data set.</p></li>
+<li><strong>Reset again, this time without truncate and with recovery.</strong><p>Actions &gt; Reset, leave Truncate off, enter Backup Recovery Prefix <code>BK</code> and a backup schema user name, run.</p><p class="expect">Order items return and the damaged zip codes are updated back from the data set (master rows are upserted). On success the backup tables are deleted (p.246); counts match version 1.</p></li>
 </ol>
 <details class="sol"><summary>Show a worked answer</summary>
-<p>If step 4 failed with a key violation, the likely cause is classification: ORDERS rows still existed in the target pointing to a parent the insert wanted to change. Tick "Upsert in Transactional Tables", or truncate if the schema is private (p.244). If step 4 failed halfway, keep the prefix <code>BK</code> and use the restore plan described under <a href="#c16-reset-gotchas">failure and special cases</a>.</p></details></div>
+<p>If step 4 fails with a key violation, tick "Upsert in Transactional Tables" or truncate if the schema is private (p.244). If it fails halfway, keep the prefix <code>BK</code> and use the restore plan under <a href="#c16-reset-gotchas">failure and special cases</a>.</p></details></div>
 
 <div class="exercise"><h4>Lab C: read a failed job</h4>
 <p>Goal: practise reading logs. The messages below are <strong>invented</strong>, written to look like the structure the guide describes (date, severity, description), not real TDM text.</p>
@@ -141,7 +140,7 @@
 <li><strong>Decide what to do.</strong><p>Read the earlier Warning too.</p><p class="expect">Fix the rejected row, enable the constraint by hand, rerun the workflow (p.311). Consider whether Recover is better than a fresh run.</p></li>
 </ol>
 <details class="sol"><summary>Show a worked answer</summary>
-<p>The Warning at 10:02:19 is the root cause: a rejected ORDERS row means orphan or duplicate data, so enabling the constraint failed. Per the guide, a workflow that cannot enable constraints after load fails and you must enable them manually and run again (p.283, p.311). Open the session details for ORDERS to read the last error message and rejected rows (p.314).</p></details></div>
+<p>The Warning at 10:02:19 is the root cause: the rejected ORDERS row (orphan or duplicate data) stopped the constraint being enabled. Open the session details for ORDERS to read the rejected rows and last error (p.314).</p></details></div>
 
 <h2 id="c16-mistakes">16.20 Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Things that go wrong</strong>
@@ -153,10 +152,6 @@
 <li><strong>Leaving tables unclassified before a reset.</strong> They are treated as transactional (p.241).</li>
 <li><strong>Truncating a shared schema on reset.</strong> You delete other testers' data (p.244).</li>
 <li><strong>Disabling constraints on shared tables.</strong> Other tests may fail during the window (p.243).</li>
-<li><strong>Making data sets from tables with user-defined types, no primary keys, or 4000-precision columns.</strong> Creation or reset may fail (p.239).</li>
-<li><strong>Trying to delete a published data set.</strong> Delete the data pack first (p.248).</li>
-<li><strong>Reading only the last log line.</strong> Start from the first Error.</li>
-<li><strong>Passwords in scripts.</strong> See the command-line warning.</li>
 </ul></div>
 
 <h2 id="c16-recap">16.21 Recap</h2>
@@ -173,10 +168,7 @@
 
 <section class="sources"><h2 id="c16-sources">Sources used in this chapter</h2>
 <ul>
-<li>Informatica Test Data Management 10.5.10 User Guide (PDF, February 2026, 455 pages), "Plans and Workflows", pp.274-314: plan types, components, connections, settings, creation steps, management, workflow generation and execution, Workflow Executions view.</li>
-<li>Same guide, "Monitor", pp.315-320, and "Reports", pp.321-325: job types, statuses, logs, severity levels, sessions, the five reports.</li>
-<li>Same guide, "Working with Test Data Warehouse", pp.236-258: data sets, versions, reset, classification, permissions, locking, related data sets, SQL editing, self-service portal.</li>
-<li>Same guide, "Analyzing Test Data with Data Coverage", pp.259-273 (overview, process, columns, page, fill cell; the long example only skimmed), "ilmcmd" (pp.326-342), "tdwcmd" (pp.343-347) and "tdwquery" (pp.348-350; the long SELECT reference skimmed). Architecture facts from the Introduction, pp.26-28.</li>
-<li>Figures looked at by rendering PDF pages 203, 237, 245, 266, 316 and 319.</li>
-<li>Not used as sources: the learner-supplied online architecture page, which could not be opened, and the three videos, whose transcripts were not available.</li>
+<li>Informatica Test Data Management 10.5.10 User Guide (PDF, February 2026, 455 pages), read in full: "Plans and Workflows" (pp.274-314), "Monitor" (pp.315-320), "Reports" (pp.321-325), "Working with Test Data Warehouse" (pp.236-258).</li>
+<li>Same guide, introductions and main commands only: "Analyzing Test Data with Data Coverage" (pp.259-273), "ilmcmd" (pp.326-342), "tdwcmd" (pp.343-347), "tdwquery" (pp.348-350), and the architecture tables in the Introduction (pp.26-28).</li>
+<li>Figures viewed by rendering PDF pages 203, 237, 245, 266 and 316. Not used: the online architecture page (could not be opened) and the three videos (no transcripts).</li>
 </ul></section>

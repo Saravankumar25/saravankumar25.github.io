@@ -7,7 +7,7 @@
 <li><strong>Numbered records.</strong> Order numbers such as ORD-1001, ORD-1002, where you want to look at row 5 and know exactly what should be there.</li>
 <li><strong>Predictable walks.</strong> A list of statuses walked in order (Pending, Shipped, Delivered) so a test can assume which row has which status.</li>
 </ul>
-<p>The strength of sequential data is that you can predict it, which makes a failing test easy to read. Its weakness is the same: it looks nothing like real life, so you usually mix it with random data for the other columns.</p>
+<p>Sequential data is easy to read when a test fails, but looks nothing like real life, so mix it with random data for other columns.</p>
 
 <h3 id="c20-rangegen">20.3.2 RangeGen: counting up (and down)</h3>
 <p><span class="badge doc">From docs</span> The generator for counting is <strong>RangeGen</strong>. The help page says it "produces an increasing value from startRange to endRange", or to <code>long.MAX_VALUE</code> when no end range is given, and that "once the endRange has been reached, the value is reset to the startRange" (<a href="https://genrocket.helpjuice.com/en_US/rangegen-generators/how-do-i-use-the-rangegen-generator" target="_blank" rel="noopener">RangeGen help page</a>). The page also notes it can be set to start at a number other than 1, for example to continue a database's primary keys.</p>
@@ -94,7 +94,7 @@
 <ul>
 <li>No seed on <code>number1</code>: a different set of numbers every time the data is generated.</li>
 <li>Seed 1 on <code>number1</code>: one fixed set, the same every run.</li>
-<li>Seed 1 on <code>number2</code> too, same configuration: <code>number2</code> gets the same set as <code>number1</code>.</li>
+<li>Seed 1 on <code>number2</code> too, same configuration: <code>number2</code> gets the same set as <code>number1</code>, so use different seeds for columns that should look independent.</li>
 <li>Seed 2 on <code>number2</code>: a different fixed set.</li>
 </ul>
 <figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776440266609/pboPqkXNDV1pPvS4qEcsVLWRcpXk-WXRew.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776440266609/pboPqkXNDV1pPvS4qEcsVLWRcpXk-WXRew.png" alt="Preview with unseeded values such as 11, 3, 6, 20" loading="lazy"></a>
@@ -105,5 +105,3 @@
 <figcaption><strong>Official screenshot:</strong> The preview with seed 2: 19, 8, 19, 8, 4, 14, 11, 25, 1. It differs from the seed 1 list, and it will be the same on every run of seed 2. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/generators-overview-12/-what-is-seeding" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
 <div class="callout why"><strong class="ctitle">Why seeding matters for a TDM engineer</strong>
 <p>Without a seed, "random" test data differs each run, so a failing test is a ghost. With a fixed seed, a regression suite sees identical data every night, and a failure can be replayed on a developer's laptop. Seed attributes you want repeatable. Leave the seed empty on attributes where you want fresh variety each run, such as a load test.</p></div>
-<div class="callout note"><strong class="ctitle">Seeds and identical columns</strong>
-<p>The documentation example shows that two attributes with the same generator settings and the same seed produce the same values. If you give two different columns the same seed and the same range, they will move in lockstep. Use different seeds for columns that should look independent.</p></div>
