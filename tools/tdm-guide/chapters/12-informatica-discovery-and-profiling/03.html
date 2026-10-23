@@ -1,0 +1,79 @@
+<h2 id="c12-primary-keys">12.5 Primary keys: the basics, then discovery</h2>
+<p>The syllabus calls out primary key basics and "data integrity maintained in primary and foreign key columns" (Days 43 and 51). Nearly every later task, subset above all, depends on keys, so spend time here.</p>
+
+<h3 id="c12-pk-basics">Primary and foreign keys in plain words</h3>
+<p>A library gives each member a card number. No two members share one, and no member is without one. That number is a <dfn>primary key</dfn>: a column (or combination of columns) that uniquely identifies each row. The guide's rule for keys you add by hand: a primary key column cannot contain null (empty) or duplicate values, and a table has only one primary key constraint (User Guide 10.5.10, p.109).</p>
+<p>When a library loan record stores the member's card number, that stored number is a <dfn>foreign key</dfn>: it points at a row in another table. In ShopSphere:</p>
+<pre class="ascii">
+CUSTOMERS (customer_id PK) 1 ----&lt; ORDERS (order_id PK, customer_id FK)
+ORDERS    (order_id PK)    1 ----&lt; ORDER_ITEMS (item_id PK, order_id FK)
+PRODUCTS  (product_code PK)  (ORDER_ITEMS.product_code refers to it)
+</pre>
+<p><strong>Data integrity</strong> means these links stay true: every <code>ORDERS.customer_id</code> exists in <code>CUSTOMERS</code>, every <code>ORDER_ITEMS.order_id</code> exists in <code>ORDERS</code>. Test data that breaks this is useless. A subset that copies an order but not its customer produces an orphan. Masking that changes <code>CUSTOMERS.customer_id</code> but not <code>ORDERS.customer_id</code> breaks the link. TDM relies on keys to avoid both: subset follows constraints "to create subset data with referential integrity" (p.86), and auto cascades mask parent and child keys together (p.91).</p>
+<div class="callout why"><strong class="ctitle">Why discovery of keys matters</strong>
+<p>Real source systems often have no declared keys, for performance or legacy reasons. In the guide's own example (pp.33-34), the database "does not contain primary and foreign keys", so the project developer runs profiles to <em>find</em> them and then creates logical keys. If ShopSphere's imported tables came with no declared keys, you would have to do the same.</p></div>
+
+<h3 id="c12-pk-discovery">Primary key discovery</h3>
+<p>To discover possible keys, create a primary key profile (p.92). It also helps find data quality problems: a profile that finds <em>non-unique</em> rows where you expected unique ones shows duplicates. It is useful when the key is a <strong>combination of columns</strong> that together identify a row. After discovery you can add keys to the source table in the project.</p>
+<p>The guide's example: an Employee table has an EmpID column that is 100% unique, so the profile identifies it as a possible primary key to add to the project table (p.92). ShopSphere equivalent: <code>CUSTOMERS.customer_id</code>.</p>
+
+<h4 id="c12-pk-options">Primary key profile options</h4>
+<p>The Data Integration Service infers candidates and you can limit them (pp.92-93).</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Option (guide label)</th><th>Meaning</th><th>Default</th></tr></thead>
+<tbody>
+<tr><td>Primary Key Rows</td><td>Maximum number of columns the profile may combine to form a primary key. (The label says "rows", but the description says columns.)</td><td>3</td></tr>
+<tr><td>Max Rows</td><td>Maximum number of rows to profile.</td><td>1,000</td></tr>
+<tr><td>Conformance Criteria</td><td>Minimum percentage, or maximum number, of key violations allowed.</td><td>Minimum percentage 99</td></tr>
+</tbody></table></div>
+
+<h4 id="c12-pk-create">Creating and running a primary key profile</h4>
+<ol class="steps">
+<li><strong>Open the project, click Discover, then click Profile.</strong><p>You are in the profile list of this project.</p></li>
+<li><strong>Click Actions &gt; New Profile.</strong><p>The New Profile dialog box opens.</p></li>
+<li><strong>Enter a name and description and choose to create a primary key profile.</strong><p>For ShopSphere: <code>pk_shopsphere</code>. A clear name makes it findable later.</p></li>
+<li><strong>Click Next, select the tables to profile, click OK, then Next.</strong><p>Include every table you want keys for.</p></li>
+<li><strong>On the Sampling Options page, enter the maximum number of columns in the key, the maximum rows to profile, and the minimum conformance (or the maximum number of rows that may violate).</strong><p>Fewer columns in the key means a faster, simpler search.</p></li>
+<li><strong>Click Finish, then Actions &gt; Execute.</strong><p>The run is a job you can follow in Monitor (p.98-99).</p></li>
+</ol>
+<p class="expect">After it completes, close and reopen the profile to see results.</p>
+
+<h4 id="c12-pk-results">Reading primary key results</h4>
+<p>Click the <strong>Profile &gt; Primary Key</strong> view. Each row is a candidate (pp.103-104).</p>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.103, Figure "sample primary key profile results". What to look for: a table of candidates with columns for table, column, relationship type (Primary Key), uniqueness percentage, verified status (NOT_VERIFIED), existing constraints, and status (for example Approved), with a Properties pane below for the selected row.</div>
+<div class="tablewrap"><table>
+<thead><tr><th>Field</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td>Table Name</td><td>The table holding the candidate.</td></tr>
+<tr><td>Column Name</td><td>The column or combination inferred to be a primary or unique key.</td></tr>
+<tr><td>Relationship</td><td>The column's role: primary key.</td></tr>
+<tr><td>Uniqueness</td><td>Percentage of unique values. 100 means all unique. Use it to decide.</td></tr>
+<tr><td>Verified</td><td>Whether the candidate has been verified as not containing another constraint (for tracking).</td></tr>
+<tr><td>Existing constraints</td><td>Any primary or foreign key constraint already on the column.</td></tr>
+<tr><td>Status</td><td>Whether a user verified, approved or rejected the candidate.</td></tr>
+</tbody></table></div>
+
+<div class="tablewrap"><table class="sample">
+<caption>Illustrative primary key results for ShopSphere (invented numbers, shaped like the guide's fields)</caption>
+<thead><tr><th>Table</th><th>Column</th><th>Uniqueness</th><th>Existing constraints</th><th>My decision</th></tr></thead>
+<tbody>
+<tr><td>CUSTOMERS</td><td>customer_id</td><td>100</td><td>none</td><td>Approve. It is the identifier and ORDERS points to it.</td></tr>
+<tr><td>CUSTOMERS</td><td>email</td><td>100</td><td>none</td><td>Reject as key. Unique today, but a customer can change email, and it is sensitive.</td></tr>
+<tr><td>CUSTOMERS</td><td>ssn</td><td>100</td><td>none</td><td>Reject as key. Sensitive; it will be masked, so it is a poor link.</td></tr>
+<tr><td>CUSTOMERS</td><td>phone</td><td>99.6</td><td>none</td><td>Reject. Not fully unique and not an identifier.</td></tr>
+<tr><td>ORDERS</td><td>order_id</td><td>100</td><td>none</td><td>Approve.</td></tr>
+<tr><td>ORDER_ITEMS</td><td>item_id</td><td>100</td><td>none</td><td>Approve.</td></tr>
+<tr><td>PRODUCTS</td><td>product_code</td><td>100</td><td>none</td><td>Approve.</td></tr>
+</tbody></table></div>
+<div class="callout warn"><strong class="ctitle">Unique is not the same as a key</strong>
+<p>A profile only tests uniqueness within the sample. <code>email</code> and <code>ssn</code> may score 100 on a small sample and still be unsuitable keys. Pick the column that is the business identifier and is what child tables refer to. That judgement comes from you, not the tool. (My reasoning, not a guide quote; the guide's decision aid is the uniqueness percentage plus your own knowledge of the data.)</p></div>
+
+<h4 id="c12-pk-apply">Applying the primary key results</h4>
+<p>Select a row and choose <strong>Verify, Approve or Reject</strong> from the Actions menu (p.104).</p>
+<ul>
+<li><strong>Approve:</strong> TDM adds the primary key to the table in the TDM repository.</li>
+<li><strong>Reject:</strong> does not affect the subset operation.</li>
+<li><strong>Verified</strong> column: only for tracking your review; it does not affect subset operations.</li>
+</ul>
+<p class="expect">Expected result: approved keys appear on the table in Discover &gt; Tables, under Constraints as primary key constraints. The source database is unchanged. (The location under Constraints follows from the constraint steps on pp.109-110 and the statement that TDM does not add keys to the source tables, p.87.)</p>
+<p>You can skip discovery and add keys by hand. The guide says when you manually add keys, you do not need a primary key discovery profile, and you define constraints for subset, masking and generation without updating the source database (p.109). The step list is in <a href="#c12-manual-keys">the manual keys section</a> below.</p>

@@ -231,6 +231,17 @@ Metadata pattern .*SSN*                          matches   SSN, CUST_SSN, SSN_NO
 <tr><td>ORDERS.order_id, ORDER_ITEMS.*, PRODUCTS.*</td><td>Public or Internal</td><td>none</td><td>Not flagged</td></tr>
 </tbody></table></div></details></div>
 
+<h2 id="c4-cases">4.12 Judgement calls: four short cases</h2>
+<p>Policies cover the common situations. The interesting work is in the edges. Each case below is fictional and shows the questions a TDM engineer asks before saying yes or no. <span class="badge concept">General concept</span></p>
+<div class="callout example"><strong class="ctitle">Case 1: "Give me last week's production orders to reproduce a bug"</strong>
+<p>A QA lead wants a copy of production. The reflex answer is no. The useful answer starts with questions. Which orders trigger the bug? Probably a handful, so a subset around those customers is enough (see <a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>). Does the bug depend on real names or only on the shape of the data, such as an order with 40 items? Usually only on the shape, so a masked subset reproduces it. The minimum-necessary idea turns a risky request into a small, safe one.</p></div>
+<div class="callout example"><strong class="ctitle">Case 2: "Our load-testing vendor needs production data"</strong>
+<p>The vendor needs volume (millions of orders), not real people. Masking millions of rows works, but so does generating fictional rows from scratch, which carries no personal data at all (the <a href="07-test-data-classification-and-generation-concepts.html">test data classification and generation chapter</a> covers this). The data steward helps by describing the realistic shape: how many items per order, how skewed the customers are.</p></div>
+<div class="callout example"><strong class="ctitle">Case 3: "Analytics wants real birth dates for age-band reports"</strong>
+<p>Exact birth date is Restricted, but the report only needs age bands such as 25 to 34. Options: replace dates with ones shifted by a few days (age band stays the same for most people), or store only the year. The compliance officer decides whether the remaining year plus zip is acceptable, remembering the uniqueness lab earlier in this chapter. The takeaway is that "mask or not" is often really "how much detail does the purpose need?".</p></div>
+<div class="callout example"><strong class="ctitle">Case 4: "Support agents paste customer details into notes"</strong>
+<p>An <code>ORDER_NOTES</code> column (not in the shared schema, added here to illustrate) contains lines like "Customer 123-45-6789 asked for a refund, call 9876543210". No column name flags it, and a column-level data pattern may miss it because the value is a whole sentence. Options: exclude the column from test copies, null it out, or use a free-text redaction algorithm that looks for patterns inside the text. Delphix provides a Free Text Redaction framework for this and says it needs expertise to configure (Delphix "Free Text Redaction (Algorithm frameworks)"). <span class="badge doc">From docs</span> Always check the output with a search for digit patterns afterwards.</p></div>
+
 <h2 id="c4-mistakes">Common mistakes and gotchas</h2>
 <div class="callout warn"><strong class="ctitle">Mistakes beginners make</strong>
 <ul>
