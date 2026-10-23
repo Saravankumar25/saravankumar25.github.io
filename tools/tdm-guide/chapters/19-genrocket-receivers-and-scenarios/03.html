@@ -48,18 +48,15 @@
 <tr><td>Variable Set drop-down</td><td>Chooses a project-version variable set for the downloaded scenario</td></tr>
 <tr><td>Scenario Domains</td><td>Name, loop count, summary, which domain is primary and which is root. Add a template domain, remove a domain, randomise or change the loop count, choose the primary domain, <em>Optimize</em>, or <em>Disable Non-Primary Receivers</em></td></tr>
 <tr><td>Scenario Domain Receivers</td><td>Enable or disable each receiver for this scenario, and add references to its parameters</td></tr>
-<tr><td>Scenario Domain Generators</td><td>All generators in use; click one to see which attributes use it</td></tr>
-<tr><td>Scenario Variables</td><td>Create variables that exist only in this scenario</td></tr>
-<tr><td>Relationship tab</td><td>The parent, child and sibling diagram of this scenario</td></tr>
 </tbody>
 </table>
 </div>
 
-<p>The loop count of a child domain is counted <em>per parent row</em>. In the vendor's chain example, Department generates 2 rows, User generates 10 per department (20 in total) and Address generates 1 per user (20 in total). So to get 100 orders for 50 customers, you set the Orders loop count to 2.</p>
+<p>The loop count of a child domain is counted <em>per parent row</em>. So to get 100 orders for 50 customers, you set the Orders loop count to 2. Section 19.4.7 works through a three-level example with larger numbers.</p>
 
 <div class="callout note">
 <strong class="ctitle">A reminder about where to change the number of rows</strong>
-<p>The domain page recommends test data cases for varying row counts. For this chapter, edit the loop count in the Scenario Domains table or on the domain. One quirk from the docs: if the first generator of an attribute is ListGen with <code>setLoop</code> true, the list length decides the count and the pencil icon is absent.</p>
+<p>The domain page recommends test data cases for varying row counts. Here the loop count is edited in the Scenario Domains table or on the domain. One quirk from the docs: if the first generator of an attribute is ListGen with <code>setLoop</code> true, the list length decides the count and the pencil icon is absent.</p>
 </div>
 
 <h3 id="c19-scenario-domain">19.4.4 Scenario domains, relationships and locks</h3>
@@ -97,7 +94,27 @@
 </li>
 </ol>
 
-<h3 id="c19-run">19.4.7 Running a scenario with the runtime</h3>
+<h3 id="c19-loop-math">19.4.7 Worked example: how loop counts multiply along a chain</h3>
+
+<p><span class="badge video">From video</span> In its 2020 webinar, GenRocket's CEO explains chains with a three-level example: Organization, Department and User, with one scenario per domain, linked so that every user belongs to a real department and every department to a real organization (referential integrity). Each scenario has a loop count, and a child's count applies to every parent row, so the numbers multiply down the chain.</p>
+
+<div class="tablewrap">
+<table class="sample">
+<caption>The webinar's chain, with an arithmetic check in the last column</caption>
+<thead><tr><th>Scenario (one per domain)</th><th>Loop count</th><th>Counted</th><th>Rows made</th><th>Check</th></tr></thead>
+<tbody>
+<tr><td>Organization</td><td>3</td><td>once</td><td>3</td><td>3</td></tr>
+<tr><td>Department</td><td>3</td><td>per organization</td><td>9</td><td>3 x 3 = 9</td></tr>
+<tr><td>User</td><td>3,000</td><td>per department</td><td>27,000</td><td>9 x 3,000 = 27,000</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>A second route gives the same answer: each organization has 3 departments of 3,000 users, so 9,000 users per organization, and 3 organizations make 27,000. That matches the total the CEO states.</p>
+
+<p>The ShopSphere lab in section 19.5 is the same idea one level shorter: 50 customers x 2 orders = 100 orders. One difference to remember: the webinar describes each scenario as producing its own domain, while the help centre says a child's scenario also pulls in its parents as helper domains (section 19.4.1), which is why non-primary receivers are disabled (section 19.7). Follow the help centre, and compare each file's row count with your calculation.</p>
+
+<h3 id="c19-run">19.4.8 Running a scenario with the runtime</h3>
 
 <p>The scenario file is run from a command window on a machine that has the runtime and your profile.</p>
 
@@ -127,15 +144,75 @@
 
 <p>When data is inserted into a database and loading fails, the runtime throws an exception to the command line (or to the testing framework when it runs in an automated pipeline), so no error means success. The vendor's note on stopping a run: press <kbd>Ctrl+C</kbd>, and on Windows answer the "Terminate batch job (Y/N)?" prompt with Y to abort.</p>
 
-<p>In automated environments the same command is placed in a build step (see the Jenkins section in <a href="17-genrocket-overview.html">the overview chapter</a>). Scenarios can also be run through a repository server or an API, which this guide does not cover.</p>
+<p><span class="badge video">From video</span> The 2020 webinar's live demo shows a simple way to check a run. The CTO builds a user domain with an XML receiver, downloads the scenario (about 22 KB, and he points out it would stay that size whether it generates one row or a billion, because it holds instructions, not data), and runs it from a command line with the Java-based runtime. He then opens the XML output and checks that the ids start at 1,000 and rise by one, as the id generator was set to do, that the other values follow their generators' patterns, and that scrolling to the end shows 10,000 rows, the loop count he had set.</p>
 
-<h3 id="c19-thread">19.4.8 The Scenario Thread Engine (overview)</h3>
+<p>Scenarios can also be run through a repository server or an API, which are not covered here. Section 19.4.10 shows the command inside a pipeline.</p>
 
-<p>The thread engine speeds up chains and chain sets by running several of their scenarios at the same time: <code>genrocket -r Chain.grs -threaded 10</code>. The docs caution that threads may run in any order, so use it only where order does not matter, for example many segment files that a merge receiver combines later (the engine waits for every segment before merging). Do <em>not</em> use it where SQL inserts depend on parent rows already being present, because the order matters for referential integrity. Their example generated 10,000 EDI documents in 23 minutes 50 seconds with 20 threads against 53 minutes 20 seconds with one (on the vendor's test machine).</p>
+<h3 id="c19-thread">19.4.9 The Scenario Thread Engine (overview)</h3>
+
+<p>The thread engine speeds up chains and chain sets by running several of their scenarios at the same time: <code>genrocket -r Chain.grs -threaded 10</code>. The docs caution that threads may run in any order, so use it only where order does not matter, for example many segment files that a merge receiver combines later (the engine waits for every segment before merging). Do <em>not</em> use it where SQL inserts depend on parent rows already being present, because the order matters for referential integrity.</p>
+
+<h3 id="c19-pipeline">19.4.10 Scenarios inside an automated test pipeline</h3>
+
+<p><span class="badge video">From video</span> Later in the 2020 webinar, the CEO plays a short vendor video about combining GenRocket with Jenkins (a tool that runs jobs automatically) and Selenium (a tool that drives a web browser to run functional tests). The point is that data is created at the moment a test needs it, not prepared days earlier. In plain steps:</p>
+
+<ol class="steps">
+<li><strong>A Jenkins job starts.</strong>
+<p>A trigger such as a build normally starts it; the video starts it by hand.</p>
+</li>
+<li><strong>The job opens a shell and runs GenRocket against a test plan.</strong>
+<p>A test plan here is a set of scenarios to work through, so one command covers the whole run.</p>
+<p class="expect">What you should see: the Jenkins console showing the test plan loading and executing.</p>
+</li>
+<li><strong>When a test needs data, GenRocket generates it.</strong>
+<p>Each test gets fresh data shaped for it, not a shared set that earlier tests may have changed.</p>
+</li>
+<li><strong>GenRocket then calls a Selenium step that performs the functional test.</strong>
+<p>The test consumes the data it was just given.</p>
+</li>
+<li><strong>The data can be cleared, and the next test gets fresh data.</strong>
+<p>The CEO says it need not sit around; in the 2022 overview video he adds that the transaction can be rolled back before the next test case runs.</p>
+</li>
+</ol>
+
+<figure class="diagram">
+<svg viewBox="0 0 800 250" role="img" aria-label="Flow: a Jenkins job runs GenRocket on a test plan, GenRocket generates data when a test needs it, Selenium runs the functional test, the data is cleared, and the loop returns to generating data for the next test">
+<defs><marker id="c19p" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+<rect x="15" y="50" width="150" height="90" rx="10" fill="var(--surface)" stroke="var(--line)"/>
+<text x="90" y="85" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">Jenkins job</text>
+<text x="90" y="108" text-anchor="middle" font-size="12" fill="currentColor">opens a shell, runs</text>
+<text x="90" y="125" text-anchor="middle" font-size="12" fill="currentColor">GenRocket on a test plan</text>
+<rect x="215" y="50" width="170" height="90" rx="10" fill="var(--surface)" stroke="var(--line)"/>
+<text x="300" y="85" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">Generate data</text>
+<text x="300" y="108" text-anchor="middle" font-size="12" fill="currentColor">scenario runs when a</text>
+<text x="300" y="125" text-anchor="middle" font-size="12" fill="currentColor">test needs its data</text>
+<rect x="435" y="50" width="170" height="90" rx="10" fill="var(--surface)" stroke="var(--line)"/>
+<text x="520" y="85" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">Selenium test</text>
+<text x="520" y="108" text-anchor="middle" font-size="12" fill="currentColor">functional test uses</text>
+<text x="520" y="125" text-anchor="middle" font-size="12" fill="currentColor">the fresh data</text>
+<rect x="640" y="50" width="145" height="90" rx="10" fill="var(--surface)" stroke="var(--line)"/>
+<text x="712" y="85" text-anchor="middle" font-size="15" font-weight="700" fill="currentColor">Clear data</text>
+<text x="712" y="108" text-anchor="middle" font-size="12" fill="currentColor">or roll back,</text>
+<text x="712" y="125" text-anchor="middle" font-size="12" fill="currentColor">then next test</text>
+<line x1="165" y1="95" x2="213" y2="95" stroke="currentColor" stroke-width="2" marker-end="url(#c19p)"/>
+<line x1="385" y1="95" x2="433" y2="95" stroke="currentColor" stroke-width="2" marker-end="url(#c19p)"/>
+<line x1="605" y1="95" x2="638" y2="95" stroke="currentColor" stroke-width="2" marker-end="url(#c19p)"/>
+<path d="M712 140 L712 200 L300 200 L300 142" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 4" marker-end="url(#c19p)"/>
+<text x="506" y="224" text-anchor="middle" font-size="13" fill="currentColor">repeat for every test in the plan</text>
+</svg>
+<figcaption>The Jenkins, GenRocket and Selenium flow described in the 2020 webinar's video. The dashed loop is the repeat for each test.</figcaption>
+</figure>
+
+<p>The Jenkins page in the help centre (see <a href="17-genrocket-overview.html">the overview chapter</a>) runs one named scenario per build step; the test-plan runner in the video is not documented on those pages, so check the current documentation before copying this layout.</p>
+
+<div class="callout tip">
+<strong class="ctitle">Where should the runtime run when the test servers are in the cloud?</strong>
+<p><span class="badge video">From video</span> A viewer asked about cloud-hosted applications in the 2020 webinar's Q&amp;A. The CTO's answer: for a quick data set on your own computer, download the scenario and run it with the local runtime (two or three minutes, he said, against an hour of hand-written Python or Groovy). For a full regression suite on a cloud test server, such as one on Amazon or Azure, install Java and the GenRocket jars on that server and generate the data there. Do not generate it elsewhere and carry it up, because that is slow and moves a lot of data into the cloud. The rule of thumb is: run the runtime where the tests run.</p>
+</div>
 
 <h2 id="c19-walk">19.5 ShopSphere end to end: CUSTOMERS to CSV and ORDERS to SQL inserts</h2>
 
-<p>Everything below uses the design from <a href="18-genrocket-domains-attributes-generators.html">the domains, attributes and generators chapter</a>. It is a practice build, not copied from a vendor page, so each step says which documented feature it uses. I chose SQLFileInsertReceiver for orders because it needs no database connection.</p>
+<p>The build below uses the design from <a href="18-genrocket-domains-attributes-generators.html">the domains, attributes and generators chapter</a>. SQLFileInsertReceiver is used for orders because it needs no database connection.</p>
 
 <div class="exercise">
 <h4>Lab: one chain, two outputs</h4>
@@ -180,7 +257,7 @@
 
 <div class="callout example">
 <strong class="ctitle">Variation: insert straight into a database</strong>
-<p>Replace the SQLFileInsertReceiver with GenericSQLInsertV2Receiver. Create a <code>config.properties</code> file with <code>driver</code>, <code>user</code>, <code>password</code>, <code>url</code> and <code>batchCount</code>, place it in the JDBC resource folder, set <code>resourceName</code>, <code>databaseName</code> and <code>tableName</code>, leave <code>truncate</code> on "notApplicable", and put the JDBC driver jar in the runtime's <code>lib</code> folder. Test the connection with <code>--test-jdbc</code>, then run the chain. This needs a database and credentials from the trainer or DBA, so it is optional here.</p>
+<p>Replace the SQLFileInsertReceiver with GenericSQLInsertV2Receiver. Create a <code>config.properties</code> file with the connection settings (<code>driver</code>, <code>user</code>, <code>password</code>, <code>url</code>, <code>batchCount</code>) in the JDBC resource folder, set the receiver's table settings, leave <code>truncate</code> on "notApplicable", and put the JDBC driver jar in the runtime's <code>lib</code> folder. Test with <code>--test-jdbc</code>, then run the chain. This needs a database and credentials from the DBA.</p>
 </div>
 
 <h2 id="c19-trouble">19.6 Troubleshooting</h2>
@@ -200,8 +277,6 @@
 <tr><td><code>UnsupportedClassVersionError</code>, "JAVA_HOME is set to invalid directory"</td><td>Java too old, or the variable points to the wrong place</td><td>Check <code>java -version</code>, set <code>JAVA_OPTS</code> for Java above 1.8, correct <code>JAVA_HOME</code> or install the JDK</td></tr>
 <tr><td>"Could not find or load main class ..."</td><td>The dependent jars did not download</td><td>Run <code>genrocket -a</code>, or download the jars manually into <code>lib</code></td></tr>
 <tr><td>"Unable to Download Users Profile"</td><td>A resource has no value</td><td>Give every resource a valid path, then download again</td></tr>
-<tr><td>Excel generation: "Permission denied"</td><td>The temporary <code>profiles</code> folder under <code>/tmp</code> is not accessible</td><td>Fix folder permissions</td></tr>
-<tr><td>"Exhausted attempts to find the next valid random value"</td><td>RandomGen unique limit cannot supply that many rows</td><td>Widen the range, raise the limit or lower the row count</td></tr>
 </tbody>
 </table>
 </div>
@@ -215,9 +290,7 @@
 <li><strong>Wrong chain order.</strong> Children before parents means keys do not exist when you load the data.</li>
 <li><strong>Column names that do not match the database.</strong> In SQL receivers, <code>columnName</code> must be the real column.</li>
 <li><strong>Parent data written twice.</strong> A child scenario brings its parents in; disable the non-primary receivers if you only want the child's file.</li>
-<li><strong>Using the thread engine with SQL inserts.</strong> Order matters there.</li>
 <li><strong>Truncating a table by accident.</strong> Leave <code>truncate</code> on "notApplicable".</li>
-<li><strong>Expecting the profile to refresh itself.</strong> After resource changes, download it again.</li>
 </ul>
 </div>
 
@@ -228,10 +301,12 @@
 <ul>
 <li>A receiver turns generator output into a format. Sixteen categories, 120+ receivers; more than one can sit on a domain.</li>
 <li>Receivers use organisation resources for folders. Download your profile again whenever a resource changes.</li>
-<li>Delimited, fixed, JSON, XML, Excel and SQL-file receivers cover most beginner needs; segment-and-merge receivers make nested output; masking receivers replace values in existing files.</li>
+<li>Delimited, fixed, JSON, XML, Excel and SQL-file receivers cover most needs; segment-and-merge receivers make nested output; masking receivers replace values in existing files.</li>
 <li>JDBC receivers insert directly and need a JDBC config file; V2 adds resource path settings; bulk-load receivers are for very large volumes.</li>
 <li>A scenario is built for a primary domain and pulls in its parents. A child's loop count is per parent row.</li>
 <li>Download, then run with <code>genrocket -r</code>. Chains run several scenarios in order. Locks, state and variables control behaviour between runs.</li>
+<li>Loop counts multiply down a chain (3 organizations x 3 departments x 3,000 users = 27,000 in the 2020 webinar), so work out the expected row count before you run, then compare it with the output.</li>
+<li>In a pipeline, run the runtime where the tests run, generate data when a test needs it, and clear it afterwards.</li>
 <li>When something fails, the commonest causes are a missing profile, wrong paths or variables, relationship or ordering mistakes, and Java memory settings.</li>
 </ul>
 </div>
@@ -243,5 +318,6 @@
 <li>Receiver pages: <a href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-delimited-file-receiver" target="_blank" rel="noopener">DelimitedFileReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-fixed-file-receiver" target="_blank" rel="noopener">FixedFileReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-json-file-receiver" target="_blank" rel="noopener">JSONFileReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-xml-file-receiver" target="_blank" rel="noopener">XMLFileReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-excel-file-receiver" target="_blank" rel="noopener">ExcelFileReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-sql-file-insert-receiver" target="_blank" rel="noopener">SQLFileInsertReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/jdbc-receivers/how-do-i-use-the-generic-sql-insert-receiver" target="_blank" rel="noopener">GenericSQLInsertReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/jdbc-receivers/how-do-i-use-the-generic-sql-insert-v2-receiver" target="_blank" rel="noopener">GenericSQLInsertV2Receiver</a>, <a href="https://genrocket.helpjuice.com/en_US/jdbc-receivers/how-do-i-use-the-sql-update-receiver" target="_blank" rel="noopener">SQLUpdateReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/jdbc-receivers/how-do-i-use-the-sql-batch-update-receiver" target="_blank" rel="noopener">SQLBatchUpdateReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/segment-and-merge-receivers-nested-data/how-do-i-use-the-segment-data-creator-receiver" target="_blank" rel="noopener">SegmentDataCreatorReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/segment-and-merge-receivers-nested-data/how-do-i-use-the-json-segment-merge-receiver" target="_blank" rel="noopener">JSONSegmentMergeReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/file-masking/file-masking-overview" target="_blank" rel="noopener">File Masking Overview</a>, <a href="https://genrocket.helpjuice.com/en_US/in-place-masking-ipm/in-place-masking-ipm-for-databases-overview" target="_blank" rel="noopener">IPM overview</a>, <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/what-is-synthetic-data-replacement-sdr" target="_blank" rel="noopener">Synthetic Data Replacement</a>, <a href="https://genrocket.helpjuice.com/en_US/connecting-to-databases/what-is-a-jdbc-config-file" target="_blank" rel="noopener">JDBC config file</a>, <a href="https://genrocket.helpjuice.com/en_US/connecting-to-databases/how-to-test-a-jdbc-connection-test-jdbc" target="_blank" rel="noopener">--test-jdbc</a>, <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">FAQ</a>.</li>
 <li>Scenarios: <a href="https://genrocket.helpjuice.com/en_US/scenarios-/scenarios-overview" target="_blank" rel="noopener">overview</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/how-do-i-create-a-scenario" target="_blank" rel="noopener">create</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/-scenario-dashboard" target="_blank" rel="noopener">dashboard</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/how-do-i-run-a-genrocket-scenario" target="_blank" rel="noopener">run</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/how-do-i-download-multiple-scenarios-at-once" target="_blank" rel="noopener">batch download</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/what-are-scenario-variables" target="_blank" rel="noopener">variables</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/-managing-scenario-state" target="_blank" rel="noopener">state</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/what-are-scenario-level-locks" target="_blank" rel="noopener">locks</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/what-is-the-scenario-thread-engine" target="_blank" rel="noopener">thread engine</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/how-to-define-parentchild-relationships-at-the-scenario-level" target="_blank" rel="noopener">scenario-level relationships</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/-why-cant-i-update-the-loop-count-value-from-the-scenario" target="_blank" rel="noopener">loop count</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/terminate-batch-job-yn" target="_blank" rel="noopener">terminate batch job</a>, <a href="https://genrocket.helpjuice.com/en_US/scenario-chains-/what-is-a-scenario-chain" target="_blank" rel="noopener">chains</a>, <a href="https://genrocket.helpjuice.com/en_US/scenario-chains-/how-do-i-create-a-scenario-chain" target="_blank" rel="noopener">create a chain</a>, <a href="https://genrocket.helpjuice.com/en_US/scenario-chains-/-how-do-i-run-a-scenario-chain" target="_blank" rel="noopener">run a chain</a>, <a href="https://genrocket.helpjuice.com/en_US/scenario-chain-sets/what-is-a-scenario-chain-set" target="_blank" rel="noopener">chain sets</a>.</li>
 <li>Errors: <a href="https://genrocket.helpjuice.com/en_US/scenarios-/error-could-not-find-the-required-profile-grxxxxxxxprofilegrp" target="_blank" rel="noopener">profile</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/error-unable-to-find-domain-name-from-nameattribute" target="_blank" rel="noopener">unable to find domain</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/error-javalangoutofmemoryerror-gc-overhead-limit-exceeded" target="_blank" rel="noopener">out of memory</a>, <a href="https://genrocket.helpjuice.com/en_US/connecting-to-databases/error-communication-link-failure" target="_blank" rel="noopener">communication link failure</a>, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/why-are-there-errors-when-inserting-data-into-postgresql" target="_blank" rel="noopener">PostgreSQL</a>, <a href="https://genrocket.helpjuice.com/en_US/genrocket-runtime/genrocket-runtime-setup-warnings-and-errors" target="_blank" rel="noopener">runtime setup errors</a>, <a href="https://genrocket.helpjuice.com/en_US/financial-generators/how-do-i-use-the-randomgen-generator" target="_blank" rel="noopener">RandomGen</a>.</li>
+<li>Videos (vendor presentations): <a href="https://www.youtube.com/watch?v=iJdUoxupDqA" target="_blank" rel="noopener">Test Data Automation-Webinar by Kualitatem and GenRocket</a> (2020), used for the loop-count example, the run-and-check demo, the Jenkins and Selenium flow, the cloud-server answer and the receiver and generator turnaround statement; <a href="https://www.youtube.com/watch?v=Z89qnX5B1xE" target="_blank" rel="noopener">GenRocket Overview Video 2022</a>, used for the receiver count and the rollback-between-tests remark.</li>
 </ul>
 </section>

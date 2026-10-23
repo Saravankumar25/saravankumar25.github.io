@@ -1,6 +1,5 @@
 <p>Every tool in this guide moves data. Informatica TDM copies a slice of a database, changes some values and writes it somewhere else. Delphix reads a source, masks it and delivers it to a target. GenRocket creates rows and writes them to a database or a file. Underneath, all three do the same three things: <strong>get data from somewhere, change it, put it somewhere else</strong>. The industry has had a name for that pattern for decades: <strong>ETL</strong>, which stands for Extract, Transform, Load.</p>
-<p>This chapter teaches ETL on its own, with no test data management in it, so that you can recognise the pattern wherever it appears. We will build a small but complete ETL job for ShopSphere using plain SQL, with real input and real output tables, then look at the machinery that real ETL tools wrap around those SQL steps: schedulers, logs, error handling and reusable components. The <a href="09-etl-and-tdm.html">next chapter on ETL and TDM</a> lays the TDM tools on top of what you learn here.</p>
-<p>You need to know what a table, a primary key and a foreign key are; if not, read <a href="03-data-basics.html">the data basics chapter</a> first.</p>
+<p>This chapter covers ETL on its own, without test data management, so the pattern is recognisable wherever it appears. It builds a small but complete ETL job for ShopSphere in plain SQL, then describes the machinery that real ETL tools wrap around those SQL steps: schedulers, logs, error handling and reusable components. <a href="09-etl-and-tdm.html">The ETL and TDM chapter</a> lays the TDM tools on top. Tables and keys are explained in <a href="03-data-basics.html">the data basics chapter</a>.</p>
 <div class="callout recap"><strong class="ctitle">What you will learn</strong>
 <ul>
 <li>What ETL is, why companies do it, and how it differs from the operational database and the data warehouse.</li>
@@ -12,12 +11,11 @@
 <li>The parts of an ETL architecture: sources, engine, metadata repository, scheduler, monitoring and targets.</li>
 <li>Mappings, workflows, sessions, jobs and reusable components, including what a <em>mapplet</em> is.</li>
 <li>Error handling, data quality checks and performance ideas.</li>
-<li>A complete worked ShopSphere ETL, two runs long, and two labs you can run yourself.</li>
+<li>A complete worked ShopSphere ETL, two runs long, and two labs.</li>
 </ul></div>
-<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
-<p>ETL itself is a general concept, so most of this chapter is marked <span class="badge concept">General concept</span> and is explained from first principles. Tool-specific statements come only from the Informatica TDM 10.5.10 User Guide (PDF, February 2026, 455 pages), where I read the architecture section of chapter 1 (pp.24 to 29), the mapplet rule sections in chapters 7 and 8, and the plans and workflows chapter 13 (pp.274 to 285, 308). The Delphix masking terminology and job pages (Continuous Compliance 2026.5, last published October 16, 2026) supply two examples in the load and performance sections.</p>
-<p>The SQL in this chapter is my own. I ran every statement in SQLite 3.45 and pasted the real results. The SQL is standard in spirit, but functions for text, dates and "insert or update" differ between databases (Oracle, SQL Server, PostgreSQL, MySQL), so expect to adjust a few function names on your system. I point out the main ones as they come up.</p>
-<p>Related videos (transcripts could not be retrieved, so they are not used as sources): <a href="https://www.youtube.com/watch?v=DVyJqMi7QtY" target="_blank" rel="noopener">"How to create mapplet in informatica", LearningMart</a>.</p></div>
+<div class="callout note"><strong class="ctitle">SQL dialects</strong>
+<p>The SQL here is standard in spirit and was written for SQLite, but functions for text, dates and "insert or update" differ between databases (Oracle, SQL Server, PostgreSQL, MySQL), so a few function names may need adjusting. The main ones are pointed out as they come up.</p>
+</div>
 
 <h2 id="c8-words">8.1 Words to know first</h2>
 <dl class="defs">

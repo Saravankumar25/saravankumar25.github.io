@@ -1,10 +1,10 @@
-<h2 id="c28-lab6">28.6 Lab 6: mask a delimited and a fixed-width file (TDM_Handson6)</h2>
+<h2 id="c28-lab6">28.6 Lab 6: mask a delimited and a fixed-width file</h2>
 <h3 id="c28-lab6-goal">Goal</h3>
 <p>Mask the customer files <code>customers.dat</code> (pipe-delimited) and <code>customers_fixed.txt</code> (fixed-width) with the file side of the engine. Files carry no built-in description of their columns, so this lab adds one step the database labs did not need: telling the engine what the fields are, with a file format.</p>
 <h3 id="c28-lab6-prereq">Prerequisites and setup data</h3>
 <ul>
 <li>The two files from the setup section exist in a working folder, and the originals are copied to a separate <code>original</code> folder.</li>
-<li>You know how the engine reaches that folder. The docs list the connection modes Filesystem Mount Point, SFTP, FTP, FTPS (mainframe datasets only), AWS S3, Other S3 Compatible Storage and Azure Blob Storage. Ask your trainer which one the lab uses. A mount point also needs a mount created through the Mount Filesystem API before you can pick it in the connector (<a href="https://help.delphix.com/cc/current/content/managing_remote_mounts_for_vm_continuous_compliance_engines.htm" target="_blank" rel="noopener">Managing remote mounts</a>). The file concepts are in <a href="27-delphix-file-masking.html">the file masking chapter</a>.</li>
+<li>You know how the engine reaches that folder. The docs list the connection modes Filesystem Mount Point, SFTP, FTP, FTPS (mainframe datasets only), AWS S3, Other S3 Compatible Storage and Azure Blob Storage. A mount point also needs a mount created through the Mount Filesystem API before you can pick it in the connector (<a href="https://help.delphix.com/cc/current/content/managing_remote_mounts_for_vm_continuous_compliance_engines.htm" target="_blank" rel="noopener">Managing remote mounts</a>). The file concepts are in <a href="27-delphix-file-masking.html">the file masking chapter</a>.</li>
 <li>A new environment named <code>ShopSphere_File_Mask</code> (same steps as in Lab 4, Purpose: Mask).</li>
 </ul>
 <h3 id="c28-lab6-steps">Steps</h3>
@@ -14,7 +14,7 @@
 <p class="expect">Both connectors appear under the FILE group in the Connectors grid, with types Delimited and Fixed Width.</p></li>
 <li><strong>Write the two format files.</strong>
 <p>The docs say the engine needs a description of the fields and that a format file contains <em>only</em> the structure, never production data or personal information. For a delimited file the format file lists the field names, one per line, with no header. For a fixed-width file each line is a field name, a comma and the field length. The two official sketches below show the shape.</p>
-<p>My versions for ShopSphere, saved as <code>ss_delim.fmt</code> and <code>ss_fixed.fmt</code>:</p>
+<p>Formats for ShopSphere, saved as <code>ss_delim.fmt</code> and <code>ss_fixed.fmt</code>:</p>
 <pre><code>customer_id
 first_name
 last_name
@@ -87,11 +87,7 @@ diff &lt;(cut -c1-4,36-45 original/customers_fixed.txt) &lt;(cut -c1-4,36-45 cus
 <tr><td>A delimited file lost its last fields</td><td>More fields in the data than in the format file; the docs say extra fields are dropped after masking</td><td>Add the missing field names to the format and reimport; restore from the original</td></tr>
 <tr><td>A delimited file gained an extra delimiter</td><td>Fewer fields in the data than in the format (docs: delimiters are appended)</td><td>Make the format match the data</td></tr>
 <tr><td>Fixed-width: the wrong part of the line is masked</td><td>A wrong field length shifts every later offset</td><td>Recount lengths; the docs warn about exactly this</td></tr>
-<tr><td>Fixed-width line got longer</td><td>A masked name was longer than the field. The docs I read do not say how this case is handled</td><td>Check line length; on a copy of the algorithm set a Maximum Masked Name Length (an option of the Name framework)</td></tr>
+<tr><td>Fixed-width line got longer</td><td>A masked name was longer than the field. The docs do not say how this case is handled</td><td>Check line length; on a copy of the algorithm set a Maximum Masked Name Length (an option of the Name framework)</td></tr>
 <tr><td>Format import fails on Windows</td><td>The format file has CRLF line endings</td><td>Convert to LF and import again</td></tr>
 <tr><td>Warning for a Phone or SSN value</td><td>Non-conforming data, such as text in a phone field</td><td>See the log of the file in Execution Components</td></tr>
 </tbody></table></div>
-<div class="callout real">
-<strong class="ctitle">What to say in the walkthrough</strong>
-<p>"Files have no schema, so I gave the engine one: a file format per file type with field names only, no real data. I made a file connector, a flat-file rule set and an inventory per file, profiled them, and assigned FirstName, LastName and a digit-mapping algorithm to the SSN field. I masked in-place on a working copy and compared against the original: the structure is unchanged, 5 fields per line and 45 characters per fixed-width line, and the names and SSNs are different. The same input gave the same output on a second run."</p>
-</div>

@@ -1,25 +1,9 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 5: Informatica TDM (2): masking, generation, plans and workflows | TDM Guide</title><meta name="description" content="Every masking technique and rule, mapplets and transformations, data generation, and how plans become workflows you monitor."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/05-informatica-masking-generation-workflows.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 5: Informatica TDM (2): masking, generation, plans and workflows | TDM Guide"><meta property="og:description" content="Every masking technique and rule, mapplets and transformations, data generation, and how plans become workflows you monitor."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}try{var s=localStorage.getItem('tdm-sidebar');if(!s&&matchMedia('(max-width:860px)').matches)s='hidden';if(s==='hidden')document.documentElement.setAttribute('data-sidebar','hidden')}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="true" title="Hide or show the sidebar ([)">☰ <span>Contents</span></button><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" id="sidebar" aria-label="Chapter navigation"><div class="sbtop"><a class="allchap" href="index.html">← All 10 chapters</a><button type="button" class="sbhide" data-sidebar-hide title="Hide the sidebar ([)">« Hide</button></div><h3>Chapters</h3><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a><a class="" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="current" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a><a class="" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a><a class="" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, the capstone and the glossary</a></div><h3>In this chapter</h3><div class="section-list"><details class="grpbox" open data-grp="c5-s1"><summary>Informatica: masking data, rules and mapplets</summary><div class="secs"><a href="#c14-words">5.1 Words to know first</a><a href="#c14-big-picture">5.2 The big picture: rules, domains, policies and assignments</a><a href="#c14-rules">5.3 Creating masking rules</a><a href="#c14-assign">5.4 Assigning rules to columns</a><a href="#c14-common-params">5.5 Parameters that most techniques share</a><a href="#c14-techniques">5.6 The masking techniques, one by one</a><a href="#c14-compare">5.7 Comparison and decision table</a><a href="#c14-advanced">5.8 Advanced masking rules in depth</a><a href="#c14-custom">5.9 Custom rules: mapplets and the Data Masking transformation</a><a href="#c14-design">5.10 Putting it together: a masking design for ShopSphere</a><a href="#c14-labs">5.11 Hands-on labs</a><a href="#c14-mistakes">5.12 Common mistakes and gotchas</a><a href="#c14-recap">5.13 Recap</a></div></details><details class="grpbox" data-grp="c5-s2"><summary>Informatica: generating test data</summary><div class="secs"><a href="#c15-words">5.14 Words to know first</a><a href="#c15-what-is">5.15 What data generation is for</a><a href="#c15-components">5.16 The building blocks and the order of work</a><a href="#c15-rule-types">5.17 Rule types: standard, custom, advanced and ad hoc</a><a href="#c15-defaults">5.18 Default rules: what happens to columns you ignore</a><a href="#c15-assign">5.19 Assigning rules to columns</a><a href="#c15-keys">5.20 Tables, entities, relationships and keys</a><a href="#c15-count">5.21 How many records? And exception data</a><a href="#c15-techniques">5.22 The generation techniques, one by one</a><a href="#c15-cond-constraint">5.23 Conditional constraints: rules between columns</a><a href="#c15-pick">5.24 Choosing a technique for every ShopSphere column</a><a href="#c15-plan">5.25 From rules to a running job: the generation plan</a><a href="#c15-restriction">5.26 Why a generation plan stands alone</a><a href="#c15-mistakes">5.27 Common mistakes and gotchas</a><a href="#c15-recap">5.28 Recap</a></div></details><details class="grpbox" data-grp="c5-s3"><summary>Informatica: plans, workflows, monitoring and the Test Data Warehouse</summary><div class="secs"><a href="#c16-words">5.29 Words to know first</a><a href="#c16-overview">5.30 Plans and workflows: the big picture</a><a href="#c16-story-intro">5.31 The ShopSphere story we will follow</a><a href="#c16-create">5.32 Creating plans</a><a href="#c16-components">5.33 Plan components in practice</a><a href="#c16-settings">5.34 Plan settings you will actually touch</a><a href="#c16-source-override">5.35 Source, table and file overrides</a><a href="#c16-params">5.36 Parameters and parameter files</a><a href="#c16-manage">5.37 Plan management</a><a href="#c16-workflow">5.38 Generating and running a workflow</a><a href="#c16-monitor">5.39 The Monitor: watching and reading jobs</a><a href="#c16-reports">5.40 Reports</a><a href="#c16-coverage">5.41 Data coverage analysis, at overview level</a><a href="#c16-cli">5.42 Command-line tools: ilmcmd, tdwcmd and tdwquery</a><a href="#c16-tdw">5.43 The Test Data Warehouse</a><a href="#c16-datasets">5.44 Data sets, versions and tags</a><a href="#c16-reset">5.45 Restoring: the reset</a><a href="#c16-manage-ds">5.46 Managing data sets</a><a href="#c16-labs">5.47 Labs: the story in practice</a><a href="#c16-mistakes">5.48 Common mistakes and gotchas</a><a href="#c16-recap">5.49 Recap</a></div></details></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">CHAPTER 05</p><h1>Informatica TDM (2): masking, generation, plans and workflows</h1><p class="chapter-summary">Every masking technique and rule, mapplets and transformations, data generation, and how plans become workflows you monitor.</p></div><details class="pagetoc"><summary>Contents of this chapter</summary><details class="grpbox" open data-grp="c5-s1"><summary>Informatica: masking data, rules and mapplets</summary><div class="secs"><a href="#c14-words">5.1 Words to know first</a><a href="#c14-big-picture">5.2 The big picture: rules, domains, policies and assignments</a><a href="#c14-rules">5.3 Creating masking rules</a><a href="#c14-assign">5.4 Assigning rules to columns</a><a href="#c14-common-params">5.5 Parameters that most techniques share</a><a href="#c14-techniques">5.6 The masking techniques, one by one</a><a href="#c14-compare">5.7 Comparison and decision table</a><a href="#c14-advanced">5.8 Advanced masking rules in depth</a><a href="#c14-custom">5.9 Custom rules: mapplets and the Data Masking transformation</a><a href="#c14-design">5.10 Putting it together: a masking design for ShopSphere</a><a href="#c14-labs">5.11 Hands-on labs</a><a href="#c14-mistakes">5.12 Common mistakes and gotchas</a><a href="#c14-recap">5.13 Recap</a></div></details><details class="grpbox" data-grp="c5-s2"><summary>Informatica: generating test data</summary><div class="secs"><a href="#c15-words">5.14 Words to know first</a><a href="#c15-what-is">5.15 What data generation is for</a><a href="#c15-components">5.16 The building blocks and the order of work</a><a href="#c15-rule-types">5.17 Rule types: standard, custom, advanced and ad hoc</a><a href="#c15-defaults">5.18 Default rules: what happens to columns you ignore</a><a href="#c15-assign">5.19 Assigning rules to columns</a><a href="#c15-keys">5.20 Tables, entities, relationships and keys</a><a href="#c15-count">5.21 How many records? And exception data</a><a href="#c15-techniques">5.22 The generation techniques, one by one</a><a href="#c15-cond-constraint">5.23 Conditional constraints: rules between columns</a><a href="#c15-pick">5.24 Choosing a technique for every ShopSphere column</a><a href="#c15-plan">5.25 From rules to a running job: the generation plan</a><a href="#c15-restriction">5.26 Why a generation plan stands alone</a><a href="#c15-mistakes">5.27 Common mistakes and gotchas</a><a href="#c15-recap">5.28 Recap</a></div></details><details class="grpbox" data-grp="c5-s3"><summary>Informatica: plans, workflows, monitoring and the Test Data Warehouse</summary><div class="secs"><a href="#c16-words">5.29 Words to know first</a><a href="#c16-overview">5.30 Plans and workflows: the big picture</a><a href="#c16-story-intro">5.31 The ShopSphere story we will follow</a><a href="#c16-create">5.32 Creating plans</a><a href="#c16-components">5.33 Plan components in practice</a><a href="#c16-settings">5.34 Plan settings you will actually touch</a><a href="#c16-source-override">5.35 Source, table and file overrides</a><a href="#c16-params">5.36 Parameters and parameter files</a><a href="#c16-manage">5.37 Plan management</a><a href="#c16-workflow">5.38 Generating and running a workflow</a><a href="#c16-monitor">5.39 The Monitor: watching and reading jobs</a><a href="#c16-reports">5.40 Reports</a><a href="#c16-coverage">5.41 Data coverage analysis, at overview level</a><a href="#c16-cli">5.42 Command-line tools: ilmcmd, tdwcmd and tdwquery</a><a href="#c16-tdw">5.43 The Test Data Warehouse</a><a href="#c16-datasets">5.44 Data sets, versions and tags</a><a href="#c16-reset">5.45 Restoring: the reset</a><a href="#c16-manage-ds">5.46 Managing data sets</a><a href="#c16-labs">5.47 Labs: the story in practice</a><a href="#c16-mistakes">5.48 Common mistakes and gotchas</a><a href="#c16-recap">5.49 Recap</a></div></details></details><div class="grp" id="c5-s1"><span class="grplabel">Informatica: masking data, rules and mapplets</span></div>
-<p>The previous chapters showed how to find sensitive columns (<a href="04-informatica-architecture-discovery-subset.html#c4-s3">the Informatica discovery and profiling chapter</a>) and how to cut production down to a small consistent slice (<a href="04-informatica-architecture-discovery-subset.html#c4-s4">the Informatica data subset chapter</a>). This section covers the step that makes the slice safe to hand to testers: <dfn>data masking</dfn>, replacing real sensitive values with realistic fake ones, so a tester sees "Divya Iyer" where production has "Asha Menon". The general idea is in <a href="02-privacy-discovery-subsetting-masking.html#c2-s3">the masking concepts chapter</a>; here is exactly how Informatica TDM does it.</p>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>Chapter 5: Informatica TDM (2): masking, generation, plans and workflows | TDM Guide</title><meta name="description" content="Every masking technique and rule, mapplets and transformations, data generation, and how plans become workflows you monitor."><link rel="canonical" href="https://saravankumar25.github.io/blogs/tdm-guide/05-informatica-masking-generation-workflows.html"><meta property="og:type" content="article"><meta property="og:title" content="Chapter 5: Informatica TDM (2): masking, generation, plans and workflows | TDM Guide"><meta property="og:description" content="Every masking technique and rule, mapplets and transformations, data generation, and how plans become workflows you monitor."><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}try{var s=localStorage.getItem('tdm-sidebar');if(!s&&matchMedia('(max-width:860px)').matches)s='hidden';if(s==='hidden')document.documentElement.setAttribute('data-sidebar','hidden')}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="https://saravankumar25.github.io/">SK</a><nav aria-label="Main navigation"><a href="https://saravankumar25.github.io/">Home</a><a href="https://saravankumar25.github.io/projects/">Projects</a><a href="https://saravankumar25.github.io/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav><div class="tools"><button id="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="true" title="Hide or show the sidebar ([)">☰ <span>Contents</span></button><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header><main id="main"><div class="article-layout"><aside class="sidebar" id="sidebar" aria-label="Chapter navigation"><div class="sbtop"><a class="allchap" href="index.html">← All 10 chapters</a><button type="button" class="sbhide" data-sidebar-hide title="Hide the sidebar ([)">« Hide</button></div><h3>Chapters</h3><div class="chapter-list"><a class="" href="01-welcome-why-tdm-and-data-basics.html"><span class="n">01</span> Welcome: why TDM exists and the data basics you need</a><a class="" href="02-privacy-discovery-subsetting-masking.html"><span class="n">02</span> Privacy, discovery, subsetting and masking: the concepts</a><a class="" href="03-generation-etl-and-tdm.html"><span class="n">03</span> Synthetic data, ETL from scratch, and how ETL meets TDM</a><a class="" href="04-informatica-architecture-discovery-subset.html"><span class="n">04</span> Informatica TDM (1): architecture, the tool tour, discovery and subsetting</a><a class="current" href="05-informatica-masking-generation-workflows.html"><span class="n">05</span> Informatica TDM (2): masking, generation, plans and workflows</a><a class="" href="06-genrocket-building-blocks.html"><span class="n">06</span> GenRocket (1): the building blocks</a><a class="" href="07-genrocket-patterns-and-hands-on.html"><span class="n">07</span> GenRocket (2): data patterns and a hands-on build</a><a class="" href="08-delphix-connect-keys-profiling.html"><span class="n">08</span> Delphix (1): connecting, keys and profiling</a><a class="" href="09-delphix-masking-files-labs.html"><span class="n">09</span> Delphix (2): algorithms, file masking and hands-on labs</a><a class="" href="10-engagements-capstone-and-glossary.html"><span class="n">10</span> Putting it together: real engagements, a worked project and the glossary</a></div><h3>In this chapter</h3><div class="section-list"><details class="grpbox" open data-grp="c5-s1"><summary>Informatica: masking data, rules and mapplets</summary><div class="secs"><a href="#c14-words">5.1 Words to know first</a><a href="#c14-big-picture">5.2 The big picture: rules, domains, policies and assignments</a><a href="#c14-rules">5.3 Creating masking rules</a><a href="#c14-assign">5.4 Assigning rules to columns</a><a href="#c14-common-params">5.5 Parameters that most techniques share</a><a href="#c14-techniques">5.6 The masking techniques, one by one</a><a href="#c14-compare">5.7 Comparison and decision table</a><a href="#c14-advanced">5.8 Advanced masking rules in depth</a><a href="#c14-custom">5.9 Custom rules: mapplets and the Data Masking transformation</a><a href="#c14-design">5.10 Putting it together: a masking design for ShopSphere</a><a href="#c14-labs">5.11 Hands-on labs</a><a href="#c14-mistakes">5.12 Common mistakes and gotchas</a><a href="#c14-recap">5.13 Recap</a></div></details><details class="grpbox" data-grp="c5-s2"><summary>Informatica: generating test data</summary><div class="secs"><a href="#c15-words">5.14 Words to know first</a><a href="#c15-what-is">5.15 What data generation is for</a><a href="#c15-components">5.16 The building blocks and the order of work</a><a href="#c15-rule-types">5.17 Rule types: standard, custom, advanced and ad hoc</a><a href="#c15-defaults">5.18 Default rules: what happens to columns you ignore</a><a href="#c15-assign">5.19 Assigning rules to columns</a><a href="#c15-keys">5.20 Tables, entities, relationships and keys</a><a href="#c15-count">5.21 How many records? And exception data</a><a href="#c15-techniques">5.22 The generation techniques, one by one</a><a href="#c15-cond-constraint">5.23 Conditional constraints: rules between columns</a><a href="#c15-pick">5.24 Choosing a technique for every ShopSphere column</a><a href="#c15-plan">5.25 From rules to a running job: the generation plan</a><a href="#c15-restriction">5.26 Why a generation plan stands alone</a><a href="#c15-mistakes">5.27 Common mistakes and gotchas</a><a href="#c15-recap">5.28 Recap</a></div></details><details class="grpbox" data-grp="c5-s3"><summary>Informatica: plans, workflows, monitoring and the Test Data Warehouse</summary><div class="secs"><a href="#c16-words">5.29 Words to know first</a><a href="#c16-overview">5.30 Plans and workflows: the big picture</a><a href="#c16-story-intro">5.31 The ShopSphere story</a><a href="#c16-create">5.32 Creating plans</a><a href="#c16-components">5.33 Plan components in practice</a><a href="#c16-settings">5.34 Plan settings you will actually touch</a><a href="#c16-source-override">5.35 Source, table and file overrides</a><a href="#c16-params">5.36 Parameters and parameter files</a><a href="#c16-manage">5.37 Plan management</a><a href="#c16-workflow">5.38 Generating and running a workflow</a><a href="#c16-monitor">5.39 The Monitor: watching and reading jobs</a><a href="#c16-reports">5.40 Reports</a><a href="#c16-coverage">5.41 Data coverage analysis, at overview level</a><a href="#c16-cli">5.42 Command-line tools: ilmcmd, tdwcmd and tdwquery</a><a href="#c16-tdw">5.43 The Test Data Warehouse</a><a href="#c16-datasets">5.44 Data sets, versions and tags</a><a href="#c16-reset">5.45 Restoring: the reset</a><a href="#c16-manage-ds">5.46 Managing data sets</a><a href="#c16-labs">5.47 Labs: the story in practice</a><a href="#c16-mistakes">5.48 Common mistakes and gotchas</a><a href="#c16-recap">5.49 Recap</a></div></details></div></aside><article class="prose"><div class="article-top"><p class="eyebrow">CHAPTER 05</p><h1>Informatica TDM (2): masking, generation, plans and workflows</h1><p class="chapter-summary">Every masking technique and rule, mapplets and transformations, data generation, and how plans become workflows you monitor.</p></div><details class="pagetoc"><summary>Contents of this chapter</summary><details class="grpbox" open data-grp="c5-s1"><summary>Informatica: masking data, rules and mapplets</summary><div class="secs"><a href="#c14-words">5.1 Words to know first</a><a href="#c14-big-picture">5.2 The big picture: rules, domains, policies and assignments</a><a href="#c14-rules">5.3 Creating masking rules</a><a href="#c14-assign">5.4 Assigning rules to columns</a><a href="#c14-common-params">5.5 Parameters that most techniques share</a><a href="#c14-techniques">5.6 The masking techniques, one by one</a><a href="#c14-compare">5.7 Comparison and decision table</a><a href="#c14-advanced">5.8 Advanced masking rules in depth</a><a href="#c14-custom">5.9 Custom rules: mapplets and the Data Masking transformation</a><a href="#c14-design">5.10 Putting it together: a masking design for ShopSphere</a><a href="#c14-labs">5.11 Hands-on labs</a><a href="#c14-mistakes">5.12 Common mistakes and gotchas</a><a href="#c14-recap">5.13 Recap</a></div></details><details class="grpbox" data-grp="c5-s2"><summary>Informatica: generating test data</summary><div class="secs"><a href="#c15-words">5.14 Words to know first</a><a href="#c15-what-is">5.15 What data generation is for</a><a href="#c15-components">5.16 The building blocks and the order of work</a><a href="#c15-rule-types">5.17 Rule types: standard, custom, advanced and ad hoc</a><a href="#c15-defaults">5.18 Default rules: what happens to columns you ignore</a><a href="#c15-assign">5.19 Assigning rules to columns</a><a href="#c15-keys">5.20 Tables, entities, relationships and keys</a><a href="#c15-count">5.21 How many records? And exception data</a><a href="#c15-techniques">5.22 The generation techniques, one by one</a><a href="#c15-cond-constraint">5.23 Conditional constraints: rules between columns</a><a href="#c15-pick">5.24 Choosing a technique for every ShopSphere column</a><a href="#c15-plan">5.25 From rules to a running job: the generation plan</a><a href="#c15-restriction">5.26 Why a generation plan stands alone</a><a href="#c15-mistakes">5.27 Common mistakes and gotchas</a><a href="#c15-recap">5.28 Recap</a></div></details><details class="grpbox" data-grp="c5-s3"><summary>Informatica: plans, workflows, monitoring and the Test Data Warehouse</summary><div class="secs"><a href="#c16-words">5.29 Words to know first</a><a href="#c16-overview">5.30 Plans and workflows: the big picture</a><a href="#c16-story-intro">5.31 The ShopSphere story</a><a href="#c16-create">5.32 Creating plans</a><a href="#c16-components">5.33 Plan components in practice</a><a href="#c16-settings">5.34 Plan settings you will actually touch</a><a href="#c16-source-override">5.35 Source, table and file overrides</a><a href="#c16-params">5.36 Parameters and parameter files</a><a href="#c16-manage">5.37 Plan management</a><a href="#c16-workflow">5.38 Generating and running a workflow</a><a href="#c16-monitor">5.39 The Monitor: watching and reading jobs</a><a href="#c16-reports">5.40 Reports</a><a href="#c16-coverage">5.41 Data coverage analysis, at overview level</a><a href="#c16-cli">5.42 Command-line tools: ilmcmd, tdwcmd and tdwquery</a><a href="#c16-tdw">5.43 The Test Data Warehouse</a><a href="#c16-datasets">5.44 Data sets, versions and tags</a><a href="#c16-reset">5.45 Restoring: the reset</a><a href="#c16-manage-ds">5.46 Managing data sets</a><a href="#c16-labs">5.47 Labs: the story in practice</a><a href="#c16-mistakes">5.48 Common mistakes and gotchas</a><a href="#c16-recap">5.49 Recap</a></div></details></details><div class="grp" id="c5-s1"><span class="grplabel">Informatica: masking data, rules and mapplets</span></div>
+<p><dfn>Data masking</dfn> replaces real sensitive values with realistic fake ones, so a tester sees "Divya Iyer" where production has "Asha Menon". The general idea is in <a href="02-privacy-discovery-subsetting-masking.html#c2-s3">the masking concepts chapter</a>; this section covers how Informatica TDM does it.</p>
 
-<p>In the syllabus this is Day 44 (substitution, shuffle, key masking, encryption), Day 54 (masking rules, algorithms, mapplet creation, transformations), Days 55 and 56 (mask first name; alphanumeric text, SSN, telephone number) and the masking half of TDM_Handson2.</p>
 
-<div class="callout note">
-<strong class="ctitle">What this section is based on</strong>
-<p>Everything marked  is from the <strong>Informatica Test Data Management 10.5.10 User Guide (PDF, February 2026, 455 pages)</strong>: User Guide chapter 7 (p.135 to 150) and chapter 8 (p.151 to 189) read in full, plus chapter 4 "Policies" (p.71 to 85), cascades in chapter 5 (p.90 to 91), Data Masking transformation properties in chapter 3 (p.52 to 53) and plan settings in chapter 13 (p.275, p.281, p.286 to 287). Citations look like (User Guide 10.5.10, p.NN). ShopSphere data, before and after values and labs are <strong>my illustrations</strong>; real masked values will differ. The guide says little about <em>building</em> a mapplet in PowerCenter, and section 5.9 says where its coverage stops. Menu labels can differ between versions.</p>
-</div>
 
-<div class="callout recap">
-<strong class="ctitle">What you will learn</strong>
-<ul>
-<li>How rules, data domains, policies and column assignments fit together, and the flow from creating a rule to running a masking plan.</li>
-<li>The three kinds of rule: standard, advanced and mapplet, and how to preview a standard rule in the Rule Simulator before using it.</li>
-<li>The common parameters: repeatable output, seed, exception handling, override.</li>
-<li>Every masking technique in the guide (credit card, email, encryption, expression, IP address, key, nullification, phone, random, shuffle, SIN, SSN, substitution, URL, plus advanced and mapplet/custom): what it does, its parameters, ShopSphere before and after, gotchas.</li>
-<li>A decision table for choosing a technique.</li>
-<li>What the guide says about mapplets and the PowerCenter Data Masking transformation, and where it says nothing.</li>
-<li>Labs for TDM_Handson2, Day 55 (first name) and Day 56 (alphanumeric text, SSN, phone).</li>
-</ul>
-</div>
+
 
 <h2 id="c14-words">5.1 Words to know first</h2>
 
@@ -85,7 +69,7 @@
 <text x="417" y="225" text-anchor="middle" stroke="none" font-size="12">assigned to a project's data source</text>
 <line x1="310" y1="100" x2="310" y2="158" stroke-width="1.5" stroke-dasharray="3 4"/>
 </g></svg>
-<figcaption>Original diagram: how a column ends up with a masking rule. A column is matched to a data domain (by data pattern or by column name), the domain offers a preferred rule, and the rule is added to a plan. The policy groups domains so the setup can be reused across projects. The Social Security pattern shown is the one the guide gives (User Guide 10.5.10, p.74 to 75).</figcaption></figure>
+<figcaption>How a column ends up with a masking rule. A column is matched to a data domain (by data pattern or by column name), the domain offers a preferred rule, and the rule is added to a plan. The policy groups domains so the setup can be reused across projects. The Social Security pattern shown is the one the guide gives (User Guide 10.5.10, p.74 to 75).</figcaption></figure>
 
 <h3 id="c14-data-domains">5.2.2 Data domains and preferred rules</h3>
 
@@ -160,7 +144,7 @@
 
 <h3 id="c14-mapplet-rule">5.3.4 Creating a mapplet rule</h3>
 
-<p>The wizard path (p.140 to 141): Policies, Actions > New > Masking Rule, name, datatype, Mapplet masking type, browse to the exported XML (for Hadoop, select Hadoop and browse to a Developer tool mapplet), Next, mark <em>at least one input and one output column as mandatory</em>, Finish. Details and limits are in 14.9.</p>
+<p>The wizard path (p.140 to 141): Policies, Actions > New > Masking Rule, name, datatype, Mapplet masking type, browse to the exported XML (for Hadoop, select Hadoop and browse to a Developer tool mapplet), Next, mark <em>at least one input and one output column as mandatory</em>, Finish. Details and limits are in 14.9, which also walks through building a small mapplet in PowerCenter first.</p>
 
 <h3 id="c14-advanced-rule">5.3.5 Creating an advanced rule</h3>
 
@@ -220,7 +204,7 @@
 <p>Domain preferred rules are at the top; the rest of the policy's rules are below. For a substitution rule you can set the rule assignment parameters (lookup condition, unique substitution column, see 14.6). For a mapplet or advanced rule you map columns (below).</p>
 </li>
 <li><strong>Click Save for each column.</strong>
-<p>If you move to another row without saving, TDM discards the assignment (p.145). This is the most common beginner loss.</p>
+<p>If you move to another row without saving, TDM discards the assignment (p.145).</p>
 </li>
 <li><strong>If you changed an assignment that other objects use, the Impacted Objects dialog lists plans, columns and domains.</strong>
 <p>Click Export for a CSV, Continue to save. Regenerate and rerun the affected plans (p.142).</p>
@@ -265,7 +249,7 @@
 
 <p><strong>Repeatable</strong> output returns deterministic values: the same input gives the same masked value, every time you generate and run the workflow. Use it when the same value occurs in several tables and the target tables must show the same masked value. The guide's example: customer John Smith has account numbers 1234 and 5678 in many tables; masking turns John Smith into Frank Martinez everywhere, 1234 into 6549, 5678 into 3214, on every run.</p>
 
-<p>The <strong>seed</strong> is the generator's starting point: 1 to 999, default 1 (p.154; the key masking string table says 1,000, p.168, so I use 999). Give the <em>same</em> seed to columns that must match, such as <code>Cust_ID</code> in four tables. You can put the seed in a parameter file variable. A TDM administrator can set a <strong>central seed</strong> that overrides every other seed (p.155).</p>
+<p>The <strong>seed</strong> is the generator's starting point: 1 to 999, default 1 (p.154; the key masking string table says 1,000, p.168). Give the <em>same</em> seed to columns that must match, such as <code>Cust_ID</code> in four tables. You can put the seed in a parameter file variable. A TDM administrator can set a <strong>central seed</strong> that overrides every other seed (p.155).</p>
 
 <p>Substitution and expression masking keep a <em>storage table</em> of source and masked value pairs; you name the storage connection in the plan (p.286: <code>IDM_SUBSTITUTION_STORAGE</code>, <code>IDM_EXPRESSION_STORAGE</code>), and expression masking fails without it (p.163). Key masking is deterministic from source, rule and seed (p.164). Repeatable means "same in, same out", not "reversible".</p>
 
@@ -285,12 +269,7 @@
 
 <h2 id="c14-techniques">5.6 The masking techniques, one by one</h2>
 
-<p>The guide lists these techniques (User Guide 10.5.10, p.152 to 153): Advanced, Credit card, Email address, Encryption, Expression, IP address, Key, Mapplet, Nullification, Phone, Random, Shuffle, SIN, SSN, Substitution and URL. Advanced and Mapplet are in 14.8 and 14.9; the other fourteen follow, each with what it does, parameters, a ShopSphere before and after, and gotchas.</p>
-
-<div class="callout note">
-<strong class="ctitle">How to read the before and after tables</strong>
-<p>"Before" values are the fake ShopSphere sample data. "After" values are <strong>illustrations I made up</strong>; the tool generates its own. Where ShopSphere has no suitable column (credit card, IP address, URL) I use the guide's example.</p>
-</div>
+<p>The guide lists these techniques (User Guide 10.5.10, p.152 to 153): Advanced, Credit card, Email address, Encryption, Expression, IP address, Key, Mapplet, Nullification, Phone, Random, Shuffle, SIN, SSN, Substitution and URL. Advanced and Mapplet are in 14.8 and 14.9; the other fourteen follow.</p>
 
 <h3 id="c14-substitution">5.6.1 Substitution masking</h3>
 
@@ -307,7 +286,7 @@
 <tr><td>Rule</td><td>Dictionary Information (required)</td><td>Dictionary (the file or table); Masked Value (column returned); Lookup Column (source column used in the lookup); Serial Number Column; Sort Column (to keep results deterministic if a relational dictionary is moved and its row order changes)</td></tr>
 </tbody></table></div>
 
-<p><strong>ShopSphere example.</strong> A flat file dictionary <code>FIRSTNAMES.csv</code> (illustrative):</p>
+<p><strong>ShopSphere example.</strong> A flat file dictionary <code>FIRSTNAMES.csv</code>:</p>
 
 <pre><code>SNO,GENDER,FIRSTNAME
 1,F,Divya
@@ -315,7 +294,7 @@
 3,F,Latha
 4,M,Karthik</code></pre>
 
-<div class="tablewrap"><table class="sample"><caption>Substitution on first_name (illustrative output)</caption>
+<div class="tablewrap"><table class="sample"><caption>Substitution on first_name (example output)</caption>
 <thead><tr><th>customer_id</th><th>first_name before</th><th>first_name after</th></tr></thead>
 <tbody><tr><td>1001</td><td>Asha</td><td>Divya</td></tr><tr><td>1002</td><td>Ravi</td><td>Arjun</td></tr><tr><td>1003</td><td>Meera</td><td>Latha</td></tr></tbody></table></div>
 
@@ -341,7 +320,7 @@
 <tr><td>Constrained</td><td>Restrict shuffling to rows constrained by another column, such as shuffle employee names within gender, or addresses within the same city. You choose the constraint column when you assign the rule to columns.</td></tr>
 </tbody></table></div>
 
-<div class="tablewrap"><table class="sample"><caption>Shuffle on last_name (illustrative output; the values come from the same column)</caption>
+<div class="tablewrap"><table class="sample"><caption>Shuffle on last_name (example output; the values come from the same column)</caption>
 <thead><tr><th>customer_id</th><th>first_name</th><th>last_name before</th><th>last_name after</th></tr></thead>
 <tbody><tr><td>1001</td><td>Asha</td><td>Menon</td><td>Nair</td></tr><tr><td>1002</td><td>Ravi</td><td>Kumar</td><td>Menon</td></tr><tr><td>1003</td><td>Meera</td><td>Nair</td><td>Kumar</td></tr></tbody></table></div>
 
@@ -383,7 +362,7 @@
 
 <p>If no mask format is given, each source character is replaced with any character. A mask format longer than the input is truncated; <strong>shorter than the input means the characters at the end are not masked</strong>. Lowercase letters you type are converted to uppercase (p.164).</p>
 
-<div class="tablewrap"><table class="sample"><caption>Key masking of an alphanumeric tax_id with mask format AAAAADDDDA (illustrative; tax_id is a ShopSphere column, the values are made up)</caption>
+<div class="tablewrap"><table class="sample"><caption>Key masking of an alphanumeric tax_id with mask format AAAAADDDDA (example output)</caption>
 <thead><tr><th>customer_id</th><th>tax_id before</th><th>tax_id after</th></tr></thead>
 <tbody><tr><td>1001</td><td>ABCPM1234K</td><td>QWZRT5820M</td></tr><tr><td>1002</td><td>ZZTPK9087L</td><td>HNBXC4413D</td></tr></tbody></table></div>
 
@@ -426,7 +405,7 @@
 
 <p>Bounds must be zero or greater. <strong>Date blurring</strong> takes a unit (year by default), a low and a high bound: unit year, bounds 2 and 2 on 02 February 2006 gives a date from 02 February 2004 to 02 February 2008 (p.170). The unit list differs between p.170 (to hour) and p.172 (to second); check your drop-down.</p>
 
-<div class="tablewrap"><table class="sample"><caption>Random masking on ShopSphere columns (illustrative output)</caption>
+<div class="tablewrap"><table class="sample"><caption>Random masking on ShopSphere columns (example output)</caption>
 <thead><tr><th>Column</th><th>Setting</th><th>Before</th><th>After</th></tr></thead>
 <tbody>
 <tr><td>date_of_birth</td><td>Blurring, unit year, low 2, high 2</td><td>1990-04-12</td><td>1991-03-30 (somewhere in 1988-04-12 to 1992-04-12)</td></tr>
@@ -464,7 +443,7 @@
 <tr><td>Do Not Encrypt Characters</td><td>Characters left as they are. A leading or trailing space is respected but not displayed in the field</td></tr>
 </tbody></table></div>
 
-<p><strong>Use it when</strong> you must be able to get the original back (decryption is described only for format preserving encryption) or the application checks the shape of a value. Reversibility is also a risk: anyone with the key or pass phrase and the rule can recover production values (my note, ). The excerpt does not say where the pass phrase is entered; check your version. Same key and configuration give the same output for the same input.</p>
+<p><strong>Use it when</strong> you must be able to get the original back (decryption is described only for format preserving encryption) or the application checks the shape of a value. Reversibility is also a risk: anyone with the key or pass phrase and the rule can recover production values The guide does not say where the pass phrase is entered. Same key and configuration give the same output for the same input.</p>
 
 <h3 id="c14-expression">5.6.6 Expression masking</h3>
 
@@ -492,9 +471,9 @@
 
 <p><strong>What it does.</strong> Applies a built-in mask for Social Security numbers on string columns (User Guide 10.5.10, p.175) . It generates valid-looking numbers and tries to avoid numbers the US Social Security Administration has actually issued, using the High Group List. The service reads that file from the PowerCenter installation's <code>infa_shared/SrcFiles</code> directory; you can download the latest version from the Social Security Administration. Any nine-digit input is accepted, with any delimiters.</p>
 
-<p><strong>Parameters.</strong> Repeatable Output with a seed value; an SSN randomization option, based on the method the Social Security Administration developed to remove the geographic meaning of the first three digits. The excerpt does not give more parameter names.</p>
+<p><strong>Parameters.</strong> Repeatable Output with a seed value; an SSN randomization option, based on the method the Social Security Administration developed to remove the geographic meaning of the first three digits. No other parameter names are documented.</p>
 
-<div class="tablewrap"><table class="sample"><caption>SSN masking (illustrative output)</caption>
+<div class="tablewrap"><table class="sample"><caption>SSN masking (example output)</caption>
 <thead><tr><th>customer_id</th><th>ssn before</th><th>ssn after</th></tr></thead>
 <tbody><tr><td>1001</td><td>123-45-6789</td><td>612-73-4410</td></tr><tr><td>1002</td><td>234-56-7890</td><td>478-09-2231</td></tr><tr><td>1003</td><td>345-67-8901</td><td>559-21-7068</td></tr></tbody></table></div>
 
@@ -506,7 +485,7 @@
 
 <h3 id="c14-phone">5.6.10 Phone masking</h3>
 
-<p><strong>What it does.</strong> Changes phone numbers while keeping the original format; string columns only (p.169) . The guide's example: <code>(408)382 0658</code> becomes <code>(408)256 3106</code>. Input may contain digits, spaces, hyphens and parentheses; alphabetic and special characters are not masked. Illustration: 9876543210 might become 9876012345. The excerpt lists no parameters, and does not say which digits are preserved; in the example the first three stayed, but I would not assume that rule holds for every format.</p>
+<p><strong>What it does.</strong> Changes phone numbers while keeping the original format; string columns only (p.169) . The guide's example: <code>(408)382 0658</code> becomes <code>(408)256 3106</code>. Input may contain digits, spaces, hyphens and parentheses; alphabetic and special characters are not masked. Example: 9876543210 might become 9876012345. No parameters are listed, and which digits are preserved is not documented; in the guide's example the first three stayed, but do not assume that holds for every format.</p>
 
 <h3 id="c14-credit-card">5.6.11 Credit card masking</h3>
 
@@ -541,7 +520,7 @@
 <tr><td>Domain</td><td>Random, Domain lookup dictionary, Domain name column</td><td>Pick domains at random from a flat file or relational dictionary, naming the column</td></tr>
 </tbody></table></div>
 
-<div class="tablewrap"><table class="sample"><caption>Advanced email masking, user name from masked names, delimiter period, constant domain (illustrative)</caption>
+<div class="tablewrap"><table class="sample"><caption>Advanced email masking, user name from masked names, delimiter period, constant domain (example output)</caption>
 <thead><tr><th>Masked first/last name</th><th>email before</th><th>email after</th></tr></thead>
 <tbody><tr><td>Divya Iyer</td><td>asha.menon@example.com</td><td>divya.iyer@example.com</td></tr><tr><td>Arjun Das</td><td>ravi.k@example.com</td><td>arjun.das@example.com</td></tr></tbody></table></div>
 
@@ -557,7 +536,7 @@
 
 <h2 id="c14-compare">5.7 Comparison and decision table</h2>
 
-<p>From the guide's technique sections (User Guide 10.5.10, p.152 to 177); "Not described" means the guide does not say. The ShopSphere column is my suggestion.</p>
+<p>From the guide's technique sections (User Guide 10.5.10, p.152 to 177); "Not described" means the guide does not say.</p>
 
 <div class="tablewrap"><table>
 <thead><tr><th>Technique</th><th>Datatypes</th><th>Output looks real?</th><th>Repeatable?</th><th>Reversible?</th><th>Good ShopSphere fit</th></tr></thead>
@@ -620,7 +599,7 @@
 <tr><td>FULL_NAME</td><td>Output</td><td>Expression</td><td><code>FIRST_MASKED || ' ' || LAST_MASKED</code></td></tr>
 </tbody></table></div>
 
-<p>Result for customer 1001, illustrative: input Asha and Menon; variables Divya and Iyer; output "Divya Iyer". The guide's advice: build expressions by point-and-click to minimise errors, and check that the expression returns the output column's datatype.</p>
+<p>Result for customer 1001: input Asha and Menon; variables Divya and Iyer; output "Divya Iyer". The guide's advice: build expressions by point-and-click to minimise errors, and check that the expression returns the output column's datatype.</p>
 
 <h3 id="c14-name-subst">5.8.2 Worked example: first names by gender and nationality (guide)</h3>
 
@@ -632,36 +611,96 @@
 
 <h2 id="c14-custom">5.9 Custom rules: mapplets and the Data Masking transformation</h2>
 
-<p>This is the Day 54 topic "masking rules, algorithms, mapplet creation, using transformations". I will separate three things: what the guide says, what it does not say, and the general idea.</p>
+<p>Three parts: what a mapplet is, a worked build in PowerCenter, and how Test Data Manager uses a mapplet once it exists. The build follows the LearningMart video "How to create mapplet in informatica"; the TDM side follows the User Guide.</p>
 
-<h3 id="c14-mapplet-docs">5.9.1 What the guide says </h3>
+<h3 id="c14-mapplet-concept">5.9.1 The general idea </h3>
+
+<p>A <em>transformation</em> in PowerCenter is one processing step on rows of data (calculate, look up, mask). In the LearningMart video "How to create mapplet in informatica", the presenter defines a <dfn>mapplet</dfn> as a reusable object that you create in the Mapplet Designer. His motivating case: many mappings must join first name and last name into a full name, so you build that logic once and reuse it everywhere, like a function you write once and call from many programs. A mapplet therefore has input ports, some transformations inside, and output ports. A <em>Data Masking transformation</em> applies masking techniques to a port; a mapplet that contains one is how you bring a PowerCenter masking technique into TDM.</p>
+
+<h3 id="c14-mapplet-build">5.9.2 Build a mapplet: full name from first and last name </h3>
+
+<p>This follows the video's build step by step. It is a PowerCenter task done in PowerCenter Designer, not in Test Data Manager. The video does not state the PowerCenter version.</p>
+
+<div class="tablewrap"><table class="sample">
+<caption>What the finished mapplet does to ShopSphere <code>CUSTOMERS</code> rows (example data)</caption>
+<thead><tr><th>first_name (in)</th><th>last_name (in)</th><th>full_name (out)</th></tr></thead>
+<tbody>
+<tr><td>Asha</td><td>Menon</td><td>Asha Menon</td></tr>
+<tr><td>Ravi</td><td>Kumar</td><td>Ravi Kumar</td></tr>
+<tr><td>Meera</td><td>Nair</td><td>Meera Nair</td></tr>
+</tbody></table></div>
+
+<ol class="steps">
+<li><strong>Open the Mapplet Designer and name the mapplet.</strong>
+<p>The Mapplet Designer is the part of PowerCenter Designer where mapplets are built. Use a clear prefix such as <code>MLT_</code> so mapplets are easy to tell from mappings.</p>
+<p class="expect">An empty mapplet workspace with your name on it.</p></li>
+<li><strong>Add a Mapplet Input transformation with two input ports, <code>first_name</code> and <code>last_name</code>.</strong>
+<p>The video says a mapplet has two edge pieces: an input transformation whose ports carry data in, and an output transformation whose ports carry data out. It opens the Transformation tab at the top of the Designer, chooses the Mapplet Input transformation, names it and adds the two ports.</p>
+<p class="expect">A Mapplet Input box listing <code>first_name</code> and <code>last_name</code>.</p></li>
+<li><strong>Add an Expression transformation and drag the two input ports into it.</strong>
+<p>Joining two values needs a calculation, and the video uses an Expression transformation for that (a step that computes a new value for every row). Dragging the ports copies them in as inputs.</p>
+<p class="expect">The Expression transformation shows <code>first_name</code> and <code>last_name</code>, linked from the Mapplet Input.</p></li>
+<li><strong>Create a new output port in the Expression transformation called <code>full_name</code>, with a size above 40.</strong>
+<p>The video explains the size: this port holds two values joined together, so it must be longer than a single name. Make it at least the two input sizes plus one for the space, because a smaller port risks cutting off long names.</p>
+<p class="expect">A <code>full_name</code> port flagged as an output port.</p></li>
+<li><strong>Write the expression: <code>first_name || ' ' || last_name</code>.</strong>
+<p>You can use the concatenation function or the pipe operator <code>||</code>; the video picks the pipes, with a space between the two names so they do not run together. It then validates the expression and clicks Apply and OK.</p>
+<p class="expect">The expression editor reports that the expression is valid.</p></li>
+<li><strong>Add a Mapplet Output transformation, name it, and drag <code>full_name</code> into it.</strong>
+<p>Without this step nothing leaves the mapplet. The output port name is what a mapping or a TDM rule will see.</p>
+<p class="expect">A Mapplet Output box with the <code>full_name</code> port, linked from the Expression.</p></li>
+<li><strong>Validate from the Mapplets menu, then save.</strong>
+<p>Validation catches broken links and bad expressions before a mapping depends on the mapplet. The video does it at the Mapplets menu, Validate.</p>
+<p class="expect">A message that the mapplet is valid, then a saved mapplet.</p></li>
+<li><strong>Create a mapping with an EMPLOYEE source and a target table, and drag the saved mapplet in between.</strong>
+<p>This proves the mapplet works. The video's target has a full name column. The mapplet appears with its input and output ports.</p>
+<p class="expect">Source, mapplet and target on one canvas.</p></li>
+<li><strong>Connect first and last name from the source to the mapplet inputs, and the mapplet's <code>full_name</code> to the target's full name column. Save.</strong>
+<p>Each connection tells PowerCenter which column feeds which port.</p>
+<p class="expect">The mapping validates ("mapping is valid").</p></li>
+<li><strong>Create the workflow in Workflow Manager. Check the source and target connection values, and choose Normal load when the target has a primary key. Save.</strong>
+<p>A workflow is what actually runs the mapping. The video gives the Normal-load rule without a reason; a common reason is that bulk loading skips some database checking and logging, so it may not suit a constrained target.</p>
+<p class="expect">A saved workflow with valid connections.</p></li>
+<li><strong>Run the workflow and check the target data.</strong>
+<p>Reading the rows is the real test.</p>
+<p class="expect">The run succeeds and the full name column shows first and last name together, as in the table above.</p></li>
+</ol>
+
+<div class="callout warn">
+<strong class="ctitle">Mistakes this video's steps guard against</strong>
+<ul>
+<li>Forgetting the Mapplet Output: the mapplet has nothing to return.</li>
+<li>Using a mapplet without validating it first.</li>
+<li>Making the <code>full_name</code> port too small for a joined value.</li>
+<li>Choosing the wrong load type when the target has a primary key (the video says Normal).</li>
+<li>Leaving out the space, which gives "AshaMenon".</li>
+</ul>
+</div>
+
+<h3 id="c14-mapplet-to-tdm">5.9.3 From PowerCenter mapplet to TDM rule </h3>
+
+<p>Steps 8 to 11 above build a mapping and workflow by hand. TDM does not need those, because the PowerCenter Integration Service creates the mappings, transformations, mapplets, sessions and workflows itself when a plan runs, and the guide warns that editing generated components in the PowerCenter Client may give unexpected results (User Guide 10.5.10, p.141, p.150). What TDM needs is the mapplet. So the sequence is: build and validate the mapplet in PowerCenter (steps 1 to 7), export it to an XML file from the PowerCenter repository, then import it in Test Data Manager as a rule (p.137, p.140).</p>
+
+<p>In the wizard you mark at least one input and one output column as mandatory, so for the video's mapplet you might mark <code>first_name</code> and <code>full_name</code> (p.141). When you assign the rule you link source columns to the input ports and the output port to a column (p.142 to 143).</p>
+
+<p>The video's mapplet contains only an Expression, so it combines values and masks nothing. For masking, the guide says to include one or more Data Masking transformations in the mapplet and that all transformations must be passive (p.150); it does not show how to configure one. The guide's own full-name example is on the generation side: a custom generation rule from a mapplet that combines first and last name from an EMPLOYEES table (User Guide 10.5.10, p.196, p.211; see <a href="05-informatica-masking-generation-workflows.html#c5-s2">the Informatica data generation chapter</a>). That is the closest fit for this mapplet.</p>
+
+<h3 id="c14-mapplet-docs">5.9.4 What the guide says </h3>
 
 <ul>
-<li><strong>Purpose.</strong> Mapplet rules let you use PowerCenter masking techniques that are "not available in Test Data Manager" (User Guide 10.5.10, p.150). The mapplet holds the logic to mask the input columns and return data to the target columns (p.137, p.152).</li>
-<li><strong>How it gets in.</strong> You export the mapplet to an XML file from the PowerCenter repository or the Model repository, then import it in Test Data Manager as a rule (p.137, p.140). To mask Hadoop data you import mapplets built in the Developer tool (p.137). The TDM repository then stores the mapplet logic, and <strong>you cannot change the mapplet inside Test Data Manager</strong> (p.137).</li>
-<li><strong>What it must contain.</strong> One or more <strong>Data Masking transformations</strong>, and all transformations must be <strong>passive</strong> (they must not add or remove rows) (p.137, p.150). It can have multiple input and multiple output columns (p.137).</li>
-<li><strong>Required ports.</strong> Mark at least one input and one output column as mandatory; mandatory columns need source and target assignments when you assign the rule (p.137, p.141, p.155).</li>
+<li><strong>Purpose.</strong> Mapplet rules let you use PowerCenter masking techniques that are "not available in Test Data Manager" (p.150). The mapplet holds the logic to mask the input columns and return data to the target columns (p.137, p.152).</li>
+<li><strong>How it gets in.</strong> You export the mapplet to an XML file from the PowerCenter repository or the Model repository, then import it as a rule (p.137, p.140). To mask Hadoop data you import mapplets built in the Developer tool (p.137). The TDM repository stores the mapplet logic, and <strong>you cannot change the mapplet inside Test Data Manager</strong> (p.137).</li>
+<li><strong>What it must contain.</strong> One or more <strong>Data Masking transformations</strong>, and all transformations must be <strong>passive</strong> (they must not add or remove rows) (p.137, p.150). It can have multiple input and output columns (p.137).</li>
+<li><strong>Required ports.</strong> Mark at least one input and one output column as mandatory; mandatory columns need source and target assignments (p.137, p.141, p.155).</li>
 <li><strong>Custom masking parameters</strong> (p.156): Column Name, Column Type (input or output), Data Type, Precision, Mandatory, Group Name (input, output or another name you gave in the mapplet).</li>
 <li><strong>Exporting the other way.</strong> You can also export rules as PowerCenter mapplets (p.150).</li>
-<li><strong>Assignment.</strong> Select the rule in the Masking Rule column, then link source input columns to rule input ports and rule output ports to source columns (p.142 to 143). Sybase to Hadoop limit: 20 columns.</li>
+<li><strong>Assignment.</strong> Select the rule in the Masking Rule column, then link source columns to rule input ports and rule output ports to source columns (p.142 to 143). Sybase to Hadoop limit: 20 columns.</li>
 <li><strong>Hadoop engine limits.</strong> A Blaze engine allows Expression, Data Masking, Case Converter, Comparison, Decision, Labeler, Merge, Parser, Weighted Average, Standardizer and Java Passive transformations in a mapplet rule; Spark allows Expression, Data Masking and Java Passive; Hadoop mapplets cannot use sequence generator, lookup or classifier (p.62, p.137).</li>
 <li><strong>Changes.</strong> If you change the name or type of a field of a custom rule, existing assignments do not see it; import the mapplet again (p.144).</li>
-<li><strong>Data Masking transformation session properties</strong> (User Guide chapter 3, p.52 to 53): SSN High Group File path, DMO Cache Directory, Cache Size (default 8 MB), Shared Storage Table (default disabled) and Storage Commit Interval (default 100,000).</li>
+<li><strong>Data Masking transformation session properties</strong> (chapter 3, p.52 to 53): SSN High Group File path, DMO Cache Directory, Cache Size (default 8 MB), Shared Storage Table (default disabled) and Storage Commit Interval (default 100,000).</li>
 </ul>
 
-<h3 id="c14-mapplet-not">5.9.2 What the guide does not say</h3>
-
-<p>The guide tells you to export a mapplet containing Data Masking transformations; it does <strong>not</strong> teach building one in PowerCenter Designer or the Developer tool, and gives no list of the transformation's port properties and no finished example. "Mapplet creation" as a click-by-click task is outside this guide; ask your trainer which PowerCenter material your course uses.</p>
-
-<h3 id="c14-mapplet-concept">5.9.3 The general idea </h3>
-
-<p> (not from the guide). A <em>transformation</em> in PowerCenter is one processing step on rows of data (calculate, look up, mask). A <em>mapplet</em> is a reusable bundle of such steps with input and output ports, like a function you write once and call from many mappings. A <em>Data Masking transformation</em> applies masking techniques to a port. A mapplet rule therefore means "run my own bundle of steps instead of one built-in technique", for example mask phone numbers differently per country.</p>
-
-<p>Day 54 mapping: masking rules are 14.3 and 14.4, algorithms are 14.6 and 14.7, mapplet import and assignment are 14.9 (building the mapplet is not in the guide), and "using transformations" is 14.8 (expressions) and 14.9 (Data Masking transformation).</p>
-
-<p>The architecture behind this, with PowerCenter running the workflows that TDM generates, is in <a href="04-informatica-architecture-discovery-subset.html#c4-s1">the Informatica overview and architecture chapter</a>.</p>
-
-<p>Related video (transcript not available; not used as a source): <a href="https://www.youtube.com/watch?v=DVyJqMi7QtY" target="_blank" rel="noopener">"How to create mapplet in informatica" by LearningMart</a>. I could not read or watch it, so nothing in this section depends on it. It is listed only because its title matches the syllabus topic.</p>
+<p>The architecture behind it, with PowerCenter running the workflows that TDM generates, is in <a href="04-informatica-architecture-discovery-subset.html#c4-s1">the Informatica overview and architecture chapter</a>. Video: <a href="https://www.youtube.com/watch?v=DVyJqMi7QtY" target="_blank" rel="noopener">"How to create mapplet in informatica" by LearningMart</a>.</p>
 
 <h2 id="c14-design">5.10 Putting it together: a masking design for ShopSphere</h2>
 
@@ -679,7 +718,7 @@
 <tr><td>customer_id (PK) and orders.customer_id (FK)</td><td>none</td><td>Left unmasked here. If you chose to mask them, rely on the auto cascade, or key masking with the same seed in both</td><td>A surrogate id is not personal data by itself; this is a project decision</td></tr>
 </tbody></table></div>
 
-<div class="tablewrap"><table class="sample"><caption>CUSTOMERS rows after masking (illustrative; real output will differ)</caption>
+<div class="tablewrap"><table class="sample"><caption>CUSTOMERS rows after masking (example output)</caption>
 <thead><tr><th>customer_id</th><th>first_name</th><th>last_name</th><th>email</th><th>phone</th><th>ssn</th><th>date_of_birth</th><th>zip_code</th></tr></thead>
 <tbody>
 <tr><td>1001</td><td>Divya</td><td>Nair</td><td>divya.nair@example.com</td><td>9876012345</td><td>612-73-4410</td><td>1991-03-30</td><td>560417</td></tr>
@@ -725,10 +764,8 @@
 
 <h2 id="c14-labs">5.11 Hands-on labs</h2>
 
-<p>The syllabus lists TDM_Handson2 (profiling and masking), Day 55 (mask FirstName) and Day 56 (alphanumeric text, SSN, telephone number). The curriculum also ties Days 55 and 56 to Delphix (<a href="09-delphix-masking-files-labs.html#c9-s1">algorithms and masking jobs</a>, <a href="09-delphix-masking-files-labs.html#c9-s3">the Delphix labs</a>); these are the Informatica versions. Screens come from the guide as cited; ShopSphere data, dictionary and seeds are my illustration.</p>
-
 <div class="exercise">
-<h4 id="c5-lab-1-tdm-handson2-profile-shopsphere-and-apply-masking-rule">Lab 1 (TDM_Handson2): profile ShopSphere and apply masking rules by domain</h4>
+<h4 id="c5-lab-1-profile-shopsphere-and-apply-masking-rules-by-domain">Lab 1: profile ShopSphere and apply masking rules by domain</h4>
 <p>Goal: find the sensitive columns of <code>CUSTOMERS</code> with a data domain profile (see <a href="04-informatica-architecture-discovery-subset.html#c4-s3">the Informatica discovery and profiling chapter</a>), let the domains suggest rules, and mask them.</p>
 <ol class="steps">
 <li><strong>Create a project and import the ShopSphere source metadata.</strong>
@@ -764,7 +801,7 @@
 </div>
 
 <div class="exercise">
-<h4 id="c5-lab-2-day-55-mask-firstname-with-substitution">Lab 2 (Day 55): mask FirstName with substitution</h4>
+<h4 id="c5-lab-2-mask-firstname-with-substitution">Lab 2: mask FirstName with substitution</h4>
 <p>Goal: replace every <code>first_name</code> with a value from a dictionary, the same way every run.</p>
 <ol class="steps">
 <li><strong>Create the dictionary file <code>FIRSTNAMES.csv</code></strong> with a header row and 30 or more names, for example <code>SNO,FIRSTNAME</code> then <code>1,Divya</code>, <code>2,Arjun</code> and so on (the guide's sample dictionary also has COUNTRY and GENDER columns, p.178).<p>Substitution needs a list to pick from. For a unique substitution the list must have at least as many distinct names as the column has distinct values.</p>
@@ -777,7 +814,7 @@
 <p>(p.139, p.179).</p>
 </li>
 <li><strong>Choose Substitution. Set Repeatable Output and Seed 1. Fill Dictionary Information: Dictionary, Masked Value FIRSTNAME, Serial Number Column SNO and the lookup column if your version requires one.</strong>
-<p>The guide's example used a lookup column of GENDER; my dictionary has no gender column, so what is mandatory in your version is something to check (p.177, p.179).</p>
+<p>The guide's example used a lookup column of GENDER; this dictionary has no gender column, so check which lookup columns your version requires (p.177, p.179).</p>
 </li>
 <li><strong>Leave the exception handling at its defaults. Click Finish.</strong>
 <p>The defaults ignore nulls and continue on error (shown on p.154).</p>
@@ -803,7 +840,7 @@
 </div>
 
 <div class="exercise">
-<h4 id="c5-lab-3-day-56-mask-alphanumeric-text-ssn-and-telephone-number">Lab 3 (Day 56): mask alphanumeric text, SSN and telephone number</h4>
+<h4 id="c5-lab-3-mask-alphanumeric-text-ssn-and-telephone-number">Lab 3: mask alphanumeric text, SSN and telephone number</h4>
 <p>Goal: mask <code>tax_id</code> (letters and digits), <code>ssn</code> and <code>phone</code> so each keeps the shape the application expects.</p>
 <ol class="steps">
 <li><strong>Create a key masking rule for tax_id.</strong>
@@ -841,7 +878,7 @@ SELECT COUNT(*) FROM customers t JOIN src_customers s
 WHERE t.ssn = s.ssn OR t.phone = s.phone OR t.tax_id = s.tax_id;</code></pre>
 <details class="sol">
 <summary>Show a worked answer</summary>
-<p>Queries 1 to 3 return the full row count and query 4 returns 0 (rerun with another seed if a random collision appears). Example masked values (illustrative): tax_id ABCPM1234K to QWZRT5820M, ssn 123-45-6789 to 612-73-4410, phone 9876543210 to 9876012345. If results differ: a mask format shorter than the value leaves trailing characters unmasked (p.164); SSN masking cannot guarantee uniqueness (p.175); the guide does not say which phone digits are kept (p.169).</p></details>
+<p>Queries 1 to 3 return the full row count and query 4 returns 0 (rerun with another seed if a random collision appears). Example masked values: tax_id ABCPM1234K to QWZRT5820M, ssn 123-45-6789 to 612-73-4410, phone 9876543210 to 9876012345. If results differ: a mask format shorter than the value leaves trailing characters unmasked (p.164); SSN masking cannot guarantee uniqueness (p.175); the guide does not say which phone digits are kept (p.169).</p></details>
 </div>
 
 <h2 id="c14-mistakes">5.12 Common mistakes and gotchas</h2>
@@ -871,16 +908,16 @@ WHERE t.ssn = s.ssn OR t.phone = s.phone OR t.tax_id = s.tax_id;</code></pre>
 <li>Repeatable output and a seed make masking deterministic. Substitution and expression masking also need a storage table.</li>
 <li>Substitution gives realistic values from a dictionary; shuffle moves real values between rows; key masking keeps character types deterministically; random masking uses ranges and blurring; encryption can be reversible; nullification empties the column; SSN, SIN, phone, credit card, email, IP and URL are built-in formats.</li>
 <li>Choose by what the application needs: realism, format validity, joinability across tables, reversibility, or nothing at all.</li>
-<li>The guide covers importing and assigning mapplet rules but does not teach building the mapplet in PowerCenter.</li>
+<li>A mapplet is built and validated in PowerCenter (the video's example joins first and last name), exported to XML, then imported and assigned in TDM. The guide covers the TDM side only.</li>
 <li>Masking happens after subsetting when both are in one plan.</li>
 </ul>
 </div>
 
 <section class="sources">
 <div class="grp" id="c5-s2"><span class="grplabel">Informatica: generating test data</span></div>
-<p>So far in Part II every operation started with real production data: <a href="04-informatica-architecture-discovery-subset.html#c4-s3">discovery</a> looked at it, <a href="04-informatica-architecture-discovery-subset.html#c4-s4">subsetting</a> shrank it and <a href="05-informatica-masking-generation-workflows.html#c5-s1">masking</a> disguised it. This section does something different. <strong>Data generation</strong> builds test data from nothing but rules, so no production row is read, copied or at risk. If you have read <a href="03-generation-etl-and-tdm.html#c3-s1">the generation concepts chapter</a>, you know why teams want this. Here you learn how Informatica TDM does it.</p>
+<p><strong>Data generation</strong> builds test data from nothing but rules, so no production row is read, copied or at risk. This differs from <a href="04-informatica-architecture-discovery-subset.html#c4-s3">discovery</a>, <a href="04-informatica-architecture-discovery-subset.html#c4-s4">subsetting</a> and <a href="05-informatica-masking-generation-workflows.html#c5-s1">masking</a>, which all start from real production data. The general idea is in <a href="03-generation-etl-and-tdm.html#c3-s1">the generation concepts chapter</a>.</p>
 
-<p>The chapter has one running goal, taken from the Day 45 syllabus item "generate test data using the Informatica ILM tool": by the end you should be able to describe how a generation job is defined, choose a technique for every ShopSphere column, and generate 50 customers with valid orders. The plan, workflow and monitoring side is shared with masking and subsetting, so it is covered in <a href="05-informatica-masking-generation-workflows.html#c5-s3">the plans, workflows and warehouse chapter</a>.</p>
+<p>The plan, workflow and monitoring side is shared with masking and subsetting and is covered in <a href="05-informatica-masking-generation-workflows.html#c5-s3">the plans, workflows and warehouse chapter</a>.</p>
 
 
 
@@ -952,7 +989,7 @@ WHERE t.ssn = s.ssn OR t.phone = s.phone OR t.tax_id = s.tax_id;</code></pre>
 <p>One detail from the overview is easy to miss: if a table name or column name contains special characters, the data generation workflow fails (User Guide 10.5.10, p.190). Check your target names before you import metadata.</p>
 
 <div class="callout tip"><strong class="ctitle">Where you click</strong>
-<p>In the Test Data Manager web client, global rules live under <strong>Policies</strong>. Inside a project, the tabs are Overview, Discover, Define, Execute, Monitor and Permissions (older screenshots say Security). Generation rules are assigned under <strong>Define | Data Generation</strong>, plans are built under <strong>Execute</strong> (User Guide 10.5.10, pp.50, 203). The next chapter tours plan building in detail.</p></div>
+<p>In the Test Data Manager web client, global rules live under <strong>Policies</strong>. Inside a project, the tabs are Overview, Discover, Define, Execute, Monitor and Permissions (older screenshots say Security). Generation rules are assigned under <strong>Define | Data Generation</strong>, plans are built under <strong>Execute</strong> (User Guide 10.5.10, pp.50, 203).</p></div>
 
 <h2 id="c15-rule-types">5.17 Rule types: standard, custom, advanced and ad hoc</h2>
 
@@ -1022,7 +1059,7 @@ WHERE t.ssn = s.ssn OR t.phone = s.phone OR t.tax_id = s.tax_id;</code></pre>
 <tr><td>Override</td><td>Yes if the rule allows override. Yes-Overridden once you changed it.</td></tr>
 </tbody></table></div>
 
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.203, figure "Define | Data Generation view in a project". The rendered page shows the project tab bar (Overview, Discover, Define, Execute, Monitor, Security), the sub-tabs Data Subset, Data Masking and Data Generation, and a grid of a customer table where two string columns already show a rule named StringRule and Override "No". What to look for: the grid has exactly the six columns in the table above, and unassigned rows have an empty Generation Rule cell.</div>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.203, figure "Define | Data Generation view in a project". The figure shows the project tab bar (Overview, Discover, Define, Execute, Monitor, Security), the sub-tabs Data Subset, Data Masking and Data Generation, and a grid of a customer table where two string columns already show a rule named StringRule and Override "No". What to look for: the grid has exactly the six columns in the table above, and unassigned rows have an empty Generation Rule cell.</div>
 
 <div class="mock"><div class="mbar">Define | Data Generation (schematic, ShopSphere)</div><div class="mbody"><pre class="ascii">Table      Column         Type     Null  Generation Rule        Override
 CUSTOMERS  customer_id    int      no    Seq_1001               No
@@ -1033,10 +1070,10 @@ CUSTOMERS  phone          varchar  yes   Phone_10_digits        Yes-Overridden
 CUSTOMERS  ssn            varchar  yes   SSN_like_pattern       No
 CUSTOMERS  date_of_birth  date     yes   Rand_Date_1950_2005    No
 CUSTOMERS  zip_code       varchar  yes   Set_ZipCodes           No
-CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div class="mnote">Schematic illustration drawn for this guide, not an official screenshot. Rule names are my own.</div></div>
+CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div class="mnote">Schematic illustration, not an official screenshot.</div></div>
 
 <div class="callout warn"><strong class="ctitle">Save after every assignment</strong>
-<p>In this view you must click the <strong>Save</strong> icon each time you assign a rule. If you pick a rule for the next column without saving, Test Data Manager discards the earlier assignment (User Guide 10.5.10, p.203). It is the most common way to lose twenty minutes of work.</p></div>
+<p>In this view you must click the <strong>Save</strong> icon each time you assign a rule. If you pick a rule for the next column without saving, Test Data Manager discards the earlier assignment (User Guide 10.5.10, p.203).</p></div>
 
 <h3 id="c15-assign-steps">5.19.1 How each kind of rule is assigned</h3>
 
@@ -1076,20 +1113,20 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 <text x="695" y="185">ORDER_ITEMS</text><text x="695" y="205" font-size="12">item 9002, order 5002</text>
 <text x="255" y="35" font-size="12">min 1, max 3 orders</text><text x="550" y="22" font-size="12">min 1, max 4 items</text>
 </g></svg>
-<figcaption>Original diagram: the fan-out an entity describes. Each generated parent receives a random number of children between the minimum and maximum, and every child carries its parent's key. The numbers are my ShopSphere illustration.</figcaption></figure>
+<figcaption>The fan-out an entity describes. Each generated parent receives a random number of children between the minimum and maximum, and every child carries its parent's key.</figcaption></figure>
 
 <h3 id="c15-keys-ref">5.20.2 Reference lookup: borrow values from a table that already exists</h3>
 
 <p>The second tool is the <strong>reference lookup</strong> technique (see <a href="#c15-t-ref">Reference Lookup</a>). Instead of making values, it reads them from an existing parent table, so a child column can only receive keys that exist there. The plan then needs a <strong>Reference Lookup Connection</strong>, a connection to the database that holds the parent tables (User Guide 10.5.10, p.280). Use it for static reference data: ShopSphere's <code>PRODUCTS</code> table is the natural example for <code>ORDER_ITEMS.product_code</code>.</p>
 
-<div class="callout note"><strong class="ctitle">What I could and could not confirm</strong>
-<p>The guide says entities keep parent-child hierarchy and lets you set child counts per parent. It does not spell out, in the pages I read, exactly how TDM copies the parent key into the child's foreign key column, or whether a reference lookup may read a parent table <em>generated in the same plan</em> rather than one already loaded in the database. After a first run, always check keys with a quick join query (the lab does). </p></div>
+<div class="callout note"><strong class="ctitle">Not documented</strong>
+<p>The guide says entities keep parent-child hierarchy and lets you set child counts per parent. It does not spell out exactly how TDM copies the parent key into the child's foreign key column, or whether a reference lookup may read a parent table <em>generated in the same plan</em> rather than one already loaded in the database. After a first run, check keys with a quick join query (the lab does). </p></div>
 
 <h3 id="c15-keys-pk">5.20.3 Primary keys and unique values</h3>
 
 <ul>
 <li>A computed column as primary key blocks generation for an entity: you cannot run generation that includes an entity whose primary key column is a computed column (p.191).</li>
-<li>For multirecord IMS sources imported from PowerCenter, the table sequence is not imported, so you must supply it with the <strong>Manage Sequence</strong> button on the entity's Entity Map tab (pp.191-192). This is a mainframe case you can skip for ShopSphere.</li>
+<li>For multirecord IMS sources imported from PowerCenter, the table sequence is not imported, so you must supply it with the <strong>Manage Sequence</strong> button on the entity's Entity Map tab (pp.191-192). This is a mainframe case.</li>
 <li>Many techniques have a <strong>Generate Unique Values</strong> checkbox. It cannot be combined with regular-expression patterns, and cannot be used for binary or flat-file dictionary rules (pp.216, 222-223).</li>
 <li>For ids, the cleanest choice is the Sequence technique. A sequence never repeats within a run, and "Start Sequence from Last Value" lets a second run continue where the first stopped (p.231).</li>
 </ul>
@@ -1098,7 +1135,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <p>The number of rows is not part of a rule. It is set in the <strong>plan</strong>: the field <strong>Number of Records to Generate</strong> is marked Required for generation plans (User Guide 10.5.10, p.280). In the plan wizard it is step 14: "enter the number of records that you want to generate" (p.305). You can also give criteria per entity on the generation criteria step (p.305).</p>
 
-<p>For a parent-child set, the Minimum and Maximum child settings decide how many children each parent gets, so total rows in the child tables are not a round number. My reading, flagged because the guide gives no worked example of totals: with 50 customers and 1 to 3 orders each, expect between 50 and 150 orders. Confirm with the Row Count report (<a href="05-informatica-masking-generation-workflows.html#c5-s3">the plans, workflows and warehouse chapter</a>).</p>
+<p>For a parent-child set, the Minimum and Maximum child settings decide how many children each parent gets, so total rows in the child tables are not a round number. The guide gives no worked example of totals; with 50 customers and 1 to 3 orders each, expect between 50 and 150 orders. Confirm with the Row Count report (<a href="05-informatica-masking-generation-workflows.html#c5-s3">the plans, workflows and warehouse chapter</a>).</p>
 
 <h3 id="c15-exception">5.21.1 Exception test data: nulls and invalid values</h3>
 
@@ -1111,7 +1148,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <p>The guide's trick: make a rule "Recent_Dates" for 2012 to 2013 and, in its Invalid Values setting, choose a second saved rule "Dates_2005" (2005 to 2010) at 15 percent. Now 85 percent of dates are recent and 15 percent are old (p.210). So "invalid values" is really a way to mix in a second population.</p>
 
-<div class="callout why"><strong class="ctitle">Why would I want bad data?</strong>
+<div class="callout why"><strong class="ctitle">Why generate bad data?</strong>
 <p>Good testing needs negative cases. If ShopSphere's checkout rejects a customer with no phone number, you need rows with no phone number. Ten percent nulls in <code>phone</code> and two percent invalid <code>zip_code</code> values give your tests something to reject, without hand-crafting rows.</p></div>
 
 <h2 id="c15-techniques">5.22 The generation techniques, one by one</h2>
@@ -1135,8 +1172,6 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 <tr><td>Custom</td><td>Mapplet</td><td>String, numeric, date</td><td>Logic imported from a PowerCenter mapplet</td></tr>
 </tbody></table></div>
 
-<p>For each technique below you get what it does, when to reach for it, its parameters and a ShopSphere example. The example outputs are my illustrations of what such a rule would produce, not captured TDM output, unless I say the guide shows them.</p>
-
 <h3 id="c15-t-sequence">5.22.1 Sequence</h3>
 
 <p> A global or ad hoc rule that makes numeric or date values in a sequence. You pick a beginning value and an increment (User Guide 10.5.10, p.230).</p>
@@ -1153,7 +1188,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <p> A global or ad hoc rule that creates random strings, numbers and dates, for things like salary and birth dates (p.220). For strings you give a minimum and maximum length; for numbers a minimum and maximum value; for dates a range. You can instead supply a <strong>regular expression</strong> (a compact pattern language for text shapes) and say what percentage of rows follow it. If you use several patterns the percentages must total 100.</p>
 
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.210, figure "random string generation rule". The rendered page shows a wizard step titled "New Generation Rule: Step 2 of 2" with a Random option (Minimum Length, Maximum Length), a From Regular Expression option with a Pattern box and a Distribution % box, a Generate Unique Values checkbox, and an Exception Test Data area with Null Values and Invalid Values drop-downs set to "Default" beside percentage boxes showing 0. What to look for: the two radio choices are mutually exclusive ways of making a string.</div>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.210, figure "random string generation rule". The figure shows a wizard step titled "New Generation Rule: Step 2 of 2" with a Random option (Minimum Length, Maximum Length), a From Regular Expression option with a Pattern box and a Distribution % box, a Generate Unique Values checkbox, and an Exception Test Data area with Null Values and Invalid Values drop-downs set to "Default" beside percentage boxes showing 0. What to look for: the two radio choices are mutually exclusive ways of making a string.</div>
 
 <p>Parameters (pp.221-223): strings take Minimum Length (default 1) and Maximum Length (default the column maximum); numbers take Minimum Value (default 0) and Maximum Value (default the column maximum); dates take Start and End Date/Time and Exclude (up to two different weekdays). Strings and numbers can instead use <strong>From Regular Expression</strong> with a Pattern and Distribution. <strong>Generate Unique Values</strong> is not available with a pattern, and neither are invalid values. Null Values and Invalid Values apply as usual.</p>
 
@@ -1162,7 +1197,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 <p>For strings the usable operators are <code>.</code>, <code>\d</code>, <code>\w</code>, alternation <code>(a|b|c)</code>, <code>{n}</code> repeat counts and <code>[ ]</code> sets. To make numbers that contain special characters, use the <em>string</em> technique. To make plain numbers use the <em>numeric</em> technique, which allows <code>\d</code>, alternates like <code>(1|2|3)</code> and <code>[0-9]</code>, and alternates cannot be nested (p.223).</p>
 
 <div class="tablewrap"><table class="sample">
-<caption>ShopSphere pattern examples (my illustrations, using the operators the guide lists on p.223)</caption>
+<caption>ShopSphere pattern examples (example patterns using the operators listed on p.223)</caption>
 <thead><tr><th>Goal</th><th>Technique</th><th>Pattern</th><th>Example output</th></tr></thead>
 <tbody>
 <tr><td>ShopSphere mobile, 10 digits starting 6 to 9</td><td>Numeric</td><td><code>(6|7|8|9)\d{9}</code></td><td>9123456780</td></tr>
@@ -1171,7 +1206,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 <tr><td>ShopSphere test email</td><td>String</td><td><code>[a-z]{8}@example\.(com|org)</code></td><td>qkdmpzra@example.org</td></tr>
 </tbody></table></div>
 
-<p>Read a pattern left to right as slots: <code>\d</code> is one digit, <code>{n}</code> repeats the previous piece, <code>[A-Z]</code> is one character from a range, <code>(a|b)</code> is a choice and <code>\.</code> is a literal dot. So <code>(6|7|8|9)\d{9}</code> is a first digit 6 to 9 followed by nine digits. This reading aid is general knowledge. Test a pattern by generating a few rows into a scratch table first.</p>
+<p>Read a pattern left to right as slots: <code>\d</code> is one digit, <code>{n}</code> repeats the previous piece, <code>[A-Z]</code> is one character from a range, <code>(a|b)</code> is a choice and <code>\.</code> is a literal dot. So <code>(6|7|8|9)\d{9}</code> is a first digit 6 to 9 followed by nine digits. Test a pattern by generating a few rows into a scratch table first.</p>
 
 <div class="callout warn"><strong class="ctitle">Patterns cannot make valid checksummed numbers</strong>
 <p>For credit card, Social Security and Social Insurance numbers the guide warns that pattern-made values might not be valid, because real numbers follow algorithms that a pattern cannot reproduce (p.224). That is fine for "SSN-like" test data, and it is why the Credit Card technique exists.</p></div>
@@ -1194,7 +1229,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <p>If both lookup and table columns are of double data type the process generates nulls (p.216). The guide's example makes two string rules from one names dictionary: one picks the first-name column, one the last-name column (p.215).</p>
 
-<p><strong>ShopSphere:</strong> <code>first_name</code> uses dictionary NAMES column FIRST, <code>last_name</code> uses column LAST. Sample output: Meera, Nair; Ravi, Kumar; Asha, Menon. The dictionary's name and column names here are placeholders I made up. Because the two rules pick independently, "Ravi Menon" is as likely as "Ravi Kumar", which is fine for testing and wrong for anything that needs a believable family name.</p>
+<p><strong>ShopSphere:</strong> <code>first_name</code> uses dictionary NAMES column FIRST, <code>last_name</code> uses column LAST. Sample output: Meera, Nair; Ravi, Kumar; Asha, Menon. Dictionary and column names here are placeholders. Because the two rules pick independently, "Ravi Menon" is as likely as "Ravi Kumar", which is fine for testing and wrong for anything that needs a believable family name.</p>
 
 <h3 id="c15-t-card">5.22.5 Credit Card</h3>
 
@@ -1202,7 +1237,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <p>Parameters (pp.227-228): Issuing Network (required: American Express, Discover, JCB, Mastercard or Visa); an optional Issuer Identification Number of up to six starting digits (a value invalid for the network makes the workflow fail; blank lets TDM use valid ones); Distribution % (must total 100); Generate Formatted Values; Generate Unique Values; Null and Invalid Values. Valid starting digits include Visa 4, Mastercard 51 to 55 and American Express 34 and 37.</p>
 
-<p><strong>ShopSphere:</strong> the four tables hold no card numbers, so imagine a later <code>PAYMENTS.card_no</code> column. A rule with Visa at 60 percent and Mastercard at 40 percent, formatted, gives values shaped like <code>4666-1760-3137-2159</code> and <code>5122-3307-9244-0268</code>. I computed those two to pass the Luhn check, but TDM would produce its own digits.</p>
+<p><strong>ShopSphere:</strong> the four tables hold no card numbers, so imagine a later <code>PAYMENTS.card_no</code> column. A rule with Visa at 60 percent and Mastercard at 40 percent, formatted, gives values shaped like <code>4666-1760-3137-2159</code> and <code>5122-3307-9244-0268</code>. Those two pass the Luhn check; TDM would produce its own digits.</p>
 
 <h3 id="c15-t-ref">5.22.6 Reference Lookup</h3>
 
@@ -1219,7 +1254,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <p> An <strong>ad hoc</strong> rule that computes a value from an expression you build in the Expression Builder, choosing columns and functions from lists. Works for string, numeric and date (p.219). Parameters: Expression, Null Values, Invalid Values (invalid = does not follow the expression) (p.220). If you tick "Override Data Type to Numeric" on a string column, you cannot enter a numeric expression (p.219).</p>
 
-<p>The guide's example builds a Name column from FirstName and LastName with <code>CONCAT (FirstName+'/'+LastName)</code>. <strong>ShopSphere:</strong> imagine a <code>display_name</code> column built as <code>CONCAT(CONCAT(first_name,' '),last_name)</code>, giving "Asha Menon". I mirrored the nested <code>CONCAT</code> style the guide uses in its advanced example; check the exact function list in your Expression Builder.</p>
+<p>The guide's example builds a Name column from FirstName and LastName with <code>CONCAT (FirstName+'/'+LastName)</code>. <strong>ShopSphere:</strong> imagine a <code>display_name</code> column built as <code>CONCAT(CONCAT(first_name,' '),last_name)</code>, giving "Asha Menon". Check the exact function list in your Expression Builder.</p>
 
 <p><strong>When:</strong> any column that is a function of other columns in the same row. The dependent column must still be assignable after its inputs, so assign rules to the inputs too.</p>
 
@@ -1245,11 +1280,11 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <p>An <strong>input port</strong> (optional) takes a target column or a parameter. A <strong>variable port</strong> holds intermediate values and uses either <em>Conditional</em> or <em>Generation Rule Set</em> (rules with distribution percentages, optionally grouping records by foreign key). An <strong>output port</strong> receives the data and needs an Expression built from the inputs and variables. Port names need not match column names; you map them when you assign the rule (pp.199, 214-215).</p>
 
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.200, figure "advanced rule parameters". The rendered page shows "New Generation Rule: Step 2 of 2" with a Columns pane listing one input column (Ip_1, string, 10), a variable column (Var_1) with Configure Rule and two default numeric sequence rules, and one output column (Out_1), plus a Properties pane showing the output expression CONCAT(Ip_1,Var_1). What to look for: the three port groups stacked in one list.</div>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.200, figure "advanced rule parameters". The figure shows "New Generation Rule: Step 2 of 2" with a Columns pane listing one input column (Ip_1, string, 10), a variable column (Var_1) with Configure Rule and two default numeric sequence rules, and one output column (Out_1), plus a Properties pane showing the output expression CONCAT(Ip_1,Var_1). What to look for: the three port groups stacked in one list.</div>
 
 <p>The guide also shows 50 "Invoice-n" plus 50 "Order-n" ids built from a conditional sequence (pp.199-200).</p>
 
-<div class="callout example"><strong class="ctitle">ShopSphere: realistic emails (my adaptation of the guide's example)</strong>
+<div class="callout example"><strong class="ctitle">ShopSphere: realistic emails (adapted from the guide's example)</strong>
 <p>Input <code>in_FirstName</code> mapped to <code>first_name</code>. Variable <code>var_Domain</code> with a Generation Rule Set: <code>example.com</code> 50 percent, <code>example.org</code> 50 percent. Output <code>out_Email</code> with the expression above. Result: Asha@example.com, Ravi@example.org.</p>
 <p>Two customers called Asha share the same name before the @. The guide does not say whether an input port reads the value <em>generated</em> for another column in the same run, so check that <code>first_name</code> is generated before the email. </p></div>
 
@@ -1259,7 +1294,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <p>You map your table columns to the mapplet's input ports and its output ports to target columns (p.204).</p>
 
-<p><strong>ShopSphere:</strong> a mapplet that takes first and last name and returns "Asha Menon" for a <code>display_name</code> column. Building mapplets is covered in <a href="05-informatica-masking-generation-workflows.html#c5-s1">the Informatica masking chapter</a>.</p>
+<p><strong>ShopSphere:</strong> a mapplet that takes first and last name and returns "Asha Menon" for a <code>display_name</code> column. A worked mapplet build (this same full-name idea) is in <a href="05-informatica-masking-generation-workflows.html#c14-mapplet-build">the mapplet walkthrough in the Informatica masking chapter</a>.</p>
 
 <h2 id="c15-cond-constraint">5.23 Conditional constraints: rules between columns</h2>
 
@@ -1277,7 +1312,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 <h2 id="c15-pick">5.24 Choosing a technique for every ShopSphere column</h2>
 
 <div class="tablewrap"><table>
-<caption>One reasonable rule set for the four ShopSphere tables (my design; techniques are from the guide)</caption>
+<caption>One reasonable rule set for the four ShopSphere tables (example rule set)</caption>
 <thead><tr><th>Column</th><th>Technique</th><th>Parameters</th><th>Why</th></tr></thead>
 <tbody>
 <tr><td>first_name, last_name</td><td>Dictionary</td><td>one names dictionary, two columns</td><td>Looks like a name</td></tr>
@@ -1325,7 +1360,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <p>The guide is firm: when you add data generation components to a plan, you <strong>cannot</strong> add data masking or data subset components, and the reverse holds too (User Guide 10.5.10, pp.274-276, 305). It repeats the rule in the plan overview, the task list, the component table and the creation steps. A Hadoop plan likewise cannot do subset or generation (p.306).</p>
 
-<p>The guide states the restriction but does not explain it. My explanation, as a concept and not a quote: masking and subsetting both <em>read existing rows</em> from a source, then change or filter them. Generation has no source rows; it builds new rows from rules. A plan that tried to do both would have to decide what the masking rule should act on. Keeping them apart avoids that.</p>
+<p>The guide states the restriction but does not explain it. Masking and subsetting both <em>read existing rows</em> from a source, then change or filter them. Generation has no source rows; it builds new rows from rules. A plan that tried to do both would have to decide what the masking rule should act on. Keeping them apart avoids that.</p>
 
 <div class="compare">
 <div><h4 id="c5-one-plan-subset-and-masking">One plan: subset and masking</h4>
@@ -1342,24 +1377,24 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 </ul>
 
 <div class="callout why"><strong class="ctitle">Why it matters</strong>
-<p>This restriction is a favourite interview and review question, and it shapes how you design a data pipeline: generation is its own track, not a masking option.</p></div>
+<p>This restriction shapes how a data pipeline is designed: generation is its own track, not a masking option.</p></div>
 
 <div class="exercise"><h4 id="c5-lab-a-generate-50-shopsphere-customers-with-valid-orders">Lab A: generate 50 ShopSphere customers with valid orders</h4>
-<p>Goal: end with 50 rows in <code>CUSTOMERS</code> plus linked <code>ORDERS</code> and <code>ORDER_ITEMS</code> in an empty test schema, then prove the keys are valid. The steps follow the guide's task flow (pp.192, 195-205, 305); names and values are my illustration. You need an installed TDM, an empty test schema <code>SHOPSPHERE_TEST</code> with the four tables, and a <code>PRODUCTS</code> table already holding a few products (P-100, P-200, P-300).</p>
+<p>Goal: end with 50 rows in <code>CUSTOMERS</code> plus linked <code>ORDERS</code> and <code>ORDER_ITEMS</code> in an empty test schema, then prove the keys are valid. The steps follow the guide's task flow (pp.192, 195-205, 305). You need an installed TDM, an empty test schema <code>SHOPSPHERE_TEST</code> with the four tables, and a <code>PRODUCTS</code> table already holding a few products (P-100, P-200, P-300).</p>
 <ol class="steps">
 <li><strong>Ask an administrator to add a names dictionary under Administrator | Dictionaries.</strong><p>Dictionary rules refuse to be created until a dictionary exists (p.215). A file with a FIRST and a LAST column is enough.</p><p class="expect">The dictionary appears in the list.</p></li>
-<li><strong>In Policies, create standard rules with Actions &gt; New &gt; Generation Rule.</strong><p>Make the seven rules in the table of the earlier rule table: <code>Seq_Cust</code> (Sequence from 1001), <code>Dict_First</code>, <code>Dict_Last</code>, <code>Phone_10</code> (<code>(6|7|8|9)\d{9}</code>, 10 percent nulls), <code>SSN_like</code>, <code>DOB_Range</code>, <code>Zip_Set</code> (40/35/25) and <code>TaxId_Pattern</code>.<p>Pick the data type first, since it decides which techniques you see.</p><p class="expect">The rules appear in the Policies list.</p></li>
+<li><strong>In Policies, create standard rules with Actions &gt; New &gt; Generation Rule.</strong><p>Make the rules from the table in 15.11: <code>Seq_Cust</code> (Sequence from 1001), <code>Dict_First</code>, <code>Dict_Last</code>, <code>Phone_10</code> (<code>(6|7|8|9)\d{9}</code>, 10 percent nulls), <code>SSN_like</code>, <code>DOB_Range</code>, <code>Zip_Set</code> (40/35/25) and <code>TaxId_Pattern</code>.</p><p>Pick the data type first, since it decides which techniques you see.</p><p class="expect">The rules appear in the Policies list.</p></li>
 <li><strong>Create a project and import metadata for the four tables.</strong><p>Click Projects, Actions &gt; New, name it, open it, then Actions &gt; Import Metadata and choose Datasource Connection to the test schema (pp.53, 66). Metadata tells TDM what columns exist; it copies no rows.</p><p class="expect">The four tables appear under the project's data sources.</p></li>
 <li><strong>Create an entity for the parent-child tables.</strong><p>In Define, create an entity with <code>CUSTOMERS</code> as driving table so TDM pulls in <code>ORDERS</code> and <code>ORDER_ITEMS</code> (pp.116, 277). If the foreign keys are not declared in the schema, add logical foreign keys first on Discover | Tables | Constraints (p.110).</p><p>Set the relationship minimum and maximum to 1 and 3 for CUSTOMERS to ORDERS, and 1 and 4 for ORDERS to ORDER_ITEMS (p.117).</p><p class="expect">A diagram shows the three tables joined.</p></li>
-<li><strong>Add the rules to the project and assign them in Define | Data Generation.</strong><p>Assign the seven rules to the matching <code>CUSTOMERS</code> columns. Click Save after every assignment (p.203). Also give the order and item tables sequences for ids, Random ranges for dates, amounts and quantities, and a Set of Values rule (P-100, P-200, P-300) for <code>product_code</code>.</p><p class="expect">Every row has a rule name, and nothing is left to the default rule except columns you chose to ignore.</p></li>
+<li><strong>Add the rules to the project and assign them in Define | Data Generation.</strong><p>Assign the rules to the matching <code>CUSTOMERS</code> columns. Click Save after every assignment (p.203). Also give the order and item tables sequences for ids, Random ranges for dates, amounts and quantities, and a Set of Values rule (P-100, P-200, P-300) for <code>product_code</code>.</p><p class="expect">Every row has a rule name, and nothing is left to the default rule except columns you chose to ignore.</p></li>
 <li><strong>Add the advanced email rule.</strong><p>In Policies create an advanced rule with input <code>in_FirstName</code>, variable <code>var_Domain</code> (Generation Rule Set: example.com 50, example.org 50) and output <code>out_Email</code> with the expression <code>CONCAT(CONCAT(in_FirstName,'@'),var_Domain)</code>. Assign it to <code>email</code> and map the input port to <code>first_name</code> (pp.200-201, 204-205, 213).</p><p class="expect">The email cell shows the advanced rule's name.</p></li>
 <li><strong>Create the plan.</strong><p>Execute &gt; New Plan, name it <code>PLAN_GEN_CUSTOMERS_50</code>, skip masking and subset, add the entity as a generation component, enter 50 records, choose the target connection <code>SHOPSPHERE_TEST</code>, and set the Reference Lookup Connection only if you used a lookup rule (p.305). Tick Truncate Table (p.282) if you may want to rerun.</p><p class="expect">The plan appears in the Execute list.</p></li>
 <li><strong>Generate and execute the workflow, then watch it.</strong><p>Open the plan's properties, Actions &gt; Generate and Execute, choose the Integration Service and run immediately (pp.310-311). Open Monitor and wait for the Execute Workflow job to read Success (p.317).</p><p class="expect">Job status moves from In Queue to Running to Success. If it shows Error, click the job ID and read the log (see <a href="05-informatica-masking-generation-workflows.html#c5-s3">the plans, workflows and warehouse chapter</a>).</p></li>
-<li><strong>Check the data with SQL.</strong><p>Run <code>SELECT COUNT(*) FROM customers;</code> (expect 50) and <code>SELECT COUNT(*) FROM orders;</code> (expect 50 to 150 by my reading, see <a href="#c15-count">the record count section</a>). Then prove the keys: <code>SELECT COUNT(*) FROM orders o LEFT JOIN customers c ON o.customer_id = c.customer_id WHERE c.customer_id IS NULL;</code> must return 0. Repeat for <code>order_items</code> against <code>orders</code> and <code>products</code>.</p><p class="expect">Counts as described and zero orphan rows. A non-zero count means the foreign keys were not honoured; see <a href="#c15-keys-ref">the verify note on reference lookup</a>.</p></li>
+<li><strong>Check the data with SQL.</strong><p>Run <code>SELECT COUNT(*) FROM customers;</code> (expect 50) and <code>SELECT COUNT(*) FROM orders;</code> (expect 50 to 150, see <a href="#c15-count">the record count section</a>). Then prove the keys: <code>SELECT COUNT(*) FROM orders o LEFT JOIN customers c ON o.customer_id = c.customer_id WHERE c.customer_id IS NULL;</code> must return 0. Repeat for <code>order_items</code> against <code>orders</code> and <code>products</code>.</p><p class="expect">Counts as described and zero orphan rows. A non-zero count means the foreign keys were not honoured; see <a href="#c15-keys-ref">the verify note on reference lookup</a>.</p></li>
 </ol>
 <details class="sol"><summary>Show a worked answer</summary>
 <div class="tablewrap"><table class="sample">
-<caption>Illustrative rows you might see in CUSTOMERS (my example; real output differs)</caption>
+<caption>Example rows in CUSTOMERS (real output differs)</caption>
 <thead><tr><th>customer_id</th><th>first_name</th><th>last_name</th><th>email</th><th>phone</th><th>ssn</th><th>date_of_birth</th><th>zip_code</th><th>tax_id</th></tr></thead>
 <tbody>
 <tr><td>1001</td><td>Meera</td><td>Menon</td><td>Meera@example.com</td><td>9123456780</td><td>234-56-7890</td><td>1992-03-14</td><td>560001</td><td>KQM481926</td></tr>
@@ -1397,9 +1432,9 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <section class="sources">
 <div class="grp" id="c5-s3"><span class="grplabel">Informatica: plans, workflows, monitoring and the Test Data Warehouse</span></div>
-<p>Every earlier Informatica chapter ended the same way: "then you put it in a plan and run it". The <a href="04-informatica-architecture-discovery-subset.html#c4-s3">discovery</a>, <a href="04-informatica-architecture-discovery-subset.html#c4-s4">subsetting</a>, <a href="05-informatica-masking-generation-workflows.html#c5-s1">masking</a> and <a href="05-informatica-masking-generation-workflows.html#c5-s2">generation</a> chapters described <em>what</em> to do to data. This section covers the machinery that actually does it, and what happens afterwards: the <strong>plan</strong> that packages the work, the <strong>workflow</strong> TDM generates from it, the <strong>Monitor</strong> where you watch it, the <strong>reports</strong> that prove what happened, and the <strong>Test Data Warehouse</strong> where the result can be stored, versioned and restored.</p>
+<p>The <a href="04-informatica-architecture-discovery-subset.html#c4-s3">discovery</a>, <a href="04-informatica-architecture-discovery-subset.html#c4-s4">subsetting</a>, <a href="05-informatica-masking-generation-workflows.html#c5-s1">masking</a> and <a href="05-informatica-masking-generation-workflows.html#c5-s2">generation</a> work all ends in a <strong>plan</strong> that packages it. TDM generates a <strong>workflow</strong> from the plan, the <strong>Monitor</strong> shows its progress, <strong>reports</strong> prove what happened, and the <strong>Test Data Warehouse</strong> can store, version and restore the result.</p>
 
-<p>If you already know ETL from <a href="03-generation-etl-and-tdm.html#c3-s2">the ETL from scratch chapter</a> and <a href="03-generation-etl-and-tdm.html#c3-s3">the ETL and TDM chapter</a>, here is the key idea in one line: <strong>a TDM workflow is an ETL job that TDM writes for you.</strong> You describe the data and the rules; TDM builds the mappings and runs them. The Day 45 syllabus asks you to understand generation in Informatica; the plan and workflow side is what turns your rules into rows.</p>
+<p>In ETL terms (see <a href="03-generation-etl-and-tdm.html#c3-s2">the ETL from scratch chapter</a> and <a href="03-generation-etl-and-tdm.html#c3-s3">the ETL and TDM chapter</a>): <strong>a TDM workflow is an ETL job that TDM writes for you.</strong> You describe the data and the rules; TDM builds the mappings and runs them.</p>
 
 
 
@@ -1432,7 +1467,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 </div>
 
 <div class="tablewrap"><table>
-<caption>ETL ideas and their TDM names. This mapping is my teaching aid; the TDM terms and who does what come from the guide (pp.275, 308).</caption>
+<caption>ETL ideas and their TDM names. TDM terms and roles: pp.275, 308.</caption>
 <thead><tr><th>ETL idea (earlier chapters)</th><th>In Informatica TDM</th><th>Who creates it</th></tr></thead>
 <tbody>
 <tr><td>Job specification</td><td>Plan</td><td>You, in Test Data Manager</td></tr>
@@ -1471,9 +1506,9 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 <li><strong>Reset and restore plans</strong> appear in the guide's notes about pre and post workflows (p.277); resets are covered in the warehouse section below.</li>
 </ul>
 
-<h2 id="c16-story-intro">5.31 The ShopSphere story we will follow</h2>
+<h2 id="c16-story-intro">5.31 The ShopSphere story</h2>
 
-<p>ShopSphere's QA team needs a safe, small, realistic copy of <code>SHOPSPHERE_PROD</code> for the next release of Customer Orders. They want to refresh it quickly after every destructive test run. The path through this section:</p>
+<p>ShopSphere's QA team needs a safe, small, realistic copy of <code>SHOPSPHERE_PROD</code> for the next release of Customer Orders. They want to refresh it quickly after every destructive test run. The sequence:</p>
 
 <ol class="steps">
 <li><strong>Discovery.</strong><p>A profile has already tagged <code>ssn</code>, <code>tax_id</code>, <code>phone</code>, <code>email</code>, <code>first_name</code> and <code>last_name</code> as sensitive data domains (<a href="04-informatica-architecture-discovery-subset.html#c4-s3">the discovery chapter</a>).</p></li>
@@ -1520,10 +1555,10 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <h4 id="c16-order-example">What subset-then-mask does to three rows</h4>
 
-<p>My illustration of the rule on p.275: subset runs first, so customer 1002 never reaches the target, and masking then changes only the rows that arrived.</p>
+<p>Illustration of the rule on p.275: subset runs first, so customer 1002 never reaches the target, and masking then changes only the rows that arrived.</p>
 
 <div class="tablewrap"><table class="sample">
-<caption>Illustrative: before and after a plan with an entity and a PII policy</caption>
+<caption>Example: before and after a plan with an entity and a PII policy</caption>
 <thead><tr><th>customer_id</th><th>In production</th><th>In the subset?</th><th>In the target</th></tr></thead>
 <tbody>
 <tr><td>1001</td><td>Asha Menon, 123-45-6789</td><td>Yes</td><td>Meera Joshi, 456-78-9012 (masked)</td></tr>
@@ -1550,7 +1585,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <p>Plans also need connections to repositories, and this has a hard limit. An offline job needs three connections to the TDM repository, each workflow in a multi-workflow plan needs one more, and you can run at most <strong>eight workflows at a time</strong> (eight workflows need 11 connections). Extra workflows wait in the queued state (p.276).</p>
 
-<p>The guide also states that <strong>Use Source Connection as Target Connection</strong> is for in-place masking, where data is changed in the same database it came from (p.279). That is risky; we never do it on ShopSphere's production copy.</p>
+<p>The guide also states that <strong>Use Source Connection as Target Connection</strong> is for in-place masking, where data is changed in the same database it came from (p.279). That is risky.</p>
 
 <h3 id="c16-prepost">5.33.3 Pre and post workflows, and target SQL</h3>
 
@@ -1631,7 +1666,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 </tbody></table></div>
 
 <div class="callout example"><strong class="ctitle">ShopSphere: one plan, three regions</strong>
-<p>Make the subset criterion on <code>zip_code</code> a criteria parameter <code>p_zip</code>. Run the same plan with <code>560001</code> for the Bengaluru team, <code>600017</code> for Chennai, <code>682001</code> for Kochi. No plan edits, three different data sets. This is the guide's "test data on demand" idea (p.309) in ShopSphere clothes.</p></div>
+<p>Make the subset criterion on <code>zip_code</code> a criteria parameter <code>p_zip</code>. Run the same plan with <code>560001</code> for the Bengaluru team, <code>600017</code> for Chennai, <code>682001</code> for Kochi. No plan edits, three different data sets. This is the guide's "test data on demand" idea (p.309).</p></div>
 
 <h2 id="c16-manage">5.37 Plan management</h2>
 
@@ -1690,7 +1725,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <p>In the Monitor view you check the status of jobs you start in Test Data Manager, stop jobs and view job and session logs. The global Monitor shows jobs for all projects; open a project and click Monitor to see only that project's jobs. For a data set version, open it and click Monitor (User Guide 10.5.10, p.315).</p>
 
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.316, figure "Monitor view". The rendered page shows the Test Data Manager window with the Monitor tab active, a Jobs grid with columns Job ID, Name, Description, Status, Project, Start Date/Time, End Date/Time and User, rows of Execute Workflow, Generate Workflow and Import from Source jobs all with status Succeeded, and a lower panel with Properties and Logs tabs showing the selected job's General details (Job ID, Name, Description, Project, start time, elapsed time, status, user). What to look for: each job has a consecutive Job ID, and one plan run produces a Generate Workflow row and an Execute Workflow row.</div>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.316, figure "Monitor view". The figure shows the Test Data Manager window with the Monitor tab active, a Jobs grid with columns Job ID, Name, Description, Status, Project, Start Date/Time, End Date/Time and User, rows of Execute Workflow, Generate Workflow and Import from Source jobs all with status Succeeded, and a lower panel with Properties and Logs tabs showing the selected job's General details (Job ID, Name, Description, Project, start time, elapsed time, status, user). What to look for: each job has a consecutive Job ID, and one plan run produces a Generate Workflow row and an Execute Workflow row.</div>
 
 <h3 id="c16-jobtypes">5.39.1 Job types</h3>
 
@@ -1765,7 +1800,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 
 <p>Having a data set is not the same as having <em>enough of the right data</em>. Data coverage analysis checks whether a data set holds a minimum amount of data for specific test cases. It is <strong>pairwise</strong>: you choose two columns and see how many rows exist for every combination of their values, drawn as a grid (User Guide 10.5.10, p.259). Cell colour shows density: white means no data, light blue is below the minimum threshold you set, dark blue is above it (p.261).</p>
 
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.266, figure "data coverage analysis page" (rendered and viewed). A grid with one column's values along the bottom and another's up the side, mostly white cells with some light and dark blue, a green-bordered selected cell and a side panel of task columns. What to look for: white cells are the gaps.</div>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.266, figure "data coverage analysis page". A grid with one column's values along the bottom and another's up the side, mostly white cells with some light and dark blue, a green-bordered selected cell and a side panel of task columns. What to look for: white cells are the gaps.</div>
 
 <ol class="steps">
 <li><strong>Open the data set, click Data Coverage, Actions &gt; New, name the task and set a minimum threshold.</strong><p>The threshold is the least number of rows you accept as "dense enough".</p></li>
@@ -1778,7 +1813,7 @@ CUSTOMERS  tax_id         varchar  yes   (default string rule)  </pre></div><div
 zip band        under 500    500-2000    over 2000
 56xxxx              9           7           0   &lt;- gap
 60xxxx              6           2           1   &lt;- below threshold
-68xxxx              0           8           5   &lt;- gap</pre></div><div class="mnote">Schematic illustration drawn for this guide, not an official screenshot. Numbers are mine.</div></div>
+68xxxx              0           8           5   &lt;- gap</pre></div><div class="mnote">Schematic illustration, not an official screenshot.</div></div>
 
 <p>Here "large order from a Bengaluru customer" has no data. Fill moves rows in, or you generate more. Fill changes the data set itself (p.268), so keep a version first. Coverage jobs show in Monitor as Data Coverage Analysis and Fill Cell, run by the Data Integration Service (pp.26, 316-317).</p>
 
@@ -1805,7 +1840,7 @@ ilmcmd -r -dvn "RESET Version1" -rf "C:\Documents\ResetObject.json" -ris PIS</co
 <p>For <code>tdwquery</code> you first fill in <code>userConfig.ilm</code> (service URL, user, domain, warehouse and data set version), then run for example <code>tdwquery "SELECT * FROM td_empdetails"</code> (pp.348-349).</p>
 
 <div class="callout warn"><strong class="ctitle">Passwords on the command line</strong>
-<p>The guide's <code>tdwcmd</code> examples put the password in the command (<code>-pd Administrator</code>), where shell history can expose it. Follow your organisation's secret-handling rules. That advice is mine, not the guide's.</p></div>
+<p>The guide's <code>tdwcmd</code> examples put the password in the command (<code>-pd Administrator</code>), where shell history can expose it. Follow your organisation's secret-handling rules.</p></div>
 
 <h2 id="c16-tdw">5.43 The Test Data Warehouse</h2>
 
@@ -1842,7 +1877,7 @@ ilmcmd -r -dvn "RESET Version1" -rf "C:\Documents\ResetObject.json" -ris PIS</co
 <text x="715" y="55">TDW repository</text><text x="715" y="73" font-size="11">metadata, tags</text>
 <text x="715" y="195">Test Data</text><text x="715" y="213">Warehouse (rows)</text>
 </g></svg>
-<figcaption>Original diagram, simplified from pp.26-28 and 236: a map of who holds what, not a network drawing.</figcaption></figure>
+<figcaption>Simplified from pp.26-28 and 236: a map of who holds what, not a network drawing.</figcaption></figure>
 
 <div class="compare">
 <div><h4 id="c5-a-plain-database-backup">A plain database backup</h4>
@@ -1880,7 +1915,7 @@ ilmcmd -r -dvn "RESET Version1" -rf "C:\Documents\ResetObject.json" -ris PIS</co
 <div class="callout example"><strong class="ctitle">ShopSphere: naming</strong>
 <p>Data set <code>SHOPSPHERE_MASKED</code>, application <code>CustomerOrders</code>, application version <code>2.4</code>, tags <code>baseline, masked, 5pct</code>. After the regression run, rerun the plan or run a different plan with the same data set name to get version 2 tagged <code>after-regression</code>.</p></div>
 
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.237, figure "tasks for storing and using warehouse data" (rendered and enlarged). A left-to-right flow: create project, optional parameters, plan with the warehouse as target, generate and run, view the data set, then optional steps (edit metadata, permissions or lock, edit data, coverage, reset, publish to the portal). What to look for: only the first four boxes are mandatory.</div>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.237, figure "tasks for storing and using warehouse data". A left-to-right flow: create project, optional parameters, plan with the warehouse as target, generate and run, view the data set, then optional steps (edit metadata, permissions or lock, edit data, coverage, reset, publish to the portal). What to look for: only the first four boxes are mandatory.</div>
 
 <h2 id="c16-reset">5.45 Restoring: the reset</h2>
 
@@ -1912,7 +1947,7 @@ ilmcmd -r -dvn "RESET Version1" -rf "C:\Documents\ResetObject.json" -ris PIS</co
 
 <p><em>Steps from User Guide 10.5.10, pp.243-244.</em></p>
 
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.245, figure "reset process". I rendered this page. It is a flowchart: Reset leads either to "Full restore" (truncate tables, insert tables from the data set, success message) or to "Reset with default settings", which validates table classification (not valid: exit with error), creates staging tables to find candidates for cascade delete, then asks whether to disable constraints and indexes. Yes goes to a parallel transactional cascade delete and insert; No goes to a sequential one. Both then upsert master tables in parallel, re-enable constraints, and show the success message. What to look for: a note says the backup tasks are not drawn.</div>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.245, figure "reset process". It is a flowchart: Reset leads either to "Full restore" (truncate tables, insert tables from the data set, success message) or to "Reset with default settings", which validates table classification (not valid: exit with error), creates staging tables to find candidates for cascade delete, then asks whether to disable constraints and indexes. Yes goes to a parallel transactional cascade delete and insert; No goes to a sequential one. Both then upsert master tables in parallel, re-enable constraints, and show the success message. What to look for: a note says the backup tasks are not drawn.</div>
 
 <h3 id="c16-downtime">5.45.3 Speed versus downtime</h3>
 
@@ -1940,7 +1975,7 @@ ilmcmd -r -dvn "RESET Version1" -rf "C:\Documents\ResetObject.json" -ris PIS</co
 <h2 id="c16-labs">5.47 Labs: the story in practice</h2>
 
 <div class="exercise"><h4 id="c5-lab-a-build-a-masking-and-subset-plan-that-stores-a-data-set">Lab A: build a masking and subset plan that stores a data set</h4>
-<p>Goal: take the ShopSphere sample from production to a masked, small, versioned data set in the warehouse. Needs an installed TDM with a Test Data Warehouse Service, a project with the four tables imported, an entity with CUSTOMERS as driving table, and masking rules assigned (see the masking and subsetting chapters). Names are mine.</p>
+<p>Goal: take the ShopSphere sample from production to a masked, small, versioned data set in the warehouse. Needs an installed TDM with a Test Data Warehouse Service, a project with the four tables imported, an entity with CUSTOMERS as driving table, and masking rules assigned (see the masking and subsetting chapters).</p>
 <ol class="steps">
 <li><strong>In the project click Execute, Actions &gt; New, name the plan <code>PLAN_MASK_SUBSET</code>.</strong><p>Naming by purpose makes Monitor rows easy to find.</p></li>
 <li><strong>Add Masking Components: select policy <code>PII_Policy</code>. Add Subset Components: select the entity.</strong><p>Subset runs first, then masking on the subset (p.275).</p><p class="expect">Both lists show one item.</p></li>
@@ -1953,10 +1988,10 @@ ilmcmd -r -dvn "RESET Version1" -rf "C:\Documents\ResetObject.json" -ris PIS</co
 <li><strong>Open the Data Sets view and the new data set. Check the Tables tab.</strong><p>Run <code>SELECT * FROM customers</code> in the SQL Query field and confirm names are disguised (compare with production by sample, never copy production values out).</p><p class="expect">Version 1 exists; sensitive columns look masked.</p></li>
 </ol>
 <details class="sol"><summary>Show a worked answer</summary>
-<p>Illustrative Row Count result (my numbers, not real output): CUSTOMERS 120, ORDERS 310, ORDER_ITEMS 760. If the production table has 2,400 customers, 5 percent is 120. A masked row might show first_name "Meera" in place of "Asha" and ssn <code>456-78-9012</code> in place of <code>123-45-6789</code>. If counts are higher than expected, see the note in the plan example about how the limit applies to the entity.</p></details></div>
+<p>Example Row Count result: CUSTOMERS 120, ORDERS 310, ORDER_ITEMS 760. If the production table has 2,400 customers, 5 percent is 120. A masked row might show first_name "Meera" in place of "Asha" and ssn <code>456-78-9012</code> in place of <code>123-45-6789</code>. If counts are higher than expected, see the note in the plan example about how the limit applies to the entity.</p></details></div>
 
 <div class="exercise"><h4 id="c5-lab-b-store-a-second-version-then-reset-the-first">Lab B: store a second version, then reset the first</h4>
-<p>Goal: practise "undo my tests". Uses the data set from Lab A and a private test database as the target.</p>
+<p>Goal: undo the effects of a destructive test run. Uses the data set from Lab A and a private test database as the target.</p>
 <ol class="steps">
 <li><strong>Classify the tables.</strong><p>Open the data set, Plan Components tab, Tables tab, select CUSTOMERS and click Edit Table Type, choose Master and then "Mark all descendant tables as transactional".</p><p class="expect">ORDERS and ORDER_ITEMS show as transactional (pp.241-242).</p></li>
 <li><strong>Reset version 1 into the test database once.</strong><p>Actions &gt; Reset, target connection = test database, tick Truncate Tables (the schema is yours), run. That creates your working copy.</p><p class="expect">A reset job reaches Success. Row counts in the test database match the data set.</p></li>
@@ -1967,7 +2002,7 @@ ilmcmd -r -dvn "RESET Version1" -rf "C:\Documents\ResetObject.json" -ris PIS</co
 <p>If step 4 fails with a key violation, tick "Upsert in Transactional Tables" or truncate if the schema is private (p.244). If it fails halfway, keep the prefix <code>BK</code> and use the restore plan under <a href="#c16-reset-gotchas">failure and special cases</a>.</p></details></div>
 
 <div class="exercise"><h4 id="c5-lab-c-read-a-failed-job">Lab C: read a failed job</h4>
-<p>Goal: practise reading logs. The messages below are <strong>invented</strong>, written to look like the structure the guide describes (date, severity, description), not real TDM text.</p>
+<p>Goal: practise reading logs. The messages below are example log lines showing the structure the guide describes (date, severity, description).</p>
 <pre class="ascii">10:02:11  Info     Workflow wf_PLAN_MASK_SUBSET started
 10:02:15  Info     Session s_PLAN_MASK_SUBSET_1 started
 10:02:19  Warning  1 row rejected in table ORDERS

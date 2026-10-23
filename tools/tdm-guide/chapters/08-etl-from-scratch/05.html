@@ -32,7 +32,7 @@
 <h3 id="c8-reprocessing">8.13.3 Reprocessing rejected rows</h3>
 <p>Run 1 rejected orders 5004 and 5005, and the watermark moved past them, so nothing picks them up again. Rejected rows need their own path: group the reject table by reason, have the owner fix the cause (the "abc" amount; whether customer 9999 arrives tomorrow), then re-stage the corrected rows as a new batch and run transform and load again.</p>
 <div class="callout warn"><strong class="ctitle">Idempotence and restarts</strong>
-<p>A safe job can be run twice with no harm. Achieve this with upserts, with "delete the target rows of this batch, then insert them" loads, and with watermarks moved last. Without it, every failed run needs a careful human cleanup, and humans make mistakes at 2 a.m. In my SQL, the fact load used <code>INSERT OR REPLACE</code> keyed on <code>item_id</code> for this reason (other databases: <code>MERGE</code> or delete-then-insert).</p></div>
+<p>A safe job can be run twice with no harm. Achieve this with upserts, with "delete the target rows of this batch, then insert them" loads, and with watermarks moved last. Without it, every failed run needs a careful human cleanup, and humans make mistakes at 2 a.m. In the SQL here, the fact load used <code>INSERT OR REPLACE</code> keyed on <code>item_id</code> for this reason (other databases: <code>MERGE</code> or delete-then-insert).</p></div>
 
 <h2 id="c8-data-quality">8.14 Data quality and reconciliation</h2>
 <p><strong>Concept.</strong> Data quality checks are tests on the data itself, run as part of the job, that prove the result is what you expected.</p>
@@ -47,7 +47,7 @@
 <tr><td>Timeliness</td><td>Is it fresh enough?</td><td>Latest order date in the target is yesterday or later</td></tr>
 </tbody></table></div>
 <h3 id="c8-recon">8.14.1 Reconciliation queries</h3>
-<p><em>Reconciliation</em> means comparing counts and totals between two stages to show nothing was lost or invented. These are the queries I ran after run 2 of the ShopSphere job.</p>
+<p><em>Reconciliation</em> means comparing counts and totals between two stages to show nothing was lost or invented. These are the queries to run after run 2 of the ShopSphere job.</p>
 <pre><code>-- Completeness: orders read = orders loaded + orders rejected
 SELECT (SELECT COUNT(*) FROM feed_orders)                      AS read_total,
        (SELECT COUNT(DISTINCT order_id) FROM fact_order_line)  AS loaded_orders,
@@ -58,12 +58,12 @@ SELECT DISTINCT f.customer_id
 FROM   fact_order_line f
 LEFT JOIN dim_customer d ON d.customer_id = f.customer_id
 WHERE  d.customer_id IS NULL;</code></pre>
-<p class="expect">Expected result from my run: the first query returned 7, 5 and 2 (7 = 5 + 2); the second returned no rows.</p>
+<p class="expect">Expected result: the first query returns 7, 5 and 2 (7 = 5 + 2); the second returns no rows.</p>
 <div class="callout tip"><strong class="ctitle">Keep the checks with the job</strong>
 <p>Write checks once and run them every time, with results stored in a table. Then the question "was last Tuesday's load complete?" has an answer. The Informatica guide shows the same idea at the product level: TDM can be used with the Data Validation Option so that target data can be validated and compared against production to show the transformation process did not introduce errors (User Guide 10.5.10, p.24). <span class="badge doc">From docs</span></p></div>
 
 <h2 id="c8-performance">8.15 Performance ideas</h2>
-<p>Performance tuning is its own craft, and the right fix depends on measurement. These are the ideas that help most often, in the order I would try them. <span class="badge concept">General concept</span></p>
+<p>Performance tuning is its own craft, and the right fix depends on measurement. These are the ideas that help most often, in the order to try them. <span class="badge concept">General concept</span></p>
 <ol class="steps">
 <li><strong>Think in sets, not rows.</strong><p>One SQL statement that updates a million rows is much faster than a program that updates them one by one. Many ETL tools give you a row-by-row feeling in their diagrams, but good ones process rows in streams and batches.</p></li>
 <li><strong>Use bulk loading for big loads.</strong><p>See 8.8.1 for the documented examples from GenRocket's FAQ.</p></li>
@@ -73,4 +73,4 @@ WHERE  d.customer_id IS NULL;</code></pre>
 </ol>
 
 <h2 id="c8-tools">8.16 Common ETL tools</h2>
-<p>Informatica PowerCenter is the ETL product under Informatica TDM, and this guide documents how TDM uses it (8.10 and 8.11). You will also meet Microsoft SQL Server Integration Services, Talend, cloud services such as AWS Glue and Azure Data Factory, and schedulers such as Apache Airflow. I did not read their documentation, so I make no claim about them beyond the general ideas of this chapter. <span class="badge unverified">Unverified</span> Plain SQL scripts plus a scheduler such as cron, as in this chapter, are a real way to do small ETL. TDM tools are ETL-style tools specialised for producing safe test data; the <a href="09-etl-and-tdm.html">next chapter</a> compares the two.</p>
+<p>Informatica PowerCenter is the ETL product under Informatica TDM, and the TDM notes cover how TDM uses it (8.10 and 8.11). You will also meet Microsoft SQL Server Integration Services, Talend, cloud services such as AWS Glue and Azure Data Factory, and schedulers such as Apache Airflow. Nothing here goes beyond the general ideas of this chapter. Plain SQL scripts plus a scheduler such as cron, as in this chapter, are a real way to do small ETL. TDM tools are ETL-style tools specialised for producing safe test data; the <a href="09-etl-and-tdm.html">next chapter</a> compares the two.</p>

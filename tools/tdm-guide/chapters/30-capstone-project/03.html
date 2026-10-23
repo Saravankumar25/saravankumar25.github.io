@@ -1,19 +1,19 @@
-<h2 id="c30-a3">30.6 Activity 3: profile and mask SSN, alphanumeric values, TaxID and ZipCode</h2>
+<h2 id="c30-a3">30.6 Part 3: profile and mask SSN, alphanumeric values, TaxID and ZipCode</h2>
 
-<h3 id="c30-a3-brief">Brief</h3>
+<h3 id="c30-a3-brief">Scope</h3>
 
-<p><strong>Goal.</strong> Mask four kinds of identifying value so the data stays useful: formats are kept, the same real value always becomes the same masked value, and keys and joins still work. <strong>Inputs.</strong> CUSTOMERS with ssn, membership_code, tax_id and zip_code; the customer extract <code>customers.dat</code> (which carries the SSN); the "before" copy; and the edge row 1004 with SSN <code>N/A</code>. <strong>Tool.</strong> Delphix primary; Informatica as a cross-check. <strong>Output.</strong> Four verified columns, an algorithm sheet where every line says "docs" or "design", and the evidence.</p>
+<p><strong>Goal.</strong> Mask four kinds of identifying value so the data stays useful: formats are kept, the same real value always becomes the same masked value, and keys and joins still work. <strong>Inputs.</strong> CUSTOMERS with ssn, membership_code, tax_id and zip_code; the customer extract <code>customers.dat</code> (which carries the SSN); the "before" copy; and the edge row 1004 with SSN <code>N/A</code>. <strong>Tool.</strong> Delphix primary; Informatica as a cross-check. <strong>Output.</strong> Four verified columns and an algorithm sheet.</p>
 
 <p>The word "integrity" has two meanings here, and you must show both. <em>Referential integrity</em>: foreign keys still match. None of these four columns is a key, so the safest decision is not to mask any key at all. <em>Consistency</em>: the same SSN or TaxID appears in several places (the database and the extract file) and must mask to the same value everywhere, or joins between systems fail. Deterministic algorithms, with the same algorithm instance and key used everywhere, give consistency.</p>
 
 <h3 id="c30-a3-design">Algorithm design, column by column</h3>
 
-<p>The table separates what the sources say from what I chose. The default algorithm for the SSN, ZIP and TAX_ID domains is not stated in the Delphix pages I read; look at Settings, Domains on your engine and decide whether to keep or replace each default.</p>
+<p>The table separates what the docs state from the design choice. The Delphix pages do not state the default algorithm for the SSN, ZIP and TAX_ID domains; check Settings, Domains on the engine and decide whether to keep or replace each default.</p>
 
 <div class="tablewrap"><table>
 <thead><tr><th>Column</th><th>Delphix choice</th><th>What the docs state</th><th>Design choice and cautions</th></tr></thead>
 <tbody>
-<tr><td>ssn <code>123-45-6789</code></td><td><code>dlpx-core:CM Digits</code></td><td>Masks every ASCII digit anywhere in the string and keeps letters and punctuation; it is an instance of Character Mapping, which is deterministic until rekeyed, and gives no two text inputs the same output (<a href="https://help.delphix.com/cc/current/content/dlpx_core__cm_digits.htm" target="_blank" rel="noopener">CM Digits</a>, <a href="https://help.delphix.com/cc/current/content/character_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Character Mapping</a>)</td><td>Chosen for format keeping and uniqueness. Caution: on a <em>numeric</em> column leading zeros are not significant, so collisions can occur ("7" and "007"); the docs advise CM Numeric for numeric types. Nothing I read says the output obeys US SSN validity rules</td></tr>
+<tr><td>ssn <code>123-45-6789</code></td><td><code>dlpx-core:CM Digits</code></td><td>Masks every ASCII digit anywhere in the string and keeps letters and punctuation; it is an instance of Character Mapping, which is deterministic until rekeyed, and gives no two text inputs the same output (<a href="https://help.delphix.com/cc/current/content/dlpx_core__cm_digits.htm" target="_blank" rel="noopener">CM Digits</a>, <a href="https://help.delphix.com/cc/current/content/character_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Character Mapping</a>)</td><td>Chosen for format keeping and uniqueness. Caution: on a <em>numeric</em> column leading zeros are not significant, so collisions can occur ("7" and "007"); the docs advise CM Numeric for numeric types. The docs do not say the output obeys US SSN validity rules</td></tr>
 <tr><td>ssn, alternative</td><td>Segment Mapping instance, dashes ignored</td><td>The docs name SSNs as a use for Segment Mapping, say it produces no repeats if the allowed output range is at least as large as the input range, and allow ignoring dashes and preserving segments such as the last four digits (<a href="https://help.delphix.com/cc/current/content/segment_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Segment Mapping</a>)</td><td>Use if you need position-specific rules. Configuration sketch below</td></tr>
 <tr><td>membership_code <code>SS-A7K29X</code></td><td><code>dlpx-core:CM Alpha-Numeric</code></td><td>Masks ASCII digits and upper and lower case letters, preserves other characters; for non-numeric types; at least one maskable character per value, else a warning; <code>"ABCxyz123"</code> becomes <code>"HANwhp391"</code> (<a href="https://help.delphix.com/cc/current/content/dlpx_core__cm_alpha_numeric.htm" target="_blank" rel="noopener">CM Alpha-Numeric</a>)</td><td>Digits stay digits and letters stay letters, but the "SS-" prefix is masked too. To keep it, a Character Mapping instance with a preserve range of length 2 (see zip below)</td></tr>
 <tr><td>tax_id <code>98-7654321</code></td><td>A Character Mapping instance with group <code>[0-9]</code> (or CM Digits)</td><td>Digits are mapped within the group and the hyphen, being outside it, is kept</td><td>A separate instance gives TaxID its own key, so that SSN and TaxID values with equal digits do not mask alike. Use the same instance for the database and any file that carries TaxID</td></tr>
@@ -48,7 +48,7 @@
 <tr><td>zip_code</td><td>Key masking, string</td><td>Mask format <code>+++DDD</code> keeps the first three characters. For a numeric column the numeric key masking options differ</td></tr>
 </tbody></table></div>
 
-<p>The mask format meanings and the seed range are from the key masking pages (pp.164 to 168); the concrete formats for ShopSphere are my design. See <a href="14-informatica-data-masking.html">the Informatica masking chapter</a>.</p>
+<p>The mask format meanings and the seed range are from the key masking pages (pp.164 to 168); the concrete formats for ShopSphere are design choices. See <a href="14-informatica-data-masking.html">the Informatica masking chapter</a>.</p>
 
 <h3 id="c30-a3-steps">Steps</h3>
 
@@ -69,15 +69,15 @@
 <div class="tablewrap"><table>
 <thead><tr><th>ID</th><th>Criterion</th><th>Test</th></tr></thead>
 <tbody>
-<tr><td>A3-1</td><td>Four columns profiled and decided</td><td>Inventory export</td></tr>
-<tr><td>A3-2</td><td>SSN keeps its format and stays unique, none equals the original</td><td>Queries 1 and 2</td></tr>
-<tr><td>A3-3</td><td>TaxID keeps its format</td><td>Query 3</td></tr>
-<tr><td>A3-4</td><td>ZipCode keeps six digits and region, full value changed</td><td>Query 4</td></tr>
-<tr><td>A3-5</td><td>membership_code keeps its pattern; NULL stays NULL</td><td>Query 5</td></tr>
-<tr><td>A3-6</td><td>SSN identical in the database and the file</td><td>Shell comparison</td></tr>
-<tr><td>A3-7</td><td>Keys and counts intact; other columns unchanged</td><td>Orphan query; counts</td></tr>
-<tr><td>A3-8</td><td>Every warning explained</td><td>Execution summary, log patterns for row 1004</td></tr>
-<tr><td>A3-9</td><td>No original value left anywhere</td><td>Search all masked outputs for the original SSNs and tax IDs</td></tr>
+<tr><td>AC3-1</td><td>Four columns profiled and decided</td><td>Inventory export</td></tr>
+<tr><td>AC3-2</td><td>SSN keeps its format and stays unique, none equals the original</td><td>Queries 1 and 2</td></tr>
+<tr><td>AC3-3</td><td>TaxID keeps its format</td><td>Query 3</td></tr>
+<tr><td>AC3-4</td><td>ZipCode keeps six digits and region, full value changed</td><td>Query 4</td></tr>
+<tr><td>AC3-5</td><td>membership_code keeps its pattern; NULL stays NULL</td><td>Query 5</td></tr>
+<tr><td>AC3-6</td><td>SSN identical in the database and the file</td><td>Shell comparison</td></tr>
+<tr><td>AC3-7</td><td>Keys and counts intact; other columns unchanged</td><td>Orphan query; counts</td></tr>
+<tr><td>AC3-8</td><td>Every warning explained</td><td>Execution summary, log patterns for row 1004</td></tr>
+<tr><td>AC3-9</td><td>No original value left anywhere</td><td>Search all masked outputs for the original SSNs and tax IDs</td></tr>
 </tbody></table></div>
 
 <pre><code>-- 1 SSN shape and uniqueness (real rows only)
@@ -102,4 +102,4 @@ diff db_ssn.txt file_ssn.txt                                             # expec
 # 9 leak search
 grep -rn -e "123-45-6789" -e "98-7654321" masked_outputs/                # expect nothing</code></pre>
 
-<p>Expect criteria A3-2 to A3-5 to count 0 for the "bad" queries. Query 2 shares the earlier caution: an equal value is not strictly impossible for every algorithm. For Character Mapping the docs say the masked value never matches the input when at least one maskable character is present, so any match there is a finding. <strong>Evidence:</strong> the inventory CSV, algorithm sheet, query and shell output, the warning log rows (patterns only), a screenshot of each custom algorithm's configuration, and the leak-search output.</p>
+<p>Expect the "bad" queries for AC3-2 to AC3-5 to count 0. Query 2 shares the earlier caution: an equal value is not strictly impossible for every algorithm. For Character Mapping the docs say the masked value never matches the input when at least one maskable character is present, so any match there is a finding.</p>

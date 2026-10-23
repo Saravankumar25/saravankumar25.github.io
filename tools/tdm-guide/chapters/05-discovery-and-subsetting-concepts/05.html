@@ -4,7 +4,7 @@
 
 <p>A full physical copy is the most realistic but the slowest and most exposed. A subset is small and quick to refresh but may miss rare cases. A virtual copy looks full but shares storage with its source, so it is cheap to create, but it still holds all the data and needs masking. <span class="badge concept">General concept</span></p>
 
-<p><span class="badge doc">From docs</span> Delphix describes virtualization as producing "a functioning database or filesystem copy that is lightweight and ephemeral" (terminology page), and its introduction claims that ten virtual copies can fit into the space of one physical copy. The pages I read describe only simple row filters, not key-following subsets, for Delphix, so treat "virtual copy" and "subset" as two different answers to the same cost problem: Delphix makes full copies cheap; Informatica and GenRocket make copies small.</p>
+<p><span class="badge doc">From docs</span> Delphix describes virtualization as producing "a functioning database or filesystem copy that is lightweight and ephemeral" (terminology page), and its introduction claims that ten virtual copies can fit into the space of one physical copy. The Delphix pages describe only simple row filters, not key-following subsets, so treat "virtual copy" and "subset" as two different answers to the same cost problem: Delphix makes full copies cheap; Informatica and GenRocket make copies small.</p>
 
 <h2 id="c5-masking-and-subsetting">5.12 How masking and subsetting combine</h2>
 
@@ -22,7 +22,7 @@
 
 <p>The key requirement when you combine them is <strong>consistency</strong>. The masked customer 1004 in <code>CUSTOMERS</code> must be the same masked customer 1004 that the kept orders point to. Informatica's docs describe "auto cascades" that mask a parent key and its child foreign keys with the same value (p.91), and Delphix says its masking keeps primary and foreign keys consistent across tables and databases (Delphix "Introduction to Delphix Masking"). <a href="06-masking-concepts.html">The masking concepts chapter</a> explains how.</p>
 
-<div class="tablewrap"><table class="sample"><caption>The zip code subset from section 5.10, with names masked (the masked values are illustrative)</caption>
+<div class="tablewrap"><table class="sample"><caption>The zip code subset from section 5.10, with names masked (masked values are examples)</caption>
 <thead><tr><th>customer_id</th><th>first_name (before)</th><th>last_name (before)</th><th>first_name (after)</th><th>last_name (after)</th><th>zip_code</th></tr></thead>
 <tbody>
 <tr><td>1001</td><td>Asha</td><td>Menon</td><td>Leela</td><td>Pillai</td><td>560001</td></tr>
@@ -44,7 +44,7 @@
 <li><strong>Taking "the first N rows" of every table.</strong> It creates orphans. Always start from a driving table and follow relationships.</li>
 <li><strong>Trusting discovery output without review.</strong> Reject coincidental key matches, add missed sensitive columns.</li>
 <li><strong>Choosing a sensitive column as a key.</strong> A unique SSN is a poor primary key because masking will change it.</li>
-<li><strong>Assuming a percentage limit is random.</strong> The documentation excerpts do not say so; verify.</li>
+<li><strong>Assuming a percentage limit is random.</strong> The documentation does not say so; verify.</li>
 <li><strong>Forgetting reference tables.</strong> A subset with an empty <code>PRODUCTS</code> table breaks every order screen. Copy lookup tables in full.</li>
 <li><strong>Filtering on a column you also mask.</strong> Decide whether the filter sees real or masked values.</li>
 </ul></div>

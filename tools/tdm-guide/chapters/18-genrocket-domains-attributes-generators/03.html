@@ -76,9 +76,9 @@
 
 <p>To see which generators GenRocket thinks fit an attribute, click the small icon beside it in the attribute list. A ranked list appears (in the vendor's example NameGen 84%, AustraliaNameGen 5%, and so on); the top one is the default, and a tag icon lets you promote another.</p>
 
-<h3 id="c18-families">18.6.5 The families you will use</h3>
+<h3 id="c18-families">18.6.5 Generator families</h3>
 
-<p>The generator overview pages group generators into families. You need only the ideas below; each generator has a "How do I use..." page with parameters.</p>
+<p>The generator overview pages group generators into families; each generator has a "How do I use..." page with parameters.</p>
 
 <div class="tablewrap">
 <table>
@@ -101,7 +101,7 @@
 
 <h3 id="c18-seed">18.6.6 Seeding: repeatable randomness</h3>
 
-<p>If two runs of a "random" generator give different numbers, test failures cannot be reproduced. A <em>seed</em> fixes this: the docs show a RandomGen for numbers 1 to 25 giving a new set every run when the seed is empty, but the <em>same</em> set whenever the seed is 1; a different seed (2) gives a different, but also repeatable, set. A seed can be set on an attribute's generator or through the domain's <code>seed</code> variable (button <em>Global Seed</em> applies it to the whole domain).</p>
+<p>If two runs of a "random" generator give different numbers, test failures cannot be reproduced. A <em>seed</em> fixes this: with the same seed, a generator gives the same set every run. A seed can be set on an attribute's generator or through the domain's <code>seed</code> variable (button <em>Global Seed</em> applies it to the whole domain). <a href="20-genrocket-data-patterns.html#c20-seeding">The data patterns chapter</a> shows the docs' example.</p>
 
 <h3 id="c18-linked">18.6.7 Linked generators</h3>
 
@@ -132,7 +132,7 @@
 <figcaption><strong>Official screenshot:</strong> How a manual proxy is set up: the attribute has Type = Reference and Table Reference = User (the parent domain), then the ProxyReferenceGen generator is assigned. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/misc-generators/how-do-i-use-the-proxyreferencegen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption>
 </figure>
 
-<p>It explains why the project version status report asks for "foreign key attributes that do not have the ProxyReferenceGen". If the proxy is missing, the child will not find its parent when a scenario is made, and the <code>reference</code> value will not be filled in. The referenced attribute is the parent's <em>primary</em> attribute; if another column should be the target, tick its Primary checkbox.</p>
+<p>This is why the project version status report flags "foreign key attributes that do not have the ProxyReferenceGen": without the proxy, the child will not find its parent when a scenario is made. The referenced attribute is the parent's <em>primary</em> attribute; to target another column, tick its Primary checkbox.</p>
 
 <h3 id="c18-enforce">18.6.9 Enforcing data type and size</h3>
 
@@ -159,15 +159,31 @@
 <figcaption><strong>Official screenshot:</strong> The finished setup: <code>gen2</code> (RangeGen) starts at <code>gen1</code> (QueryOnceGen) and the preview begins at 5001. In a real run the start value comes from the database. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-primary-key-values-after-the-max-value-from-a-database-table" target="_blank" rel="noopener">Source page ↗</a></figcaption>
 </figure>
 
-<p>The General FAQ adds a second pattern for the parent side: write the parent's ids to a delimited file as you insert, then read them back with ListCSVGen at scenario level (the FAQ says "in the Parent Domain"), so the keys match.</p>
+<p>The General FAQ adds a second pattern: write the parent's ids to a delimited file as you insert, then read them back with ListCSVGen at scenario level so the keys match.</p>
+
+<h3 id="c18-demo-generators">18.6.11 Inside a few generators, as shown in the 2020 demo</h3>
+
+<p><span class="badge video">From video</span> The CTO opens individual attributes to show that every generator works the same way: parameters decide its behaviour. Each example below is followed by what the docs say.</p>
+
+<ul>
+<li><strong>A counter (RangeGen).</strong> The <code>id</code> uses a range generator with a start, an end and a "jump". Starting at 1,000 it counts 1000, 1001, ...; setting the jump to 3 makes the preview step by 3. The RangeGen page confirms <code>startRange</code>, <code>endRange</code> and <code>jumpAmount</code>, and that with no end it runs to the largest long number.</li>
+<li><strong>Names (NameGen).</strong> He says the name generator draws on lists of first, last, male and female names for about 40 million combinations. The <a href="https://genrocket.helpjuice.com/en_US/name-generators/how-do-i-use-the-namegen-generator" target="_blank" rel="noopener">NameGen page</a> confirms this and gives the list sizes (1,000 male, 3,000 female, 10,000 last names).</li>
+<li><strong>A constant plus the id (ConcatGen).</strong> He replaces the <code>username</code> generator with a concatenation generator, types the constant "user" and picks the <code>id</code> attribute as the second part. The <a href="https://genrocket.helpjuice.com/en_US/string-manipulation-generators/how-do-i-use-the-concatgen-generator" target="_blank" rel="noopener">ConcatGen page</a> builds <code>BR01-1000</code> the same way, from a constant and a RangeGen value.</li>
+<li><strong>A hashed value.</strong> He passes the id through an MD5 setting and the hash appears at the end of each output row. A <dfn>hash</dfn> is a one-way scramble: the same input always gives the same output, but the output cannot be turned back into the input. The <a href="https://genrocket.helpjuice.com/en_US/string-manipulation-generators/how-do-i-use-the-encryptgen-generator" target="_blank" rel="noopener">EncryptGen page</a> lists MD5, SHA-1, SHA-256, SHA-384 and SHA-512.</li>
+<li><strong>SSN and card numbers.</strong> He says the SSN generator avoids numbers that are never issued, such as area number 666 The SSNGen page does not mention such a rule, so check the preview. For cards he picks Discover, MasterCard and Visa and says the numbers pass the <dfn>Luhn check</dfn>, the checksum formula payment forms use to catch mistyped numbers. The <a href="https://genrocket.helpjuice.com/en_US/credit-card-generators/how-do-i-use-the-creditcardgen-generator" target="_blank" rel="noopener">CreditCardGen page</a> confirms Luhn-valid output and one on/off parameter per card brand. Luhn-valid does not mean real: no person owns these numbers.</li>
+</ul>
+
+<h3 id="c18-demo-patterns">18.6.12 Linked generators and "patterns, not randomness" in the 2020 Q&amp;A</h3>
+
+<p><span class="badge video">From video</span> Asked how to generate values defined by a regular expression, the CTO answers in three parts. A regular-expression generator exists for that. More broadly, he says most generators do not produce random data, because random data is not good for testing; they produce patterns, and because linked generators can talk to each other, simple patterns combine into complex data. His examples are if/then/else, case, switch and a multi-way generator that works in percentages. For very complex rules there is a separate feature, test data rules, which takes if/then/else conditions. The docs name matching generators (IfThenElseGen, EvalCaseGen, SwitchGen, MultiWeightGen, StringRegexGen; see <a href="#c18-families">section 18.6.5</a>) and describe test data rules (G-Rules) as the condition-based alternative. <a href="20-genrocket-data-patterns.html#c20-why-patterns">The data patterns chapter</a> builds these patterns one by one.</p>
 
 <h2 id="c18-shopsphere">18.7 ShopSphere design: generators for every column</h2>
 
-<p>This is my illustrative design, built from generators whose pages I read, except <code>StringRegexGen</code> (only its description was read). Domain names avoid underscores; the table name keeps them. "Domain variable" shows the setting that gives a sensible start.</p>
+<p>The design below uses the documented generators; for <code>StringRegexGen</code> only the overview description is available. Domain names avoid underscores; the table name keeps them. "Domain variable" shows the setting that gives a sensible start.</p>
 
 <div class="tablewrap">
 <table class="sample">
-<caption>Domain Customers (table CUSTOMERS): <code>global.Customers.id</code> = 1001, <code>loopCount</code> = 50</caption>
+<caption>Domain Customers (table CUSTOMERS): <code>global.Customers.id</code> = 1001, <code>loopCount</code> = 50 (example data)</caption>
 <thead><tr><th>Attribute (original name)</th><th>Generator</th><th>Key settings</th><th>Why</th></tr></thead>
 <tbody>
 <tr><td>customerId (customer_id), primary</td><td>RangeGen</td><td><code>startRange</code> = the id variable (1001)</td><td>Unique, increasing, matches the sample row 1001</td></tr>
@@ -205,7 +221,7 @@
 
 <div class="callout example">
 <strong class="ctitle">Lab: model ShopSphere in a practice project</strong>
-<p><strong>Goal:</strong> Build the three domains with relationships and a preview of each. (Needs a GenRocket account; do it in a trainer's sandbox project.)</p>
+<p><strong>Goal:</strong> Build the three domains with relationships and a preview of each. (Needs a GenRocket account and a practice project.)</p>
 <ol class="steps">
 <li><strong>Create the domains by DDL import or by hand.</strong>
 <p>Use the sample DDL of your team, or create <code>Customers</code>, <code>Orders</code> and <code>OrderItems</code> by hand with attributes from the tables above.</p>
@@ -263,6 +279,7 @@
 <li>Generators: <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/generators-overview" target="_blank" rel="noopener">overview</a>, <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/how-are-generators-assigned-to-domain-attributes" target="_blank" rel="noopener">assignment</a>, <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/generator-tags-override-default-assigned-generator" target="_blank" rel="noopener">tags</a>, <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/-what-is-seeding" target="_blank" rel="noopener">seeding</a>, <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/what-is-the-difference-between-the-proxyreferencegen-and-referencegen" target="_blank" rel="noopener">Proxy vs Reference</a>, <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/generator-faqs" target="_blank" rel="noopener">FAQs</a>, family pages for <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/list-generators-generate-a-list-of-values" target="_blank" rel="noopener">list</a>, <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/string-generators-compare-evaluate-combine-or-alter-string-values-print" target="_blank" rel="noopener">string</a>, <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/conditional-logic-generators" target="_blank" rel="noopener">conditional</a>, <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/query-generators" target="_blank" rel="noopener">query</a> and <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/uuid-generators" target="_blank" rel="noopener">UUID</a> generators.</li>
 <li>Assigning and configuring: <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-do-i-assign-a-generator-to-a-single-attribute" target="_blank" rel="noopener">single</a>, <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-do-i-assign-a-new-generator-to-multiple-attributes" target="_blank" rel="noopener">multiple</a>, <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-copy-generators-to-other-attributes-simple-copy" target="_blank" rel="noopener">simple copy</a>, <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-enforce-data-type-and-size-in-generated-data" target="_blank" rel="noopener">Enforce Type/Limit</a>, <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-primary-key-values-after-the-max-value-from-a-database-table" target="_blank" rel="noopener">keys after max</a>, <a href="https://genrocket.helpjuice.com/en_US/linking-generators/linked-generators-overview" target="_blank" rel="noopener">Linked Generators</a>.</li>
 <li>Individual generators: <a href="https://genrocket.helpjuice.com/en_US/rangegen-generators/how-do-i-use-the-rangegen-generator" target="_blank" rel="noopener">RangeGen</a>, <a href="https://genrocket.helpjuice.com/en_US/financial-generators/how-do-i-use-the-randomgen-generator" target="_blank" rel="noopener">RandomGen</a>, <a href="https://genrocket.helpjuice.com/en_US/name-generators/how-do-i-use-the-namegen-generator" target="_blank" rel="noopener">NameGen</a>, <a href="https://genrocket.helpjuice.com/en_US/name-generators/how-do-i-use-the-fullnamegen-generator" target="_blank" rel="noopener">FullNameGen</a>, <a href="https://genrocket.helpjuice.com/en_US/user-generators/how-do-i-use-the-emailgen-generator" target="_blank" rel="noopener">EmailGen</a>, <a href="https://genrocket.helpjuice.com/en_US/user-generators/how-do-i-use-the-phonenumbergen-generator" target="_blank" rel="noopener">PhoneNumberGen</a>, <a href="https://genrocket.helpjuice.com/en_US/identification-generators/how-do-i-use-the-ssngen-generator" target="_blank" rel="noopener">SSNGen</a>, <a href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/how-do-i-use-the-flexibledaterangegen-generator" target="_blank" rel="noopener">FlexibleDateRangeGen</a>, <a href="https://genrocket.helpjuice.com/en_US/misc-generators/how-do-i-use-the-listgen-generator" target="_blank" rel="noopener">ListGen</a>, <a href="https://genrocket.helpjuice.com/en_US/misc-generators/how-do-i-use-the-referencegen-generator" target="_blank" rel="noopener">ReferenceGen</a>, <a href="https://genrocket.helpjuice.com/en_US/misc-generators/how-do-i-use-the-proxyreferencegen-generator" target="_blank" rel="noopener">ProxyReferenceGen</a>.</li>
-<li>Also read: <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">General FAQ</a> and <a href="https://genrocket.helpjuice.com/en_US/scenarios-/scenarios-overview" target="_blank" rel="noopener">Scenarios Overview</a> (primary and root domain).</li>
+<li>Video (a vendor presentation of a 2020 product version): <a href="https://www.youtube.com/watch?v=iJdUoxupDqA" target="_blank" rel="noopener">Test Data Automation-Webinar by Kualitatem and GenRocket</a>, used for the live Scratch Pad demo and Q&amp;A in 18.2.7, 18.4.3, 18.6.11 and 18.6.12. Its counts and timings are the vendor's 2020 claims.</li>
+<li>Also: <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">General FAQ</a> and <a href="https://genrocket.helpjuice.com/en_US/scenarios-/scenarios-overview" target="_blank" rel="noopener">Scenarios Overview</a> (primary and root domain).</li>
 </ul>
 </section>

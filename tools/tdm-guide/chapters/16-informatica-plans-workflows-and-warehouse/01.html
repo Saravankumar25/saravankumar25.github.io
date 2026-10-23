@@ -1,6 +1,6 @@
-<p>Every earlier Informatica chapter ended the same way: "then you put it in a plan and run it". The <a href="12-informatica-discovery-and-profiling.html">discovery</a>, <a href="13-informatica-data-subset.html">subsetting</a>, <a href="14-informatica-data-masking.html">masking</a> and <a href="15-informatica-data-generation.html">generation</a> chapters described <em>what</em> to do to data. This chapter covers the machinery that actually does it, and what happens afterwards: the <strong>plan</strong> that packages the work, the <strong>workflow</strong> TDM generates from it, the <strong>Monitor</strong> where you watch it, the <strong>reports</strong> that prove what happened, and the <strong>Test Data Warehouse</strong> where the result can be stored, versioned and restored.</p>
+<p>The <a href="12-informatica-discovery-and-profiling.html">discovery</a>, <a href="13-informatica-data-subset.html">subsetting</a>, <a href="14-informatica-data-masking.html">masking</a> and <a href="15-informatica-data-generation.html">generation</a> work all ends in a <strong>plan</strong> that packages it. TDM generates a <strong>workflow</strong> from the plan, the <strong>Monitor</strong> shows its progress, <strong>reports</strong> prove what happened, and the <strong>Test Data Warehouse</strong> can store, version and restore the result.</p>
 
-<p>If you already know ETL from <a href="08-etl-from-scratch.html">the ETL from scratch chapter</a> and <a href="09-etl-and-tdm.html">the ETL and TDM chapter</a>, here is the key idea in one line: <strong>a TDM workflow is an ETL job that TDM writes for you.</strong> You describe the data and the rules; TDM builds the mappings and runs them. The Day 45 syllabus asks you to understand generation in Informatica; the plan and workflow side is what turns your rules into rows.</p>
+<p>In ETL terms (see <a href="08-etl-from-scratch.html">the ETL from scratch chapter</a> and <a href="09-etl-and-tdm.html">the ETL and TDM chapter</a>): <strong>a TDM workflow is an ETL job that TDM writes for you.</strong> You describe the data and the rules; TDM builds the mappings and runs them.</p>
 
 <div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
 <p>Everything tool-specific comes from the <strong>Informatica Test Data Management 10.5.10 User Guide, PDF, February 2026, 455 pages</strong>. I read User Guide chapters 11 (Test Data Warehouse, pp.236-258), 13 (Plans and Workflows, pp.274-314), 14 (Monitor) and 15 (Reports) in full, and the introductions and main commands of chapters 12 (data coverage), 16 (ilmcmd), 17 (tdwcmd) and 18 (tdwquery). Citations look like <em>(User Guide 10.5.10, p.276)</em>.</p>
@@ -46,7 +46,7 @@
 </div>
 
 <div class="tablewrap"><table>
-<caption>ETL ideas and their TDM names. This mapping is my teaching aid; the TDM terms and who does what come from the guide (pp.275, 308).</caption>
+<caption>ETL ideas and their TDM names. TDM terms and roles: pp.275, 308.</caption>
 <thead><tr><th>ETL idea (earlier chapters)</th><th>In Informatica TDM</th><th>Who creates it</th></tr></thead>
 <tbody>
 <tr><td>Job specification</td><td>Plan</td><td>You, in Test Data Manager</td></tr>
@@ -85,9 +85,9 @@
 <li><strong>Reset and restore plans</strong> appear in the guide's notes about pre and post workflows (p.277); resets are covered in the warehouse section below.</li>
 </ul>
 
-<h2 id="c16-story-intro">16.3 The ShopSphere story we will follow</h2>
+<h2 id="c16-story-intro">16.3 The ShopSphere story</h2>
 
-<p>ShopSphere's QA team needs a safe, small, realistic copy of <code>SHOPSPHERE_PROD</code> for the next release of Customer Orders. They want to refresh it quickly after every destructive test run. The path through this chapter:</p>
+<p>ShopSphere's QA team needs a safe, small, realistic copy of <code>SHOPSPHERE_PROD</code> for the next release of Customer Orders. They want to refresh it quickly after every destructive test run. The sequence:</p>
 
 <ol class="steps">
 <li><strong>Discovery.</strong><p>A profile has already tagged <code>ssn</code>, <code>tax_id</code>, <code>phone</code>, <code>email</code>, <code>first_name</code> and <code>last_name</code> as sensitive data domains (<a href="12-informatica-discovery-and-profiling.html">the discovery chapter</a>).</p></li>

@@ -1,5 +1,5 @@
-<p>The previous chapters gave you the vocabulary (<a href="17-genrocket-overview.html">the GenRocket overview</a>, <a href="18-genrocket-domains-attributes-generators.html">domains, attributes and generators</a>, <a href="19-genrocket-receivers-and-scenarios.html">receivers and scenarios</a>) and the patterns (<a href="20-genrocket-data-patterns.html">the data patterns chapter</a>). Now you do the work. The syllabus for Days 49 and 50 asks for one concrete deliverable: <strong>generate 50 records with the columns FirstName, LastName, Full Name (FirstName MiddleName LastName) and Phone Number</strong>. This chapter builds exactly that, click by click, explains why each click is needed, and shows what you should see.</p>
-<p>Before the lab there is a short planning section for Day 48, "end-to-end data generation plan development". Real work never starts at the keyboard. Someone decides what data is needed, tries a small proof first, checks the environment, and plans how the data generation will run every week. The 50-record lab is, in miniature, the proof-of-concept step of that plan.</p>
+<p>This chapter generates <strong>50 records with the columns FirstName, LastName, Full Name (FirstName MiddleName LastName) and Phone Number</strong> in GenRocket, click by click, with the reason for each click and what should be seen. It uses the vocabulary of <a href="17-genrocket-overview.html">the GenRocket overview</a>, <a href="18-genrocket-domains-attributes-generators.html">domains, attributes and generators</a> and <a href="19-genrocket-receivers-and-scenarios.html">receivers and scenarios</a>, and the patterns of <a href="20-genrocket-data-patterns.html">the data patterns chapter</a>.</p>
+<p>A short section on planning test data generation end to end comes first. Real work never starts at the keyboard: someone decides what data is needed, tries a small proof first, checks the environment, and plans how generation will run every week. The 50-record lab is, in miniature, the proof-of-concept step of that plan.</p>
 <div class="callout recap"><strong class="ctitle">What you will learn</strong>
 <ul>
 <li>The four parts of a test data generation (TDG) plan: use cases, proof of concept, environment assessment and deployment plan.</li>
@@ -8,15 +8,14 @@
 <li>How to set the loop count to 50, add a delimited-file receiver, create a scenario, run it and open the file.</li>
 <li>How to verify the output: row count, no empty values, phone length.</li>
 <li>Extension labs: an email and a nullable column, parent and child rows with weighted child counts, and a pointer to the boundary-value suite in the patterns chapter.</li>
-<li>What to say in the final presentation.</li>
 </ul></div>
 <div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
-<p>All GenRocket steps come from pages of the official help centre (genrocket.helpjuice.com) that I read in full; the sources section at the end lists each page. The screenshots are the vendor's own. I downloaded and viewed every one before writing its caption. Several screenshots come from the help pages of other examples (a <code>User</code> domain or <code>Customer</code> domain), so names in the pictures differ from ours; the caption says what to look at. The planning section for Day 48 is general good practice, anchored to GenRocket pages where I could, and I mark which is which.</p>
-<p>What I could not verify: I did not run GenRocket. The sample output below is illustrative and labelled as such. The documentation does not name a dedicated middle-name generator, so the lab uses NameGen for it and says why. The 50-record lab needs a GenRocket account and an installed Runtime that I do not have, so every step is documented-by-page, not tested by me.</p></div>
+<p>GenRocket steps come from pages of the official help centre (genrocket.helpjuice.com); the sources section at the end lists each page. One vendor video, the 2020 webinar, supplies the comparison in 21.5.1 and two extra checks in 21.7. The screenshots are the vendor's own. Several come from help pages of other examples (a <code>User</code> domain or <code>Customer</code> domain), so names in the pictures differ from ours; the caption says what to look at. The planning section is general good practice, anchored to GenRocket pages where possible.</p>
+<p>Not verified by running: the sample output below is an example. The documentation does not name a dedicated middle-name generator, so the lab uses NameGen for it and says why. The steps are documented by page, not tested end to end.</p></div>
 
 <h2 id="c21-words">21.1 Words to know first</h2>
 <dl class="defs">
-<div><dt>TDG (test data generation)</dt><dd>Creating test data from scratch with a tool instead of copying production. The syllabus uses the abbreviation. In this chapter it means doing it with GenRocket.</dd></div>
+<div><dt>TDG (test data generation)</dt><dd>Creating test data from scratch with a tool instead of copying production. Here it means doing it with GenRocket.</dd></div>
 <div><dt>POC (proof of concept)</dt><dd>A small, quick trial that shows an approach can work before you commit to the full effort.</dd></div>
 <div><dt>Loop count</dt><dd>How many rows a domain generates. The documentation variable is <code>global.&lt;DomainName&gt;.loopCount</code> and it starts at 1.</dd></div>
 <div><dt>Reference</dt><dd>A parameter value that points at another attribute or generator, written like <code>#{self.gen1}</code> or <code>#{Domain.attribute}</code>, so one value is built from others.</dd></div>
@@ -26,7 +25,7 @@
 <div><dt>User profile</dt><dd>A small file downloaded from GenRocket Cloud that links your computer to your licence. It goes in a <code>.genrocket</code> folder and is needed to run a scenario.</dd></div>
 </dl>
 
-<h2 id="c21-plan">21.2 Day 48: planning test data generation end to end</h2>
+<h2 id="c21-plan">21.2 Planning test data generation end to end</h2>
 <p><span class="badge concept">General concept</span> A TDG plan answers four questions in order. Each stage ends with something you can show, so a reviewer can say "go" or "stop".</p>
 <div class="flow">
 <div class="node"><b>1. Use cases</b>what data, for which tests</div><div class="arrow">→</div>
@@ -36,7 +35,7 @@
 </div>
 <h3 id="c21-plan-usecases">21.2.1 Stage 1: identify the TDG use cases</h3>
 <p>A use case is a reason someone needs generated data. Ask each team what they test and what breaks today.</p>
-<div class="tablewrap"><table class="sample"><caption>Illustrative ShopSphere TDG use cases (written for this guide)</caption>
+<div class="tablewrap"><table class="sample"><caption>ShopSphere TDG use cases (example data)</caption>
 <thead><tr><th>Use case</th><th>Who needs it</th><th>Data needed</th><th>Pattern (see the patterns chapter)</th></tr></thead>
 <tbody>
 <tr><td>Unit and API tests for checkout</td><td>Developers</td><td>Small, exact, repeatable customer and order rows</td><td>Sequential keys, seeded random</td></tr>
@@ -45,7 +44,7 @@
 <tr><td>Load test</td><td>Performance team</td><td>Very many rows, valid relationships</td><td>Large loop counts, parent and child</td></tr>
 <tr><td>Demo or training environment</td><td>Support</td><td>Realistic but fake customers</td><td>Random names, weighted values</td></tr>
 </tbody></table></div>
-<p><span class="badge doc">From docs</span> GenRocket's CI/CD page lists four facts you need before you can generate anything: the <em>object</em> (for example User or Customer), the <em>properties</em> of it (name, phone number), <em>what data</em> each property should hold, and the <em>format</em> to deliver it in (CSV, JSON, XML) (<a href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">Automating Data Generation using CI/CD Pipeline</a>). Those map straight onto GenRocket's domain, attributes, generators and receiver. Collect those four answers for every use case. Our lab: object Customer, properties FirstName, LastName, FullName and PhoneNumber, generators NameGen, ConcatGen and PhoneNumberGen, format CSV.</p>
+<p><span class="badge doc">From docs</span> GenRocket's CI/CD page lists four facts you need before you can generate anything: the <em>object</em> (for example User or Customer), the <em>properties</em> of it (name, phone number), <em>what data</em> each property should hold, and the <em>format</em> to deliver it in (CSV, JSON, XML) (<a href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">Automating Data Generation using CI/CD Pipeline</a>). Those map straight onto GenRocket's domain, attributes, generators and receiver. Collect those four answers for every use case. In the lab: object Customer, properties FirstName, LastName, FullName and PhoneNumber, generators NameGen, ConcatGen and PhoneNumberGen, format CSV.</p>
 <h3 id="c21-plan-poc">21.2.2 Stage 2: the proof of concept</h3>
 <p>A POC picks one narrow use case and builds it end to end, so you learn the tool and find surprises early. A good POC:</p>
 <ul>
@@ -54,7 +53,7 @@
 <li>States <strong>success criteria</strong> in advance, for example "50 rows, no empty values, phone numbers all the same length, runs in a command line without manual edits".</li>
 <li>Records <strong>what was hard</strong>: licence, runtime install, access to the output folder.</li>
 </ul>
-<p><span class="badge doc">From docs</span> The documentation frames GenRocket's own method as Model, Design, Deploy, Manage (<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/the-genrocket-methodology" target="_blank" rel="noopener">The GenRocket Methodology</a>, whose text is a title and a video that I could not watch, and the CI/CD page above that spells the four steps out). The POC exercises the first three: you model a Customer domain, design its attributes and scenario, and deploy by running the scenario. "Manage" is stage 4.</p>
+<p><span class="badge doc">From docs</span> The documentation frames GenRocket's own method as Model, Design, Deploy, Manage (<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/the-genrocket-methodology" target="_blank" rel="noopener">The GenRocket Methodology</a>, and the CI/CD page above spells the four steps out); <a href="07-test-data-classification-and-generation-concepts.html#c7-model-design-deploy-manage">the concepts chapter</a> gives what GenRocket's 2022 video says each step means. The POC exercises the first three: you model a Customer domain, design its attributes and scenario, and deploy by running the scenario. "Manage" is stage 4.</p>
 <h3 id="c21-plan-assess">21.2.3 Stage 3: assess the application and data environment</h3>
 <p>Before you scale up, look at what is around the data. The table gives the questions and the documented facts that help you answer them.</p>
 <div class="tablewrap"><table><caption>Environment assessment checklist</caption>
@@ -72,7 +71,7 @@
 <h3 id="c21-plan-deploy">21.2.4 Stage 4: the deployment plan</h3>
 <p>The deployment plan says how generation becomes routine.</p>
 <ul>
-<li><strong>Roles.</strong> The documentation names the "Power User, a Test Data Engineer (or TDE)" as the start of the workflow (<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/test-data-workflow" target="_blank" rel="noopener">Test Data Workflow</a>, again a title and a video). That is your target role. Decide who models, who approves, who runs.</li>
+<li><strong>Roles.</strong> The documentation names the "Power User, a Test Data Engineer (or TDE)" as the start of the workflow (<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/test-data-workflow" target="_blank" rel="noopener">Test Data Workflow</a>). Decide who models, who approves, who runs.</li>
 <li><strong>Where scenarios live.</strong> Manual download from the web platform, or G-Repository, which the G-Cases page calls "Best Practice" because users do not download files.</li>
 <li><strong>How it is triggered.</strong> The CI/CD page says the Runtime can be triggered "from within CI/CD pipeline script using shell or batch command", or through a REST request to GMUS (GenRocket Multi-User Server).</li>
 <li><strong>Versions and changes.</strong> Project versions hold each release's model. When the application's tables change, someone updates the domains.</li>
@@ -80,4 +79,4 @@
 <li><strong>Exit criteria.</strong> Define what "done" is: all use cases served, runbook written, owners named.</li>
 </ul>
 <div class="callout why"><strong class="ctitle">Why plan before you click</strong>
-<p>Teams that start with the tool often generate data nobody asked for, in a format nobody can load. A one-page plan with the four stages prevents that. For the final presentation, a clear plan plus a working POC is a much stronger story than the POC alone.</p></div>
+<p>Teams that start with the tool often generate data nobody asked for, in a format nobody can load. A one-page plan with the four stages prevents that.</p></div>

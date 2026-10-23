@@ -1,5 +1,5 @@
-<p>You now know what ETL is (<a href="08-etl-from-scratch.html">ETL from scratch</a>) and what test data management has to achieve (<a href="05-discovery-and-subsetting-concepts.html">subsetting</a>, <a href="06-masking-concepts.html">masking</a> and <a href="07-test-data-classification-and-generation-concepts.html">generation</a>). This chapter joins the two. The short version: <strong>a TDM job is an ETL job whose output is a safe, small, consistent copy of production for testing</strong>. Seeing the shared skeleton makes each tool in the next parts easier to understand, because you can ask of every screen: which ETL stage is this?</p>
-<p>It also tells you what is <em>not</em> the same. A person who treats a TDM job as an ordinary ETL job will load unmasked data, break foreign keys or leave no record of what was done. The differences are where TDM engineers earn their pay.</p>
+<p>ETL is covered in <a href="08-etl-from-scratch.html">ETL from scratch</a>, and what TDM has to achieve in the chapters on <a href="05-discovery-and-subsetting-concepts.html">subsetting</a>, <a href="06-masking-concepts.html">masking</a> and <a href="07-test-data-classification-and-generation-concepts.html">generation</a>. The two join up: <strong>a TDM job is an ETL job whose output is a safe, small, consistent copy of production for testing</strong>. Seeing the shared skeleton makes each tool easier to understand, because you can ask of every screen: which ETL stage is this?</p>
+<p>The two are not the same. Treating a TDM job as an ordinary ETL job loads unmasked data, breaks foreign keys or leaves no record of what was done.</p>
 <div class="callout recap"><strong class="ctitle">What you will learn</strong>
 <ul>
 <li>Why ETL and TDM share one underlying idea, and the seven ways they differ.</li>
@@ -9,12 +9,6 @@
 <li>An end-to-end ShopSphere story (profile, subset, mask, load, test) that you can run in SQL, with each step labelled as ETL-style or not.</li>
 <li>Pitfalls: masking after load instead of before, inconsistent masking, performance and audit trails.</li>
 </ul></div>
-<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
-<p><strong>Informatica:</strong> TDM 10.5.10 User Guide (PDF, February 2026, 455 pages): chapter 1 "TDM Architecture" (pp.25 to 29), chapter 6 (subset, pp.112 to 122), chapter 7 (masking, pp.135 to 150), chapter 11 (test data warehouse, pp.236 to 238) and chapter 13 (plans and workflows, pp.274 to 285, 308).</p>
-<p><strong>Delphix:</strong> Continuous Compliance 2026.5 (last published October 16, 2026): the masking terminology page, "Create, view, edit, delete, verify jobs", "Running and Stopping Jobs", "Managing rule sets", "Managing inventories", "Job monitoring" and "Audit logs", linked where used.</p>
-<p><strong>GenRocket:</strong> help-centre pages on receivers, the five key components, G-Subset, Synthetic Data Replacement and the General FAQ, linked where used.</p>
-<p>The comparison tables, the reference architecture and the ShopSphere SQL are my own synthesis and are labelled <span class="badge concept">General concept</span>. I ran the SQL in SQLite 3.45. Delphix, Informatica and GenRocket statements are paraphrased from the pages named; I did not run any of the three products.</p></div>
-
 <h2 id="c9-words">9.1 Words to know first</h2>
 <dl class="defs">
 <div><dt>TDM pipeline</dt><dd>The chain of stages that turns production (or a generator) into a usable test data set: find sensitive data, cut it down, mask it, load it, check it.</dd></div>
@@ -40,7 +34,7 @@
 <p>The analogy is useful but incomplete: a photocopier that blacks out names is a good picture of masking, and a photocopier is not an ETL engine. TDM adds <em>purpose-built rules</em> (find the sensitive columns, hide them consistently, keep keys valid) on top of the same moving parts.</p>
 
 <h2 id="c9-differences">9.3 How they differ</h2>
-<p>The seven differences below explain why you cannot take an everyday ETL job and call it a TDM job. <span class="badge concept">General concept</span></p>
+<p>The seven differences below explain why you cannot take an everyday ETL job and call it a TDM job.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Dimension</th><th>Typical ETL</th><th>TDM</th></tr></thead>
 <tbody>

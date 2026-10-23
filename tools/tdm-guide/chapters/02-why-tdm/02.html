@@ -21,38 +21,38 @@
 <text x="660" y="140" text-anchor="middle" fill="var(--accent)" font-size="13">stale the day after the copy</text>
 <text x="660" y="180" text-anchor="middle" fill="var(--accent)" font-size="13">rare cases may not exist</text>
 </svg>
-<figcaption>Original diagram: what "just copy production" produces. The 4 TB size is an invented illustration for ShopSphere, not a measurement.</figcaption>
+<figcaption>Original diagram: what "just copy production" produces. The 4 TB size is example data.</figcaption>
 </figure>
 
 <h3 id="c2-problem-privacy">Problem 1: privacy and security leaks</h3>
-<p>Production holds real names, phone numbers, ID numbers and dates of birth. A full copy puts all of that into environments where far more people have access: every developer, every tester, contractors, sometimes outside vendors. Non-production systems usually have weaker access controls, weaker monitoring and more people logged in.</p>
-<p><strong>ShopSphere example.</strong> The row for customer 1001 (Asha Menon, her email, her phone, her SSN) is now in the dev database, in the QA database, in the UAT database, in a test engineer's laptop dump, and in a screenshot attached to a bug report. Any one of those is a breach waiting to happen.</p>
+<p>Production holds real names, phone numbers, ID numbers and dates of birth. A full copy puts all of that where far more people have access: developers, testers, contractors, sometimes outside vendors, usually with weaker access controls and monitoring.</p>
+<p><strong>ShopSphere example.</strong> The row for customer 1001 (Asha Menon, her email, phone and SSN) is now in the dev, QA and UAT databases, in a test engineer's laptop dump and in a bug-report screenshot. Any one of those is a breach waiting to happen.</p>
 <p>It is also often a legal problem. Laws and standards such as GDPR, HIPAA and PCI restrict how personal data can be used. The Delphix introduction names exactly these three (HIPAA, PCI and GDPR) as mandates organisations must stay compliant with, and notes that growing pressure from regulators and consumers makes protecting sensitive data across the enterprise essential (<a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a>). <span class="badge doc">From docs</span> <a href="04-sensitive-data-and-regulations.html">the sensitive data and regulations chapter</a> explains the regulations.</p>
 
 <h3 id="c2-problem-size">Problem 2: huge size</h3>
-<p>Production databases grow for years. A full copy needs the same disk space as production, multiplied by the number of environments. Storage costs add up, and so does the time to move and back up the copies.</p>
-<p><strong>ShopSphere example.</strong> If production is 4 TB (invented for illustration), five test environments need 20 TB, and most of the content is orders from five years ago that no current test will ever read.</p>
+<p>Production databases grow for years. A full copy needs the same disk space as production, multiplied by the number of environments, plus time to move and back up each copy.</p>
+<p><strong>ShopSphere example.</strong> If production is 4 TB (example figure), five test environments need 20 TB, and most of the content is orders from five years ago that no current test will ever read.</p>
 
 <h3 id="c2-problem-slow">Problem 3: slow refreshes</h3>
-<p>Copying terabytes takes hours or days. Teams therefore refresh rarely, queue for the operations team, and sometimes freeze the data for weeks to avoid doing it again.</p>
+<p>Copying terabytes takes hours or days, so teams refresh rarely, queue for the operations team, and sometimes freeze the data for weeks.</p>
 <p><strong>ShopSphere example.</strong> QA breaks the data while testing refunds. Restoring it takes two days. Everyone waits, or carries on with broken data and gets false test results.</p>
 
 <h3 id="c2-problem-stale">Problem 4: stale data</h3>
-<p>A copy is a snapshot of one moment. The day after, production has moved on. New products, new account types and new features may be missing from the copy, so tests of the newest code run against data that does not contain it.</p>
+<p>A copy is a snapshot of one moment. The day after, production has moved on, so tests of the newest code may run against data that does not contain it.</p>
 <p><strong>ShopSphere example.</strong> A "gift card" payment type launched last week. The copy taken last month has no orders that use it, so the gift-card tests find nothing to test.</p>
 
 <h3 id="c2-problem-edge">Problem 5: missing edge cases</h3>
-<p>Real data contains the cases that happened. It does not contain the cases that have not happened yet, or have happened too rarely to be in your copy. Tests need values at the boundary: the largest allowed order, an empty field, a name with an apostrophe, a negative quantity that the app must reject.</p>
+<p>Real data contains only the cases that happened. Tests need values at the boundary: the largest allowed order, an empty field, a name with an apostrophe, a negative quantity that the app must reject.</p>
 <p><strong>ShopSphere example.</strong> Nobody in production has a 300-character last name, so no test checks that the screen handles one. The first customer who does crashes the checkout page.</p>
 <p>This is where synthetic data comes in. GenRocket's help site defines synthetic test data as data manufactured by an algorithm rather than collected from real-world events, and says companies can maximise test coverage by using it to test all permutations and combinations (<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/why-synthetic-test-data" target="_blank" rel="noopener">Why Synthetic Test Data?</a>). <span class="badge doc">From docs</span></p>
 
 <h3 id="c2-problem-broken">Problem 6: broken relationships when people shrink or edit it</h3>
-<p>Realising the copy is too big, someone tries to cut it down by hand: "delete orders older than 2023". But orders are linked to customers and order items are linked to orders. Delete in the wrong order or the wrong rows and you leave order items pointing to orders that no longer exist, or orders for customers who have been removed. The application then crashes or gives nonsense, for reasons unrelated to the code being tested.</p>
+<p>Finding the copy too big, someone cuts it down by hand: "delete orders older than 2023". But orders are linked to customers and order items to orders. Delete the wrong rows and you leave order items pointing to orders that no longer exist, or orders for removed customers. The application then crashes or gives nonsense, for reasons unrelated to the code being tested.</p>
 <p><strong>ShopSphere example.</strong> A script deletes customers who have not logged in since 2022. It forgets their rows in <code>ORDERS</code>. Now there are orders with a <code>customer_id</code> that matches nobody. The "my orders" page fails for the wrong reason.</p>
-<p>The same breakage happens if someone replaces names with random text by hand and uses different replacements in different tables: the customer is "Asha" in one table and "Priya" in another. <a href="03-data-basics.html">The data basics chapter</a> explains the keys that tie tables together and why every TDM operation must respect them. The Informatica documentation describes the goal directly: a data subset keeps primary and foreign key relationships so that the data stays referentially intact (User Guide 10.5.10, p.23). <span class="badge doc">From docs</span></p>
+<p>The same breakage happens if hand-made replacements differ between tables: the customer is "Asha" in one and "Priya" in another. <a href="03-data-basics.html">The data basics chapter</a> explains the keys that tie tables together. The Informatica documentation describes the goal directly: a data subset keeps primary and foreign key relationships so that the data stays referentially intact (User Guide 10.5.10, p.23). <span class="badge doc">From docs</span></p>
 
 <h3 id="c2-problem-cost">Problem 7: cost</h3>
-<p>The costs are not only disk space. Add the time of people who run restores, the delay while testers wait, the licence and infrastructure cost of big environments, and the risk cost of a breach or regulator fine. None of it appears as a line "test data" on a budget, which is partly why the problem lingers.</p>
+<p>The costs are not only disk space. Add the time of people who run restores, the delay while testers wait, and the risk cost of a breach or regulator fine. None of it appears as a "test data" line on a budget, which is partly why the problem lingers.</p>
 
 <h3 id="c2-problem-repeat">Problem 8: no repeatability and no control</h3>
 <p>If every team makes its own copy at its own time, nobody knows which data version a bug was found on. Tests that passed Monday fail Tuesday because the data under them changed. Nobody can say who has a copy of what.</p>
@@ -71,6 +71,18 @@
 </tbody>
 </table></div>
 
+<h3 id="c2-market-2020">The same problems, as a vendor described them in 2020</h3>
+<p><span class="badge video">From video</span> In a 2020 webinar, GenRocket's CEO used an industry quality report to argue that test data lags behind test automation. He said roughly two thirds of organisations still use spreadsheets to build test data and over half still create it by hand. He added two customer stories: a large financial firm with a TDM tool could get the data a test case needed from its production copies only about a third of the time, and a large health insurer waited many days for data. These are a vendor's claims from 2020, not measured facts.</p>
+<p>In the same webinar a testing-services partner listed the challenges its clients keep raising. Most match problems above, and one adds something new:</p>
+<ul>
+<li><strong>Business-process coverage.</strong> Tests need negative cases and many permutations, not only the happy path (problem 5).</li>
+<li><strong>Speed.</strong> Data must arrive as fast as the team deploys (problems 3 and 4).</li>
+<li><strong>Quality and security.</strong> Good testing needs good data, and the data must be protected (problem 1).</li>
+<li><strong>Many formats and sources.</strong> Data arrives in files, databases and other forms, and a tool must deliver to all of them. This is the one the eight problems do not cover.</li>
+<li><strong>Sharing and reuse.</strong> Projects and environments want to share the same data (problem 8).</li>
+</ul>
+<p>GenRocket's 2022 overview video presents customer results in the same spirit, for example a cycle time cut from 16 days to 2 hours. Those are again vendor-reported figures for specific customers.</p>
+
 <div class="callout warn">
 <strong class="ctitle">"But we only use it internally" is not a defence</strong>
 <p>A breach through a test environment is still a breach of the people whose data it is. Internal staff, contractors and vendors can all misuse or lose data, and many regulations make no exception for non-production systems. <a href="04-sensitive-data-and-regulations.html">The sensitive data and regulations chapter</a> goes through this carefully.</p>
@@ -79,5 +91,5 @@
 <div class="callout example">
 <strong class="ctitle">Worked example: one bug report, three failures</strong>
 <p>A ShopSphere tester finds that the "order history" screen shows an empty page for customer 1002 in the QA environment. She files a bug. The developer cannot reproduce it on his machine because his data is different. After a day of investigation they discover that the QA database was a partial manual copy in which customer 1002's orders were not copied. The bug is not in the code at all.</p>
-<p>That one incident shows three problems from the list: broken relationships (problem 6), no control (8) and slow refresh (3: fixing it means a new copy). It also cost a day of two people's time. Multiply by a team and a year and the cost of unmanaged test data becomes visible.</p>
+<p>That one incident shows three problems from the list: broken relationships (6), no control (8) and slow refresh (3). It also cost two people a day. Multiply by a team and a year and the cost becomes visible.</p>
 </div>
