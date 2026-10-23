@@ -1,0 +1,48 @@
+<h2 id="c12-discover-view">12.3 The Discover view</h2>
+<p>Inside a project, the <strong>Discover</strong> tab is where profiling happens (User Guide 10.5.10, pp.88-89). Its sub-views: <strong>Tables</strong> (tables, relationships, columns; define keys; delete a table; disable a physical primary key you do not need; edit a column's precision), <strong>Profile</strong> (define profiles), <strong>Columns</strong> (maintain domain assignments, mark columns Restricted or Sensitive, assign domains in bulk, define value cascades) and <strong>Files</strong> (XSD files).</p>
+
+<div class="visualref">
+<span class="vtitle">Visual reference</span>
+Informatica TDM 10.5.10 User Guide, p.88, Figure "Discover view in a Project". What to look for: the Tables, Profile, Columns and Files sub-tabs, a table list, and a Relationship Overview pane that draws the selected table with its related tables.
+</div>
+
+<h3 id="c12-column-props">Column properties</h3>
+<p>Discover &gt; Columns shows Table Name, Column, Owner (the schema), Data Type, <strong>Domain</strong>, and three flags (p.89):</p>
+
+<ul>
+<li><strong>Restricted</strong>: the Integration Service does not write the value to a target.</li>
+<li><strong>Computed</strong>: the value is calculated from other columns, for example <code>Net_Pay = Basic_Salary + Allowances - Tax_Deduction</code>. You cannot assign masking or generation rules or cascades to it, and TDM does not copy data into it because the database recomputes it (p.90).</li>
+<li><strong>Sensitive</strong>: a label for people only; it does not affect processing. Assigning a data domain marks the column sensitive automatically.</li>
+</ul>
+<p>A <strong>Similar Value Columns</strong> count shows how many columns share a value cascade with this one.</p>
+
+<h3 id="c12-cascades">Value cascades and auto cascades</h3>
+<p>Both make sure the <em>same original value</em> becomes the <em>same masked value</em> in several places. That is the difference between a customer whose id looks right everywhere and one whose id no longer matches across tables.</p>
+
+<div class="compare">
+<div><h4>Auto cascade (keys exist)</h4>
+<p>Masks a parent table's primary key and the related foreign keys in child tables with the same value. Applied <strong>by default</strong> to tables with key constraints; you can enable or disable it. It needs key constraints between parent and child. Not available for XSD, MongoDB and Cassandra sources (p.91).</p>
+<p>ShopSphere: mask <code>CUSTOMERS.customer_id</code> and <code>ORDERS.customer_id</code> receives the same masked value.</p></div>
+<div><h4>Value cascade (no keys)</h4>
+<p>Masks <em>similar columns in different tables</em> the same way when they are not linked by key constraints. You group similar columns and mark one as the <strong>driving column</strong>; a rule assigned to it goes to all the others. The columns must have the same type (p.90).</p>
+<p>ShopSphere: an <code>email</code> column in <code>CUSTOMERS</code> and a <code>contact_email</code> column in some marketing table.</p></div>
+</div>
+<p>The guide's example: <code>employee_num</code> in one table and <code>EmpID</code> in another are similar value columns, with <code>employee_num</code> driving. Assign a rule to it and <code>EmpID</code> receives the same rule (p.90). The driving column shows a number in Similar Value Columns; the others show none.</p>
+
+<ol class="steps">
+<li><strong>Create:</strong> in Discover &gt; Columns select the columns, click Actions &gt; Set as similar value columns, and click the driving-column checkbox to change No to Yes for one column (p.90).</li>
+<li><strong>Change:</strong> select the driving column (it has a number), open the Similar Value Columns view in the Details panel, click Edit Similar Value Columns. Set Driving Column to Yes on another column (the previous one switches to No), use Add to add columns or Delete to remove them (p.91).</li>
+<li><strong>Delete the group:</strong> select the driving column, open Similar Value Columns, select any column in the group, click Delete, confirm (p.91).</li>
+</ol>
+
+<h2 id="c12-task-flow">12.4 The discovery task flow</h2>
+<p>Before profiles can run, the <strong>administrator</strong> must configure a source database connection for discovery plus connections to the Data Integration Service and Model Repository Service (User Guide 10.5.10, p.92). The steps (p.92):</p>
+
+<ol class="steps">
+<li><strong>Create a profile and choose its type</strong> (primary key, entity or data domain; primary key can combine with the others).</li>
+<li><strong>For a data domain profile, choose domains or policies, then choose the sampling size.</strong>
+<p>More rows is more reliable and slower.</p></li>
+<li><strong>Run the profile and watch the job in Monitor.</strong></li>
+<li><strong>Close and reopen the profile, review the results, then approve the ones to use.</strong>
+<p>The guide says results show only after you reopen it (p.103). Approval applies them.</p></li>
+</ol>

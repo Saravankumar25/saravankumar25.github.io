@@ -1,0 +1,69 @@
+<h2 id="c5-reduced-vs-full">5.11 Reduced copies and full copies</h2>
+
+<p>A subset is one way to make a test copy small. There are other ways to get a test copy, and each has a place. The comparison below is a general guide, with the Delphix statements marked.</p>
+
+<p>A full physical copy is the most realistic but the slowest and most exposed. A subset is small and quick to refresh but may miss rare cases. A virtual copy looks full but shares storage with its source, so it is cheap to create, but it still holds all the data and needs masking. <span class="badge concept">General concept</span></p>
+
+<p><span class="badge doc">From docs</span> Delphix describes virtualization as producing "a functioning database or filesystem copy that is lightweight and ephemeral" (terminology page), and its introduction claims that ten virtual copies can fit into the space of one physical copy. The pages I read describe only simple row filters, not key-following subsets, for Delphix, so treat "virtual copy" and "subset" as two different answers to the same cost problem: Delphix makes full copies cheap; Informatica and GenRocket make copies small.</p>
+
+<h2 id="c5-masking-and-subsetting">5.12 How masking and subsetting combine</h2>
+
+<p>You rarely do one without the other: subsetting shrinks the set of real records, and masking changes what remains. Three orders are possible. <span class="badge concept">General concept</span></p>
+
+<div class="tablewrap"><table><caption>Possible orders of subsetting and masking</caption>
+<thead><tr><th>Order</th><th>How it works</th><th>Good</th><th>Watch out</th></tr></thead>
+<tbody>
+<tr><td>Subset, then mask</td><td>Select the slice from real data, then mask the slice</td><td>Less to mask, and filters see real values (for example real zip codes)</td><td>Unmasked data exists briefly in the slice or staging area</td></tr>
+<tr><td>Mask, then subset</td><td>Mask everything, then select the slice from the masked copy</td><td>Nothing unmasked leaves the masking step</td><td>Masks the whole database (slow), and filters on masked columns pick different rows than expected</td></tr>
+<tr><td>Both in one run</td><td>Select and mask while copying to the target</td><td>Fast, one job, one schedule</td><td>Needs a tool that supports it, and careful setup</td></tr>
+</tbody></table></div>
+
+<p><span class="badge doc">From docs</span> Both Informatica and GenRocket support the third pattern. In Informatica, a plan can contain masking components (policies and rules) and subset components (entities, groups) together (User Guide 10.5.10, p.304; and p.135 for masking plans). The plan also says whether to mask data in place in the source database or in stream into a target database (p.150). In GenRocket, "Mask and subset data set together by providing both the masking and subset parameters in a G-Subset Configuration" (G-Subset Overview). Its sensitive columns are replaced with synthetic values in a temporary file before the rows are inserted, and the sensitive values are never read.</p>
+
+<p>The key requirement when you combine them is <strong>consistency</strong>. The masked customer 1004 in <code>CUSTOMERS</code> must be the same masked customer 1004 that the kept orders point to. Informatica's docs describe "auto cascades" that mask a parent key and its child foreign keys with the same value (p.91), and Delphix says its masking keeps primary and foreign keys consistent across tables and databases (Delphix "Introduction to Delphix Masking"). <a href="06-masking-concepts.html">The masking concepts chapter</a> explains how.</p>
+
+<div class="tablewrap"><table class="sample"><caption>The zip code subset from section 5.10, with names masked (the masked values are illustrative)</caption>
+<thead><tr><th>customer_id</th><th>first_name (before)</th><th>last_name (before)</th><th>first_name (after)</th><th>last_name (after)</th><th>zip_code</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>Asha</td><td>Menon</td><td>Leela</td><td>Pillai</td><td>560001</td></tr>
+<tr><td>1004</td><td>Kiran</td><td>Rao</td><td>Mohan</td><td>Verma</td><td>560034</td></tr>
+<tr><td>1007</td><td>Neha</td><td>Shah</td><td>Tara</td><td>Bose</td><td>560001</td></tr>
+</tbody></table></div>
+
+<p>Notice that the key <code>customer_id</code> is unchanged, so the 6 kept orders still point at the right rows. Notice too that zip codes were left alone here. As the <a href="04-sensitive-data-and-regulations.html">sensitive data chapter</a> showed, a zip code is an indirect identifier, so whether it stays is a decision for the compliance officer.</p>
+
+<h3 id="c5-genrocket-subset">GenRocket's subsetting at a glance</h3>
+
+<p><span class="badge doc">From docs</span> GenRocket's database subsetting is called G-Subset (formerly G-Migration+). It plans from the source schema, runs in the customer's environment and migrates to a destination database of the same type. Conditions are a Where clause, a percentage or a number of rows, on one table only; related rows follow, other tables can be marked for full load, and custom referential integrity can be added when the source declares none. It does not support composite keys at present (GenRocket "G-Subset Overview", <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-overview-formerly-g-migration" target="_blank" rel="noopener">source page ↗</a>).</p>
+
+<h2 id="c5-mistakes">Common mistakes and gotchas</h2>
+
+<div class="callout warn"><strong class="ctitle">Mistakes beginners make</strong>
+
+<ul>
+<li><strong>Taking "the first N rows" of every table.</strong> It creates orphans. Always start from a driving table and follow relationships.</li>
+<li><strong>Trusting discovery output without review.</strong> Reject coincidental key matches, add missed sensitive columns.</li>
+<li><strong>Choosing a sensitive column as a key.</strong> A unique SSN is a poor primary key because masking will change it.</li>
+<li><strong>Assuming a percentage limit is random.</strong> The documentation excerpts do not say so; verify.</li>
+<li><strong>Forgetting reference tables.</strong> A subset with an empty <code>PRODUCTS</code> table breaks every order screen. Copy lookup tables in full.</li>
+<li><strong>Filtering on a column you also mask.</strong> Decide whether the filter sees real or masked values.</li>
+</ul></div>
+
+<h2 id="c5-recap">Recap</h2>
+
+<div class="callout recap"><strong class="ctitle">Remember</strong><ul>
+<li>Discovery and profiling come first: they report types, patterns, sensitive-looking columns, key candidates and relationships, from metadata (names and types) and from data (values, usually sampled).</li>
+<li>Profiles guess. False positives waste effort or change keys; false negatives leak data. A human reviews and approves.</li>
+<li>A subset is a small, targeted, referentially intact copy: cheaper to store, faster to refresh and test, and less real data exposed.</li>
+<li>You choose rows by filter condition, percentage, row count or interval, time window, or by a driving table; tools also copy some tables in full.</li>
+<li>A driving table is the starting point: related rows are followed down to children and up to parents so there are no orphans. Informatica calls the group an entity; GenRocket follows the hierarchy from the subset table.</li>
+<li>Informatica offers transactional, referential-only, two-way and one-way integrity options that trade subset size against completeness.</li>
+<li>Subsetting and masking are partners. Keep keys consistent when you combine them, and check for orphans afterwards.</li>
+</ul></div>
+
+<section class="sources"><h2 id="c5-sources">Sources used in this chapter</h2><ul>
+<li>Informatica TDM 10.5.10 User Guide (February 2026): chapter 5 "Data Discovery" pp.86 to 111 (profile types, options, results, key and entity discovery); chapter 6 "Creating a Data Subset" pp.112 to 134 (entities, driving tables, integrity options, criteria parameters); chapter 7 pp.135 and 150 (masking plans, in place or in stream); p.91 (auto cascades); chapter 13 pp.294 and 304 (limit by percentage, absolute value, interval).</li>
+<li>GenRocket help: <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/synthetic-data-masking-sdm-and-data-subsetting-overview" target="_blank" rel="noopener">SDM and Data Subsetting Overview</a>; <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-overview-formerly-g-migration" target="_blank" rel="noopener">G-Subset Overview</a>; <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/data-subsetting-how-to-add-tables-and-subsetting-conditions" target="_blank" rel="noopener">Data Subsetting: Add Tables and Conditions</a>; <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/how-to-add-custom-referential-integrity-to-imported-table-schemas" target="_blank" rel="noopener">Custom Referential Integrity</a>; <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-traverse-full-hierarchy-option" target="_blank" rel="noopener">Traverse Full Hierarchy</a>; <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/how-to-select-tables-for-full-migration-during-subsetting" target="_blank" rel="noopener">Select Tables for Full Migration</a>; <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/pii-discovery-with-data-column-profiling-identify-sensitive-data-columns" target="_blank" rel="noopener">PII Discovery with Data Column Profiling</a>.</li>
+<li>Delphix Continuous Compliance 2026.5: <a href="https://help.delphix.com/cc/current/content/discovering_your_sensitive_data.htm" target="_blank" rel="noopener">Discovering your sensitive data</a>; <a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a>; <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>.</li>
+<li>General concepts written for this guide: the ShopSphere tables and worked examples, random versus targeted sampling, subset-versus-mask ordering, full versus virtual copy comparison.</li>
+</ul></section>

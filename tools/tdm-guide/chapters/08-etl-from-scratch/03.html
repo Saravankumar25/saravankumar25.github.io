@@ -1,0 +1,135 @@
+
+<h2 id="c8-transform">8.7 Transform: cleaning and reshaping</h2>
+<p><strong>Concept.</strong> Transformation turns staged raw data into the clean, consistent, correctly typed shape the target needs.</p>
+<p><strong>Why it matters.</strong> This is where business rules live. If the transform is wrong, the data is wrong everywhere downstream, and nobody can tell from the target alone. Transformations are therefore the part of ETL most worth documenting and testing.</p>
+<p>There are nine everyday kinds of transformation: cleaning, type conversion, mapping, deduplication, lookups, filtering, joining, derived columns and aggregation. We cover each in turn using the ShopSphere staging rows from the previous section. Each subsection shows the idea, the SQL, and the before and after.</p>
+
+<h3 id="c8-t-cleaning">8.7.1 Cleaning</h3>
+<p><strong>Idea.</strong> Make values consistent so that equal things look equal. "MENON", "Menon" and "menon " are the same surname to a person, but three different strings to a database.</p>
+<pre><code>SELECT
+  UPPER(SUBSTR(TRIM(first_name),1,1)) || LOWER(SUBSTR(TRIM(first_name),2)) AS first_name,
+  UPPER(SUBSTR(TRIM(last_name),1,1))  || LOWER(SUBSTR(TRIM(last_name),2))  AS last_name,
+  COALESCE(LOWER(TRIM(email)), 'not provided')                              AS email
+FROM stg_customers;</code></pre>
+<div class="tablewrap"><table class="sample">
+<caption>Cleaning, customer 1001 and 1003</caption>
+<thead><tr><th></th><th>first_name</th><th>last_name</th><th>email</th></tr></thead>
+<tbody>
+<tr><td>Before (1001)</td><td>" Asha "</td><td>MENON</td><td>"Asha.Menon@Example.com "</td></tr>
+<tr><td>After (1001)</td><td>Asha</td><td>Menon</td><td>asha.menon@example.com</td></tr>
+<tr><td>Before (1003)</td><td>Meera</td><td>Nair</td><td>NULL</td></tr>
+<tr><td>After (1003)</td><td>Meera</td><td>Nair</td><td>not provided</td></tr>
+</tbody></table></div>
+<p>Function names differ by database (for example <code>SUBSTR</code> is <code>SUBSTRING</code> in SQL Server). Replacing a missing email with "not provided" is a business choice; some teams keep NULL.</p>
+
+<h3 id="c8-t-conversion">8.7.2 Type conversion</h3>
+<p><strong>Idea.</strong> Staging holds everything as text. The target needs real dates and numbers so that sorting, comparing and adding work properly. As text, "9" sorts after "10", and "20/10/2026" sorts before "21/09/2026" only by accident.</p>
+<pre><code>SELECT
+  CAST(order_id AS INTEGER) AS order_id,
+  SUBSTR(order_date,7,4) || '-' || SUBSTR(order_date,4,2) || '-' || SUBSTR(order_date,1,2) AS order_date,
+  CAST(total_amount AS REAL) AS total_amount
+FROM stg_orders
+WHERE total_amount NOT GLOB '*[^0-9.]*';   -- only rows whose amount is numeric</code></pre>
+<div class="tablewrap"><table class="sample">
+<caption>Type conversion, order 5002</caption>
+<thead><tr><th></th><th>order_id</th><th>order_date</th><th>total_amount</th></tr></thead>
+<tbody>
+<tr><td>Before (text)</td><td>"5002"</td><td>"20/10/2026"</td><td>"250.50"</td></tr>
+<tr><td>After (typed)</td><td>5002</td><td>2026-10-20 (date)</td><td>250.5 (number)</td></tr>
+</tbody></table></div>
+<p>Oracle and PostgreSQL would use <code>TO_DATE(order_date, 'DD/MM/YYYY')</code>; I sliced the string because SQLite has no date parser with a format string. Confirm with the data owner whether dates are day-first or month-first, and reject dates that do not parse instead of guessing.</p>
+
+<h3 id="c8-t-mapping">8.7.3 Mapping and standardising</h3>
+<p>The word <strong>mapping</strong> has two meanings in ETL, and both matter. In the broad sense a <em>mapping</em> is the whole definition of how source columns become target columns (we meet this in 8.11). In the narrow sense, <em>value mapping</em> means translating codes: the order system stores <code>S</code>, <code>P</code> and <code>C</code>, and reports want the words.</p>
+<pre><code>CREATE TABLE status_map (status_code TEXT PRIMARY KEY, status_name TEXT);
+INSERT INTO status_map VALUES ('S','Shipped'),('P','Pending'),('C','Cancelled');
+
+SELECT o.order_id, COALESCE(m.status_name, 'Unknown') AS order_status
+FROM   stg_orders o
+LEFT JOIN status_map m ON m.status_code = o.status_code;</code></pre>
+<div class="tablewrap"><table class="sample">
+<caption>Value mapping of status codes</caption>
+<thead><tr><th>order_id</th><th>status_code (before)</th><th>order_status (after)</th></tr></thead>
+<tbody>
+<tr><td>5001</td><td>S</td><td>Shipped</td></tr>
+<tr><td>5003</td><td>P</td><td>Pending</td></tr>
+<tr><td>5006 (run 2)</td><td>C</td><td>Cancelled</td></tr>
+<tr><td>5007 (run 2)</td><td>Z</td><td>Unknown</td></tr>
+</tbody></table></div>
+<p>The unmatched code <code>Z</code> becomes "Unknown" because of the <code>LEFT JOIN</code> plus <code>COALESCE</code>. An inner join here would silently drop order 5007 altogether, which is one of the most common ETL bugs: <strong>a lookup that loses rows when it fails to match</strong>.</p>
+
+<h3 id="c8-t-dedup">8.7.4 Deduplication</h3>
+<p><strong>Idea.</strong> Keep one row for each real-world thing. Customer 1002 arrived twice in the staging data.</p>
+<pre><code>SELECT customer_id, first_name, last_name, email, zip_code
+FROM (
+  SELECT s.*,
+         ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY customer_id) AS rn
+  FROM stg_customers s
+) t
+WHERE rn = 1;</code></pre>
+<p><code>ROW_NUMBER()</code> numbers the rows inside each customer id (1, 2, ...); keeping only number 1 removes the extras. The <code>ORDER BY</code> inside the window decides <em>which</em> duplicate survives. Here the two copies were identical so it did not matter. In real data the copies often differ, and you must choose a rule such as "keep the latest by modified date" or "keep the one with the most filled-in columns".</p>
+<div class="tablewrap"><table class="sample">
+<caption>Deduplication result (batch 1)</caption>
+<thead><tr><th></th><th>rows for customer 1002</th><th>total rows</th></tr></thead>
+<tbody>
+<tr><td>Before</td><td>2</td><td>4</td></tr>
+<tr><td>After</td><td>1</td><td>3</td></tr>
+</tbody></table></div>
+
+<h3 id="c8-t-lookup">8.7.5 Lookups</h3>
+<p><strong>Idea.</strong> A <em>lookup</em> enriches a row by finding a related value in a reference table. Order items carry only <code>product_code</code>. A lookup in PRODUCTS adds the product name.</p>
+<pre><code>SELECT i.item_id, i.product_code,
+       COALESCE(p.product_name, 'UNKNOWN PRODUCT') AS product_name
+FROM   stg_order_items i
+LEFT JOIN products p ON p.product_code = i.product_code;</code></pre>
+<div class="tablewrap"><table class="sample">
+<caption>Product lookup, with one miss</caption>
+<thead><tr><th>item_id</th><th>product_code</th><th>product_name (after lookup)</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>P-100</td><td>Laptop Stand</td></tr>
+<tr><td>4</td><td>P-400</td><td>Desk Lamp</td></tr>
+<tr><td>8 (run 2)</td><td>P-999</td><td>UNKNOWN PRODUCT</td></tr>
+</tbody></table></div>
+<p>Choose deliberately what a miss does: use a default such as "UNKNOWN PRODUCT" and report it, or reject the row. Never let it vanish. Real ETL tools provide a ready-made <em>lookup transformation</em> for this and handle caching, because looking up a million rows one at a time would be slow. In the Informatica guide, lookup transformations appear among the restrictions on mapplets used for Hadoop masking (User Guide 10.5.10, p.137), which confirms that lookup is a standard kind of transformation in that product. <span class="badge doc">From docs</span></p>
+
+<h3 id="c8-t-filter">8.7.6 Filtering, validating and rejecting</h3>
+<p><strong>Idea.</strong> Some rows should not reach the target. <em>Filtering</em> removes rows that are valid but unwanted (for example, test orders). <em>Validating</em> checks rows against rules and <em>rejects</em> those that fail, keeping them aside with a reason so someone can fix them.</p>
+<pre><code>CREATE TABLE reject_orders (batch_id INTEGER, order_id TEXT, reason TEXT);
+
+INSERT INTO reject_orders
+SELECT 1, o.order_id,
+       CASE WHEN o.total_amount = '' OR o.total_amount GLOB '*[^0-9.]*'
+            THEN 'total_amount is not a number'
+            ELSE 'customer ' || o.customer_id || ' not found' END
+FROM   stg_orders o
+WHERE  o.total_amount = '' OR o.total_amount GLOB '*[^0-9.]*'
+   OR  NOT EXISTS (SELECT 1 FROM dim_customer d
+                   WHERE d.customer_id = CAST(o.customer_id AS INTEGER));</code></pre>
+<div class="tablewrap"><table class="sample">
+<caption>reject_orders after run 1</caption>
+<thead><tr><th>batch_id</th><th>order_id</th><th>reason</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>5004</td><td>total_amount is not a number</td></tr>
+<tr><td>1</td><td>5005</td><td>customer 9999 not found</td></tr>
+</tbody></table></div>
+<p>The valid orders carry on. This is the key design choice: <strong>one bad row must not stop the whole run, and must not vanish</strong>. It goes to a reject table with a batch id and a human-readable reason.</p>
+
+<h3 id="c8-t-join">8.7.7 Joining and derived columns</h3>
+<p><strong>Joining</strong> combines rows from different inputs. To build the sales fact table we join order items to their orders for date, customer and status. Ask of every join: "what happens to a row with no match?" An inner join drops it; a left join keeps it with empty columns. That is a business decision, not a technical one. <strong>Derived columns</strong> calculate values that do not exist in the source, such as <code>line_amount</code> as quantity times unit price (item 2: 2 &times; 100.00 = 200.0).</p>
+
+<h3 id="c8-t-aggregate">8.7.8 Aggregating</h3>
+<p><strong>Idea.</strong> Summarise many rows into fewer, such as a daily sales table for dashboards.</p>
+<pre><code>SELECT order_date,
+       COUNT(DISTINCT order_id) AS orders_count,
+       SUM(quantity)            AS units,
+       SUM(line_amount)         AS revenue
+FROM   fact_order_line
+GROUP BY order_date;</code></pre>
+<div class="tablewrap"><table class="sample">
+<caption>agg_daily_sales after run 1</caption>
+<thead><tr><th>order_date</th><th>orders_count</th><th>units</th><th>revenue</th></tr></thead>
+<tbody>
+<tr><td>2026-10-20</td><td>2</td><td>4</td><td>1749.5</td></tr>
+<tr><td>2026-10-21</td><td>1</td><td>1</td><td>75.0</td></tr>
+</tbody></table></div>
+<p>Hand check: on 20 October, 1 + 2 + 1 = 4 units and 1499 + 200 + 50.5 = 1749.5 revenue.</p>

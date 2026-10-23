@@ -1,0 +1,73 @@
+<h2 id="c29-poc">29.8 The proof of concept</h2>
+<p>A POC answers one question: will this approach work here, on our data, with our people? It is small on purpose. It uses a copy, never production, and it ends with a pass or fail against criteria written <em>before</em> it started. A POC without agreed criteria turns into a demo that everyone declares a success. <span class="badge concept">General concept</span></p>
+<h3 id="c29-poc-plan">POC plan for ShopSphere</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Section</th><th>Content for ShopSphere (illustrative)</th></tr></thead>
+<tbody>
+<tr><td>Objective</td><td>Show that the chosen tool can mask the eight sensitive CUSTOMERS columns and one export file on a lab copy, keep keys and formats intact, and run without manual fixes</td></tr>
+<tr><td>In scope</td><td>CUSTOMERS and ORDERS in a lab copy (a VDB or restored backup) and <code>customers.dat</code>; use cases UC1 and UC6</td></tr>
+<tr><td>Out of scope</td><td>ORDER_ITEMS and PRODUCTS, UAT, volume tests, generation (UC3 to UC5 have their own POC)</td></tr>
+<tr><td>Environment</td><td>Isolated lab, masking user with only the rights the tool documents, no route to production</td></tr>
+<tr><td>Method</td><td>The sequence practised in <a href="28-delphix-hands-on-labs.html">the Delphix labs</a> (connect, profile, assign, run, verify), or the Informatica equivalent in <a href="14-informatica-data-masking.html">the Informatica masking chapter</a></td></tr>
+<tr><td>Time box</td><td>Ten working days: 2 setup, 3 profile and rule design, 2 masking runs and fixes, 2 verification, 1 report</td></tr>
+<tr><td>Team</td><td>TDM engineer (runs it), DBA (copy and rights), data steward (rules), compliance officer (accepts evidence)</td></tr>
+<tr><td>Exit</td><td>Pass if every "must" criterion is met; otherwise a written list of gaps and a decision: fix, change tool, or stop</td></tr>
+</tbody></table></div>
+<h3 id="c29-poc-criteria">Success criteria</h3>
+<p>Each criterion states how it is measured and whether it gates the result. Measured means a query, a count or a log line, not an opinion.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>ID</th><th>Criterion</th><th>Measured by</th><th>Threshold</th><th>Gate</th></tr></thead>
+<tbody>
+<tr><td>S1</td><td>Every sensitive column found and masked</td><td>Inventory export plus before/after query</td><td>8 of 8 columns changed</td><td>Must</td></tr>
+<tr><td>S2</td><td>Keys survive</td><td>Orphan query on ORDERS</td><td>0 orphans; row counts unchanged</td><td>Must</td></tr>
+<tr><td>S3</td><td>Formats preserved</td><td>Pattern queries (SSN, tax id, phone, zip)</td><td>100% match the original pattern</td><td>Must</td></tr>
+<tr><td>S4</td><td>Same value, same masked value everywhere</td><td>Compare the SSN in the database and in the file</td><td>0 mismatches</td><td>Must</td></tr>
+<tr><td>S5</td><td>No unexplained warnings</td><td>Job summary: tables or columns with non-conforming data</td><td>0, or each explained in writing</td><td>Must</td></tr>
+<tr><td>S6</td><td>No real value left behind</td><td>Search the masked output for five known real test values</td><td>0 found</td><td>Must</td></tr>
+<tr><td>S7</td><td>Evidence accepted</td><td>Compliance officer reviews the evidence pack</td><td>Signed</td><td>Must</td></tr>
+<tr><td>S8</td><td>Time to a usable masked copy</td><td>Stopwatch from start of run to verified copy</td><td>Report against the 3-day baseline</td><td>Reported</td></tr>
+</tbody></table></div>
+<p>S5 exists because of how the tools behave. Delphix leaves non-conformant values unmasked by default and records a warning, so a job can finish while data stays exposed (see <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>). Informatica's SSN masking is documented to be unable to return all-unique values (User Guide 10.5.10, p.175), which is exactly the sort of limit a POC should expose before rollout.</p>
+<h2 id="c29-assessment">29.9 The assessment of a line of business</h2>
+<p>Day 54 ends with an assessment on "a particular LOB". The POC proves the tool; the assessment describes the business area it will be applied to, and what must change for a full rollout. For ShopSphere the LOB is online order management. Work through the dimensions below and record evidence for each. <span class="badge concept">General concept</span></p>
+<div class="tablewrap"><table>
+<thead><tr><th>Dimension</th><th>What to find out</th></tr></thead>
+<tbody>
+<tr><td>Application and interfaces</td><td>Which applications use the data, which files and APIs leave the LOB, which hold copies</td></tr>
+<tr><td>Data</td><td>Tables, volumes, growth, real keys and undeclared relationships (a join the application uses but the database does not declare breaks masking)</td></tr>
+<tr><td>Environments and refresh</td><td>How many, how often, who triggers it, current duration</td></tr>
+<tr><td>Existing controls</td><td>Current masking scripts, access rules, past incidents</td></tr>
+<tr><td>Compliance</td><td>Applicable rules and what evidence an auditor will ask for</td></tr>
+<tr><td>Fit with tools</td><td>Landscape rows against tool support, from the matrix</td></tr>
+<tr><td>Infrastructure</td><td>Capacity and network. Delphix's best-practice page, for example, gives a standard dedicated engine as 8 vCPUs and at least 64 GB of RAM, about one vCPU per concurrent masking job and at least 1 GB per job (<a href="https://help.delphix.com/cc/current/content/best_practices_for_delphix_data_masking.htm" target="_blank" rel="noopener">Best practices</a>)</td></tr>
+<tr><td>People and process</td><td>Who will own rules, keys and reruns after the project</td></tr>
+</tbody></table></div>
+<h3 id="c29-report">Assessment report outline</h3>
+<ol>
+<li><strong>Summary:</strong> scope, verdict (ready, ready with conditions, not ready), the three findings that matter most.</li>
+<li><strong>Scope and method:</strong> LOB, systems, interviews held, evidence reviewed, POC results.</li>
+<li><strong>Current state:</strong> the landscape inventory and the use-case register.</li>
+<li><strong>Sensitivity results:</strong> the column ratings and decisions.</li>
+<li><strong>Findings:</strong> each with evidence, severity and a recommendation, for example "F3, High: the partner file L3 carries unmasked SSNs; mask before the next nightly run".</li>
+<li><strong>Tool recommendation:</strong> the filled scoring table and why.</li>
+<li><strong>Deployment plan:</strong> phases, effort and dependencies (next section).</li>
+<li><strong>Risks:</strong> the register.</li>
+<li><strong>Appendices:</strong> evidence pack, queries, configuration exports.</li>
+</ol>
+<h2 id="c29-risks">29.10 Risk register</h2>
+<p>List risks as soon as the landscape is drawn and revisit them at every checkpoint. Rate likelihood (L) and impact (I) from 1 to 3; the product ranks them. Several risks below come straight from the sources; the rest are common project risks.</p>
+<div class="tablewrap"><table class="sample">
+<caption>ShopSphere risk register (illustrative)</caption>
+<thead><tr><th>ID</th><th>Risk</th><th>L</th><th>I</th><th>Mitigation</th><th>Owner</th></tr></thead>
+<tbody>
+<tr><td>R1</td><td>A job succeeds with warnings and leaves values unmasked (Delphix default for non-conformant data)</td><td>3</td><td>3</td><td>Review warnings every run; fail on encounter for sensitive columns; success criterion S5</td><td>TDM engineer</td></tr>
+<tr><td>R2</td><td>A file or system outside the plan carries the same SSN (L3, L4)</td><td>2</td><td>3</td><td>Landscape inventory; leak search (S6)</td><td>Data steward</td></tr>
+<tr><td>R3</td><td>Different algorithm or key per system, so the same SSN masks differently</td><td>2</td><td>3</td><td>One algorithm instance and key for SSN; test S4</td><td>TDM engineer</td></tr>
+<tr><td>R4</td><td>Masking breaks keys or joins</td><td>2</td><td>3</td><td>Never mask keys unless the same deterministic algorithm is used on every side; orphan query</td><td>DBA</td></tr>
+<tr><td>R5</td><td>Tool limit discovered late (for example G-Subset needs the same database type on both sides and no composite keys; masked VDB provisioning covers only some databases)</td><td>2</td><td>2</td><td>Check limits in the landscape step; test in POC</td><td>TDM engineer</td></tr>
+<tr><td>R6</td><td>In-place job fails midway and leaves semi-masked data (the Delphix docs warn about this on cancel)</td><td>2</td><td>3</td><td>Snapshot or backup before every run; restore procedure tested</td><td>DBA</td></tr>
+<tr><td>R7</td><td>Masked data too unrealistic for tests</td><td>2</td><td>2</td><td>Tester review of a sample; adjust algorithms</td><td>QA lead</td></tr>
+<tr><td>R8</td><td>Schema changes add new sensitive columns that nobody profiles</td><td>3</td><td>2</td><td>Re-profile on each release; rule set refresh; change control</td><td>Data steward</td></tr>
+<tr><td>R9</td><td>Engine capacity too small for the real volume</td><td>2</td><td>2</td><td>Sizing in the assessment; measure in POC (S8)</td><td>Infrastructure</td></tr>
+<tr><td>R10</td><td>Sponsor expects "100% secure" with no definition</td><td>2</td><td>3</td><td>Agree the success criteria and sign-off checklist in writing</td><td>Project manager</td></tr>
+</tbody></table></div>

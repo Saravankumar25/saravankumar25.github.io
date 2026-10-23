@@ -1,0 +1,97 @@
+<h2 id="c11-data-sources">11.11 Data sources</h2>
+<p>A project cannot do anything until it knows what tables it is working on. To do subset, masking or discovery, you import <strong>source metadata</strong> into the TDM repository. To generate data, you import <strong>target</strong> metadata instead (User Guide 10.5.10, p.60). A project can hold more than one type of source, for example a flat file and a relational database, and you can create constraints that relate them and add filter criteria for subset and masking.</p>
+
+<div class="callout warn"><strong class="ctitle">A numeric precision limit</strong>
+<p>If a numeric column has a precision above 28, you cannot apply a masking or subset condition to it. The Integration Service passes that row and column to the target without applying the condition (p.60). Check unusual numeric columns before you trust a run.</p></div>
+
+<h3 id="c11-source-definitions">TDM source definitions</h3>
+<p>You can import source metadata from PowerCenter, from the Model repository, or directly from the source database (p.60). The guide's points:</p>
+
+<ul>
+<li>The TDM project and the repository folders share the same name, so workflow information goes to the correct folder.</li>
+<li>If the source is relational and has <strong>many tables</strong>, importing straight from the database is faster than going through PowerCenter or the Model repository.</li>
+<li>Importing from the PowerCenter or Model repository brings in the definitions Informatica services support, by importing the repository folder that holds them; TDM makes a copy of that folder in the TDM repository.</li>
+<li>MongoDB sources imported into PowerCenter need unique column names of at most 80 characters.</li>
+<li><strong>Flat files</strong> must come from the PowerCenter or Model repository; you cannot create flat file connections in Test Data Manager.</li>
+<li><code>rowid</code> is a reserved keyword. You cannot import Oracle sources that use it as a column or table name.</li>
+</ul>
+
+<h3 id="c11-import-sources">Importing data sources</h3>
+
+<div class="exercise">
+<h4>Task: import the ShopSphere tables into the project</h4>
+<p>Goal: have the four tables visible in the project's Data Sources view. The steps are the guide's (pp.66-67). The choice of "Datasource Connection" and of the schema is our illustration; it assumes an administrator already created a connection to the ShopSphere database.</p>
+
+<ol class="steps">
+<li><strong>Click Projects, then click your project to open it.</strong>
+<p>Imports belong to a project, so the tables arrive in the right workspace.</p></li>
+<li><strong>Click Actions &gt; Import Metadata.</strong>
+<p class="expect">The Import Metadata window appears.</p></li>
+<li><strong>Choose the source type.</strong>
+<p>Options: <em>PowerCenter Repository</em>, <em>Model Repository</em>, or <em>Datasource Connection</em>. For a plain relational database, Datasource Connection is the direct route. To import metadata from a flat file or a JDBC connection, you must use the Model repository.</p></li>
+<li><strong>Decide whether to review metadata changes before the import.</strong>
+<p>If you choose to review, TDM shows the metadata and its impact on rules and domain assignments, or entities and groups. You can skip this option. Reviewing is wise when re-importing into a project that already has assignments.</p></li>
+<li><strong>Click Next and choose where to import from.</strong>
+<p>For PowerCenter or the Model repository, pick the folder (filter by name or description). For Datasource Connection, pick the schema (filter by name). Click Next.</p></li>
+<li><strong>Select the tables or files to import and click Next.</strong>
+<p>You can filter by data source, table name or description. For a Hive database, do not select temporary "junk" tables created when mappings run.</p></li>
+<li><strong>Choose when to import and click Finish.</strong>
+<p><em>Import Now</em> (tick Run import in the background if you want to keep working) or <em>Schedule Later</em> (pick a date and time).</p>
+<p class="expect">The Import Progress dialog box shows a progress bar. If you chose to review, the Impact Review dialog box appears with metadata, assignments and project objects; click Approve to import or Reject to cancel. Afterwards the tables are in the Data Sources details view.</p></li>
+</ol>
+
+<details class="sol"><summary>Show what ShopSphere should look like afterwards</summary>
+<p>Illustrative, not from the guide: four tables in the project's data source, <code>CUSTOMERS</code>, <code>ORDERS</code>, <code>ORDER_ITEMS</code> and <code>PRODUCTS</code>, all under the schema you picked. A job for the import is listed in the project's Monitor view while it runs. If a table is missing, check the table selection step and the Monitor view for a failed import job.</p></details>
+</div>
+
+<h3 id="c11-other-sources">Special source types in the guide</h3>
+<p>The guide spends several pages on source types that a ShopSphere beginner will not meet on day one. Know that they exist and what the headline rules are.</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Source type</th><th>Headline facts (pp.60-66)</th></tr></thead><tbody>
+<tr><td>Hive and HDFS</td><td>You can do data movement, data domain discovery and masking. A cluster configuration must exist in the Administrator tool. Use a <em>Hadoop plan</em>. You cannot do subset or generation on Hive and HDFS. Do not select temporary junk tables. Data domain discovery works, but primary key and entity profiles do not run on Hive. Before in-place masking on Hive, back up the source tables, because a failed move from staging can truncate them.</td></tr>
+<tr><td>Avro and Parquet</td><td>Semi-structured formats for single-level hierarchy files, usable when you choose an HDFS target. With Parquet you cannot use null or repeated constraints. You cannot run profiles on Avro and Parquet.</td></tr>
+<tr><td>XSD (XML) sources</td><td>Subset, masking and generation work on XML. Import the <strong>XSD source definition</strong> from the PowerCenter repository; importing the XML itself makes the workflow fail. View files under Discover &gt; Files. On a file page, the Properties, View and Details tabs let you assign data domains, mark elements Restricted or Sensitive, and assign masking rules, generation rules or subset criteria. You cannot delete XML files after import.</td></tr>
+<tr><td>PowerExchange nonrelational</td><td>Adabas, IMS unload, Sequential, and hierarchical and nonhierarchical VSAM. Define datamaps in PowerExchange, import into PowerCenter, then import into the project. You cannot import a PowerExchange source directly into the TDM repository.</td></tr></tbody></table></div>
+
+<h3 id="c11-identity">Identity columns</h3>
+<p>An identity column is one the database fills in automatically with a counter. Three rules from the guide (p.67):</p>
+
+<ul>
+<li>On <strong>Sybase</strong>, you cannot move data from a source DBO schema to a target non-DBO schema if the data has an identity column and indexes.</li>
+<li>If auto identity is enabled in Sybase and a table has no primary or unique keys, Sybase adds a <code>SYB_IDENTITY_COL</code> column. <strong>Mark it Restricted</strong> (restricted means the Integration Service does not write the value to the target), or the workflow fails.</li>
+<li>To disable an identity column on <strong>Microsoft SQL Server</strong>, the database user needs execute permission on <code>sp_help</code>.</li>
+</ul>
+
+<h3 id="c11-delete-table">Deleting a table</h3>
+<p>You can remove a table from a project if you added too many or no longer need some (pp.67-68). Rules: an <em>orphan</em> table (related to no other table and with no assignments) deletes directly. If the table is part of profile results, a warning appears and it is removed from them too. If it is part of an entity, group, masking plan or generation plan, the <strong>Impacted Objects</strong> dialog lists what will be affected; a table in a template that is part of a plan does not list the template and plan. You delete one table at a time.</p>
+
+<ol class="steps">
+<li><strong>Open the project and click Discover &gt; Tables.</strong></li>
+<li><strong>Select the table and click Actions &gt; Delete Table.</strong>
+<p class="expect">A confirmation message appears if the table has no assignments; otherwise the Impacted Objects dialog appears.</p></li>
+<li><strong>Click Continue to confirm.</strong>
+<p>Delete only tables not used in a TDM operation. Regenerate and run affected plans afterwards.</p></li>
+</ol>
+
+<h2 id="c11-permissions">11.12 Project permissions and security</h2>
+<p>When you create a project you become its owner and can add users and user groups with permission levels. The domain administrator can also add and edit project permissions (User Guide 10.5.10, p.68). A project you have <strong>no permission on does not appear</strong> in your list, and you cannot open it even from search results. There are three levels, and they sit <em>on top of</em> privileges: you need the permission on this project <strong>and</strong> the minimum privilege for the task (p.50).</p>
+
+<div class="tablewrap"><table>
+<caption>Permission levels and tasks (p.69)</caption>
+<thead><tr><th>Permission</th><th>What you can do</th><th>Minimum privileges (as listed)</th></tr></thead><tbody>
+<tr><td>Read</td><td>Open and view the project; monitor logs for project workflows.</td><td>View project, Monitor project, Audit project</td></tr>
+<tr><td>Write</td><td>Everything in Read, plus import metadata, delete tables, create entities, groups and templates, assign rules, generate workflows, run profiles, copy the project, delete the project.</td><td>View, Monitor, Audit, Import metadata, Generate project, Manage project, Discover project</td></tr>
+<tr><td>Execute</td><td>Open and view the project; monitor logs; run workflows.</td><td>View, Monitor, Audit, Execute project</td></tr></tbody></table></div>
+<p>Notice that "run workflows" is separate from "generate workflows". That lets a team give a QA engineer Execute to re-run a prepared plan without letting them change it. Write does <em>not</em> list Execute in the guide's table; if a developer must both build and run, grant both.</p>
+
+<ol class="steps">
+<li><strong>Open the project and click Permissions.</strong>
+<p class="expect">Lists of users and user groups with their permissions appear (Users and User Groups tabs).</p></li>
+<li><strong>Click Edit on the Users or User Groups tab.</strong>
+<p>The Edit Project Permissions dialog opens.</p></li>
+<li><strong>Change, delete or add.</strong>
+<p>To change, select the user or group and edit the permission; save for <em>each</em> user or group. To delete, select and click Delete. To add, click Add Users or Add User Groups, select one or more, optionally pick the permission to give all selected, then OK; if you did not pick, select each one and set permissions, saving each.</p></li>
+<li><strong>Click OK.</strong>
+<p>Changes take effect from the user's <strong>next login</strong>.</p></li>
+</ol>

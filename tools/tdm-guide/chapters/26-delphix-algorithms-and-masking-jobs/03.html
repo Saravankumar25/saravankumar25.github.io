@@ -1,0 +1,47 @@
+<h2 id="c26-more">26.9 More algorithms you will meet: dates, email, mapping, tokenization</h2>
+<p>The labs use four algorithms, but the rest of ShopSphere (and any real project) needs a few more. Each paragraph below is a short orientation from the framework pages <span class="badge doc">From docs</span>.</p>
+<h3 id="c26-dates">Dates (date_of_birth, order_date)</h3>
+<p>Three out-of-the-box instances differ in how much they preserve. <strong>Date Shift Fixed</strong> moves every date five days forward and rolls within the month, so the same input always gives the same output and no two dates collide ("2001-02-27" becomes "2001-02-04"). <strong>Date Shift Variable</strong> picks a random day within the same month and year and can collide. <strong>Date Shift Discrete</strong> sends every date of one year-month to one fixed day (about one in thirty dates may collide), so it is unsuitable for columns with unique, primary or foreign key constraints. When you build your own Date Shift instance you choose a minimum and maximum shift and a unit; equal values give a fixed shift, 0 inside the range is never used (a date never masks to itself), and <em>Roll</em> keeps all larger and smaller units unchanged. For a column that is not a native date type, set the Date Format in the inventory (default <code>yyyy-MM-dd</code>, case sensitive). Pairs such as admission and discharge need Dependent Date Shift so the order and the interval survive.</p>
+<h3 id="c26-email">Email</h3>
+<p>The Email framework splits at the "@". The default <code>dlpx-core:Email Unique</code> hashes the whole input into a 52-character Base32 name and replaces the domain with <code>example.com</code>, so every input gets its own output (64 characters in total, which matters for short columns). <code>dlpx-core:Email SL</code> instead picks a readable name such as "E.Duboise" from a 20,000-value lookup, so collisions are possible but the data looks more human. The Email Unique output is what the profiling screenshots showed for the EMAIL domain, so ShopSphere's <code>email</code> column is covered by default; check that the column is wide enough for 64 characters.</p>
+<h3 id="c26-mapping">Mapping: you decide the replacements</h3>
+<p>A Mapping algorithm replaces each distinct input with a value you supplied, and it never reuses an output, so there are no collisions. You must provide at least as many replacement values as there are distinct inputs, or the job reports "No free mappings are available". Mappings can be imported as a plain list of outputs or as a CSV with <code>input,output</code> columns, and exported (encrypted with a passphrase), reset or deleted. All mappings load into memory during a job, so give the job enough memory. Mappings can live on the engine or in your own PostgreSQL database shared by several engines. Before engine 6.0.10.0, only one table could be masked at a time with a mapping algorithm; later versions allow concurrent jobs.</p>
+<h3 id="c26-tokenization">Tokenization: masking you can reverse</h3>
+<p>The Tokenization framework encrypts values with AES-128 and Base64 so a vendor can analyse data they cannot read, and you can later re-identify their findings. The output is longer than the input; if it would not fit the column, the framework either fails the job or falls back to a reversible Character Mapping. Segment Mapping, Character Mapping and Mapping can also be used for tokenization under conditions the framework pages list. You create a domain with both a masking and a tokenization algorithm, then a Tokenization environment, and use <em>+ Tokenization Job</em> and <em>+ Re-Identification Job</em>; the form has the same fields as a masking job.</p>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/create_jobs8.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/create_jobs8.png" alt="Create Tokenization Job Details step with Select Tokenization Method" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The Create Tokenization Job form: the same layout as a masking job, with a "Select Tokenization Method" drop-down in place of the masking method. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+
+<h2 id="c26-configure">26.10 Creating, choosing and managing algorithms</h2>
+<h3 id="c26-create-algorithm">Create your own instance</h3>
+<ol class="steps">
+<li><strong>Settings &gt; Algorithms &gt; <em>+ Algorithm</em>.</strong><p>Your instances are called user-defined algorithms; once saved they are available to all users.</p></li>
+<li><strong>Enter a unique Algorithm Name, a Description and choose the Framework, then Next.</strong><p>Name and framework are locked after creation, so choose carefully. The wizard shows the framework's Mask Type (for Date Shift it showed LOCAL_DATE_TIME).</p></li>
+<li><strong>Fill in the framework's configuration, then Next.</strong><p>The panel on the right explains each field. The frameworks in the catalogue each have their own options.</p></li>
+<li><strong>Check the Summary and Save.</strong><p class="expect">The algorithm appears in the grid. Creating and editing are asynchronous tasks; a "Run in background" option may appear if it takes time.</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/algorithms1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/algorithms1.png" alt="Add Algorithm wizard Details step with Name, Description and Framework Name Date Shift" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The Details step of the Add Algorithm wizard. On screen: Name "test_algo", Description, Framework Name "Date Shift", Mask Type LOCAL_DATE_TIME and a short framework description; steps Details, Configuration and Summary on the left. <a class="badge-link" href="https://help.delphix.com/cc/current/content/algorithms.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>To use a new algorithm in a profiling job you must first attach it to a domain as that domain's default (see <a href="25-delphix-profiling.html">the profiling chapter</a>). If you build the inventory by hand, no domain is needed <span class="badge doc">From docs</span>.</p>
+<h3 id="c26-choose-framework">Choosing between Character Mapping and Segment Mapping</h3>
+<p>The docs say Character Mapping is intended to replace Segment Mapping in many cases, but not all <span class="badge doc">From docs</span>.</p>
+<div class="compare"><div><h4>Prefer Character Mapping when</h4>
+<ul>
+<li>Data is dirty or inconsistently formatted: it keeps non-masked characters automatically</li>
+<li>You need Unicode (first plane) rather than just a-z and 0-9</li>
+<li>Inputs differ in length and you want to preserve the last characters (reverse preserve ranges)</li>
+<li>You want every position to influence every other</li>
+</ul></div>
+<div><h4>Prefer Segment Mapping when</h4>
+<ul>
+<li>Parts of the value must be masked differently by position</li>
+<li>You need to map input ranges to different output ranges (A-D to W-Z)</li>
+<li>You need numeric segments limited to a value range (up to 6 digits)</li>
+</ul></div></div>
+<h3 id="c26-multi-column">Multi-column algorithms</h3>
+<p>A multi-column algorithm (for example Dependent Date Shift or Multi Column Address) is assigned once but spans several columns, each filling a <em>logical field</em>. It is meant for coordinated masking, such as two dates that must keep their interval. Each non-optional logical field must be assigned for every Algorithm Group number, and incomplete assignments may only be noticed when the job runs. They only work where whole rows are processed together, and cannot be called by other algorithms through chaining <span class="badge doc">From docs</span>.</p>
+<h3 id="c26-usage-sync">Usage and syncability (engine administration)</h3>
+<ul>
+<li><strong>Usage.</strong> <code>GET algorithm/{algorithmName}/usage</code> lists every column, file field, domain and other algorithm that uses it. <code>PUT</code> on the same path with <code>replacementAlgorithmName</code> swaps it everywhere, with optional environment and rule set filters. The docs warn that this can change many inventories and is hard to undo, so first GET usage for both algorithms and export global settings and affected environments <span class="badge doc">From docs</span>.</li>
+<li><strong>Syncability.</strong> Algorithms are fully syncable between engines (<code>GET /syncable-objects?object_type=USER_ALGORITHM</code>). Non-deterministic ones (all Secure Lookup Random algorithms, DateShiftVariable, Gender SL, SexualOrientation SL, SecureShuffle) cannot give the same output twice, so they cannot be used for syncable masking. DateShiftFixed and RepeatFirstDigit are listed as fixed. Syncing an out-of-the-box instance updates its key but does not replace its files <span class="badge doc">From docs</span>.</li>
+</ul>
+<p>Why this matters to a TDM engineer: if two engines mask the same source, identical output on both needs the same keys, which is what syncing delivers. The consistency argument is my reasoning, not a quote.</p>

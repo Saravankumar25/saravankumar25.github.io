@@ -1,0 +1,269 @@
+<h2 id="c13-xsd">13.8 Subsetting XML: XSD sources in brief</h2>
+
+<p>XML data is a tree, not a set of tables, so entities and driving tables do not apply. Instead you put a filter on an <em>element</em> or <em>attribute</em> and set a <strong>scope</strong>: the level of the tree at which the filter is applied. You can apply one filter per hierarchy, and the scope changes the outcome (User Guide 10.5.10, p.114, p.124) <span class="badge doc">From docs</span>.</p>
+
+<p>The procedure (p.124): import the XML source definition from the PowerCenter repository into the project; click Discover > Files; open the XSD file; select an element or attribute; on the Criteria tab of the Details tab click Edit; choose an operator; enter a value (you <em>cannot</em> use a parameter here); choose the scope; click OK. Then add the XSD file to a plan and run it.</p>
+
+<p>The guide's worked example (p.127 to 134): a master XML file lists departments, each with an address, employees and contractors, each with a name, address and skill. Test group A wants employees skilled in Java; group B wants departments located in BLR.</p>
+
+<ul>
+<li><strong>Group A:</strong> criteria on the element <code>Skill</code> on the Employee branch, operator Equals, value JAVA, scope Employee. The output has all Java employees. Because Department is an <em>ancestor</em> of Employee, the departments that have such employees come along with all their child elements.</li>
+<li><strong>Group B:</strong> delete the Skill criterion, then put a criterion on <code>City</code>: Equals, BLR, scope Department. The output has every department whose address city is BLR, with all child elements.</li>
+</ul>
+
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.127, Figure (Criteria tab of the file page). What I saw: a dialog titled "Edit - Skill" with tabs General, Data Masking, Data Generation and Criteria. Criteria is selected and shows three fields: Operator set to Equals, Value set to JAVA, Scope set to Departments/Department/Employee, with OK and Cancel buttons.</div>
+
+<p>The lesson carries over to relational data: the level where you filter decides which ancestors and descendants appear. For the ShopSphere tables the equivalent of "scope" is your choice of driving table and relationship types.</p>
+
+<h2 id="c13-manage">13.9 Managing subset components</h2>
+
+<p>Components live in the TDM repository and are reused by plans, so changing them has side effects. The guide's housekeeping tasks (User Guide 10.5.10, p.124 to 126) <span class="badge doc">From docs</span>:</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Task</th><th>How</th><th>Watch out for</th></tr></thead>
+<tbody>
+<tr><td>Edit</td><td>Define | Data Subset, open the entity or group, Actions > Edit. General tab: name, description, status. Entity Criteria tab (entity) or Tables tab (group).</td><td>After saving, a list of plans that use it appears. Those plans must be generated and run again to pick up the change. Optionally Export the list to CSV.</td></tr>
+<tr><td>Export</td><td>In the project, tick the component, Actions > Export, choose a file name and path. Output is an XML file; the default name has the component type, date and time.</td><td>Use it to move a component to another TDM repository.</td></tr>
+<tr><td>Import</td><td>In the Projects view select the target project without opening it, Actions > Import, browse to the XML, Finish.</td><td>The guide says to import into a different TDM repository's project.</td></tr>
+<tr><td>Copy</td><td>Select the component without opening it, Actions > Duplicate, change name and description, Save.</td><td>Good for creating a "10 percent" and a "1 percent" variant.</td></tr>
+<tr><td>Delete</td><td>Select, Actions > Delete, OK.</td><td>If the component is assigned to a plan, that plan becomes invalid. A list of affected plans is shown, which you can export.</td></tr>
+</tbody></table></div>
+
+<h2 id="c13-workflow">13.10 The whole workflow, start to finish</h2>
+
+<p>The guide's own summary of "Creating a Data Subset" is seven steps (User Guide 10.5.10, p.126) <span class="badge doc">From docs</span>. Here they are with the reason and what you should see.</p>
+
+<ol class="steps">
+<li><strong>Create a project and add the data sources.</strong>
+<p>A project is the workspace that holds sources, parameters, components and plans. The guide advises separate projects for XSD sources and relational sources. If you ran discovery in <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>, it is the same project.</p>
+<p class="expect">The tables of the source appear in the project, with constraints from physical keys.</p>
+</li>
+<li><strong>Optional: create connection, owner or criteria parameters.</strong>
+<p>Do this now if you want the same plan to serve different values later (13.7).</p>
+</li>
+<li><strong>Create the subset components for your source type.</strong>
+<p>Relational and flat file: entities and groups. XSD: criteria with scope on elements and attributes.</p>
+<p class="expect">Entities and groups listed under Define | Data Subset.</p>
+</li>
+<li><strong>Optional: optimize the relationships in the entity.</strong>
+<p>Reduces over-pulling by turning unneeded major relationships into minor ones (13.6).</p>
+</li>
+<li><strong>Create a plan and add the subset components and data sources.</strong>
+<p>The plan ties together what to copy, where from and where to. Choose the integrity option, connections (source, target and a staging connection if needed), and any plan-level criteria or Limit.</p>
+</li>
+<li><strong>Run the workflow.</strong>
+<p>Generate a workflow from the plan (the PowerCenter Repository Service generates the mappings) and execute it (the PowerCenter Integration Service does the extraction and load). You can do both in one step with Actions > Generate and Execute (p.308, p.310).</p>
+</li>
+<li><strong>Monitor progress.</strong>
+<p>Watch status in the Workflow Executions view: In Queue, Running, Success or Error. Click the Job ID to open the workflow log (p.311 to 312).</p>
+</li>
+</ol>
+
+<div class="flow">
+<div class="node"><b>1 Project</b></div>
+<div class="arrow">→</div>
+<div class="node"><b>2 Parameters</b></div>
+<div class="arrow">→</div>
+<div class="node"><b>3 Entities / groups</b></div>
+<div class="arrow">→</div>
+<div class="node"><b>4 Optimize</b></div>
+<div class="arrow">→</div>
+<div class="node"><b>5 Plan</b></div>
+<div class="arrow">→</div>
+<div class="node"><b>6 Run</b></div>
+<div class="arrow">→</div>
+<div class="node"><b>7 Monitor</b></div>
+</div>
+
+<p>Plans and workflows get a full chapter of their own: see <a href="16-informatica-plans-workflows-and-warehouse.html">the Informatica plans and workflows chapter</a>. For connections and the profile that finds constraints, see <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>. The tour of the TDM screens is <a href="11-informatica-tdm-tour.html">the Informatica TDM tour</a>.</p>
+
+<h2 id="c13-shopsphere">13.11 Worked example: ShopSphere down to 10 percent</h2>
+
+<div class="callout note">
+<strong class="ctitle">What is documented and what is illustrative</strong>
+<p>The steps and settings follow the guide as cited. The data, the counts and the names (<code>SHOPSPHERE_PROD</code>, <code>MAX_CUST_ID</code>, the products) are my fictional ShopSphere example. The exact row counts in "Option A versus a major relationship" are made up to show the <em>effect</em> the guide describes, not measured in a real run.</p>
+</div>
+
+<h3 id="c13-ss-goal">The goal</h3>
+
+<p>ShopSphere's QA team wants a test database with about 10 percent of customers, with all their orders and order lines, and the products on those lines. The source has 20 customers (1001 to 1020), 36 orders, 80 order lines and 12 products (illustrative). Target: 2 customers.</p>
+
+<h3 id="c13-ss-before">Before: the source rows we care about</h3>
+
+<div class="tablewrap"><table class="sample"><caption>SHOPSPHERE_PROD.CUSTOMERS, first three of 20 rows (fake data)</caption>
+<thead><tr><th>customer_id</th><th>first_name</th><th>last_name</th><th>email</th><th>zip_code</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>Asha</td><td>Menon</td><td>asha.menon@example.com</td><td>560001</td></tr>
+<tr><td>1002</td><td>Ravi</td><td>Kumar</td><td>ravi.k@example.com</td><td>600017</td></tr>
+<tr><td>1003</td><td>Meera</td><td>Nair</td><td>meera.n@example.com</td><td>682001</td></tr>
+<tr><td>... 1004 to 1020</td><td colspan="4">17 more customers</td></tr>
+</tbody></table></div>
+
+<div class="tablewrap"><table class="sample"><caption>ORDERS and ORDER_ITEMS rows for customers 1001 and 1002 (illustrative)</caption>
+<thead><tr><th>order_id</th><th>customer_id</th><th>item_id</th><th>product_code</th><th>quantity</th><th>unit_price</th></tr></thead>
+<tbody>
+<tr><td>5001</td><td>1001</td><td>9001</td><td>P-100</td><td>1</td><td>999.00</td></tr>
+<tr><td>5001</td><td>1001</td><td>9002</td><td>P-205</td><td>2</td><td>249.50</td></tr>
+<tr><td>5002</td><td>1001</td><td>9003</td><td>P-205</td><td>1</td><td>249.50</td></tr>
+<tr><td>5003</td><td>1001</td><td>9004</td><td>P-310</td><td>3</td><td>40.00</td></tr>
+<tr><td>5004</td><td>1002</td><td>9005</td><td>P-100</td><td>1</td><td>999.00</td></tr>
+<tr><td>5004</td><td>1002</td><td>9006</td><td>P-402</td><td>1</td><td>59.00</td></tr>
+<tr><td>5005</td><td>1002</td><td>9007</td><td>P-310</td><td>2</td><td>40.00</td></tr>
+</tbody></table></div>
+
+<p>(Order totals in ORDERS would be 1498.00, 249.50, 120.00, 1058.00 and 80.00. Customer 1003 and the others have their own orders that we want to leave behind.)</p>
+
+<h3 id="c13-ss-steps">Steps</h3>
+
+<ol class="steps">
+<li><strong>Confirm the constraints exist.</strong>
+<p>An entity follows constraints. Open the project's tables and check that ORDERS to CUSTOMERS, ORDER_ITEMS to ORDERS and ORDER_ITEMS to PRODUCTS are listed. If the PRODUCTS link is not declared in the database, add it as a logical foreign key in TDM (p.109 and p.116; this does not alter the source).</p>
+<p class="expect">Three relationships visible, each with Input Type physical or logical.</p>
+</li>
+<li><strong>Create a criteria parameter.</strong>
+<p>Projects, open the project, Parameters, Add. Name <code>MAX_CUST_ID</code>, type criteria (TDM builds the name <code>$$MAX_CUST_ID</code>), data type Numeric, default 1002, override allowed (p.57).</p>
+<p class="expect">The parameter is listed in the project. Setting 1002 gives 2 of 20 customers, which is 10 percent.</p>
+</li>
+<li><strong>Create the entity.</strong>
+<p>Define | Data Subset, Actions > New > Entities, name <code>ShopSphere_Customer_Entity</code>, Select Table = CUSTOMERS, Save (p.116 to 117).</p>
+<p class="expect">The map shows a star on CUSTOMERS and links to ORDERS, ORDER_ITEMS and PRODUCTS. Every link is major by default (p.119).</p>
+</li>
+<li><strong>Add the filter.</strong>
+<p>Edit, Entity Criteria, Add Criteria, choose <code>customer_id</code>. Attribute Parameter, operator less-than-or-equal, parameter <code>MAX_CUST_ID</code>. Save (p.117).</p>
+</li>
+<li><strong>Deal with PRODUCTS before you run anything.</strong>
+<p>See "Option A versus a major relationship" below. Set the ORDER_ITEMS to PRODUCTS relationship to <strong>minor</strong> by clicking the link in the Entity Map and changing Type (p.117), or use Actions > Optimize Relations (p.119).</p>
+<p class="expect">The link is marked minor; the entity needs a criterion first for Optimize Relations to work.</p>
+</li>
+<li><strong>Create the plan.</strong>
+<p>Execute, Actions > New, enter a name, click Add Subset Components, select the entity, Next. Set source and target connections and a staging connection (recommended: the source connection). Tick "Treat the subset criteria as a variable" and give the parameter file name and path. Keep Data Integrity for Subset at its default, Transactional Integrity for Major Relation Type (p.279, p.287, p.304 to 305).</p>
+<p class="expect">The plan appears in the project.</p>
+</li>
+<li><strong>Generate and execute.</strong>
+<p>Open the plan, Actions > Generate and Execute, choose the Integration Service and run now. In the parameter section, select <code>MAX_CUST_ID</code> using Select Parameter so it is included, and keep the value 1002 (p.310 to 311).</p>
+<p class="expect">Status moves from In Queue to Running to Success in the Workflow Executions view.</p>
+</li>
+<li><strong>Verify the target.</strong>
+<p>Count rows and check there are no orphans (SQL below). TDM's job is to keep integrity, but you confirm.</p>
+</li>
+</ol>
+
+<pre><code>-- Row counts in the target (general SQL, adjust schema names)
+SELECT 'CUSTOMERS' t, COUNT(*) n FROM CUSTOMERS
+UNION ALL SELECT 'ORDERS', COUNT(*) FROM ORDERS
+UNION ALL SELECT 'ORDER_ITEMS', COUNT(*) FROM ORDER_ITEMS
+UNION ALL SELECT 'PRODUCTS', COUNT(*) FROM PRODUCTS;
+
+-- Orphan check: order lines whose order is missing (expect 0)
+SELECT COUNT(*) FROM ORDER_ITEMS i
+LEFT JOIN ORDERS o ON o.order_id = i.order_id
+WHERE o.order_id IS NULL;</code></pre>
+
+<h3 id="c13-ss-after">After: what lands in the target</h3>
+
+<div class="tablewrap"><table class="sample"><caption>Row counts, source versus target (illustrative)</caption>
+<thead><tr><th>Table</th><th>Source</th><th>Target with minor PRODUCTS link</th><th>Target with major PRODUCTS link</th></tr></thead>
+<tbody>
+<tr><td>CUSTOMERS</td><td>20</td><td>2 (1001, 1002)</td><td>15</td></tr>
+<tr><td>ORDERS</td><td>36</td><td>5 (5001 to 5005)</td><td>31</td></tr>
+<tr><td>ORDER_ITEMS</td><td>80</td><td>7 (9001 to 9007)</td><td>70</td></tr>
+<tr><td>PRODUCTS</td><td>12</td><td>4 (P-100, P-205, P-310, P-402)</td><td>12</td></tr>
+</tbody></table></div>
+
+<p>With the minor link, the target holds exactly the two customers, their five orders, seven lines and the four products on those lines. Meera (1003) and the other 17 customers are gone, and nothing points at a missing row.</p>
+
+<h3 id="c13-ss-loop">Option A versus a major relationship</h3>
+
+<p>Why did I insist on changing PRODUCTS to minor? With the default (all major), the loop from 13.6 applies: line 9001 pulls in its parent product P-100. As a major parent, P-100 then selects <em>all</em> order lines for P-100, from every customer. Those lines pull their orders, the orders pull their customers, and so on, until nothing new is added. A popular product like P-100 can connect nearly everyone, so "10 percent of customers" turns into most of the database (the right-hand column above, illustrative counts). Minor means: bring the product along, but do not let the product pull its other lines.</p>
+
+<pre class="ascii">
+Major PRODUCTS link                  Minor PRODUCTS link
+customer 1001                        customer 1001
+  order 5001 -> line 9001              order 5001 -> line 9001
+     product P-100  --pulls-->            product P-100 (stops here)
+        ALL lines with P-100
+           -> other orders
+              -> other customers
+</pre>
+
+<h3 id="c13-ss-b">Option B: reference table as a group</h3>
+
+<p>PRODUCTS is small and looks like reference data. Another valid design: disable the ORDER_ITEMS to PRODUCTS relationship in the entity (p.120) so the entity is just customers, orders and lines, then create a <strong>group</strong> containing PRODUCTS (tick it from the residual tables, p.116) and add both the entity and the group to the plan. The target gets all 12 products (unfiltered) and still has no orphan lines. The trade-off: 8 unused products travel along, which is harmless here but would matter for a 2-million-row table. Pick Option A for big parent tables and Option B for small reference tables.</p>
+
+<p><a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a> covers why test teams usually want reference data complete and transactional data small; <a href="14-informatica-data-masking.html">the Informatica masking chapter</a> shows masking the customers you just selected, so the 2 customers in this subset do not carry real names or SSNs.</p>
+
+<h2 id="c13-lab">13.12 Lab: TDM_Handson3 (profiling and subset), ShopSphere version</h2>
+
+<div class="exercise">
+<h4>Lab: subset ShopSphere to about 10 percent of customers</h4>
+<p>Goal: after profiling the source for constraints (the profiling half of TDM_Handson3 is in <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>), build an entity with CUSTOMERS as the driving table, filter with a parameter and run a plan so the target has the first 10 percent of customers with their orders, order lines and products. Everything below on ShopSphere is illustrative; the screens are from the guide, so use your lab environment's real database and its real table names.</p>
+<ol class="steps">
+<li><strong>Check the source.</strong>
+<p>Query counts on the four tables and write them down. You need them for the before and after comparison.</p>
+<p class="expect">For example 20, 36, 80, 12 on the sample, or your lab's own numbers.</p>
+</li>
+<li><strong>Confirm or add the constraints.</strong>
+<p>Open the project's tables and check the three relationships. Add any missing logical foreign key.</p>
+</li>
+<li><strong>Create parameter <code>MAX_CUST_ID</code>, then the entity and its criterion.</strong>
+<p>Follow steps 2 to 4 above. In your lab replace 1002 with the 10th percentile ID of your own data.</p>
+</li>
+<li><strong>Switch the PRODUCTS link to minor (or use Option B).</strong>
+<p>Record which you picked and why.</p>
+</li>
+<li><strong>Create the plan, generate and execute it.</strong>
+<p>Use Generate and Execute and select the criteria parameter in the run window.</p>
+<p class="expect">Status Success.</p>
+</li>
+<li><strong>Verify.</strong>
+<p>Run the count and orphan queries on the target and fill in a before/after table.</p>
+</li>
+<li><strong>Experiment.</strong>
+<p>Change the parameter value to 1004 and rerun the <em>same</em> workflow: the point of parameters is that nothing else needs editing. Then try the default (all major) PRODUCTS link and note how the counts change.</p>
+</li>
+</ol>
+<details class="sol">
+<summary>Show a worked answer</summary>
+<p>With the sample data: target counts 2, 5, 7, 4 for CUSTOMERS, ORDERS, ORDER_ITEMS and PRODUCTS, orphan query returns 0. After changing <code>MAX_CUST_ID</code> to 1004 and rerunning the same workflow you expect 4 customers and their related rows, again with no orphans. If you left PRODUCTS major, the target would be far larger than 10 percent because of the major-relationship loop (13.6); that is not a TDM bug but the documented behaviour, and the fix is minor relationships, Optimize Relations, or Option B.</p>
+<p>If the run included no filter (all 20 customers copied), check that the criteria parameter was selected in the Execute Workflow window (p.311), and that the plan option "Treat the subset criteria as a variable" is ticked (p.279). If a Limit-based alternative interests you, replace the criterion by a plan-level Limit of 10 percent and compare counts; the guide does not say how it treats related tables, so measure it.</p></details>
+</div>
+
+<h2 id="c13-mistakes">13.13 Common mistakes and gotchas</h2>
+
+<div class="callout warn">
+<strong class="ctitle">Watch out for these</strong>
+<ul>
+<li><strong>No criterion, huge subset.</strong> An entity without a filter copies everything it reaches.</li>
+<li><strong>Everything is major by default,</strong> so a popular parent table can balloon the result (p.119, 13.11). Optimize relations or set minor.</li>
+<li><strong>Missing constraints.</strong> If the database does not declare a foreign key, TDM will not follow it until you add a logical constraint (p.109, p.116).</li>
+<li><strong>Editing without rerunning.</strong> After you edit or delete an entity, group or rule, the plans that use it do not pick up the change until you generate and run them again (p.124, p.275).</li>
+<li><strong>Using a database function directly in a criterion.</strong> Workflow generation fails; use IN with a SELECT clause (p.118 to 119).</li>
+<li><strong>Parameter not selected or not overridable.</strong> Criteria parameters must be added in the Execute Workflow window, and non-overridable ones ignore your edit (p.311).</li>
+<li><strong>Forgetting quotes on string or date parameter values</strong> in the parameter file (p.118).</li>
+<li><strong>Cycles and a missing staging connection.</strong> Cyclic or multi-major-parent structures need one (p.109, p.122).</li>
+<li><strong>Mutually exclusive criteria give an empty subset.</strong> Several criteria are ANDed; use OR in the plan's Advanced criteria if you want either (p.122).</li>
+<li><strong>Treating the Limit like a magic 10 percent.</strong> The guide does not describe how it interacts with related rows. Test it.</li>
+</ul>
+</div>
+
+<h2 id="c13-recap">13.14 Recap</h2>
+
+<div class="callout recap">
+<strong class="ctitle">Key points</strong>
+<ul>
+<li>A data subset is a small, referentially intact copy of production data; TDM can build one from relational, flat file or XSD sources.</li>
+<li>An entity is a driving table plus the tables related to it by constraints; a group is a set of unrelated tables copied as they are; a template is an optional container the guide barely describes.</li>
+<li>Filter criteria, with an operator and either a value or a parameter, choose rows. A plan can add Custom (Basic, Advanced) criteria or a Limit by percentage, absolute value or interval.</li>
+<li>Major constraints move both ways and can pull in far more than you expected; minor constraints go child to parent only. Optimize Relations suggests which can be minor.</li>
+<li>Integrity options (Transactional, Referential only, Two-way, One-way) trade completeness against size.</li>
+<li>The workflow: project, parameters, components, optional optimization, plan, run, monitor.</li>
+</ul>
+</div>
+
+<section class="sources"><h2 id="c13-sources">Sources used in this chapter</h2>
+<ul>
+<li>Informatica Test Data Management 10.5.10 User Guide (PDF, February 2026, 455 pages), User Guide chapter 6 "Creating a Data Subset", pages 112 to 134, read in full. Used for: components, entities, views, constraint properties, parameters, database functions, optimizing relations, integrity options, groups, component management, the seven-step workflow and the XSD example. Pages 113, 115, 119, 121 and 127 were rendered to read the figures.</li>
+<li>Same guide, chapter 3 "Projects" (Creating a Parameter, p.57 to 58), User Guide chapter 5 "Data Discovery" (constraints and major/minor severity, p.107 to 109), User Guide chapter 1 (template definition, p.32). Used for parameter types and naming, constraint types and the severity rules.</li>
+<li>Same guide, chapter 13 "Plans and Workflows": plan overview (p.274 to 275), Connection Options and Advanced settings (p.279, p.283, p.287), Subset Components and Component Criteria (p.293 to 294), creating a plan (p.304 to 305), workflow generation and execution and parameter files (p.308 to 312). Used for plan-level criteria, Limit, integrity option field, running the workflow.</li>
+<li>Syllabus mapping from the course curriculum (Day 44, TDM_Handson3). The ShopSphere data, row counts and the 10 percent target are the author's illustrative example.</li>
+</ul></section>

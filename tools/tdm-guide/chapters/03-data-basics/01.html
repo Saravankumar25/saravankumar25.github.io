@@ -1,0 +1,88 @@
+<p>Everything a TDM tool does is done to data: it finds data, cuts it down, hides parts of it, makes more of it, and moves it. To follow any of that you need a small, firm vocabulary about how data is organised. This chapter gives it to you from zero. You will not become a database administrator, but you will be able to read a table, spot a key, tell a CSV from a fixed-width file and run a basic SQL query.</p>
+<p>These ideas return constantly. Subsetting, masking and generation all have one rule in common: <strong>keep the relationships between records intact</strong>. You cannot follow that rule if you do not know what a relationship is. This chapter is also the preparation for the primary-key work in the Delphix part of the syllabus (Day 51) and the file-masking work (Day 53).</p>
+
+<div class="callout recap">
+<strong class="ctitle">What you will learn</strong>
+<ul>
+<li>The difference between data and information, and what a database, table, row and column are.</li>
+<li>Data types, and what a schema and metadata are.</li>
+<li>Primary keys, foreign keys, parent and child tables, one-to-many relationships and referential integrity.</li>
+<li>Why keys matter so much to subsetting, masking and generation, and what logical keys are.</li>
+<li>Flat files (text, .dat, CSV, delimited, fixed-width), headers, footers, records and encodings, with sample files.</li>
+<li>XML and JSON at a glance.</li>
+<li>Basic SQL: SELECT, WHERE, JOIN, INSERT, UPDATE and COUNT, with runnable ShopSphere examples.</li>
+<li>Why data volume matters, and a hands-on exercise on finding keys in files.</li>
+</ul>
+</div>
+
+<div class="callout note">
+<strong class="ctitle">What this chapter is based on</strong>
+<p>The data concepts and SQL are general knowledge, marked <span class="badge concept">General concept</span>; the SQL examples were run against the ShopSphere sample data in SQLite to check the results shown. Tool-specific statements come from three places. The Informatica TDM 10.5.10 User Guide (PDF, February 2026) is cited by page, for logical keys and key profiles. The Delphix Continuous Compliance 2026.5 help pages <a href="https://help.delphix.com/cc/current/content/managing_file_formats.htm" target="_blank" rel="noopener">Managing file formats</a>, <a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a> and <a href="https://help.delphix.com/cc/current/content/managing_record_types_and_header_footer_records.htm" target="_blank" rel="noopener">Managing record types and header/footer records</a> are used for how that product treats file formats and keys. Those statements are marked <span class="badge doc">From docs</span>.</p>
+</div>
+
+<h2 id="c3-words">3.1 Words to know first</h2>
+<dl class="defs">
+<div><dt>Data</dt><dd>Raw facts, such as "1001", "Asha" and "560001", before anyone says what they mean.</dd></div>
+<div><dt>Information</dt><dd>Data with meaning: "customer 1001 is Asha, living in postal area 560001".</dd></div>
+<div><dt>Database</dt><dd>An organised store of data that a program can search and change reliably.</dd></div>
+<div><dt>Table</dt><dd>A grid of data about one kind of thing, like one sheet in a spreadsheet.</dd></div>
+<div><dt>Row / record</dt><dd>One item in a table: one customer, one order.</dd></div>
+<div><dt>Column / field</dt><dd>One attribute of every row: first name, phone, order date.</dd></div>
+<div><dt>Primary key (PK)</dt><dd>A column (or columns) whose value is unique for every row and identifies it.</dd></div>
+<div><dt>Foreign key (FK)</dt><dd>A column whose values point to the primary key of another table.</dd></div>
+<div><dt>Referential integrity</dt><dd>The rule that every foreign key value must match an existing primary key value.</dd></div>
+<div><dt>Schema / metadata</dt><dd>The description of the data (table names, columns, types, keys) as opposed to the data itself.</dd></div>
+<div><dt>Flat file</dt><dd>A plain file holding records as lines of text, with no built-in database engine behind it.</dd></div>
+<div><dt>SQL</dt><dd>The language used to ask a relational database questions and to change it.</dd></div>
+</dl>
+
+<h2 id="c3-data-information">3.2 Data and information</h2>
+<p>Look at this: <code>1001 | Asha | Menon | 560001</code>. On its own it is just data: four values. You can guess it is a person, but you are guessing. Add labels (<em>customer_id, first_name, last_name, zip_code</em>) and a table name (<em>CUSTOMERS</em>) and it becomes information: customer 1001 is Asha Menon in postal area 560001.</p>
+<p>That distinction matters for TDM because tools often see only data and have to work out the meaning. Discovery (see <a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a>) is largely the job of recovering meaning: "this column, called <code>col_17</code>, contains phone numbers". Column names, data types and descriptions are the clues.</p>
+<span class="badge concept">General concept</span>
+
+<h2 id="c3-databases-tables">3.3 Databases and tables</h2>
+<h3 id="c3-spreadsheet">The spreadsheet analogy</h3>
+<p>If you have used a spreadsheet you already know the idea. A <dfn>table</dfn> is one sheet: columns across the top with names, rows below, one item per row. A <dfn>database</dfn> is the whole workbook, with several sheets (tables) that belong together.</p>
+<p>Here is the ShopSphere <code>CUSTOMERS</code> table:</p>
+<div class="tablewrap"><table class="sample"><caption>CUSTOMERS (fake sample rows, first five columns)</caption><thead><tr><th>customer_id</th><th>first_name</th><th>last_name</th><th>email</th><th>phone</th></tr></thead><tbody><tr><td>1001</td><td>Asha</td><td>Menon</td><td>asha.menon@example.com</td><td>9876543210</td></tr>
+<tr><td>1002</td><td>Ravi</td><td>Kumar</td><td>ravi.k@example.com</td><td>9123456780</td></tr>
+<tr><td>1003</td><td>Meera</td><td>Nair</td><td>meera.n@example.com</td><td>9988776655</td></tr></tbody></table></div>
+<ul>
+<li>Each <strong>row</strong> (also called a <dfn>record</dfn>) is one customer.</li>
+<li>Each <strong>column</strong> (also called a <dfn>field</dfn> or attribute) is one fact about every customer.</li>
+<li>Each <strong>cell</strong> is one value: the phone number of customer 1002.</li>
+</ul>
+<p>Unlike a spreadsheet sheet, a database table enforces each column's declared type, can be linked to other tables by keys, can hold millions of rows, and is queried with SQL (later in this chapter). ShopSphere uses a <dfn>relational</dfn> database (Oracle, SQL Server, MySQL, PostgreSQL and DB2 are examples): tables relate through keys.</p>
+<span class="badge concept">General concept</span>
+
+<h3 id="c3-datatypes">Data types</h3>
+<p>Each column has a <dfn>data type</dfn> that says what kind of value it holds. The type controls what is allowed, how much space it takes and how it can be used (you can add numbers but not names).</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Type family</th><th>Typical names</th><th>ShopSphere example</th><th>Why a TDM person cares</th></tr></thead><tbody><tr><td>Whole numbers</td><td>INTEGER, INT, NUMBER</td><td><code>customer_id</code>, <code>quantity</code></td><td>Generated or masked values must still be whole numbers.</td></tr>
+<tr><td>Decimal numbers</td><td>DECIMAL(10,2), NUMERIC</td><td><code>unit_price</code>, <code>total_amount</code></td><td>Precision matters: 10,2 means up to 10 digits, 2 after the point.</td></tr>
+<tr><td>Text</td><td>VARCHAR(50), CHAR(10)</td><td><code>first_name</code>, <code>email</code></td><td>A masked name must fit the length limit.</td></tr>
+<tr><td>Dates and times</td><td>DATE, TIMESTAMP</td><td><code>date_of_birth</code>, <code>order_date</code></td><td>A masked date of birth must still be a real date.</td></tr>
+<tr><td>True/false</td><td>BOOLEAN, BIT</td><td>(none in ShopSphere)</td><td>Only two values exist.</td></tr>
+<tr><td>Binary / large objects</td><td>BLOB, CLOB, images</td><td>(none in ShopSphere)</td><td>Special handling; many masking techniques do not apply.</td></tr></tbody></table></div>
+<p>Notice something about the ShopSphere sample data: <code>phone</code>, <code>ssn</code> and <code>zip_code</code> look like numbers, but they are stored as <strong>text</strong>. You never add two phone numbers, and a leading zero would be lost if they were numbers. That choice affects how you mask them: a text column can hold dashes (123-45-6789); a numeric column cannot.</p>
+<div class="callout why">
+<strong class="ctitle">Why this matters</strong>
+<p>A TDM operation must produce values the column accepts. A masked or generated name longer than the column's limit makes the load fail. A fake date such as 31 February is rejected. Many job failures in the tool chapters come down to "the new value did not fit the column's type or length".</p>
+</div>
+
+<h3 id="c3-schema">Schema and metadata</h3>
+<p><dfn>Metadata</dfn> means "data about data". For a database it is the list of tables, their columns, each column's name and type, which columns are keys, and which tables relate to which. The collection of all that is the <dfn>schema</dfn>.</p>
+<p>Here is part of the ShopSphere schema written as a simple description (not the data):</p>
+<pre><code>CUSTOMERS
+  customer_id    INTEGER       PRIMARY KEY
+  first_name     VARCHAR(50)
+  last_name      VARCHAR(50)
+  email          VARCHAR(100)
+  phone          VARCHAR(15)
+  ssn            VARCHAR(11)
+  date_of_birth  DATE
+  zip_code       VARCHAR(10)
+  tax_id         VARCHAR(20)</code></pre>
+<p>The metadata tells a tool a lot without reading a single row. A column called <code>ssn</code> of type <code>VARCHAR(11)</code> is a strong hint (11 characters fits 123-45-6789). TDM tools therefore read metadata first, then sample the actual data. The Informatica guide describes a TDM repository that stores the metadata you import into Test Data Manager from a source database (User Guide 10.5.10, p.26). The Delphix introduction describes two profiling methods, one scanning column names (metadata) and one scanning the data itself (<a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a>). <span class="badge doc">From docs</span></p>
+

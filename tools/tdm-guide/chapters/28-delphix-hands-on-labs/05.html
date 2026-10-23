@@ -1,0 +1,157 @@
+<h2 id="c28-lab7">28.7 Lab 7: mask FirstName in the database (TDM_Handson7)</h2>
+<h3 id="c28-lab7-goal">Goal</h3>
+<p>Run one real in-place masking job on the ShopSphere VDB that changes <code>customers.first_name</code> and nothing else, then prove by query that the job did exactly that. The algorithm rationale is in <a href="26-delphix-algorithms-and-masking-jobs.html">the algorithms and masking jobs chapter</a>; here you see it work.</p>
+<h3 id="c28-lab7-prereq">Prerequisites and setup data</h3>
+<ul>
+<li>Labs 4 and 5 are done: rule set SS_DB_RS exists and has an inventory.</li>
+<li>The VDB can be restored if a job goes wrong. Ask how: for example, a snapshot or bookmark taken before the run. The docs I read describe rewind and refresh for masked VDBs only, so I cannot promise the exact route for your VDB.</li>
+<li>Two extra lab-only things in the VDB (fake data, delete them after the course): a copy table for before/after comparison, and an edge-case customer. The copy table holds unmasked fake data. In real work you would never copy sensitive data next to the masked data.</li>
+</ul>
+<pre><code>CREATE TABLE customers_before AS SELECT * FROM customers;
+
+INSERT INTO customers
+  (customer_id, first_name, last_name, email, phone, ssn, date_of_birth, zip_code, tax_id)
+VALUES
+  (1004, 'Asha', 'Iyer', 'asha.i@example.com', 'CALL-ME-NOW', 'N/A',
+   '1992-01-15', '560002', NULL);
+
+INSERT INTO customers_before SELECT * FROM customers WHERE customer_id = 1004;</code></pre>
+<p>Customer 1004 has the same first name as 1001. Two customers named Asha should receive the same masked first name; that is the consistency check. Its phone and SSN values are deliberately bad: Lab 8 uses them to show non-conformant data.</p>
+<h3 id="c28-lab7-steps">Steps</h3>
+<ol class="steps">
+<li><strong>Make a rule set that contains only today's masking.</strong>
+<p>A masking job masks every column that has an algorithm in the inventory. After Lab 5 your inventory has eight columns assigned. To mask only first_name, duplicate the rule set (the row's actions menu, Duplicate), name the copy <code>SS_DB_RS_FN</code>, and open its inventory. The docs say a copy includes the inventory and any filters. Use the "Clear Masking Assignment" icon on each assigned row (it works per column, as in the profiling chapter): the docs say it removes that assignment and disables automatic updates, after a short confirmation bar. Then edit first_name only.</p>
+<p class="expect">The inventory shows an algorithm for first_name and blank algorithm cells for every other column.</p></li>
+<li><strong>Assign the algorithm.</strong>
+<p>Edit CUSTOMERS.first_name: untick Enable Automatic Updates, Domain FIRST_NAME, Algorithm <code>dlpx-core:FirstName</code>, Save. This is the algorithm the profiler proposed in the official profiling screenshot, so you are confirming, not inventing.</p></li>
+</ol>
+<div class="callout note">
+<strong class="ctitle">What the FirstName algorithm does (from its docs page)</strong>
+<p><span class="badge doc">From docs</span> It is an instance of the Name framework and needs string input. Null, empty and whitespace-only values are returned unmasked, and it raises no non-conformant-data errors. A single character is treated as an abbreviation and masked to a single character. By default at most two names are masked and returned, and leading and trailing white space is not preserved. It is deterministic for the same configuration and key and it is <em>not</em> unique: collisions are possible, and a masked value can even equal the input (<a href="https://help.delphix.com/cc/current/content/dlpx_core__firstname.htm" target="_blank" rel="noopener">FirstName</a>, <a href="https://help.delphix.com/cc/current/content/name__algorithm_frameworks_.htm" target="_blank" rel="noopener">Name framework</a>). The Name framework page adds that its default comparison is case-insensitive, so "Peter" and "peter" mask to the same value.</p>
+</div>
+<ol class="steps" start="3">
+<li><strong>Create the masking job.</strong>
+<p>Jobs tab, + Masking Job. Job Name <code>SS_Mask_FirstName</code>. Masking Method: In-Place. Rule Set: SS_DB_RS_FN. Leave "Stop job on first occurrence" off and Multi Tenant off. Next, the database options: Commit Size and Update Threads can stay default; the docs warn that several update threads can cause deadlocks, especially on tables without an index. Do not tick Disable Constraints, Drop Indexes or Disable Triggers: first_name is not a key. Number of Streams: 1. Save.</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/create_jobs1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/create_jobs1.png" alt="Create Masking Job wizard, Details step, with Job Name, Multi Tenant checkbox, Select Masking Method, Select Rule Set and a Non-conforming Data Stop job on first occurrence checkbox" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> the Details step of Create Masking Job. The three choices that matter today are Job Name, Masking Method and Rule Set. The small print under "Stop job on first occurrence" says it works only when non-conforming data is set to fail the job. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<ol class="steps" start="4">
+<li><strong>Run the Checklist, then run the job.</strong>
+<p>The job's Checklist action repeats the identity-column check. Then choose Run in the actions menu. Take the VDB snapshot first.</p></li>
+<li><strong>Watch the execution.</strong>
+<p>Open the job name from Monitor, Job Executions. The Execution Summary counts tables and rows masked and, importantly, tables and columns with non-conforming data. The Events list shows the stages in order, from initialising and collecting configuration to job completed. Execution Components lists each table with progress and rows per minute.</p><p class="expect">Masking Completed, one table masked (CUSTOMERS), rows masked equal to the row count (4), nonconforming data 0.</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/monitor_job1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/monitor_job1.png" alt="Job execution page titled Masking Completed with an Execution Summary list on the left, an events list from Initializing to Job Completed at top right, an Execution Components table and a Report and Logs button" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> a finished masking job. Left: Execution Summary (tables masked, rows masked, tables and columns with nonconforming data). Top right: the event sequence. Bottom right: Execution Components with a View Logs eye icon per table. The Report and Logs button downloads the job report. This sample masked a different table. <a class="badge-link" href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<h3 id="c28-lab7-verify">Verification checks</h3>
+<pre><code>-- 1. first names changed
+SELECT c.customer_id, b.first_name AS before_name, c.first_name AS after_name
+FROM   customers c JOIN customers_before b ON b.customer_id = c.customer_id
+ORDER  BY c.customer_id;
+
+-- 2. how many unchanged?
+SELECT COUNT(*) AS unchanged
+FROM   customers c JOIN customers_before b ON b.customer_id = c.customer_id
+WHERE  c.first_name = b.first_name;
+
+-- 3. same input, same output (1001 and 1004 are both Asha)
+SELECT COUNT(DISTINCT first_name) AS distinct_masked
+FROM   customers WHERE customer_id IN (1001, 1004);
+
+-- 4. nothing else changed
+SELECT COUNT(*) AS other_changes
+FROM   customers c JOIN customers_before b ON b.customer_id = c.customer_id
+WHERE  c.last_name &lt;&gt; b.last_name OR c.phone &lt;&gt; b.phone OR c.ssn &lt;&gt; b.ssn;</code></pre>
+<ol>
+<li>Query 1 shows a different name on every row. Query 2 should return 0, but it is <em>not guaranteed</em> to: the docs say the masked value can equal the input. If one row matches, record it and move on; it is a property of the algorithm, not a failure.</li>
+<li>Query 3 returns 1: both Asha rows got the same masked name.</li>
+<li>Query 4 returns 0 and the "orphans" query from the setup still returns 0.</li>
+<li>Screenshot the Execution Summary and save the job report (Report and Logs).</li>
+</ol>
+<h3 id="c28-lab7-wrong">What can go wrong</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Symptom</th><th>Likely cause</th><th>What to do</th></tr></thead>
+<tbody>
+<tr><td>Other columns changed too</td><td>You ran SS_DB_RS (all assignments) instead of SS_DB_RS_FN</td><td>Restore the VDB; check which rule set the job points at (View action)</td></tr>
+<tr><td>Job fails on a deadlock error</td><td>More than one update thread on a table without an index</td><td>Reduce Update Threads to 1 (docs)</td></tr>
+<tr><td>Job fails on commit or length</td><td>Masked value longer than the column</td><td>Check column width; the Name framework can cap length</td></tr>
+<tr><td>Nothing changed, job SUCCEEDED</td><td>No algorithm assigned (Clear Assignments removed it, or Save was missed)</td><td>Reopen the inventory and confirm the row</td></tr>
+<tr><td>Rule set shows a stale table list</td><td>Table structure changed since the last refresh</td><td>Refresh the rule set; assignments are kept</td></tr>
+<tr><td>You cannot edit or delete the job</td><td>It is running; the docs say editing and deleting are blocked while running</td><td>Wait, or Cancel the job (this leaves semi-masked data: restore afterwards)</td></tr>
+</tbody></table></div>
+<div class="callout real">
+<strong class="ctitle">What to say in the walkthrough</strong>
+<p>"I duplicated the rule set, cleared all assignments, and kept only first_name with dlpx-core:FirstName so the job could change nothing else. I ran it in-place on the VDB after taking a snapshot. Afterwards I compared with a before-copy: every first name changed, both Asha rows got the same masked value, and last name, phone and SSN were untouched. I also know the algorithm is not unique and may, rarely, return the input, so I do not use it on a key."</p>
+</div>
+<h2 id="c28-lab8">28.8 Lab 8: mask alphanumeric text, SSN and telephone number (TDM_Handson8)</h2>
+<h3 id="c28-lab8-goal">Goal</h3>
+<p>Mask three different kinds of value with three algorithms, verify format and consistency with queries, and deliberately feed in two bad values to see what non-conformant data looks like in a log. The ShopSphere table has no free alphanumeric column, so this lab adds one, <code>membership_code</code>, such as <code>SS-A7K29X</code>.</p>
+<h3 id="c28-lab8-prereq">Prerequisites and setup data</h3>
+<pre><code>ALTER TABLE customers ADD membership_code VARCHAR(12);
+UPDATE customers SET membership_code = 'SS-A7K29X' WHERE customer_id = 1001;
+UPDATE customers SET membership_code = 'SS-B3M81Q' WHERE customer_id = 1002;
+UPDATE customers SET membership_code = 'SS-C9D55R' WHERE customer_id = 1003;
+-- customer 1004 keeps membership_code NULL on purpose
+ALTER TABLE customers_before ADD membership_code VARCHAR(12);
+UPDATE customers_before b SET membership_code =
+  (SELECT c.membership_code FROM customers c WHERE c.customer_id = b.customer_id);</code></pre>
+<p>Then refresh the rule set SS_DB_RS (actions menu, Refresh) so it sees the new column, duplicate it as <code>SS_DB_RS_Sens</code>, clear its assignments, and assign the three below. Lab 7's first-name masking is not repeated here.</p>
+<h3 id="c28-lab8-choice">Choosing the algorithms</h3>
+<p>The choice column below separates what the docs state from what I decided. The default algorithm for the SSN domain is not stated in the pages I read, so confirm it in Settings, Domains instead of relying on my memory of any product.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Column</th><th>Algorithm</th><th>Basis in the docs</th><th>Design choice or caution</th></tr></thead>
+<tbody>
+<tr><td>membership_code (alphanumeric text)</td><td>dlpx-core:CM Alpha-Numeric</td><td>Masks ASCII digits, lower and upper case letters, keeps other characters; for non-numeric data types. Example: "ABCxyz123" becomes "HANwhp391"</td><td>The "SS-" prefix will be masked too. To keep it, a custom Character Mapping instance with a preserve range is the documented route</td></tr>
+<tr><td>ssn (text, ddd-dd-dddd)</td><td>dlpx-core:CM Digits</td><td>Masks every digit and keeps letters and punctuation; Character Mapping gives one-to-one output for text inputs and is deterministic until the key changes</td><td>My choice. Segment Mapping with dashes ignored is the other documented option for SSNs. The docs I read do not say outputs follow US SSN validity rules</td></tr>
+<tr><td>phone (10 digits)</td><td>dlpx-core:Phone US</td><td>Keeps the first digits, replaces the three digits before the last four with 555, and masks the last four with a hash of the digits; other characters are preserved; input up to 30 symbols and at least one digit</td><td>My choice for a clearly fake number. Phone Unique (last 7 digits hashed) was the profiler's own pick in the official screenshot; the page does not promise uniqueness</td></tr>
+</tbody></table></div>
+<p>Pages: <a href="https://help.delphix.com/cc/current/content/dlpx_core__cm_alpha_numeric.htm" target="_blank" rel="noopener">CM Alpha-Numeric</a>, <a href="https://help.delphix.com/cc/current/content/dlpx_core__cm_digits.htm" target="_blank" rel="noopener">CM Digits</a>, <a href="https://help.delphix.com/cc/current/content/dlpx_core__phone_us.htm" target="_blank" rel="noopener">Phone US</a>, <a href="https://help.delphix.com/cc/current/content/character_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Character Mapping</a> and <a href="https://help.delphix.com/cc/current/content/segment_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Segment Mapping</a>.</p>
+<h3 id="c28-lab8-steps">Steps</h3>
+<ol class="steps">
+<li><strong>Assign the algorithms in SS_DB_RS_Sens.</strong>
+<p>For each of the three columns, Edit, untick Enable Automatic Updates, set Domain (membership_code has no built-in domain: pick one that fits or leave the domain empty as your engine allows) and Algorithm, Save.</p><p class="expect">Three assigned rows, every other column blank.</p></li>
+<li><strong>Create and run the job <code>SS_Mask_Sensitive</code>.</strong>
+<p>In-place, rule set SS_DB_RS_Sens, defaults elsewhere. Take the snapshot first. Run it.</p><p class="expect">The status is WARNING (non-conformant) rather than SUCCEEDED, because customer 1004's SSN and phone do not fit. This is the expected outcome in this lab.</p></li>
+<li><strong>Read the warning.</strong>
+<p>Open the job, then View Logs on the CUSTOMERS row in Execution Components. The docs say each event shows Event type UNMASKED_DATA (or JOB_ABORTED), Cause PATTERN_MATCH_FAILURE, a row count and the column name, and that only a pattern of the bad value is shown (L for letters, N for digits, P for punctuation), never the value itself. For "CALL-ME-NOW" expect a pattern like letters, punctuation, letters, punctuation, letters.</p></li>
+</ol>
+<h3 id="c28-lab8-verify">Verification checks</h3>
+<pre><code>-- SSN keeps its shape and stays unique (rows with a real SSN)
+SELECT COUNT(*) AS bad_shape FROM customers
+WHERE customer_id &lt;= 1003 AND ssn NOT LIKE '___-__-____';
+SELECT COUNT(DISTINCT ssn) AS distinct_ssn FROM customers WHERE customer_id &lt;= 1003;
+
+-- nothing left equal to the original
+SELECT COUNT(*) AS unmasked FROM customers c
+JOIN customers_before b ON b.customer_id = c.customer_id
+WHERE c.customer_id &lt;= 1003
+  AND (c.ssn = b.ssn OR c.phone = b.phone OR c.membership_code = b.membership_code);
+
+-- phone pattern, PostgreSQL syntax (use REGEXP_LIKE on Oracle)
+SELECT customer_id, phone FROM customers
+WHERE customer_id &lt;= 1003 AND phone !~ '^[0-9]{3}555[0-9]{4}$';
+
+-- the edge row stayed as it was, which is the problem to report
+SELECT customer_id, ssn, phone, membership_code FROM customers WHERE customer_id = 1004;</code></pre>
+<ol>
+<li>bad_shape is 0 and distinct_ssn is 3. unmasked is 0, with the same caution as Lab 7: an equal value is possible but unlikely.</li>
+<li>The phone query returns no rows.</li>
+<li>membership_code values differ from the originals, keep the "-" and keep the 9-character shape; the NULL stays NULL (the docs say null, empty and whitespace-only values never trigger non-conformant handling in Character Mapping).</li>
+<li>Row 1004 still shows "N/A" and "CALL-ME-NOW". These bad values stayed unmasked and produced the warning. In real life this is how bad source data leaks through, so a WARNING status must never be ignored.</li>
+<li>Orphan query from the setup: 0. Other columns unchanged.</li>
+</ol>
+<h3 id="c28-lab8-wrong">What can go wrong</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Symptom</th><th>Likely cause</th><th>What to do</th></tr></thead>
+<tbody>
+<tr><td>CM Alpha-Numeric used on a numeric column</td><td>The docs say use it only on non-numeric data types</td><td>Use CM Numeric for numeric columns; CM Digits for numbers inside text</td></tr>
+<tr><td>CM Numeric on a text SSN</td><td>It masks but always raises a non-conformant warning on alphanumeric input</td><td>Use CM Digits for text</td></tr>
+<tr><td>Job SUCCEEDED but 1004 is untouched</td><td>Job-level handling is "do not mask" for non-conformant data (the default)</td><td>Choose Fail on encounter or Set value to null for sensitive columns, or clean the source</td></tr>
+<tr><td>Phone looks masked but two customers share it</td><td>Phone US varies only four digits</td><td>Fine for phone; use a unique-output algorithm only if the column must be unique</td></tr>
+<tr><td>SSN masked in one table but not in an extract file</td><td>Different algorithm or key in the two places</td><td>Use the same algorithm instance everywhere the SSN appears</td></tr>
+</tbody></table></div>
+<div class="callout real">
+<strong class="ctitle">What to say in the walkthrough</strong>
+<p>"I matched each algorithm to the kind of value: CM Alpha-Numeric for the membership code, CM Digits for the SSN so the dashes stay and every digit changes, and Phone US for phone so numbers look obviously fake. My checks were shape, uniqueness, no values left equal and no orphans. I planted a bad row on purpose: the job finished with a WARNING, and the log showed the pattern of the bad value, not the value. I would never sign off a run that has an unexplained warning."</p>
+<p>Be ready to say which parts are documented (what each algorithm does) and which parts are your own design (choosing CM Digits for SSN).</p>
+</div>

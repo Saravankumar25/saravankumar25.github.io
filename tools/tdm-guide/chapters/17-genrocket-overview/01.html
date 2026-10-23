@@ -1,0 +1,130 @@
+<p>The earlier part of this guide explained why teams need test data and how to make it safely: copy a slice of production (<a href="05-discovery-and-subsetting-concepts.html">subsetting</a>), hide the sensitive parts (<a href="06-masking-concepts.html">masking</a>), or build data from nothing (<a href="07-test-data-classification-and-generation-concepts.html">generation</a>). The Informatica part showed one commercial tool for all three. This part turns to a tool that is built around the third way: <strong>GenRocket</strong>. It does not copy your production data at all. You describe the shape of the data you want, and it manufactures as many rows as you ask for, already consistent with each other.</p>
+
+<p>This first GenRocket chapter is the map. You will learn the five building blocks the whole product is made of, where each piece runs (some in a cloud web site, some on your own machine), what a "project" is, and how the syllabus phrase <em>Model, Design, Deploy, Manage</em> (Day 46) lines up with real screens. The two chapters after this one go deep on the building blocks: <a href="18-genrocket-domains-attributes-generators.html">domains, attributes and generators</a>, then <a href="19-genrocket-receivers-and-scenarios.html">receivers and scenarios</a>. Nothing here needs a licence to understand; you only need to know what a table and a column are.</p>
+
+<div class="callout recap">
+<strong class="ctitle">What you will learn</strong>
+<ul>
+<li>What "synthetic test data" means and why GenRocket's own pages argue it improves test coverage.</li>
+<li>The five key components (domain, attribute, generator, receiver, scenario) with an everyday analogy, and how they map to the ShopSphere tables.</li>
+<li>What "Test Data Automation" and the Model, Design, Deploy, Manage cycle mean in GenRocket's documentation.</li>
+<li>The hybrid architecture: design in the cloud web platform, generate on your own machine with the GenRocket Runtime.</li>
+<li>What the runtime is made of, the requirements the docs list, and the shape of the setup, including Docker and Jenkins at overview level.</li>
+<li>Projects, project versions, project types, project categorization and the Project Dashboard.</li>
+<li>Who can do what: users, roles and the licensing idea in the documentation.</li>
+</ul>
+</div>
+
+<div class="callout note">
+<strong class="ctitle">What this chapter is based on</strong>
+<p>Everything tool-specific below comes from pages of the official GenRocket help centre (genrocket.helpjuice.com) that I read in full for this chapter. Screenshots are the vendor's own, embedded from the page named in each caption, and I looked at each one before describing it. The help centre is a living site, so button names and counts (for example, how many generators exist) may differ in your version.</p>
+<ul>
+<li>"<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-overview" target="_blank" rel="noopener">GenRocket Overview</a>", "<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/why-synthetic-test-data" target="_blank" rel="noopener">Why Synthetic Test Data?</a>", "<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/the-genrocket-methodology" target="_blank" rel="noopener">The GenRocket Methodology</a>", "<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/test-data-workflow" target="_blank" rel="noopener">Test Data Workflow</a>", "<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-architecture" target="_blank" rel="noopener">GenRocket Architecture</a>", "<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-five-key-components" target="_blank" rel="noopener">GenRocket Five Key Components</a>" and "<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/components-and-ports-configuration-guide" target="_blank" rel="noopener">Components and Ports Configuration Guide</a>".</li>
+<li>"<a href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">Automating Data Generation using CI/CD Pipeline</a>" (the page that spells out the four steps).</li>
+<li>Runtime: "<a href="https://genrocket.helpjuice.com/en_US/genrocket-runtime/genrocket-runtime-overview" target="_blank" rel="noopener">GenRocket Runtime Overview</a>", "<a href="https://genrocket.helpjuice.com/en_US/genrocket-runtime/how-to-verify-port-443-is-open-for-genrocket-runtime" target="_blank" rel="noopener">How to Verify Port 443 is Open</a>", "<a href="https://genrocket.helpjuice.com/en_US/genrocket-runtime/using-an-offline-certificate-for-corporate-environments" target="_blank" rel="noopener">Using an Offline Certificate</a>", the Windows setup page, the Docker page, and the Jenkins page.</li>
+<li>Projects and dashboards: Web Platform Overview, Project Dashboard, Test Data Projects Overview, Project Types, How to create a Test Data Project, Project Versions, Project Categorization, User Management Overview, User Roles and Permissions and the General FAQ.</li>
+</ul>
+<p>The help centre's "GenRocket Glossary" page is auto-generated, and its list of definitions was empty when I fetched it (the page and its glossary data file both came back with no entries). So the glossary below is built from the pages above, not copied from that page.</p>
+<p>Related videos (transcripts were not available, so they are <em>not used as a source</em> and I describe nothing from them): <a href="https://www.youtube.com/watch?v=Z89qnX5B1xE" target="_blank" rel="noopener">"GenRocket Overview Video 2022"</a> (GenRocketINC) and <a href="https://www.youtube.com/watch?v=iJdUoxupDqA" target="_blank" rel="noopener">"Test Data Automation-Webinar by Kualitatem and GenRocket"</a> (Kualitatem Official). Related video, transcript unavailable, not used as a source.</p>
+</div>
+
+<h2 id="c17-words">17.1 Words to know first</h2>
+
+<dl class="defs">
+<div><dt>Synthetic test data</dt><dd>Data manufactured by an algorithm instead of captured from real events. GenRocket's page defines it in nearly those words. Nobody's real name or card number is in it.</dd>
+</div>
+<div><dt>Domain</dt><dd>One "thing" you want data for, such as a customer. For a database it is a table. For output it can also be a file, message, JSON or XML document.</dd>
+</div>
+<div><dt>Attribute</dt><dd>One characteristic of a domain, such as <code>firstName</code> or <code>email</code>. For a database it is a column.</dd>
+</div>
+<div><dt>Generator</dt><dd>The small engine attached to an attribute that decides what value to produce, for example "a first name from a list" or "count up from 1".</dd>
+</div>
+<div><dt>Receiver</dt><dd>The component that takes the raw generated values and puts them into a usable form: a CSV file, a JSON file, SQL insert statements, a database table and many more.</dd>
+</div>
+<div><dt>Scenario</dt><dd>A saved instruction sheet: which domains to generate, how many rows of each, in what order. Running it is what actually produces data.</dd>
+</div>
+<div><dt>Test Data Automation (TDA)</dt><dd>The phrase GenRocket's pages use for its approach: test data defined once as components and then generated automatically, in real time, whenever a test needs it.</dd>
+</div>
+<div><dt>Web platform</dt><dd>GenRocket's web application in the cloud, where you model and design. Also called GenRocket Cloud.</dd>
+</div>
+<div><dt>GenRocket Runtime</dt><dd>A set of Java programs installed on your own computer or server. It reads a downloaded scenario and generates the data there, inside your firewall.</dd>
+</div>
+<div><dt>Project and project version</dt><dd>A project holds the data model for one application or database. A version is one release's copy of that model, with its own domains, receivers and scenarios.</dd>
+</div>
+<div><dt>Referential integrity</dt><dd>The promise that every foreign key points to a row that exists. See <a href="03-data-basics.html">the data basics chapter</a>.</dd>
+</div>
+</dl>
+
+<h2 id="c17-what-is">17.2 What GenRocket is and why synthetic data</h2>
+
+<p><span class="badge doc">From docs</span> GenRocket's welcome pages are short and to the point. They define synthetic test data as data "manufactured or generated by an algorithm rather than real-world events", and argue that companies can maximise test coverage by using it to test all permutations and combinations. The CI/CD page describes the product as a component-based platform for defining and provisioning test data for high-volume, automated testing.</p>
+
+<p>Think of a bakery that has to supply cupcakes for a hundred different tasting events. One approach is to buy finished cakes from a rival shop, scrape off the logos and send them out (that is masked production data). The GenRocket approach is to own the recipe and the oven. You write down "chocolate, 12 per tray, nut-free, one tray with a deliberately burnt top" and the oven makes exactly that on demand. The analogy stops being accurate in one respect: a recipe produces cakes that taste alike, while a GenRocket recipe can be told to vary values, include edge cases and keep related trays consistent with each other.</p>
+
+<div class="callout why">
+<strong class="ctitle">Why it matters</strong>
+<p>A tester for ShopSphere's "Customer Orders" app needs a customer with 0 orders, one with 1, one with 200, one whose email is missing and one whose surname is 60 letters long. Production rarely contains all of these, and copying production brings real names along (<a href="02-why-tdm.html">see why TDM exists</a>). Because GenRocket's data is manufactured to a rule, you can ask for the odd cases directly and rebuild the same set tomorrow.</p>
+</div>
+
+<p><span class="badge doc">From docs</span> The documentation is also frank about the work involved. The FAQ says the harder data-design tasks are assigned to a small group of trained "Test Data Engineers", while testers and developers mainly search for the data they need, deploy it into their test environment and tweak it. That is the "TDM engineer" role this guide is aimed at. The Test Data Workflow page starts from the same person: it says the workflow begins with a Power User, a Test Data Engineer.</p>
+
+<p><span class="badge doc">From docs</span> One more design choice matters for privacy. The Test Data Projects page says a project <em>contains no customer data</em>. It holds your data model and the five components that describe how to generate data. The architecture diagram (below) labels the cloud part "No Customer Data Stored".</p>
+
+<h2 id="c17-five">17.3 The five key components</h2>
+
+<p>The help centre says the whole platform is built on five key components, and every other feature is a derivative of them. Learn these five words and the rest of GenRocket becomes vocabulary. Here is the official reference table in my words, with the ShopSphere example added.</p>
+
+<div class="tablewrap">
+<table class="sample">
+<caption>The five key components, with ShopSphere examples (the examples in the last column are mine)</caption>
+<thead><tr><th>Component</th><th>Think of it like</th><th>Official examples</th><th>ShopSphere example</th></tr></thead>
+<tbody>
+<tr><td>Domain</td><td>A noun: a person, place or thing</td><td>Database table, file, image, message, JSON, XML</td><td><code>CUSTOMERS</code>, <code>ORDERS</code>, <code>ORDER_ITEMS</code></td></tr>
+<tr><td>Attribute</td><td>A characteristic of the noun</td><td>Id, FirstName, LastName, Phone, SSN, DOB</td><td><code>first_name</code>, <code>email</code>, <code>zip_code</code></td></tr>
+<tr><td>Generator</td><td>The recipe for one attribute's values</td><td>NameGen, PhoneNumberGen, SSNGen, DateGen, QueryGen</td><td>A name generator for <code>first_name</code>, a counter for <code>customer_id</code></td></tr>
+<tr><td>Receiver</td><td>The packaging that turns raw values into a usable format</td><td>JDBC, SQL, CSV, Image, XML, JSON, VSAM, REST, SWIFT</td><td>A CSV file of customers, SQL inserts for orders</td></tr>
+<tr><td>Scenario</td><td>The instruction sheet: what to generate and how much</td><td>"Generates data into a typical test case in about 100 milliseconds" (the vendor's claim)</td><td>"50 customers, then their orders"</td></tr>
+</tbody>
+</table>
+</div>
+
+<figure class="diagram">
+<svg viewBox="0 0 800 330" role="img" aria-label="Five components in a chain: a domain holds attributes, each attribute has a generator, a receiver formats the values, and a scenario instructs the engine">
+<defs><marker id="c17a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+<rect x="20" y="30" width="170" height="110" rx="10" fill="var(--surface)" stroke="var(--line)"/>
+<text x="105" y="58" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">DOMAIN</text>
+<text x="105" y="82" text-anchor="middle" font-size="13" fill="currentColor">CUSTOMERS</text>
+<text x="105" y="104" text-anchor="middle" font-size="12" fill="currentColor">(a table, a file, a message)</text>
+<rect x="225" y="30" width="170" height="110" rx="10" fill="var(--surface)" stroke="var(--line)"/>
+<text x="310" y="58" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">ATTRIBUTES</text>
+<text x="310" y="82" text-anchor="middle" font-size="13" fill="currentColor">first_name, email, ...</text>
+<text x="310" y="104" text-anchor="middle" font-size="12" fill="currentColor">(the columns)</text>
+<rect x="430" y="30" width="170" height="110" rx="10" fill="var(--surface)" stroke="var(--line)"/>
+<text x="515" y="58" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">GENERATORS</text>
+<text x="515" y="82" text-anchor="middle" font-size="13" fill="currentColor">one per attribute</text>
+<text x="515" y="104" text-anchor="middle" font-size="12" fill="currentColor">(raw values)</text>
+<rect x="635" y="30" width="150" height="110" rx="10" fill="var(--surface)" stroke="var(--line)"/>
+<text x="710" y="58" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">RECEIVER</text>
+<text x="710" y="82" text-anchor="middle" font-size="13" fill="currentColor">CSV, SQL, JSON ...</text>
+<text x="710" y="104" text-anchor="middle" font-size="12" fill="currentColor">(usable output)</text>
+<line x1="190" y1="85" x2="223" y2="85" stroke="currentColor" stroke-width="2" marker-end="url(#c17a)"/>
+<line x1="395" y1="85" x2="428" y2="85" stroke="currentColor" stroke-width="2" marker-end="url(#c17a)"/>
+<line x1="600" y1="85" x2="633" y2="85" stroke="currentColor" stroke-width="2" marker-end="url(#c17a)"/>
+<rect x="20" y="200" width="765" height="90" rx="10" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+<text x="402" y="232" text-anchor="middle" font-size="16" font-weight="700" fill="currentColor">SCENARIO</text>
+<text x="402" y="256" text-anchor="middle" font-size="13" fill="currentColor">Which domains? How many rows of each? In what order?</text>
+<text x="402" y="276" text-anchor="middle" font-size="13" fill="currentColor">The GenRocket engine follows it when you run it.</text>
+<line x1="105" y1="140" x2="105" y2="198" stroke="currentColor" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#c17a)"/>
+<line x1="710" y1="140" x2="710" y2="198" stroke="currentColor" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#c17a)"/>
+</svg>
+<figcaption>Original diagram: how the five components relate. A domain has attributes, each attribute has a generator, a receiver packages the values, and a scenario (dashed arrows) draws on the domains and receivers to tell the engine what to produce.</figcaption>
+</figure>
+
+<p><span class="badge doc">From docs</span> One rule to remember from the Generators Overview: generators only <em>generate</em> values; receivers <em>format</em> them. The split is deliberate. You can change CSV to JSON by swapping the receiver, without touching any generator.</p>
+
+<p>The five-component page adds a small note: the components can also be managed through the Runtime Application Interface (API). The CI/CD page, quoted later, uses that to change a scenario while a pipeline runs.</p>
+
+<div class="callout example">
+<strong class="ctitle">Worked example: one customer row</strong>
+<p>Take the ShopSphere row <code>1001 | Asha | Menon | asha.menon@example.com | 9876543210 | 123-45-6789 | 1990-04-12 | 560001</code> from the earlier chapters. In GenRocket terms: the <strong>domain</strong> is CUSTOMERS. The <strong>attributes</strong> are <code>customer_id</code>, <code>first_name</code>, <code>last_name</code>, <code>email</code> and so on. A <strong>generator</strong> on <code>first_name</code> produces "Asha" (then a different name for the next row), a generator on <code>customer_id</code> counts 1001, 1002, 1003. A <strong>receiver</strong> writes the lines into a file. A <strong>scenario</strong> says "make 3 of these". Every value is fake, so the row can go to any test environment.</p>
+</div>

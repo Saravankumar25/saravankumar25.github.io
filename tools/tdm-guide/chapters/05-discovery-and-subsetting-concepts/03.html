@@ -1,0 +1,95 @@
+<h2 id="c5-subsetting">5.6 What is data subsetting?</h2>
+
+<p>Start with the problem. ShopSphere's production database holds eight years of history: tens of millions of customers, hundreds of millions of orders, terabytes in total. A tester working on the checkout screen does not need all of it. Copying everything to every test environment is slow, expensive and risky. <dfn>Data subsetting</dfn> means copying only a <em>slice</em> of the database, small enough to be cheap, and consistent enough to be useful.</p>
+
+<p><span class="badge doc">From docs</span> Informatica describes the goal as a "small, targeted, and referentially intact copy" of production data for use in a nonproduction environment such as development, test or training, and gives the example of financial data for a specific region or time period (User Guide 10.5.10, p.112). GenRocket frames it the same way: production data may contain sensitive data, "you also do not need all that data for application testing, only a subset" (GenRocket "Synthetic Data Masking (SDM) and Data Subsetting Overview").</p>
+
+<h3 id="c5-why-subset">Why teams subset</h3>
+
+<ul>
+<li><strong>Size and storage cost:</strong> smaller copies need less disk and money (GenRocket lists saved storage as a benefit).</li>
+<li><strong>Speed:</strong> a small copy refreshes overnight instead of over days, and tests and reports run faster.</li>
+<li><strong>Privacy:</strong> fewer real records copied means less exposure and less to mask (the minimum necessary idea from <a href="04-sensitive-data-and-regulations.html">the sensitive data chapter</a>).</li>
+<li><strong>Focus:</strong> you can pick exactly what a test needs, such as one region or one scenario.</li>
+</ul>
+
+<h3 id="c5-subset-not-sample">A subset is not just "the first 1,000 rows"</h3>
+
+<p>Beginners sometimes subset by taking the first N rows of each table. That breaks the data: the first 1,000 orders belong to customers that may not be in the first 1,000 customers. The result is orphans: orders with no customer, items with no order. A real subset starts from a choice (a set of customers, a time window) and then follows the relationships so that every kept row has all the parents it points to. Everything in the next sections is about doing that correctly.</p>
+
+<h2 id="c5-types">5.7 Types of subset</h2>
+
+<p>"Type" here means <em>how you choose which rows to keep</em>. Several can be combined. The table lists the kinds I can ground in the documentation, plus two general concepts marked as such.</p>
+
+<div class="tablewrap"><table><caption>Ways to choose a subset</caption>
+<thead><tr><th>Type</th><th>How the rows are chosen</th><th>Informatica</th><th>GenRocket</th></tr></thead>
+<tbody>
+<tr><td><strong>By filter condition</strong></td><td>Keep rows that satisfy a condition on a column (zip code, status, region).</td><td>Entity filter criteria on columns of the driving table, using values or parameters; several criteria combine with AND (pp.116 to 117).</td><td>Where clause; AND or OR allowed; example <code>address.state = 'CA'</code> (Subsetting how-to).</td></tr>
+<tr><td><strong>By percentage of rows</strong></td><td>Keep a given share of the rows, such as 25 or 50 percent.</td><td>Limit by percentage in the plan (pp.294, 304).</td><td>"% of rows", usable alone or with a Where clause.</td></tr>
+<tr><td><strong>By absolute number of rows</strong></td><td>Keep a fixed number of rows, such as 100.</td><td>Limit by absolute value (pp.294, 304).</td><td>"# of rows".</td></tr>
+<tr><td><strong>By interval of rows</strong></td><td>Keep a defined interval of rows.</td><td>Limit by an interval of rows (pp.294, 304).</td><td>Not described in the pages I read; the overview example starts at customer id 251 and keeps 100 rows.</td></tr>
+<tr><td><strong>By time window</strong> <span class="badge concept">General concept</span></td><td>A filter on a date column: last 90 days, a financial year.</td><td>The guide's example subset is for "a specific region or time period" (p.112); its database-function example uses a date test, <code>HIREDATE &gt; add_months(current_date, -3)</code> (p.119).</td><td>Possible through a Where clause on a date column; the documentation examples I read use id and state filters.</td></tr>
+<tr><td><strong>By entity or driver table</strong></td><td>Pick rows in one table and bring along everything related.</td><td>Entity with a driving table; example: all data for EmpID 10 (p.121).</td><td>The table that holds the subset conditions drives the rest; related rows come with it.</td></tr>
+<tr><td><strong>Whole tables copied in full</strong></td><td>Some tables (lookups, products) are copied entirely.</td><td>A group with residual tables, to copy unfiltered data (p.116).</td><td>Full-load tables (How to Select Tables for Full Migration).</td></tr>
+<tr><td><strong>Random sample</strong> <span class="badge concept">General concept</span></td><td>Rows picked by chance so the subset resembles the whole.</td><td>The documentation excerpt I had does not say whether a percentage limit picks rows at random.</td><td>Not described as random.</td></tr>
+<tr><td><strong>Targeted sample</strong> <span class="badge concept">General concept</span></td><td>Rows picked on purpose to cover a scenario.</td><td>Done with filters on entity criteria.</td><td>Done with the Where clause.</td></tr>
+</tbody></table></div>
+
+<p><strong>A percentage limit is not automatically a random sample.</strong> "Keep 25 percent" says how many rows, not which; the pages I read do not say how rows are picked. GenRocket's own example takes a contiguous block (start at customer 251, take 100). Check the tool before relying on representativeness.</p>
+
+<p>In short: a random sample resembles the whole (realistic averages) but may miss rare cases; a targeted subset covers chosen scenarios but is unrepresentative statistically. <span class="badge concept">General concept</span> Most teams combine them. For cases production lacks entirely, generate data instead (<a href="07-test-data-classification-and-generation-concepts.html">the test data classification and generation chapter</a>).</p>
+
+<p><span class="badge doc">From docs</span> Informatica filters can use a <em>criteria parameter</em> instead of a fixed value, so one entity and workflow can produce different subsets by changing the parameter file (for example EMPID greater than 100, then 500) (User Guide 10.5.10, p.118).</p>
+
+<h2 id="c5-driver-tables">5.8 Driver tables and child rows</h2>
+
+<p>Now the core mechanic. Every subset has a <strong>starting point</strong>: a table and a condition. The tool picks the matching rows there, then <em>follows the relationships</em> to select related rows in other tables.</p>
+
+<figure class="diagram"><svg viewBox="0 0 800 250" role="img" aria-label="ShopSphere tables as boxes: CUSTOMERS to ORDERS to ORDER_ITEMS, and PRODUCTS to ORDER_ITEMS, with the driving table marked">
+<defs><marker id="c5arr" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 z" fill="currentColor"/></marker></defs>
+<rect x="20" y="95" width="160" height="60" rx="8" fill="var(--surface)" stroke="currentColor" stroke-width="3"/>
+<text x="100" y="122" text-anchor="middle" fill="currentColor" font-size="15" font-weight="bold">CUSTOMERS</text>
+<text x="100" y="142" text-anchor="middle" fill="currentColor" font-size="12">DRIVING TABLE (PK customer_id)</text>
+<rect x="250" y="95" width="140" height="60" rx="8" fill="var(--surface)" stroke="currentColor"/>
+<text x="320" y="122" text-anchor="middle" fill="currentColor" font-size="15" font-weight="bold">ORDERS</text>
+<text x="320" y="142" text-anchor="middle" fill="currentColor" font-size="12">FK customer_id</text>
+<rect x="460" y="95" width="160" height="60" rx="8" fill="var(--surface)" stroke="currentColor"/>
+<text x="540" y="122" text-anchor="middle" fill="currentColor" font-size="15" font-weight="bold">ORDER_ITEMS</text>
+<text x="540" y="142" text-anchor="middle" fill="currentColor" font-size="12">FK order_id, product_code</text>
+<rect x="640" y="185" width="140" height="55" rx="8" fill="var(--surface)" stroke="currentColor"/>
+<text x="710" y="210" text-anchor="middle" fill="currentColor" font-size="15" font-weight="bold">PRODUCTS</text>
+<text x="710" y="228" text-anchor="middle" fill="currentColor" font-size="12">PK product_code</text>
+<line x1="180" y1="125" x2="248" y2="125" stroke="currentColor" stroke-width="2" marker-end="url(#c5arr)"/>
+<line x1="390" y1="125" x2="458" y2="125" stroke="currentColor" stroke-width="2" marker-end="url(#c5arr)"/>
+<line x1="640" y1="200" x2="590" y2="157" stroke="currentColor" stroke-width="2" stroke-dasharray="5 3" marker-end="url(#c5arr)"/>
+<text x="214" y="82" text-anchor="middle" fill="currentColor" font-size="12">1. pick customers</text>
+<text x="320" y="190" text-anchor="middle" fill="currentColor" font-size="12">2. their orders</text>
+<text x="540" y="190" text-anchor="middle" fill="currentColor" font-size="12">3. those orders' items</text>
+<text x="700" y="170" text-anchor="middle" fill="currentColor" font-size="12">4. products needed</text>
+<text x="20" y="30" fill="currentColor" font-size="14" font-weight="bold">Solid arrows: parent to child rows pulled down. Dashed arrow: a parent row the kept items point to.</text>
+</svg><figcaption>Original diagram: a subset driven from CUSTOMERS. Child rows follow downward; parent rows that kept rows depend on (the products) are pulled in as well.</figcaption></figure>
+
+<h3 id="c5-driver-in-informatica">Informatica: the entity and its driving table</h3>
+
+<p><span class="badge doc">From docs</span> In Informatica, an <strong>entity</strong> "consists of a driving table and related tables". The driving table is the starting point; TDM finds the tables related to it from physical (declared) and logical (discovered or added) constraints, and adds them to the entity by default. You then define filter criteria on columns of tables in the entity (User Guide 10.5.10, p.114). The guide's example: Employee as the driving table, with primary key EmpID, three child tables holding an EmpID foreign key, and a fourth table, BankAccounts, linked through an account number from one of the children (p.115). The Entity Map shows the star on the driving table.</p>
+
+<p>The Entity Map can show all tables, the parents or children of a selected table, or cyclic relationships, and you can disable a relationship; a table left unrelated is excluded (p.115). The guide advises running data discovery before creating an entity so the constraints exist (p.116).</p>
+
+<div class="callout example"><strong class="ctitle">The guide's own small example</strong>
+
+<p>An employee has ID 10 and you want everything about that employee. Employee is the driving table; Employee_History and Employee_Order are related to it by EmpID. Define the criteria "EmpID equals 10". After the plan runs, the target database holds one Employee row for EmpID 10, all of that employee's history rows and all of their orders (p.121). <span class="badge doc">From docs</span></p></div>
+
+<h3 id="c5-driver-in-genrocket">GenRocket: the subset table and the hierarchy</h3>
+
+<p><span class="badge doc">From docs</span> In GenRocket's G-Subset, only <em>one</em> table in a configuration can have subsetting conditions (Where clause and/or row limit). Rows that meet the condition are included, "all records in related tables associated with those meeting the Where Clause condition will be inserted as well" (Subsetting how-to). The Traverse Full Hierarchy page shows what "related" means. Its example database has Organization (1 row), Department (4), Employee (120), Address, Attendance, Payroll and Qualification (120 each) and Project (8). The condition is on Payroll: <code>hours &gt; 10</code>, limited to 10 rows.</p>
+
+<ul>
+<li><strong>Default behaviour:</strong> G-Subset goes <em>up</em> from the subset table to the top-most parent to build its queries, then migrates from the top down: Organization, Department, Employee, Payroll. Only the ancestor rows related to the chosen Payroll rows move: 10 employees, the departments they belong to, and so on.</li>
+<li><strong>Traverse Full Hierarchy enabled:</strong> it also brings the <em>other children</em> of those ancestors: Project (2 rows), and Address, Attendance and Qualification rows for the same 10 employees.</li>
+</ul>
+
+<p>The same page notes that the option is only available when a subsetting condition has been added to a table, and that masking rules you set for those extra tables are applied to them too.</p>
+
+<div class="callout tip"><strong class="ctitle">Choose the driving table by the test question</strong>
+
+<p>If the test is "does the customer page show the right orders?", drive from <code>CUSTOMERS</code>. If the test is "does the monthly report add up?", drive from <code>ORDERS</code> with a date filter and let the parents (customers) and children (items) follow. The table you drive from decides which rows are complete and which are partial.</p></div>

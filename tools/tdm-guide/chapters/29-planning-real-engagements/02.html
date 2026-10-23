@@ -1,0 +1,60 @@
+<h2 id="c29-landscape">29.5 Mapping the technology landscape</h2>
+<p>Day 54 asks you to analyse the technology landscape. In practice that is a table: every place where in-scope data lives or moves, who owns it, and which environments it feeds. Draw it before choosing tools, because a tool that cannot reach one of the rows leaves a hole in the protection. <span class="badge concept">General concept</span></p>
+<div class="tablewrap"><table class="sample">
+<caption>ShopSphere landscape inventory (illustrative)</caption>
+<thead><tr><th>ID</th><th>System or store</th><th>Type</th><th>Holds</th><th>Feeds</th><th>Refresh</th><th>Owner</th></tr></thead>
+<tbody>
+<tr><td>L1</td><td>SHOPSPHERE_PROD</td><td>Relational database (engine to confirm)</td><td>CUSTOMERS, ORDERS, ORDER_ITEMS, PRODUCTS</td><td>QA, UAT, PERF copies</td><td>Monthly full copy, about 3 days</td><td>DBA team</td></tr>
+<tr><td>L2</td><td>QA and UAT databases</td><td>Relational database</td><td>Copies of L1</td><td>Testers, contractors</td><td>On refresh</td><td>QA lead</td></tr>
+<tr><td>L3</td><td><code>customers.dat</code></td><td>Delimited file</td><td>Customer id, names, SSN, phone</td><td>Marketing partner's test system</td><td>Nightly</td><td>Marketing IT</td></tr>
+<tr><td>L4</td><td><code>billing_fixed.txt</code></td><td>Fixed-width file</td><td>Customer id, name, tax id</td><td>Finance test system</td><td>Monthly</td><td>Finance IT</td></tr>
+</tbody></table></div>
+<p>Then check each row against what the tools can read. The sources say: Informatica TDM builds subsets from relational, flat file or XSD sources (User Guide 10.5.10, p.112). Delphix lists Fixed Width, Delimited, XML, JSON and Parquet files as supported (<a href="https://help.delphix.com/cc/current/content/files_connector.htm" target="_blank" rel="noopener">Files connector</a>) and databases through its connectors. GenRocket's G-Subset subsets and masks MySQL, MSSQL, PostgreSQL, Oracle, DB2, Sybase and Databricks, but only between databases of the same type (<a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-overview-formerly-g-migration" target="_blank" rel="noopener">G-Subset overview</a>). A row that no candidate tool reads goes straight into the risk register.</p>
+<p>The same SSN appears in L1, L3 and L4. That is the central integrity requirement: whatever masks it must give the same result everywhere, or the partner's test data no longer joins to ShopSphere's. The masking concepts are in <a href="06-masking-concepts.html">the masking concepts chapter</a>.</p>
+<h2 id="c29-sensitivity">29.6 Sensitivity assessment</h2>
+<p>For each column in scope, decide whether it is sensitive, how badly, and what to do. Do not trust column names alone: both Informatica and Delphix profile the data itself as well as the names. Informatica discovers data domains by patterns in data or metadata (User Guide 10.5.10, p.31). Delphix's ASDD profiler adds data-level classifiers, which found fields called DATA_00 and DATA_01 as phone and email in an official screenshot (see <a href="28-delphix-hands-on-labs.html">the Delphix labs chapter</a>). A simple, defensible rating is impact if leaked (1 to 3) times exposure in test (1 to 3). <span class="badge concept">General concept</span></p>
+<div class="tablewrap"><table class="sample">
+<caption>Sensitivity assessment for CUSTOMERS (illustrative ratings)</caption>
+<thead><tr><th>Column</th><th>Category</th><th>Impact</th><th>Exposure</th><th>Score</th><th>Decision</th><th>Integrity need</th></tr></thead>
+<tbody>
+<tr><td>customer_id</td><td>Key</td><td>1</td><td>3</td><td>3</td><td>Keep (do not mask)</td><td>Primary key; foreign key in ORDERS</td></tr>
+<tr><td>first_name, last_name</td><td>Personal</td><td>2</td><td>3</td><td>6</td><td>Mask</td><td>Realistic; same input, same output</td></tr>
+<tr><td>email</td><td>Personal</td><td>2</td><td>3</td><td>6</td><td>Mask</td><td>Valid shape; unique if used as a login</td></tr>
+<tr><td>phone</td><td>Personal</td><td>2</td><td>3</td><td>6</td><td>Mask</td><td>Same digit count</td></tr>
+<tr><td>ssn</td><td>National ID</td><td>3</td><td>3</td><td>9</td><td>Mask</td><td>Format ddd-dd-dddd; same value everywhere</td></tr>
+<tr><td>tax_id</td><td>Tax identifier</td><td>3</td><td>3</td><td>9</td><td>Mask</td><td>Format kept; consistent across L1 and L4</td></tr>
+<tr><td>date_of_birth</td><td>Personal</td><td>2</td><td>3</td><td>6</td><td>Mask (shift)</td><td>Still a valid date and plausible age</td></tr>
+<tr><td>zip_code</td><td>Location</td><td>1</td><td>3</td><td>3</td><td>Mask or coarsen</td><td>6 digits; region may need to stay for tax tests</td></tr>
+<tr><td>total_amount</td><td>Business</td><td>1</td><td>3</td><td>3</td><td>Keep</td><td>Sums must still reconcile</td></tr>
+</tbody></table></div>
+<p>The decision rule (my illustration): score 6 or more gets masked; below that is a business discussion. The compliance officer, not the TDM engineer, owns the final "keep" decisions. Record each decision with a reason, because it will be questioned in the sign-off.</p>
+<h2 id="c29-tools">29.7 Choosing between Informatica TDM, GenRocket and Delphix</h2>
+<p>The three tools overlap but have different centres of gravity. The matrix below states what each source says, and tags every cell: <span class="badge doc">From docs</span> means a page I read says it; <span class="badge concept">General concept</span> means it is my summary. A blank in a tool's column means <em>the pages I read do not cover it</em>, not that the tool cannot do it.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Capability</th><th>Informatica TDM</th><th>GenRocket</th><th>Delphix Continuous Compliance</th></tr></thead>
+<tbody>
+<tr><td>Core idea</td><td>One console, Test Data Manager, for discovery, subset, masking and generation, plus a test data warehouse (User Guide, p.21-22)</td><td>Synthetic data from domains, generators and scenarios; G-Subset adds subsetting and masking of existing databases</td><td>Discover and mask sensitive data, integrated with virtual copies (VDBs) of databases (Delphix introduction page)</td></tr>
+<tr><td>Discover</td><td>Primary key, entity and data domain profiles (p.31)</td><td>G-Subset can match column names to find PII columns (G-Subset profiling page)</td><td>ASDD profiler: path, type, regex and list classifiers in profile sets</td></tr>
+<tr><td>Subset</td><td>Entities: a driving table plus related tables by constraints, with filter criteria (p.114)</td><td>G-Subset: where clause, % or number of rows; composite keys not supported</td><td>Per-table filter or custom SQL in a rule set; the pages I read do not describe following related tables</td></tr>
+<tr><td>Mask</td><td>Techniques such as substitution, shuffle, key, SSN, credit card; repeatable output with a seed (p.152 to 154)</td><td>Synthetic data replacement: sensitive values replaced by generated ones, not reversible; by default the real values are not read</td><td>Algorithm frameworks (secure lookup, mapping, character and segment mapping); tokenization is reversible</td></tr>
+<tr><td>Generate</td><td>Separate data generation plans (p.33)</td><td>The core strength</td><td>Not covered in the pages I read</td></tr>
+<tr><td>Files</td><td>Flat file sources (p.112)</td><td>Many output formats through receivers (the five-components page)</td><td>Fixed-width, delimited, XML, JSON, Parquet, mainframe</td></tr>
+<tr><td>Delivery</td><td>Load to target, or store versioned data sets in the test data warehouse (p.22)</td><td>Generate straight into the target</td><td>Masked VDB provisioning and refresh, for Oracle, SQL Server and Sybase only</td></tr>
+<tr><td>Automation</td><td>ilmcmd command line (p.23)</td><td>Runtime API and CI/CD pipeline articles exist</td><td>Masking REST API pages exist</td></tr>
+<tr><td>Known watch-outs</td><td>SSN masking cannot return all-unique SSNs (p.175)</td><td>G-Subset: same database type on both sides</td><td>Non-conformant values are left unmasked by default; masking and virtualization must run on separate engines</td></tr>
+<tr><td>Best at (my summary)</td><td>Breadth and governance in one product</td><td>Volume, edge cases and no need for production data</td><td>Consistent masking plus fast delivery of masked copies</td></tr>
+</tbody></table></div>
+<p>Delphix page sources: <a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix masking</a>, <a href="https://help.delphix.com/cc/current/content/provision_masked_vdbs.htm" target="_blank" rel="noopener">Provision masked VDBs</a>, <a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>. GenRocket: <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-five-key-components" target="_blank" rel="noopener">Five key components</a> and <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-data-column-profiling-steps-for-pii-discovery" target="_blank" rel="noopener">G-Subset data column profiling</a>.</p>
+<h3 id="c29-scoring">Turning the matrix into a decision</h3>
+<p>A matrix informs; a weighted score decides, and the scores must come from the POC, not from opinion. List criteria, give each a weight, score each tool 1 to 5 from POC evidence, and multiply. The weights below are a template. <span class="badge concept">General concept</span></p>
+<div class="tablewrap"><table>
+<thead><tr><th>Criterion</th><th>Weight</th><th>Informatica</th><th>GenRocket</th><th>Delphix</th></tr></thead>
+<tbody>
+<tr><td>Reaches every row of the landscape</td><td>5</td><td>score after POC</td><td>score after POC</td><td>score after POC</td></tr>
+<tr><td>Masking quality and integrity (format, consistency)</td><td>5</td><td></td><td></td><td></td></tr>
+<tr><td>Generation of volume and edge cases</td><td>3</td><td></td><td></td><td></td></tr>
+<tr><td>Delivery speed to testers</td><td>4</td><td></td><td></td><td></td></tr>
+<tr><td>Team skills, licences and cost</td><td>3</td><td></td><td></td><td></td></tr>
+<tr><td>Automation and audit evidence</td><td>3</td><td></td><td></td><td></td></tr>
+</tbody></table></div>
+<p>For ShopSphere, UC1, UC2 and UC6 are masking and subset use cases, so the masking tool is chosen by the score, with existing licences and the VDB question (U10) usually deciding close results. UC3 to UC5 are generation use cases, which the matrix points to GenRocket. Mixed answers are normal: engagements often use one tool to protect existing data and another to create new data.</p>

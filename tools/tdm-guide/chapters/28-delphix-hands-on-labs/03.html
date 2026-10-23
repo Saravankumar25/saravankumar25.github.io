@@ -1,0 +1,100 @@
+<h2 id="c28-lab5">28.5 Lab 5: create a rule set and profile the VDB (TDM_Handson5)</h2>
+<h3 id="c28-lab5-goal">Goal</h3>
+<p>Turn the connector from Lab 4 into a rule set that lists the four ShopSphere tables, run a profiling job over it, read what the profiler found, and correct anything it got wrong. At the end you have an inventory: a table that says which column gets which domain and algorithm.</p>
+<h3 id="c28-lab5-prereq">Prerequisites and setup data</h3>
+<ul>
+<li>Lab 4 is finished: connector SS_VDB_Conn tests successfully.</li>
+<li>The CUSTOMERS, ORDERS, ORDER_ITEMS and PRODUCTS tables exist in the VDB. The concepts behind this lab are in <a href="24-delphix-rule-sets-and-keys.html">the rule sets and keys chapter</a> and <a href="25-delphix-profiling.html">the Delphix profiling chapter</a>.</li>
+</ul>
+<h3 id="c28-lab5-steps">Steps</h3>
+<ol class="steps">
+<li><strong>Open the environment's Rule Sets tab and click + Rule Set.</strong>
+<p>A rule set is the engine's "shopping list" of tables. Profiling and masking jobs both work on a rule set, never on a connector directly.</p>
+<p class="expect">A dialog asks "What type of data does this Rule Set contain?" with four choices: Database, Semi-Structured Files (JSON or XML), Flat Files (delimited or fixed-width) and Copybook (mainframe).</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_ruleset1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_ruleset1.png" alt="Dialog asking what type of data the rule set contains, with the options Database, Semi-Structured Files, Flat Files and Copybook, and Close and Continue buttons" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> the rule set type chooser. Database is highlighted by default. You will use Flat Files in Lab 6. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<ol class="steps" start="2">
+<li><strong>Choose Database, click Continue, and fill in the Details step.</strong>
+<p>Name the rule set <code>SS_DB_RS</code> and pick SS_VDB_Conn from the connector drop-down. The docs say the drop-down lists only connectors that match the chosen type; if it is empty, you have no suitable connector yet.</p></li>
+<li><strong>Data Tables step: click Add Tables and select the four tables.</strong>
+<p>The Add Database Table dialog lists the tables the connector can see. Tick CUSTOMERS, ORDERS, ORDER_ITEMS and PRODUCTS and click Save. The docs note that this dialog shows tables only, not views, indexes or stored procedures.</p>
+<p class="expect">The grid shows four rows with the columns Table Name, Logical Key, Filter and Custom SQL. Logical Key, Filter and Custom SQL are empty.</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_ruleset3.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_ruleset3.png" alt="Add a Rule Set for a Database wizard on the Data Tables step with buttons Add Tables, Edit Logical Key, Edit Custom SQL or Filters, Remove Selected, Reset All, and a grid of tables TEST1 to TEST5 with one ticked" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> the Data Tables step. The sample tables are named TEST1, TEST2 and so on, and TEST1 shows a filter "ID &gt; 10". Your grid will list the ShopSphere tables instead. The buttons above the grid are the same ones you will use later to set a logical key or a filter. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<ol class="steps" start="4">
+<li><strong>Check keys before you save.</strong>
+<p>Each table should have a primary key. The docs explain what happens otherwise: with in-place masking and no primary key, you must name an existing column as a logical key (it does not change the database; it only tells Delphix how to identify a row). If you give neither, the engine creates an identity column, which needs permission to change the schema, and the job may fail without it. All four ShopSphere tables have primary keys, so leave Logical Key empty.</p></li>
+<li><strong>Click Next, review the Summary, and click Save.</strong>
+<p>For a database rule set the save is an asynchronous task: a task ID appears in a bottom message, and you can watch it under Monitor, Async Tasks. The engine is reading the table definitions from the database in the background.</p>
+<p class="expect">The rule set SS_DB_RS appears in the Rule Sets grid. The docs say the Refresh/Save icon shows an hourglass while the engine rescans tables; in the official grid screenshot finished database rule sets show a green tick.</p></li>
+<li><strong>Run the rule set Checklist.</strong>
+<p>In the rule set's actions menu choose the verify (Checklist) action. The docs describe an Identity Column check: every table must have a primary key, an indexed identity column or a logical key. Catching a missing key now is cheaper than a masking job that fails later.</p></li>
+<li><strong>Create the profiling job.</strong>
+<p>Go to the Jobs tab, click + Profiling Job, and fill in the wizard. Job Name: <code>SS_Profile_DB</code> (must be unique). Rule Set: SS_DB_RS. Profile Set: ASDD Standard, the set recommended for databases (<a href="https://help.delphix.com/cc/current/content/out_of_the_box_profiling_settings.htm" target="_blank" rel="noopener">Out of the box profiling settings</a>). Leave Multi Tenant, Multiple Profiler Expression Check and "Clear previous auto domain assignments" unticked for the first run.</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_profile1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_profile1.png" alt="Create Profile Job wizard, Details step, with Job Name, Multi Tenant checkbox, Select Rule Set drop-down, Multiple Profiler Expression Check checkbox, Select Profile Set showing ASDD Standard, and a Clear previous auto domain assignments checkbox" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> the Details step of Create Profile Job. Profile Set shows "ASDD Standard". The wizard steps are Details, Configuration and Summary. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_profiling_jobs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<ol class="steps" start="8">
+<li><strong>Configuration step: keep the defaults.</strong>
+<p>Number of Streams defaults from an application setting (the screenshot shows 1). Feedback Size, Min and Max Memory, Comments and Email are optional. The docs add one rule worth remembering: with an ASDD profile set, Max Memory must be at least 1024 MB for each stream, so 4 streams need 4096 or more. Click Next, check the Summary and Save.</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_profile2.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_profile2.png" alt="Create Profile Job wizard, Configuration step, with Number of Streams 1 and empty Feedback Size, Min Memory, Max Memory, Comments and an Email field" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> the Configuration step. An Email address (here a placeholder) receives status messages, which is handy when a job runs unattended. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_profiling_jobs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<ol class="steps" start="9">
+<li><strong>Run the job.</strong>
+<p>On the Jobs tab open the row's actions menu (the three dots) and click Run. The engine first checks free memory and the number of simultaneous jobs (the docs give a default limit of 7) and may queue the job instead of starting it.</p>
+<p class="expect">The job's Status changes from CREATED to QUEUED or RUNNING and then to SUCCEEDED. WARNING or FAILED means you must read the logs before moving on.</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/run_jobs.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/run_jobs.png" alt="Jobs tab of an environment listing jobs with Type MASK or PROFILE and Status CREATED, WARNING or SUCCEEDED, with the actions menu open showing Run, View, Edit and Delete" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> the Jobs tab with the actions menu open (Run, View, Edit, Delete) and the buttons + Profiling Job, + Masking Job and Export Environment above. Status icons: CREATED, WARNING and SUCCEEDED are all visible. <a class="badge-link" href="https://help.delphix.com/cc/current/content/running_and_stopping_jobs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<ol class="steps" start="10">
+<li><strong>Read the Profile Results.</strong>
+<p>Click the job name (or use Monitor, Job Executions). The docs say a finished profiling job shows the findings table by table and column by column under Profile Results. For a database you can also open the rule set: the assigned algorithm column in the inventory is the result.</p></li>
+<li><strong>Open the inventory and correct the findings.</strong>
+<p>Click the rule set name to open its inventory. For any column the profiler got wrong, click the Edit icon in the Actions column. Untick Enable Automatic Updates first: while it is ticked, a later profiling run may overwrite your choice. Then pick the Domain and Algorithm you want and click Save. To record the proof, use Actions, Export Rule Set: it downloads the inventory as a CSV.</p></li>
+</ol>
+<div class="callout note">
+<strong class="ctitle">Screenshots in this part come from other data sources</strong>
+<p>The official Edit dialog images I opened show a file field, not a database column. The docs call the same dialog Edit Field/Column and say it is used for both kinds; I have not seen an official screenshot of the database version of that dialog, so expect small differences. The File Format drop-down in the inventory appears only for file rule sets. The next lab uses the file versions.</p>
+</div>
+<h3 id="c28-lab5-expected">Expected results for ShopSphere</h3>
+<p>The table below is <strong>my prediction</strong>, made by reading the published classifier patterns in the ASDD standard profile set (<a href="https://help.delphix.com/cc/current/content/asdd_standard_profile_set.htm" target="_blank" rel="noopener">ASDD standard profile set</a>) against the ShopSphere column names. Confidence values depend on your engine's settings, so the real result can differ. Where it differs, that is a finding to record, not a failure of the lab.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Column</th><th>Domain I expect</th><th>Why (pattern or type rule)</th><th>Default algorithm</th></tr></thead>
+<tbody>
+<tr><td>first_name</td><td>FIRST_NAME</td><td>name pattern, plus a first-name value list in ASDD</td><td>dlpx-core:FirstName (seen in an official screenshot)</td></tr>
+<tr><td>last_name</td><td>LAST_NAME</td><td>name pattern</td><td>dlpx-core:LastName (seen in an official screenshot)</td></tr>
+<tr><td>email</td><td>EMAIL</td><td>"email" path and an email data pattern</td><td>dlpx-core:Email Unique appears in an official profile screenshot</td></tr>
+<tr><td>phone</td><td>TELEPHONE_NO</td><td>"phone" path</td><td>dlpx-core:Phone Unique appears in an official profile screenshot</td></tr>
+<tr><td>ssn</td><td>SSN</td><td>"ssn" path; string or number of 9 or more characters; a US-style data pattern</td><td>Not stated in the pages I read; check Settings, Domains</td></tr>
+<tr><td>date_of_birth</td><td>DOB</td><td>birth-date path</td><td>An official docs example shows DOB with DateShiftDiscrete; confirm on your engine</td></tr>
+<tr><td>zip_code</td><td>ZIP</td><td>"zip" path; type length of 4 or more. The data pattern covers 5-digit and ZIP+4 US codes, so 6-digit codes like 560001 should be found by name, not by value</td><td>Not stated; check Settings, Domains</td></tr>
+<tr><td>tax_id</td><td>TAX_ID</td><td>"tax id" path; string or number of 6 or more characters (no data pattern in the ASDD set I read)</td><td>Not stated; check Settings, Domains</td></tr>
+<tr><td>customer_id, order_id, total_amount, product_code</td><td>none expected</td><td>no matching pattern; keys must not be masked in this lab</td><td>none</td></tr>
+</tbody></table></div>
+<h3 id="c28-lab5-verify">Verification checks</h3>
+<ol>
+<li>The profiling job ends SUCCEEDED, and the Execution Summary lists all four tables as profiled with none remaining.</li>
+<li>The inventory shows a Domain and an Algorithm for each of the eight sensitive ShopSphere columns above, or you have recorded which ones are missing and fixed them by hand.</li>
+<li>No key column (customer_id, order_id, item_id) has an algorithm. Masking a primary or foreign key without a plan breaks joins.</li>
+<li>Export Rule Set and keep the CSV. This is your record of "what did the profiler find and what did we decide".</li>
+</ol>
+<h3 id="c28-lab5-wrong">What can go wrong</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Symptom</th><th>Likely cause</th><th>What to do</th></tr></thead>
+<tbody>
+<tr><td>Add Tables lists nothing</td><td>Schema Name on the connector is wrong, or the user cannot see the schema</td><td>Edit the connector and fix the schema; retest</td></tr>
+<tr><td>Rule set Checklist fails</td><td>A table has no primary key, indexed identity column or logical key</td><td>Add a logical key in the rule set's Data Tables step</td></tr>
+<tr><td>Profiling job is rejected with an ASDD error</td><td>The connector type is not supported by ASDD</td><td>Pick a supported type or choose another profile set; ASDD supports databases and several file types (<a href="https://help.delphix.com/cc/current/content/asdd_features_and_support.htm" target="_blank" rel="noopener">ASDD features and support</a>)</td></tr>
+<tr><td>Job stays QUEUED</td><td>Memory or simultaneous-job limit reached on a shared engine</td><td>Check the queue on the Monitor screen; wait or ask the trainer</td></tr>
+<tr><td>A column you expected is missing in the results</td><td>Name and type rules did not match; for tax_id or zip_code the value rule may not apply</td><td>Assign the domain and algorithm by hand in the inventory</td></tr>
+<tr><td>Your manual choice is replaced after a re-profile</td><td>Enable Automatic Updates was left ticked</td><td>Untick it before assigning, or accept the profiler's choice</td></tr>
+<tr><td>A new table added to the VDB is not profiled</td><td>Profiling covers only tables in the rule set (docs)</td><td>Add the table to the rule set, then run again</td></tr>
+</tbody></table></div>
+<div class="callout real">
+<strong class="ctitle">What to say in the walkthrough</strong>
+<p>"I built a database rule set with the four ShopSphere tables on the VDB connector and ran the identity-column checklist. I ran an ASDD Standard profiling job. It flagged first name, last name, email, phone, SSN, date of birth, zip and tax id by their column names and types. I did not mask any key column. Where the default algorithm was not what the data needs, I switched off automatic updates and set my own, and I exported the inventory as a CSV for the sign-off."</p>
+<p>If asked "does profiling look at the data?": "ASDD has both name-based and data-based classifiers. For a column like a six-digit postal code, the name rule does the finding, because the data rule I read targets US formats."</p>
+</div>

@@ -1,0 +1,109 @@
+<p>Every tool in this guide moves data. Informatica TDM copies a slice of a database, changes some values and writes it somewhere else. Delphix reads a source, masks it and delivers it to a target. GenRocket creates rows and writes them to a database or a file. Underneath, all three do the same three things: <strong>get data from somewhere, change it, put it somewhere else</strong>. The industry has had a name for that pattern for decades: <strong>ETL</strong>, which stands for Extract, Transform, Load.</p>
+<p>This chapter teaches ETL on its own, with no test data management in it, so that you can recognise the pattern wherever it appears. We will build a small but complete ETL job for ShopSphere using plain SQL, with real input and real output tables, then look at the machinery that real ETL tools wrap around those SQL steps: schedulers, logs, error handling and reusable components. The <a href="09-etl-and-tdm.html">next chapter on ETL and TDM</a> lays the TDM tools on top of what you learn here.</p>
+<p>You need to know what a table, a primary key and a foreign key are; if not, read <a href="03-data-basics.html">the data basics chapter</a> first.</p>
+<div class="callout recap"><strong class="ctitle">What you will learn</strong>
+<ul>
+<li>What ETL is, why companies do it, and how it differs from the operational database and the data warehouse.</li>
+<li>Extract: full versus incremental extraction, watermarks, change data capture, and the common kinds of source.</li>
+<li>The staging area and why it exists.</li>
+<li>Transform: cleaning, type conversion, mapping, lookups, joining, aggregating, filtering, deduplicating and deriving columns, each with SQL and a before and after table.</li>
+<li>Load: full load, truncate and load, append, upsert and bulk load, and how to keep history with a slowly changing dimension.</li>
+<li>Batch versus streaming, and ETL versus ELT.</li>
+<li>The parts of an ETL architecture: sources, engine, metadata repository, scheduler, monitoring and targets.</li>
+<li>Mappings, workflows, sessions, jobs and reusable components, including what a <em>mapplet</em> is.</li>
+<li>Error handling, data quality checks and performance ideas.</li>
+<li>A complete worked ShopSphere ETL, two runs long, and two labs you can run yourself.</li>
+</ul></div>
+<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
+<p>ETL itself is a general concept, so most of this chapter is marked <span class="badge concept">General concept</span> and is explained from first principles. Tool-specific statements come only from the Informatica TDM 10.5.10 User Guide (PDF, February 2026, 455 pages), where I read the architecture section of chapter 1 (pp.24 to 29), the mapplet rule sections in chapters 7 and 8, and the plans and workflows chapter 13 (pp.274 to 285, 308). The Delphix masking terminology and job pages (Continuous Compliance 2026.5, last published October 16, 2026) supply two examples in the load and performance sections.</p>
+<p>The SQL in this chapter is my own. I ran every statement in SQLite 3.45 and pasted the real results. The SQL is standard in spirit, but functions for text, dates and "insert or update" differ between databases (Oracle, SQL Server, PostgreSQL, MySQL), so expect to adjust a few function names on your system. I point out the main ones as they come up.</p>
+<p>Related videos (transcripts could not be retrieved, so they are not used as sources): <a href="https://www.youtube.com/watch?v=DVyJqMi7QtY" target="_blank" rel="noopener">"How to create mapplet in informatica", LearningMart</a>.</p></div>
+
+<h2 id="c8-words">8.1 Words to know first</h2>
+<dl class="defs">
+<div><dt>ETL</dt><dd>Extract, Transform, Load: copy data out of one or more sources, reshape and clean it, and write it into a target.</dd></div>
+<div><dt>Staging area</dt><dd>A temporary landing zone, usually a set of tables or files, where extracted data sits unchanged before it is transformed.</dd></div>
+<div><dt>Operational database (OLTP)</dt><dd>The database an application uses to run the business: place an order, update an address. Built for many small, fast reads and writes.</dd></div>
+<div><dt>Data warehouse</dt><dd>A separate database built for reporting and analysis across lots of history. Built for a few big reads.</dd></div>
+<div><dt>Full extract / incremental extract</dt><dd>Reading everything every time, versus reading only what is new or changed since last time.</dd></div>
+<div><dt>Watermark</dt><dd>A saved marker, such as "last order id loaded was 5005", that tells the next run where to start.</dd></div>
+<div><dt>Change data capture (CDC)</dt><dd>Any technique that detects which rows were inserted, updated or deleted in the source so only those are processed.</dd></div>
+<div><dt>Upsert</dt><dd>"Update if the row exists, insert if it does not." Short for update plus insert.</dd></div>
+<div><dt>Slowly changing dimension (SCD)</dt><dd>A way of keeping history in a warehouse table when descriptive data (an address) changes over time.</dd></div>
+<div><dt>Mapping</dt><dd>The definition of how source columns become target columns, including every transformation in between.</dd></div>
+<div><dt>Workflow, session, job</dt><dd>The runnable wrappers around mappings. A job or workflow runs one or more sessions or steps on a schedule.</dd></div>
+<div><dt>Mapplet</dt><dd>Informatica's word for a reusable group of transformations that you build once and drop into many mappings.</dd></div>
+<div><dt>Metadata</dt><dd>Data about data: table definitions, column types, mapping definitions, run history.</dd></div>
+<div><dt>Reject (error) row</dt><dd>A row the job could not process, written aside with a reason instead of stopping the whole run.</dd></div>
+<div><dt>ELT</dt><dd>Extract, Load, Transform: load raw data into the target first and transform it there using the target database's own power.</dd></div>
+</dl>
+
+<h2 id="c8-what-is-etl">8.2 What ETL is and why it exists</h2>
+<p><strong>Concept.</strong> ETL is a repeatable process that moves data from where it is created to where it is needed, fixing it on the way.</p>
+<p><strong>Simple explanation.</strong> Think of a school canteen. Vegetables arrive muddy from several farms (<em>extract</em> brings them to the back door), staff wash, cut and combine them in the prep room (<em>transform</em>), and trays go to the serving counter (<em>load</em>). Each stage has its own place and rules.</p>
+<p>The analogy stops being accurate here: an ETL job runs many times and must give the same kind of result each time, even if interrupted and restarted. Cooks can improvise; ETL jobs must not.</p>
+<div class="callout why"><strong class="ctitle">Why it matters</strong>
+<p>Data in real companies lives in many places and many shapes. ShopSphere's orders sit in one database, product prices in a spreadsheet maintained by buyers, and a partner sends a daily file where dates are written day first. A manager who asks "how much did we sell last week, per product?" needs one clean answer. Someone has to collect, clean and combine. ETL is the name for doing that on purpose, automatically, and with a record of what happened.</p></div>
+<p>ETL appears in data warehouses and reports (the classic case), system migrations, keeping two systems in step, feeding analytics, and test data provisioning, the topic of the <a href="09-etl-and-tdm.html">next chapter</a>.</p>
+
+<h2 id="c8-oltp-vs-dw">8.3 Operational database versus data warehouse</h2>
+<p>ETL usually connects those two kinds of database, so the difference is worth knowing. <span class="badge concept">General concept</span></p>
+<div class="tablewrap"><table>
+<thead><tr><th>Question</th><th>Operational database (OLTP)</th><th>Data warehouse</th></tr></thead>
+<tbody>
+<tr><td>Main purpose</td><td>Run the business, one transaction at a time</td><td>Answer questions across lots of history</td></tr>
+<tr><td>Typical work</td><td>"Insert this order", "update this address"</td><td>"Total sales per product per month for three years"</td></tr>
+<tr><td>Table shape</td><td>Many small tables, tightly normalised to avoid duplication (CUSTOMERS, ORDERS, ORDER_ITEMS)</td><td>Fewer, wider tables arranged around facts and dimensions</td></tr>
+<tr><td>History</td><td>Mostly current values; old values are overwritten</td><td>History kept, often with dated versions of each row</td></tr>
+<tr><td>Who writes</td><td>The application, all day</td><td>The ETL job, on a schedule</td></tr>
+</tbody></table></div>
+<p>A common warehouse shape is the <strong>star schema</strong>: a central <em>fact</em> table that records events or measurements (one row per order line, with quantity and amount), surrounded by <em>dimension</em> tables that describe the who, what and when (customer, product, date). A fact table is mostly numbers and keys; a dimension table is mostly descriptive text. We will build a tiny star for ShopSphere later in this chapter.</p>
+
+<h2 id="c8-big-picture">8.4 The big picture</h2>
+<p>Here is the whole pattern on one page. Read it left to right, then read the three boxes under the main flow, which sit around the flow and keep it running.</p>
+<figure class="diagram"><svg viewBox="0 0 900 380" role="img" aria-label="ETL flow. Sources on the left (database, files, API) feed an extract step into a staging area, then a transform step, then a load step into targets (warehouse, test database). Below the flow are the metadata repository, the scheduler and the monitoring and log store, all connected to the ETL engine.">
+<rect x="10" y="40" width="130" height="190" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="75" y="65" text-anchor="middle" fill="currentColor" font-weight="bold">Sources</text>
+<text x="75" y="100" text-anchor="middle" fill="currentColor" font-size="13">Database</text>
+<text x="75" y="130" text-anchor="middle" fill="currentColor" font-size="13">Files (CSV, XML)</text>
+<text x="75" y="160" text-anchor="middle" fill="currentColor" font-size="13">API</text>
+<text x="75" y="190" text-anchor="middle" fill="currentColor" font-size="13">Messages</text>
+<rect x="190" y="40" width="120" height="190" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="250" y="65" text-anchor="middle" fill="currentColor" font-weight="bold">Extract</text>
+<text x="250" y="100" text-anchor="middle" fill="currentColor" font-size="13">read</text>
+<text x="250" y="125" text-anchor="middle" fill="currentColor" font-size="13">full or</text>
+<text x="250" y="145" text-anchor="middle" fill="currentColor" font-size="13">incremental</text>
+<rect x="355" y="40" width="120" height="190" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="415" y="65" text-anchor="middle" fill="currentColor" font-weight="bold">Staging</text>
+<text x="415" y="100" text-anchor="middle" fill="currentColor" font-size="13">raw copy,</text>
+<text x="415" y="120" text-anchor="middle" fill="currentColor" font-size="13">batch id,</text>
+<text x="415" y="140" text-anchor="middle" fill="currentColor" font-size="13">no business</text>
+<text x="415" y="160" text-anchor="middle" fill="currentColor" font-size="13">rules</text>
+<rect x="520" y="40" width="130" height="190" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="585" y="65" text-anchor="middle" fill="currentColor" font-weight="bold">Transform</text>
+<text x="585" y="100" text-anchor="middle" fill="currentColor" font-size="13">clean, convert,</text>
+<text x="585" y="120" text-anchor="middle" fill="currentColor" font-size="13">look up, join,</text>
+<text x="585" y="140" text-anchor="middle" fill="currentColor" font-size="13">derive,</text>
+<text x="585" y="160" text-anchor="middle" fill="currentColor" font-size="13">aggregate,</text>
+<text x="585" y="180" text-anchor="middle" fill="currentColor" font-size="13">reject bad rows</text>
+<rect x="695" y="40" width="195" height="190" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="792" y="65" text-anchor="middle" fill="currentColor" font-weight="bold">Load into targets</text>
+<text x="792" y="100" text-anchor="middle" fill="currentColor" font-size="13">Warehouse tables</text>
+<text x="792" y="130" text-anchor="middle" fill="currentColor" font-size="13">Test database</text>
+<text x="792" y="160" text-anchor="middle" fill="currentColor" font-size="13">Files for another system</text>
+<text x="792" y="190" text-anchor="middle" fill="currentColor" font-size="13">Reject table</text>
+<g stroke="var(--accent)" stroke-width="2" fill="none">
+<path d="M140 135 L188 135"/><path d="M310 135 L353 135"/><path d="M475 135 L518 135"/><path d="M650 135 L693 135"/>
+</g>
+<g fill="var(--accent)"><polygon points="188,135 179,130 179,140"/><polygon points="353,135 344,130 344,140"/><polygon points="518,135 509,130 509,140"/><polygon points="693,135 684,130 684,140"/></g>
+<rect x="190" y="280" width="170" height="70" rx="10" fill="var(--surface)" stroke="currentColor" stroke-dasharray="5 4"/>
+<text x="275" y="308" text-anchor="middle" fill="currentColor" font-weight="bold">Metadata repository</text>
+<text x="275" y="330" text-anchor="middle" fill="currentColor" font-size="12">mappings, schemas, run history</text>
+<rect x="390" y="280" width="150" height="70" rx="10" fill="var(--surface)" stroke="currentColor" stroke-dasharray="5 4"/>
+<text x="465" y="308" text-anchor="middle" fill="currentColor" font-weight="bold">Scheduler</text>
+<text x="465" y="330" text-anchor="middle" fill="currentColor" font-size="12">when and in what order</text>
+<rect x="570" y="280" width="200" height="70" rx="10" fill="var(--surface)" stroke="currentColor" stroke-dasharray="5 4"/>
+<text x="670" y="308" text-anchor="middle" fill="currentColor" font-weight="bold">Monitoring and logs</text>
+<text x="670" y="330" text-anchor="middle" fill="currentColor" font-size="12">row counts, errors, alerts</text>
+<g stroke="currentColor" stroke-width="1" stroke-dasharray="3 3" fill="none"><path d="M275 280 L275 232"/><path d="M465 280 L465 232"/><path d="M670 280 L670 232"/></g>
+</svg><figcaption>Original diagram: the ETL data path (top) and the supporting parts that control and observe it (bottom, dashed).</figcaption></figure>

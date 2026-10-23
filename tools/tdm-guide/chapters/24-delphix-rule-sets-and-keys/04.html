@@ -1,0 +1,66 @@
+
+<h2 id="c24-lab">24.10 Hands-on lab: a rule set for the SHOPSPHERE tables</h2>
+<div class="exercise"><h4>Lab: create a rule set, run the checklist, add a logical key</h4>
+<p>Goal: a rule set <code>SHOPSPHERE_RS</code> over the ShopSphere tables, a passing Identity Column Check, and a logical key on a table that has no primary key. Prerequisite: the environment and tested connector from <a href="23-delphix-connectors-and-vdb.html">the connectors and VDB chapter</a>. The steps and screens are <span class="badge doc">From docs</span>. The table <code>CUSTOMER_STAGING</code> is <strong>my illustrative addition</strong>, because the four core tables all have primary keys and you need a keyless table to practise the logical key. Ask your DBA to create it in the lab database, or read steps 6 and 7 without running them:</p>
+<pre><code>CREATE TABLE CUSTOMER_STAGING (
+  staging_row_id INTEGER NOT NULL,
+  email          VARCHAR(100),
+  first_name     VARCHAR(50),
+  last_name      VARCHAR(50),
+  ssn            VARCHAR(11)
+);  -- no PRIMARY KEY declared (illustrative)</code></pre>
+<ol class="steps">
+<li><strong>Start the wizard.</strong> Open <code>SHOPSPHERE_DEV</code>, click the Rule Sets tab, then <strong>+ Rule Set</strong>, choose <em>Database</em> and click Continue.<p class="expect">The "Add a Rule Set for a Database" wizard opens on the Details step.</p></li>
+<li><strong>Details.</strong> Name it <code>SHOPSPHERE_RS</code> and select the connector <code>SHOPSPHERE_VDB_CONN</code>. Check the connector details shown below the dropdown, then Next.<p>Confirming the database name and host now saves a confusing failure later.</p></li>
+<li><strong>Add the tables.</strong> Click Add Tables and tick CUSTOMERS, ORDERS, ORDER_ITEMS, PRODUCTS (and CUSTOMER_STAGING if it exists). Save the dialog.<p>All related tables go in together so parent and child keys can be masked consistently.</p><p class="expect">Five (or four) rows in the grid with empty Logical Key, Filter and Custom SQL.</p></li>
+<li><strong>Save the rule set.</strong> Next, check the Summary, click Save, and note the Async Task ID. Watch Monitor &gt; Async Tasks.<p class="expect">The task completes and SHOPSPHERE_RS appears in the Rule Sets grid with a green Refresh/Save tick.</p></li>
+<li><strong>Run the Checklist.</strong> In the rule set's Actions menu choose <strong>Checklist</strong>.<p>It tests every table for a primary key, indexed identity column or logical key before any job exists.</p><p class="expect">With the staging table present: a dialog titled Identity Column Check listing <code>CUSTOMER_STAGING</code> as missing a key. Without it: a passing result.</p></li>
+<li><strong>Add the logical key.</strong> Actions &gt; Edit, Next to Data Tables, tick CUSTOMER_STAGING, click <strong>Edit Logical Key</strong>, type <code>staging_row_id</code>, Save the dialog.<p>staging_row_id is unique and never empty, which is what a logical key requires. It changes nothing in the database.</p><p class="expect">The Logical Key column of that row shows <code>staging_row_id</code>.</p></li>
+<li><strong>Save the wizard.</strong> Click Next, then Save in the wizard, and wait for the Async Task.<p>The dialog Save only staged the change.</p></li>
+<li><strong>Check again.</strong> Run Checklist again.<p class="expect">The check passes (the job version of the dialog reads "Identity Column Check PASSED").</p></li>
+<li><strong>Read the keys in the inventory.</strong> Click the rule set name to open the inventory and look under the key columns.<p class="expect">Key columns carry the words "Primary Key" (and "Index" if indexed); a foreign key column such as ORDERS.customer_id is marked "Foreign Key" if the database declares it; the staging table is labelled "Logical Key".</p></li>
+</ol>
+<details class="sol"><summary>Show a worked answer: the integrity plan for the next chapters</summary>
+<p>Keys are not masked in this lab, but plan them now. In the later algorithm and job chapters you will assign algorithms in this inventory. Write this plan down first.</p>
+<div class="tablewrap"><table class="sample"><caption>Key columns and what to do (illustrative plan)</caption><thead><tr><th>Parent column</th><th>Child column</th><th>Plan</th></tr></thead><tbody>
+<tr><td>CUSTOMERS.customer_id</td><td>ORDERS.customer_id</td><td>Leave unmasked, or give both the same deterministic, unique algorithm (for example a Character Mapping based numeric one).</td></tr>
+<tr><td>ORDERS.order_id</td><td>ORDER_ITEMS.order_id</td><td>Same rule. Include both tables in the rule set.</td></tr>
+<tr><td>PRODUCTS.product_code</td><td>ORDER_ITEMS.product_code</td><td>Not sensitive; leave unmasked.</td></tr>
+<tr><td>CUSTOMER_STAGING.staging_row_id</td><td>(none)</td><td>It is only the logical key, so do not mask it.</td></tr>
+</tbody></table></div>
+<p>If you do mask a key, the job must enable Disable Constraints and Drop Indexes. The two table-level steps (Checklist and logical key) are documented; the plan is my application of the integrity rules in the section above.</p></details></div>
+
+<h2 id="c24-mistakes">24.11 Common mistakes and gotchas</h2>
+<div class="callout warn"><strong class="ctitle">Key and rule set pitfalls</strong>
+<ul>
+<li><strong>Believing a passing Checklist means integrity is safe.</strong> It only proves each table has a key.</li>
+<li><strong>Masking the primary key with a non-unique algorithm.</strong> Duplicates break the key. Use a unique, deterministic algorithm, and the same one on the foreign key side.</li>
+<li><strong>Masking a key without Disable Constraints and Drop Indexes.</strong> The job fails on the key constraint.</li>
+<li><strong>Using a random algorithm on a key.</strong> RANDOMIZE and the Gender SL type never preserve integrity.</li>
+<li><strong>Forgetting the wizard's Save.</strong> The logical key, filter or table list is lost.</li>
+<li><strong>Typing a logical key column that does not exist.</strong> The job fails, or the table is listed under Exception Detail in Async Tasks.</li>
+<li><strong>Leaving out a child table.</strong> A foreign key table linked to a masked key must be in the rule set.</li>
+<li><strong>Assuming refresh wipes your masking choices.</strong> It keeps existing algorithm assignments and updates the table list and columns.</li>
+</ul></div>
+
+<h2 id="c24-recap">24.12 Recap</h2>
+<div class="callout recap"><strong class="ctitle">Recap</strong>
+<ul>
+<li>A rule set is the list of tables or files of one connector that jobs run on. There are four types: Database, Semi-Structured Files, Flat Files and Copybook.</li>
+<li>Creating one takes three steps (Details, Data Tables, Summary); the wizard's Save stores everything and starts an Async Task. Edit, Refresh, Duplicate, Delete and Checklist are in the Actions menu.</li>
+<li>In-place masking finds each row by a key: a logical key if you set one, otherwise the primary key, otherwise an identity column, otherwise a temporary one the engine creates.</li>
+<li>A logical key is a unique, non-null column (or comma-separated columns) given to Delphix only; it changes nothing in the database. On Oracle, ROWID is the recommended one.</li>
+<li>The Checklist's Identity Column Check reports tables that have no usable key; it does not test integrity.</li>
+<li>If you mask a primary key, mask the foreign key with the <em>same</em> deterministic, unique algorithm, and enable Disable Constraints and Drop Indexes on the job.</li>
+<li>Algorithm syncability concerns producing the same output on several engines; non-deterministic algorithms cannot be synced.</li>
+</ul></div>
+
+<section class="sources"><h2 id="c24-sources">Sources used in this chapter</h2>
+<ul>
+<li><a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>: types, wizard, logical key, filter, custom SQL, refresh, copy, delete, Checklist; most screenshots.</li>
+<li><a href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Managing inventories</a> and <a href="https://help.delphix.com/cc/current/content/graphical_user_interface__gui_.htm" target="_blank" rel="noopener">Graphical User Interface</a>: inventory key icons and dialogs; two screenshots.</li>
+<li><a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs</a> and <a href="https://help.delphix.com/cc/current/content/new_features.htm" target="_blank" rel="noopener">New features</a>: Identity Column Check; <a href="https://help.delphix.com/cc/current/content/fixed_issues.htm" target="_blank" rel="noopener">Fixed issues</a>, <a href="https://help.delphix.com/cc/current/content/known_issues.htm" target="_blank" rel="noopener">Known issues</a> and the 2025.2, 2025.5 and 2025.6 release notes: key-related fixes and limits.</li>
+<li>Preparing <a href="https://help.delphix.com/cc/current/content/preparing_oracle_database_for_profiling_masking.htm" target="_blank" rel="noopener">Oracle</a>, <a href="https://help.delphix.com/cc/current/content/preparing_sql_server_database_for_profiling_and_masking.htm" target="_blank" rel="noopener">SQL Server</a>, <a href="https://help.delphix.com/cc/current/content/preparing_db2_database_for_profiling_and_masking.htm" target="_blank" rel="noopener">Db2</a> and <a href="https://help.delphix.com/cc/current/content/preparing_sybase_database_for_profiling_and_masking.htm" target="_blank" rel="noopener">Sybase</a>: how keys are used and chosen.</li>
+<li><a href="https://help.delphix.com/cc/current/content/algorithm_syncability.htm" target="_blank" rel="noopener">Algorithm syncability</a>, <a href="https://help.delphix.com/cc/current/content/segment_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Segment Mapping</a>, <a href="https://help.delphix.com/cc/current/content/character_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Character Mapping</a>, <a href="https://help.delphix.com/cc/current/content/secure_lookup__algorithm_frameworks_.htm" target="_blank" rel="noopener">Secure Lookup</a>, <a href="https://help.delphix.com/cc/current/content/built_in_oracle_driver_support_plugin.htm" target="_blank" rel="noopener">Oracle driver support</a>, <a href="https://help.delphix.com/cc/current/content/built_in_postgresql_driver_support_plugin.htm" target="_blank" rel="noopener">PostgreSQL driver support</a> and <a href="https://help.delphix.com/cc/current/content/built_in_mssql_driver_support_plugin.htm" target="_blank" rel="noopener">MSSQL driver support</a>: consistent masking and constraint handling.</li>
+<li><a href="https://help.delphix.com/cc/current/content/discovering_your_sensitive_data.htm" target="_blank" rel="noopener">Discovering your sensitive data</a> and <a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction</a>: domains and the consistency promise.</li>
+</ul></section>

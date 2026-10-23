@@ -1,0 +1,107 @@
+<h2 id="c6-techniques">6.4 Common masking techniques</h2>
+
+<p>Each technique below is shown with a before and after on ShopSphere data. The masked values are made up for illustration unless marked as taken from the documentation. Names differ between tools, so the table maps them. <span class="badge doc">From docs</span> means the technique appears in the Informatica or Delphix pages I read; <span class="badge concept">General concept</span> means it is a universally standard idea, whatever the tool calls it.</p>
+
+<div class="tablewrap"><table><caption>The techniques and what each tool calls them</caption>
+<thead><tr><th>Technique</th><th>Informatica (chapter 8)</th><th>Delphix</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>Substitution</td><td>Substitution</td><td>Secure Lookup</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Shuffle</td><td>Shuffle</td><td>SecureShuffle</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Key masking</td><td>Key</td><td>Character Mapping, Segment Mapping, Mapping (unique outputs)</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Encryption</td><td>Encryption (standard and format preserving)</td><td>Tokenization (reversible)</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Nulling, redaction</td><td>Nullification</td><td>Free Text Redaction, null-value lookup</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Date shifting</td><td>Random with date blurring</td><td>Date Shift, Dependent Date Shift</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Numeric variance</td><td>Random with numeric blurring or range</td><td>Min Max</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Format-preserving</td><td>Credit card, Phone, SSN, email, IP, URL masking; format preserving encryption</td><td>Payment Card, Character Mapping</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Character replacement</td><td>Mask format, source and result string characters</td><td>Character Replacement</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Algorithm chaining</td><td>Advanced masking (variable columns), mapplets</td><td>String Algorithm Chain</td><td><span class="badge doc">From docs</span></td></tr>
+<tr><td>Partial redaction ("show last 4")</td><td>Key masking with "+" (no mask) positions</td><td>Preserve ranges in Character Mapping</td><td><span class="badge concept">General concept</span> as a name</td></tr>
+</tbody></table></div>
+
+<h3 id="c6-substitution">Substitution</h3>
+
+<p>Replace the value with a different, believable one picked from a list. Informatica: it "replaces a column of data with similar but unrelated data from a dictionary", which can be a flat file or a database table (p.176). Delphix Secure Lookup is the same idea: it picks a replacement from a lookup file using a cryptographic hash of the original value, so the output is consistent for each input (terminology page; the framework page says the default hash method is SHA256). <span class="badge doc">From docs</span></p>
+
+<div class="tablewrap"><table class="sample"><caption>Substitution on CUSTOMERS (masked values illustrative)</caption>
+<thead><tr><th>customer_id</th><th>first_name before</th><th>after</th><th>last_name before</th><th>after</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>Asha</td><td>Leela</td><td>Menon</td><td>Pillai</td></tr>
+<tr><td>1002</td><td>Ravi</td><td>Sanjay</td><td>Kumar</td><td>Gupta</td></tr>
+<tr><td>1003</td><td>Meera</td><td>Anita</td><td>Nair</td><td>Joshi</td></tr>
+</tbody></table></div>
+
+<p>Strengths: very realistic. Limits: the list can run out. Informatica's <em>unique substitution</em> makes the operation fail when the source has more distinct values than the dictionary has (p.176), and Delphix says that two inputs can collide on one output, which is fine for names and a problem for unique columns (terminology page). Informatica also lets you pick names by a lookup column such as gender or country, so female names stay female (pp.177 to 179).</p>
+
+<h3 id="c6-shuffle">Shuffle</h3>
+
+<p>Move the existing values of a column between rows. Informatica's own example moves first names between four rows: Tom, Sue, Bob, Eli become Bob, Eli, Tom, Sue (p.173). Delphix SecureShuffle guarantees that each value moves to a different row, but an input can still mask to itself when values repeat (SecureShuffle page). <span class="badge doc">From docs</span></p>
+
+<div class="tablewrap"><table class="sample"><caption>Shuffle of last_name</caption>
+<thead><tr><th>customer_id</th><th>last_name before</th><th>after</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>Menon</td><td>Kumar</td></tr>
+<tr><td>1002</td><td>Kumar</td><td>Nair</td></tr>
+<tr><td>1003</td><td>Nair</td><td>Menon</td></tr>
+</tbody></table></div>
+
+<p>The catch: the values are still real. Someone who knows Asha Menon's first name and city could still recognise "Menon" in the column, and a rare value stays rare. Delphix warns that shuffling does not redact or modify any value, so consider carefully whether it meets your security requirements. Informatica offers a <em>constrained</em> shuffle (for example, only within the same city) and a <em>representative</em> shuffle, in which all rows with the same source value get the same shuffled value (p.174).</p>
+
+<h3 id="c6-key-masking">Key masking</h3>
+
+<p>Produce a deterministic masked value from the input and a seed: same input, same seed, same output. Informatica's Key technique works for dates, numbers and strings, and you can limit each output character to letters, digits or alphanumerics with a mask format (pp.164 to 168). For numbers, the guide says to use the same seed in the primary key column and the foreign key column so referential integrity is maintained (p.167). <span class="badge doc">From docs</span> Delphix does the same job with Character Mapping, which maps each value to another value built from the same character groups, giving no two inputs the same output, which suits primary and foreign key columns (Character Mapping page).</p>
+
+<div class="tablewrap"><table class="sample"><caption>Numeric key masking with the same seed everywhere (masked values illustrative)</caption>
+<thead><tr><th>Column</th><th>Before</th><th>After</th></tr></thead>
+<tbody>
+<tr><td>CUSTOMERS.customer_id</td><td>1001</td><td>48213</td></tr>
+<tr><td>ORDERS.customer_id (for Asha's orders)</td><td>1001</td><td>48213</td></tr>
+</tbody></table></div>
+
+<h3 id="c6-encryption">Encryption and tokenization</h3>
+
+<p>Informatica offers standard encryption (AES, CRC, MD5, with a key of 16 characters or fewer) and <em>format preserving encryption</em>. The latter can keep the format and length, and can be decrypted with the same pass phrase and configuration. Its example: <code>Abc123@xyz.com</code> becomes <code>Mpz849#dje!kuw</code>, or <code>Mpz849@dje.kuw</code> if the "@" and "." are excluded from encryption (pp.161 to 162). The Delphix Tokenization framework uses AES-128 and produces longer alphanumeric tokens, built for the vendor round trip described in 6.2 (Tokenization page). <span class="badge doc">From docs</span> Because AES and format preserving encryption can be reversed, use them only for that.</p>
+
+<h3 id="c6-nulling">Nulling and redaction</h3>
+
+<p>Remove the value, or part of it. Informatica's Nullification replaces a column with NULL, works on all data types and has no parameters (p.168). <span class="badge doc">From docs</span> The simplest safe answer for a column the tests do not use, such as <code>tax_id</code>, is NULL. The cost: NOT NULL columns refuse it and the application paths that read the column go untested. <strong>Free text</strong> needs smarter redaction: Delphix's Free Text Redaction finds sensitive words and patterns inside a text column (for example "St", "Blvd", or the shape 123-45-6789 for an SSN) and redacts the whole matched word, but it "requires some expertise to use" (Free Text Redaction page). <span class="badge doc">From docs</span></p>
+
+<h3 id="c6-date-shift">Date shifting and blurring</h3>
+
+<p>Move a date by an amount so that the exact date is hidden but the date still looks plausible. Delphix Date Shift masks each date to another within a configured range (for example 3 to 5 days later), based on the algorithm key; a fixed shift (same minimum and maximum) preserves uniqueness and referential integrity, unlike variable ranges. Its docs show <code>2021-02-03 12:30:00</code> becoming <code>2021-02-06 12:30:00</code> (Date Shift page). Informatica blurs a date within a range of years, months, days or hours: a source of 2 February 2006 with a two-year bound becomes a date between 2 February 2004 and 2 February 2008 (p.170). <span class="badge doc">From docs</span></p>
+
+<div class="tablewrap"><table class="sample"><caption>Date shift of date_of_birth, fixed shift of +3 days (illustrative)</caption>
+<thead><tr><th>customer_id</th><th>Before</th><th>After</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>1990-04-12</td><td>1990-04-15</td></tr>
+<tr><td>1002</td><td>1985-11-02</td><td>1985-11-05</td></tr>
+</tbody></table></div>
+
+<p>Related dates need care. If <code>order_date</code> must stay after <code>date_of_birth</code>, shifting them independently can break the order. Delphix's <em>Dependent Date Shift</em> is a multi-column algorithm that masks two date-times while preserving the interval between them (Algorithms page). <span class="badge doc">From docs</span></p>
+
+<h3 id="c6-numeric">Numeric variance</h3>
+
+<p>Move a number by a controlled amount. Informatica numeric blurring uses a fixed or percent variance. With the input 66: fixed bounds 10 and 10 give a result between 56 and 76; percent bounds 50 and 50 give 33 to 99 (p.170). A range option returns a number between a minimum and a maximum. Delphix Min Max pulls extreme values toward the middle, because a record with the highest salary may reveal a company's CEO (Min Max Number page). <span class="badge doc">From docs</span> On ShopSphere, a 10 percent blur turns <code>total_amount</code> 1200.00 into something between 1080.00 and 1320.00, which keeps totals plausible but breaks the rule "total equals the sum of its items" unless the items are changed too, so decide whether tests rely on that.</p>
+
+<h3 id="c6-format-preserving">Format-preserving masking</h3>
+
+<p>The masked value keeps the format the application checks. Informatica has built-in formats. Credit card masking returns a number with a valid checksum, leaves the six-digit bank identification number unchanged, and can keep or change the card issuer: <code>4539 1596 8210 2773</code> becomes <code>4539 1516 0556 7067</code> (p.158). Phone masking keeps the format: <code>(408)382 0658</code> becomes <code>(408)256 3106</code> (p.169). SSN masking generates valid numbers that avoid ones the Social Security Administration has issued (p.175). Delphix Payment Card preserves the Luhn check and the leading digits you choose: <code>5419033646326699</code> becomes <code>5419036803270758</code> when the first six digits are kept (Payment Card page). <span class="badge doc">From docs</span></p>
+
+<div class="tablewrap"><table class="sample"><caption>Format-preserving masking of ShopSphere columns (illustrative)</caption>
+<thead><tr><th>Column</th><th>Before</th><th>After</th></tr></thead>
+<tbody>
+<tr><td>phone</td><td>9876543210</td><td>9412087365</td></tr>
+<tr><td>ssn</td><td>123-45-6789</td><td>561-80-3472</td></tr>
+<tr><td>email</td><td>asha.menon@example.com</td><td>leela.pillai@example.com</td></tr>
+</tbody></table></div>
+
+<h3 id="c6-char-replacement">Character replacement</h3>
+
+<p>Replace characters according to a pattern. In Informatica's key and random techniques you set a <em>mask format</em>: A for letters, D for digits, N for alphanumerics, X for any character, <code>+</code> for "leave as is", and R for the remaining characters (pp.165, 170); and you can mask only chosen source characters or restrict the result to chosen characters. Delphix's Character Replacement framework swaps listed characters (for example vowels to "+") and wraps another string algorithm, and the page notes it has no UI or default instance at present, so it is configured through the API. <span class="badge doc">From docs</span> A ShopSphere use: a tax ID shaped like <code>AKPPM4821Q</code> (five letters, four digits, one letter) masked with format <code>AAAAADDDDA</code> becomes something like <code>TRWQD9037B</code>, same shape, no real content.</p>
+
+<h3 id="c6-chaining">Algorithm chaining</h3>
+
+<p>Combine several steps into one result. Informatica's <em>advanced masking</em> uses input, variable and output columns: mask FIRST_NAME and LAST_NAME separately with substitution into variable columns, then output <code>FIRST_MASKED || ' ' || LAST_MASKED</code> as the full name (p.158). Its email masking can build the address from the masked first and last name (p.159). Delphix's String Algorithm Chain runs two to eight string algorithms one after another, and its docs give a reason to chain: with deterministic masking, a very rare input value keeps its low frequency in the output and could be used to infer the original, so a first algorithm can alter such rare values before the main one runs (String Algorithm Chain page). <span class="badge doc">From docs</span></p>
+
+<div class="callout why"><strong class="ctitle">Why chain at all?</strong>
+
+<p>Real columns are related: the email contains the name, the full name contains the first name. If each is masked independently, the masked email will name someone different from the masked name. Chaining makes the dependent value follow the one it depends on.</p></div>

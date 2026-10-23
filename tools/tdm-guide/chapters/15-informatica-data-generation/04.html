@@ -1,0 +1,108 @@
+<h2 id="c15-plan">15.12 From rules to a running job: the generation plan</h2>
+
+<p>Rules and assignments are only a description. A <strong>plan</strong> turns them into something that runs. The plan lists which entities and tables to generate, how many records, and which connections to use; then TDM generates a workflow from it and the workflow does the work (User Guide 10.5.10, p.207). The plan screens are shared with masking and subsetting, so the full tour is in <a href="16-informatica-plans-workflows-and-warehouse.html">the plans, workflows and warehouse chapter</a>. Here is the generation-specific part.</p>
+
+<h3 id="c15-plan-steps">15.12.1 Creating a generation plan</h3>
+
+<p>From the guide's wizard (User Guide 10.5.10, p.305), with the reason for each step:</p>
+
+<ol class="steps">
+<li><strong>In the project, click Execute, then New Plan, and name it.</strong><p>Plans live in Execute, the project's "run things" tab.</p></li>
+<li><strong>Click Next twice to skip the masking and subset pages.</strong><p>The wizard offers all three operation types on one path. You are skipping the two you must not use.</p></li>
+<li><strong>Click Add Generation Components and choose entities and tables (or the XSD file for XML output).</strong><p>Only components with generation rule assignments make sense here.</p><p class="expect">The chosen entities and tables appear in a list.</p></li>
+<li><strong>Review table names, set generation criteria for an entity if you want, click Next.</strong><p>Criteria are where you can restrict which rules apply for a test.</p></li>
+<li><strong>Enter the number of records to generate and set connections and target properties.</strong><p>The count is required (p.280).</p></li>
+<li><strong>Optionally edit data generation, error and recovery, and advanced settings. Click Next and Finish.</strong><p>Defaults are usually fine for a first run.</p><p class="expect">The plan appears in the project's Execute tab. It has not run yet.</p></li>
+</ol>
+
+<p>You can also make a <strong>quick ad hoc generation plan</strong> for a single column: in Define | Data Generation select the column, choose Actions &gt; Generate and Execute, name the plan, pick the Integration Service, enter the number of records and answer Yes at the prompt (p.306). It is the fast way to try one rule before you commit to a full plan.</p>
+
+<h3 id="c15-plan-settings">15.12.2 Connections and settings that matter for generation</h3>
+
+<p>The settings that matter for generation (pp.280-285): the target connection (a relational database, a flat file or the test data warehouse); <strong>Number of Records to Generate</strong> (required); a Reference Lookup Connection if any reference lookup rule is assigned; a Dictionary Lookup Connection if the plan has a dictionary rule or a mapplet rule with a transformation; the default Numeric, String, Date and Binary rules with Apply Default Rule to; Minimum and Maximum child records (default 1); and the percentages of parents without children and children without a parent. Target options such as Truncate Table (off by default) and Disable Constraints are covered in <a href="16-informatica-plans-workflows-and-warehouse.html">the plans, workflows and warehouse chapter</a>.</p>
+
+<p>If the target is a flat file you can use the test tool integration properties to copy the output to an integrated HP ALM server. If the target is the <strong>test data warehouse</strong>, you fill in data set properties (name, application, version, tags) and the generated data is stored as a versioned data set (pp.190, 281). That is how generated data gets reused, see <a href="16-informatica-plans-workflows-and-warehouse.html">the plans, workflows and warehouse chapter</a>.</p>
+
+<div class="callout warn"><strong class="ctitle">Heap space and special characters</strong>
+<p>If a "Java heap space" exception occurs while setting an ad hoc rule, ask the administrator to increase the heap size (p.198). Remember also that special characters in table or column names make the generation workflow fail (p.190); the plan setting "Enable special characters in metadata" defaults to No (p.289).</p></div>
+
+<h2 id="c15-restriction">15.13 Why a generation plan stands alone</h2>
+
+<p>The guide is firm: when you add data generation components to a plan, you <strong>cannot</strong> add data masking or data subset components, and the reverse holds too (User Guide 10.5.10, pp.274-276, 305). It repeats the rule in the plan overview, the task list, the component table and the creation steps. A Hadoop plan likewise cannot do subset or generation (p.306).</p>
+
+<p>The guide states the restriction but does not explain it. My explanation, as a concept and not a quote: masking and subsetting both <em>read existing rows</em> from a source, then change or filter them. Generation has no source rows; it builds new rows from rules. A plan that tried to do both would have to decide what the masking rule should act on. Keeping them apart avoids that.</p>
+
+<div class="compare">
+<div><h4>One plan: subset and masking</h4>
+<p>Source connection to target connection. The guide says you can combine them in one plan, or keep separate plans (p.304). If both are present, subset runs first and masking applies only to the subset rows (p.275).</p></div>
+<div><h4>Another plan: generation</h4>
+<p>Only entities, tables or XSD files with generation rule assignments. Number of records to generate. No source data is masked or subsetted in this plan.</p></div>
+</div>
+
+<p><strong>What to do when you need both.</strong> Use two plans:</p>
+
+<ul>
+<li><strong>Masked copy of old customers plus brand-new ones:</strong> run a masking plan into the test database, then a generation plan into the same schema. Make the generation sequences start above the existing ids, or continue with "Start Sequence from Last Value", so keys do not collide.</li>
+<li><strong>Generate once, then make small slices:</strong> send the generation plan to the test data warehouse, then create a <em>related data set</em>, a subset of that data set built from an entity or group (pp.248-251). That is subsetting generated data without breaking the rule.</li>
+</ul>
+
+<div class="callout why"><strong class="ctitle">Why it matters</strong>
+<p>This restriction is a favourite interview and review question, and it shapes how you design a data pipeline: generation is its own track, not a masking option.</p></div>
+
+<div class="exercise"><h4>Lab A: generate 50 ShopSphere customers with valid orders</h4>
+<p>Goal: end with 50 rows in <code>CUSTOMERS</code> plus linked <code>ORDERS</code> and <code>ORDER_ITEMS</code> in an empty test schema, then prove the keys are valid. The steps follow the guide's task flow (pp.192, 195-205, 305); names and values are my illustration. You need an installed TDM, an empty test schema <code>SHOPSPHERE_TEST</code> with the four tables, and a <code>PRODUCTS</code> table already holding a few products (P-100, P-200, P-300).</p>
+<ol class="steps">
+<li><strong>Ask an administrator to add a names dictionary under Administrator | Dictionaries.</strong><p>Dictionary rules refuse to be created until a dictionary exists (p.215). A file with a FIRST and a LAST column is enough.</p><p class="expect">The dictionary appears in the list.</p></li>
+<li><strong>In Policies, create standard rules with Actions &gt; New &gt; Generation Rule.</strong><p>Make the seven rules in the table of the earlier rule table: <code>Seq_Cust</code> (Sequence from 1001), <code>Dict_First</code>, <code>Dict_Last</code>, <code>Phone_10</code> (<code>(6|7|8|9)\d{9}</code>, 10 percent nulls), <code>SSN_like</code>, <code>DOB_Range</code>, <code>Zip_Set</code> (40/35/25) and <code>TaxId_Pattern</code>.<p>Pick the data type first, since it decides which techniques you see.</p><p class="expect">The rules appear in the Policies list.</p></li>
+<li><strong>Create a project and import metadata for the four tables.</strong><p>Click Projects, Actions &gt; New, name it, open it, then Actions &gt; Import Metadata and choose Datasource Connection to the test schema (pp.53, 66). Metadata tells TDM what columns exist; it copies no rows.</p><p class="expect">The four tables appear under the project's data sources.</p></li>
+<li><strong>Create an entity for the parent-child tables.</strong><p>In Define, create an entity with <code>CUSTOMERS</code> as driving table so TDM pulls in <code>ORDERS</code> and <code>ORDER_ITEMS</code> (pp.116, 277). If the foreign keys are not declared in the schema, add logical foreign keys first on Discover | Tables | Constraints (p.110).</p><p>Set the relationship minimum and maximum to 1 and 3 for CUSTOMERS to ORDERS, and 1 and 4 for ORDERS to ORDER_ITEMS (p.117).</p><p class="expect">A diagram shows the three tables joined.</p></li>
+<li><strong>Add the rules to the project and assign them in Define | Data Generation.</strong><p>Assign the seven rules to the matching <code>CUSTOMERS</code> columns. Click Save after every assignment (p.203). Also give the order and item tables sequences for ids, Random ranges for dates, amounts and quantities, and a Set of Values rule (P-100, P-200, P-300) for <code>product_code</code>.</p><p class="expect">Every row has a rule name, and nothing is left to the default rule except columns you chose to ignore.</p></li>
+<li><strong>Add the advanced email rule.</strong><p>In Policies create an advanced rule with input <code>in_FirstName</code>, variable <code>var_Domain</code> (Generation Rule Set: example.com 50, example.org 50) and output <code>out_Email</code> with the expression <code>CONCAT(CONCAT(in_FirstName,'@'),var_Domain)</code>. Assign it to <code>email</code> and map the input port to <code>first_name</code> (pp.200-201, 204-205, 213).</p><p class="expect">The email cell shows the advanced rule's name.</p></li>
+<li><strong>Create the plan.</strong><p>Execute &gt; New Plan, name it <code>PLAN_GEN_CUSTOMERS_50</code>, skip masking and subset, add the entity as a generation component, enter 50 records, choose the target connection <code>SHOPSPHERE_TEST</code>, and set the Reference Lookup Connection only if you used a lookup rule (p.305). Tick Truncate Table (p.282) if you may want to rerun.</p><p class="expect">The plan appears in the Execute list.</p></li>
+<li><strong>Generate and execute the workflow, then watch it.</strong><p>Open the plan's properties, Actions &gt; Generate and Execute, choose the Integration Service and run immediately (pp.310-311). Open Monitor and wait for the Execute Workflow job to read Success (p.317).</p><p class="expect">Job status moves from In Queue to Running to Success. If it shows Error, click the job ID and read the log (see <a href="16-informatica-plans-workflows-and-warehouse.html">the plans, workflows and warehouse chapter</a>).</p></li>
+<li><strong>Check the data with SQL.</strong><p>Run <code>SELECT COUNT(*) FROM customers;</code> (expect 50) and <code>SELECT COUNT(*) FROM orders;</code> (expect 50 to 150 by my reading, see <a href="#c15-count">the record count section</a>). Then prove the keys: <code>SELECT COUNT(*) FROM orders o LEFT JOIN customers c ON o.customer_id = c.customer_id WHERE c.customer_id IS NULL;</code> must return 0. Repeat for <code>order_items</code> against <code>orders</code> and <code>products</code>.</p><p class="expect">Counts as described and zero orphan rows. A non-zero count means the foreign keys were not honoured; see <a href="#c15-keys-ref">the verify note on reference lookup</a>.</p></li>
+</ol>
+<details class="sol"><summary>Show a worked answer</summary>
+<div class="tablewrap"><table class="sample">
+<caption>Illustrative rows you might see in CUSTOMERS (my example; real output differs)</caption>
+<thead><tr><th>customer_id</th><th>first_name</th><th>last_name</th><th>email</th><th>phone</th><th>ssn</th><th>date_of_birth</th><th>zip_code</th><th>tax_id</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>Meera</td><td>Menon</td><td>Meera@example.com</td><td>9123456780</td><td>234-56-7890</td><td>1992-03-14</td><td>560001</td><td>KQM481926</td></tr>
+<tr><td>1002</td><td>Ravi</td><td>Nair</td><td>Ravi@example.org</td><td>(null)</td><td>345-67-8901</td><td>1977-09-30</td><td>600017</td><td>TRB204815</td></tr>
+<tr><td>1003</td><td>Asha</td><td>Kumar</td><td>Asha@example.com</td><td>8876543210</td><td>456-78-9012</td><td>2001-12-05</td><td>560001</td><td>LPD730412</td></tr>
+</tbody></table></div>
+<p>Notice: ids ascend from 1001, one phone is null because of the null setting, zip codes repeat from a short list, and the SSN-like values are not guaranteed valid (p.224).</p></details>
+</div>
+
+<h2 id="c15-mistakes">15.14 Common mistakes and gotchas</h2>
+
+<div class="callout warn"><strong class="ctitle">Things that go wrong</strong>
+<ul>
+<li><strong>Forgetting to Save each assignment.</strong> The earlier assignment is discarded (p.203).</li>
+<li><strong>Editing a rule and expecting a finished plan to change.</strong> Regenerate and rerun the plan (pp.195-196).</li>
+<li><strong>Combining masking or subset components with generation components in one plan.</strong> Not allowed (pp.274-275). Use two plans.</li>
+<li><strong>Using a pattern and "Generate Unique Values" together.</strong> The guide says uniqueness is unavailable with a regular expression (pp.222-223). Use sequences for keys.</li>
+<li><strong>Re-running into a table that already has ids from 1001.</strong> Key collisions. Truncate the target, or continue the sequence from its last value (p.231).</li>
+<li><strong>Believing pattern-made SSNs or card numbers are valid.</strong> They might not be (p.224). Use the Credit Card technique when validity matters.</li>
+<li><strong>Ignoring warnings.</strong> A rule that conflicts with a conditional constraint wins quietly and only logs a warning (p.202).</li>
+</ul></div>
+
+<h2 id="c15-recap">15.15 Recap</h2>
+
+<div class="callout recap"><strong class="ctitle">Recap</strong>
+<ul>
+<li>Generation builds new rows from rules and never reads production data. It is set up in a project, run from a plan, and executed as a generated workflow.</li>
+<li>Rules come as standard, custom, advanced (global) and ad hoc (per project). Unassigned columns get the default rule for their data type.</li>
+<li>The eleven techniques are Sequence, Random, Set of Values, Dictionary, Credit Card, Reference Lookup, Expression, Conditional, Effective Dates, Advanced and Custom. Reference Lookup, Expression, Effective Dates and Conditional are ad hoc.</li>
+<li>Null and invalid values are mixed in by percentage through the Exception Test Data settings.</li>
+<li>Entities with minimum and maximum child counts, and reference lookups, keep parent-child keys consistent. Always verify keys with a join.</li>
+<li>The number of records is a plan setting. A generation plan cannot contain masking or subset components.</li>
+<li>Conditional constraints restrict one column using another, but a conflicting rule wins and only produces a warning.</li>
+</ul></div>
+
+<section class="sources"><h2 id="c15-sources">Sources used in this chapter</h2>
+<ul>
+<li>Informatica Test Data Management 10.5.10 User Guide (PDF, February 2026, 455 pages): "Data Generation" (pp.190-207) and "Data Generation Techniques and Parameters" (pp.208-235), read in full; "Plans and Workflows" (pp.274-311) for plan steps and settings.</li>
+<li>Same guide: "Projects" (pp.50, 53, 66), "Data Discovery" (pp.110-111, constraints), "Creating a Data Subset" (pp.116-117, entities) and "Working with Test Data Warehouse" (pp.236-258, related data sets).</li>
+<li>Figures looked at by rendering PDF pages 200, 203 and 210. Not used: the online architecture page (could not be opened) and the three videos (no transcripts).</li>
+</ul></section>

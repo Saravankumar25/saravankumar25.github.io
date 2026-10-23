@@ -1,0 +1,77 @@
+
+<h2 id="c9-three-tools">9.6 How the three tools sit on this picture</h2>
+<p>Each tool packages the same stages differently. The goal here is not to learn the screens (the tool chapters do that) but to see the ETL skeleton inside each one.</p>
+<h3 id="c9-informatica">9.6.1 Informatica TDM: a plan that becomes a PowerCenter workflow</h3>
+<p><strong>Core idea.</strong> You do not draw an ETL mapping. You describe <em>what you want</em> in a plan, and TDM generates the ETL objects for you. A plan defines a data subset, masking or data generation operation and holds the components it needs (User Guide 10.5.10, p.274). When you generate a workflow, "the PowerCenter Repository Service generates mappings for the workflow"; when you start it, the PowerCenter Integration Service does the subset, masking and generation tasks (p.308). The guide lists what the Integration Service creates for masking: mappings, transformations, mapplets, sessions and workflows (p.150). <span class="badge doc">From docs</span></p>
+<div class="flow">
+<div class="node"><b>Rules, entities, policies</b>in the TDM repository</div>
+<div class="arrow">→</div>
+<div class="node"><b>Plan</b>specification</div>
+<div class="arrow">→</div>
+<div class="node"><b>Generated workflow</b>mappings and sessions in the PowerCenter repository</div>
+<div class="arrow">→</div>
+<div class="node"><b>Run</b>PowerCenter Integration Service</div>
+</div>
+<p>Where each pipeline stage lives, from the pages I read:</p>
+<ul>
+<li><strong>Extract subset.</strong> An <em>entity</em> has a driving table, and TDM adds the tables related to it through constraints; you attach filter parameters to columns. The workflow loads the matching subset into a target database (pp.112 to 114). Three data integrity options decide how whole the subset is: <em>Transactional Integrity for Major Relation Type</em> (a selected child pulls in its parents, the parents pull in all their children, and this repeats until no more related rows are found), <em>Referential Integrity Only</em> (the least rows needed to keep keys valid, so some children of a parent may be missing) and <em>Two-way</em> (criteria propagate down and then up until every table has some data). Recursive evaluation and Two-way need a staging connection (pp.121 to 122). <span class="badge doc">From docs</span></li>
+<li><strong>Staging.</strong> A plan lets you choose source, target, staging, lookup, storage and dictionary connections (p.276). A staging connection is a database used for staging data, and cyclic tables in an entity require one (p.114). <span class="badge doc">From docs</span></li>
+<li><strong>Mask.</strong> Masking rules (standard, advanced, or imported from a mapplet) are assigned to columns, data domains and policies. Subset and masking can share a plan: "the subset component gets priority", so TDM subsets first and then masks the subset, and does not mask data outside the subset (p.275). That is the extract-then-transform order of the reference architecture. <span class="badge doc">From docs</span></li>
+<li><strong>Load.</strong> The target is a database, flat file, or the test data warehouse, which keeps versioned data sets that can be reset to a test system (pp.236 to 238, 275). Plan settings add update strategy (insert, update, or update else insert), commit type and interval, and error and recovery options (pp.284 to 285). A pre workflow and post workflow, and SQL before and after writing to the target, are available (pp.277 to 278). <span class="badge doc">From docs</span></li>
+<li><strong>Operate.</strong> The Monitor view shows progress, and the Session Details tab shows affected, rejected and written rows (p.275). Up to eight workflows run at once (p.276). <span class="badge doc">From docs</span></li>
+</ul>
+<p>Architecture reminder (pp.25 to 27): Test Data Manager is the web front end; the TDM repository stores rules, projects and entities; the PowerCenter Repository Service and Integration Service hold and run the generated workflows. <a href="10-informatica-overview-and-architecture.html">The Informatica architecture chapter</a> covers this in full, and <a href="16-informatica-plans-workflows-and-warehouse.html">the plans and workflows chapter</a> covers the plan screens.</p>
+
+<h3 id="c9-delphix">9.6.2 Delphix Continuous Compliance: connectors, rule sets and masking jobs</h3>
+<p><strong>Core idea.</strong> Delphix's masking engine models the pipeline as four objects you configure once and reuse: a <em>connector</em> (how to reach a source or target), a <em>rule set</em> (which tables or files), an <em>inventory</em> (which columns get which algorithm) and a <em>job</em> (the thing that runs). The terminology page defines masking as iterating through a dataset to find sensitive fields and replace them with desensitised values, and a rule set as a group of tables or flat files on which profile, masking or tokenization jobs run. <span class="badge doc">From docs</span> <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology ↗</a></p>
+<div class="flow">
+<div class="node"><b>Connector</b>source and target access</div>
+<div class="arrow">→</div>
+<div class="node"><b>Rule set</b>tables or files, optional filter</div>
+<div class="arrow">→</div>
+<div class="node"><b>Inventory</b>domain and algorithm per column</div>
+<div class="arrow">→</div>
+<div class="node"><b>Masking job</b>in-place or on-the-fly</div>
+</div>
+<ul>
+<li><strong>Extract subset.</strong> In a database rule set each table can have a Filter (a WHERE clause) or a custom SQL SELECT, and a logical key that uniquely identifies a row (Managing rule sets). <span class="badge doc">From docs</span></li>
+<li><strong>Mask.</strong> The inventory lists table or file, column or field, classification and chosen algorithm; an optional setting lets a profiling job update the assignment or lets the user's choice override it (Managing inventories). <a href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Managing inventories ↗</a> <span class="badge doc">From docs</span></li>
+<li><strong>Load: the two job methods.</strong> This is the clearest ETL parallel in any of the tools. <em>In-place</em> jobs update the source environment with the masked values. <em>On-the-fly</em> jobs read unmasked data from the source and write masked data to the target, and require a source environment and source connector as well as the target. Supported pairs are same-type databases or files, and database to delimited file (Create, view, edit, delete, verify jobs). <span class="badge doc">From docs</span> <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs ↗</a></li>
+<li><strong>Load options.</strong> Commit Size, Update Threads, Batch Update, Truncate (on-the-fly only), Drop Indexes, Disable Triggers, Disable Constraints, a Pre SQL and Post SQL script, Number of Streams for parallel tables, Row Limit, Feedback Size, memory settings and email notification. Multi-tenant jobs choose connectors at run time (same page). <span class="badge doc">From docs</span></li>
+<li><strong>Operate.</strong> A submitted job is run or queued depending on memory and a limit on simultaneously running jobs (default 7); a stopped running job leaves semi-masked data, and indexes, constraints or triggers that the job dropped are not recreated (Running and Stopping Jobs). <a href="https://help.delphix.com/cc/current/content/running_and_stopping_jobs.htm" target="_blank" rel="noopener">Running and Stopping Jobs ↗</a> Job executions show states such as Queued, Running, Succeeded, Failed and Cancelled (Job monitoring). <span class="badge doc">From docs</span></li>
+<li><strong>Provisioning.</strong> A masking job can be marked eligible for masked provisioning of virtual databases under a feature called Selective Data Distribution (jobs page); the <a href="23-delphix-connectors-and-vdb.html">connectors and VDB chapter</a> covers it.</li>
+</ul>
+
+<h3 id="c9-genrocket">9.6.3 GenRocket: generators feed receivers; G-Subset is an ETL job</h3>
+<p><strong>Core idea.</strong> GenRocket's main product creates data, so in the pipeline it replaces the "source". Its five key components give each ETL stage a name: a <em>domain</em> (like a table) with <em>attributes</em> (like columns), a <em>generator</em> that creates values, a <em>receiver</em> that "receives the data from an Attribute's Generator and morphs it into a usable format", and a <em>scenario</em> with the instructions for what to generate and how much. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-five-key-components" target="_blank" rel="noopener">GenRocket Five Key Components ↗</a></p>
+<ul>
+<li><strong>Load = receiver.</strong> The Receivers overview describes 120+ receiver types that format and deliver generated data: SQL and NoSQL databases, web services, fixed and delimited files, big data formats such as Parquet and Avro, message formats such as Kafka and MQ, packaged applications, EDI, documents and images, and cloud environments. More than one receiver can be attached to a domain, and data is generated for each in order. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/receivers-overview" target="_blank" rel="noopener">Receivers Overview ↗</a> The FAQ adds that a receiver does not know whether it delivers to a mainframe or a PC; it only knows its format and destination. For large volumes, native bulk load receivers are preferred over JDBC. Pre and post SQL runs through the SQLUpdateReceiver. <span class="badge doc">From docs</span></li>
+<li><strong>Where it runs.</strong> The Runtime executes scenarios on premises, behind your firewall (General FAQ). <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">General FAQ ↗</a> This is the ETL engine; the cloud part is where you model and design (Architecture page). <span class="badge doc">From docs</span></li>
+<li><strong>Synthetic replacement as a masking transform.</strong> "Synthetic Data Replacement" replaces sensitive values with generated ones and is used in G-Subset and file masking. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/what-is-synthetic-data-replacement-sdr" target="_blank" rel="noopener">What is SDR? ↗</a></li>
+</ul>
+<p><strong>G-Subset as an ETL job.</strong> G-Subset is GenRocket's subsetting and masking feature for databases. Its description reads like our reference architecture. <a href="https://genrocket.helpjuice.com/en_US/databases-g-subset/g-subset-overview-formerly-g-migration" target="_blank" rel="noopener">G-Subset Overview ↗</a> <span class="badge doc">From docs</span></p>
+<ol class="steps">
+<li><strong>Import the schema.</strong><p>You upload only the source database's metadata, not customer data. This is the "model" step and the source profile.</p></li>
+<li><strong>Define subset conditions.</strong><p>A "Where" clause, a percentage of rows or a number of rows, and the sensitive columns to replace.</p></li>
+<li><strong>Download the configuration.</strong><p>The files are the instruction set. The actual work runs in your environment.</p></li>
+<li><strong>Extract into temporary dump files.</strong><p>Rows to be subset are read from the source tables into temporary files on the machine doing the migration. This is the staging area. In default mode, sensitive columns are never read: the dump file marks them "to be masked" and fills them with synthetic data from an automatically created domain and scenario.</p></li>
+<li><strong>Load.</strong><p>The data is inserted into the destination tables, directly via JDBC with bulk files or using SQL insert files, and the temporary files are removed afterwards.</p><p class="expect">Result: a smaller, masked copy in a destination database of the same type as the source.</p></li>
+</ol>
+<p>Here the ETL parts are named: extract into staging, transform (replace), load, clean up. Note one design difference from most masking tools: by default the sensitive values are not read at all, which is a privacy advantage over reading and then hiding them. The overview also describes an optional conditional masking feature, disabled by default, that does read the actual values.</p>
+
+<h3 id="c9-side-by-side">9.6.4 Side by side</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Pipeline stage</th><th>Informatica TDM</th><th>Delphix masking engine</th><th>GenRocket</th></tr></thead>
+<tbody>
+<tr><td>Profile</td><td>Data discovery profiles; data domains</td><td>Profiling jobs update the inventory</td><td>Metadata import; column-name profiling for PII in G-Subset (it checks column headers against defined names)</td></tr>
+<tr><td>Define what to move</td><td>Entity with driving table; group; criteria</td><td>Rule set: tables or files, filter, logical key</td><td>G-Subset configuration; scenario with domains</td></tr>
+<tr><td>Source of rows</td><td>Relational, flat file, XSD sources</td><td>Connector to a database or files</td><td>Source database via JDBC, or generators</td></tr>
+<tr><td>Staging</td><td>Staging connection (database)</td><td>Not described on the pages I read</td><td>Temporary dump files</td></tr>
+<tr><td>Transform</td><td>Masking rules and policies; mapplets; generation rules</td><td>Inventory algorithms (secure lookup, mapping, segment mapping and others)</td><td>Generators; Synthetic Data Replacement</td></tr>
+<tr><td>Engine</td><td>PowerCenter Integration Service</td><td>Masking engine job with streams and threads</td><td>GenRocket Runtime on premises</td></tr>
+<tr><td>Load</td><td>Target connection; test data warehouse</td><td>In-place or on-the-fly job; optional truncate</td><td>Receivers; JDBC or bulk files</td></tr>
+<tr><td>Specification</td><td>Plan, generated into a workflow</td><td>Job saved in the engine</td><td>Scenario (and G-Cases)</td></tr>
+<tr><td>Monitor</td><td>Monitor view; session details</td><td>Job executions, logs, states</td><td>Not covered on the pages I read</td></tr>
+</tbody></table></div>
+<div class="callout note"><strong class="ctitle">What "not described" means</strong>
+<p>An entry that says "not described on the pages I read" means the documentation excerpt I had does not state it. It does not mean the tool lacks the feature. Check your product version.</p></div>

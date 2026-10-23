@@ -1,0 +1,219 @@
+<h2 id="c3-sql">3.6 Basic SQL you will see</h2>
+<p><dfn>SQL</dfn> (Structured Query Language, often said "sequel") is the language for asking a relational database questions and changing its data. You will meet it in TDM tools in small doses: a WHERE filter for a subset, a custom query for a table, a check of results. You need to read it, not master it.</p>
+<p>All statements below were run against the ShopSphere tables and sample rows from this chapter, and the results shown are what they returned. To try them yourself, use any relational database you can access; for a free practice option, SQLite works on a laptop. The create-table statements are in the lab at the end of this section. Details such as date handling differ slightly between databases.</p>
+<span class="badge concept">General concept</span>
+
+<h3 id="c3-select">SELECT: read data</h3>
+<p><code>SELECT</code> chooses columns; <code>FROM</code> names the table.</p>
+<pre><code>SELECT first_name, last_name, zip_code
+FROM customers;</code></pre>
+<div class="tablewrap"><table class="sample"><caption>Result</caption><thead><tr><th>first_name</th><th>last_name</th><th>zip_code</th></tr></thead><tbody><tr><td>Asha</td><td>Menon</td><td>560001</td></tr>
+<tr><td>Ravi</td><td>Kumar</td><td>600017</td></tr>
+<tr><td>Meera</td><td>Nair</td><td>682001</td></tr></tbody></table></div>
+<p><code>SELECT *</code> means "all columns". Handy for a quick look, but on a big table it returns everything, which can be slow and can display sensitive columns you did not need.</p>
+
+<h3 id="c3-where">WHERE: choose rows</h3>
+<p><code>WHERE</code> keeps only the rows that satisfy a condition.</p>
+<pre><code>SELECT * FROM orders
+WHERE customer_id = 1001;</code></pre>
+<div class="tablewrap"><table class="sample"><caption>Result: Asha's two orders</caption><thead><tr><th>order_id</th><th>customer_id</th><th>order_date</th><th>total_amount</th></tr></thead><tbody><tr><td>5001</td><td>1001</td><td>2026-01-15</td><td>1098.00</td></tr>
+<tr><td>5002</td><td>1001</td><td>2026-02-03</td><td>1499.00</td></tr></tbody></table></div>
+<p>Text values go in quotes; numbers do not. Because <code>zip_code</code> is text in our table, <code>WHERE zip_code = '600017'</code> returns Ravi Kumar. You can combine conditions with <code>AND</code> and <code>OR</code>, and compare with <code>&lt;</code>, <code>&gt;</code>, <code>LIKE</code> and others.</p>
+<div class="callout why">
+<strong class="ctitle">Why this matters</strong>
+<p>A WHERE clause is the simplest subset there is: "only customers in postal area 600017". Both the Informatica and Delphix documentation use filters like this to limit rows. Delphix describes a rule-set filter as a WHERE clause, and says to prefix the column with the table name, for example <code>customer.cust_id &lt; 1000</code> (<a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>). <span class="badge doc">From docs</span> Note that a WHERE on one table does not by itself bring along the related rows of other tables; keys do that, which is why subsetting is more than a filter.</p>
+</div>
+
+<h3 id="c3-join">JOIN: combine tables through keys</h3>
+<p>A join follows a foreign key. Here, each order is matched to its customer by <code>customer_id</code>:</p>
+<pre><code>SELECT c.first_name, o.order_id, o.total_amount
+FROM customers c
+JOIN orders o ON o.customer_id = c.customer_id;</code></pre>
+<div class="tablewrap"><table class="sample"><caption>Result</caption><thead><tr><th>first_name</th><th>order_id</th><th>total_amount</th></tr></thead><tbody><tr><td>Asha</td><td>5001</td><td>1098.00</td></tr>
+<tr><td>Asha</td><td>5002</td><td>1499.00</td></tr>
+<tr><td>Ravi</td><td>5003</td><td>598.00</td></tr></tbody></table></div>
+<p><code>c</code> and <code>o</code> are short nicknames (aliases) for the tables. The <code>ON</code> line states the key match. Meera does not appear: she has no orders, and a plain <code>JOIN</code> keeps only matches. A <code>LEFT JOIN</code> keeps every customer and shows empty (null) where there is no order:</p>
+<pre><code>SELECT c.first_name, o.order_id
+FROM customers c
+LEFT JOIN orders o ON o.customer_id = c.customer_id;</code></pre>
+<p>This returns Asha 5001, Asha 5002, Ravi 5003 and Meera with no order id. You can chain joins to walk the whole chain customer, order, item, product:</p>
+<pre><code>SELECT c.last_name, p.product_name, i.quantity
+FROM order_items i
+JOIN orders o    ON o.order_id = i.order_id
+JOIN customers c ON c.customer_id = o.customer_id
+JOIN products p  ON p.product_code = i.product_code
+ORDER BY i.item_id;</code></pre>
+<p>The result has four rows: Menon with Wireless Mouse (1), Menon with USB-C Cable (1), Menon with Laptop Stand (1) and Kumar with USB-C Cable (2). A subsetting tool does something like this walk in reverse: start from the customers you chose and follow the keys out to every related row.</p>
+
+<h3 id="c3-count">COUNT: how many?</h3>
+<pre><code>SELECT COUNT(*) AS customer_count FROM customers;</code></pre>
+<p>Returns 3. With <code>GROUP BY</code> you can count per group:</p>
+<pre><code>SELECT customer_id, COUNT(*) AS order_count
+FROM orders
+GROUP BY customer_id;</code></pre>
+<p>Returns 1001 with 2 orders and 1002 with 1 order. TDM people use COUNT constantly: how many rows before and after a subset? Does the masked table have as many rows as the source? Does the number of distinct values in a candidate key equal the number of rows? (<code>COUNT(DISTINCT customer_id)</code> counts the unique values.)</p>
+
+<h3 id="c3-insert-update">INSERT and UPDATE: change data</h3>
+<p><code>INSERT INTO customers (...) VALUES (...)</code> adds a row (the lab below has full examples); the column list and value list must line up. If you inserted an order with <code>customer_id</code> 9999 when no such customer exists, a database that enforces the foreign key rejects it.</p>
+<pre><code>UPDATE customers
+SET zip_code = '560002'
+WHERE customer_id = 1001;</code></pre>
+<p>After the UPDATE, a SELECT for customer 1001 returns zip_code 560002. <strong>Never write UPDATE without a WHERE</strong> unless you really mean to change every row: the statement above, without its last line, would give all three customers the same postal code.</p>
+<p>Masking is, at its core, a very large controlled UPDATE: replace the value in a sensitive column in every row (with a consistent rule). Delphix's in-place masking updates the source table; a copy-style approach writes to a different target. The tool generates the SQL for you, but understanding that it is an UPDATE explains why a table with no key is a problem: the tool needs a way to say "this exact row". Delphix's documentation says the custom SQL for a table must include the primary key column(s) and the columns to be masked (<a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>). <span class="badge doc">From docs</span></p>
+
+<div class="exercise">
+<h4>Lab: run the ShopSphere queries (database needed, any relational database)</h4>
+<p>Goal: create the four tables, load the fake rows and reproduce this section's results.</p>
+<ol class="steps">
+<li><strong>Create the tables in the order parents first, children second.</strong><p>A child table with a foreign key can only be created once its parent exists (in most databases), and rows must be inserted in the same order.</p>
+<pre><code>CREATE TABLE customers (
+  customer_id INTEGER PRIMARY KEY,
+  first_name VARCHAR(50), last_name VARCHAR(50), email VARCHAR(100),
+  phone VARCHAR(15), ssn VARCHAR(11), date_of_birth DATE,
+  zip_code VARCHAR(10), tax_id VARCHAR(20));
+CREATE TABLE products (
+  product_code VARCHAR(10) PRIMARY KEY,
+  product_name VARCHAR(100), price DECIMAL(10,2));
+CREATE TABLE orders (
+  order_id INTEGER PRIMARY KEY,
+  customer_id INTEGER NOT NULL,
+  order_date DATE, total_amount DECIMAL(10,2),
+  FOREIGN KEY (customer_id) REFERENCES customers (customer_id));
+CREATE TABLE order_items (
+  item_id INTEGER PRIMARY KEY,
+  order_id INTEGER NOT NULL, product_code VARCHAR(10) NOT NULL,
+  quantity INTEGER, unit_price DECIMAL(10,2),
+  FOREIGN KEY (order_id) REFERENCES orders (order_id),
+  FOREIGN KEY (product_code) REFERENCES products (product_code));</code></pre>
+<p class="expect">Four tables created with no errors.</p></li>
+<li><strong>Insert the rows.</strong><p>Use the sample rows shown earlier in this chapter. Customers and products first, then orders, then items.</p>
+<pre><code>INSERT INTO customers VALUES (1001,'Asha','Menon','asha.menon@example.com','9876543210','123-45-6789','1990-04-12','560001','TAX-A1001');
+INSERT INTO customers VALUES (1002,'Ravi','Kumar','ravi.k@example.com','9123456780','234-56-7890','1985-11-02','600017','TAX-R1002');
+INSERT INTO customers VALUES (1003,'Meera','Nair','meera.n@example.com','9988776655','345-67-8901','1999-07-23','682001','TAX-M1003');
+INSERT INTO products VALUES ('P100','Wireless Mouse',799.00);
+INSERT INTO products VALUES ('P200','USB-C Cable',299.00);
+INSERT INTO products VALUES ('P300','Laptop Stand',1499.00);
+INSERT INTO orders VALUES (5001,1001,'2026-01-15',1098.00);
+INSERT INTO orders VALUES (5002,1001,'2026-02-03',1499.00);
+INSERT INTO orders VALUES (5003,1002,'2026-02-10',598.00);
+INSERT INTO order_items VALUES (9001,5001,'P100',1,799.00);
+INSERT INTO order_items VALUES (9002,5001,'P200',1,299.00);
+INSERT INTO order_items VALUES (9003,5002,'P300',1,1499.00);
+INSERT INTO order_items VALUES (9004,5003,'P200',2,299.00);</code></pre>
+<p class="expect">Three customer rows, three products, three orders and four items. (The tax_id values are invented placeholders for this guide.)</p></li>
+<li><strong>Run the orphan check.</strong><p>This query lists orders whose customer does not exist. In a healthy database it returns no rows. It is the check you will run after every subset and mask to prove integrity.</p>
+<pre><code>SELECT o.order_id
+FROM orders o
+LEFT JOIN customers c ON c.customer_id = o.customer_id
+WHERE c.customer_id IS NULL;</code></pre>
+<p class="expect">No rows returned.</p></li>
+<li><strong>Write two queries of your own.</strong><p>(a) How many order items does each order have? (b) Which customers have no orders?</p></li>
+</ol>
+<details class="sol"><summary>Show a worked answer</summary>
+<p><strong>(a)</strong> <code>SELECT order_id, COUNT(*) AS item_count FROM order_items GROUP BY order_id;</code> returns 5001 with 2, 5002 with 1, 5003 with 1.</p>
+<p><strong>(b)</strong> <code>SELECT c.first_name FROM customers c LEFT JOIN orders o ON o.customer_id = c.customer_id WHERE o.order_id IS NULL;</code> returns Meera. This is the same "LEFT JOIN then look for nulls" trick as the orphan check, aimed the other way.</p>
+</details>
+</div>
+
+<h2 id="c3-volume">3.7 Data volumes and why size matters</h2>
+<p>ShopSphere's sample tables hold ten rows between them. The real database holds millions of customers and tens of millions of orders. Size changes everything about TDM.</p>
+<p>Sizes run from KB (a short text file) through MB (a CSV of tens of thousands of customers) and GB (a small production database) to TB (a large enterprise database).</p>
+<p>Why size matters to a TDM engineer:</p>
+<ul>
+<li><strong>Time.</strong> Masking updates every row of every sensitive column. Ten times the rows is roughly ten times the work unless you add parallelism. Delphix profile jobs have a setting for the number of parallel streams, for example two streams to run two tables of a rule set at once (<a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>). <span class="badge doc">From docs</span></li>
+<li><strong>Storage.</strong> Every environment that holds a full copy multiplies the cost. See <a href="02-why-tdm.html">the why-TDM chapter</a>.</li>
+<li><strong>Memory and file limits.</strong> A file of many gigabytes cannot be opened in a spreadsheet; you work on it with tools or by sampling.</li>
+<li><strong>Test fitness.</strong> Performance tests need volume; functional tests do not. Matching size to purpose is part of the job.</li>
+<li><strong>Row count versus width.</strong> A table with a hundred million narrow rows and a table with a million rows of large documents behave very differently. Ask for both numbers.</li>
+</ul>
+<span class="badge concept">General concept</span>
+<div class="callout tip">
+<strong class="ctitle">Always ask for counts first</strong>
+<p>Before any TDM job, ask for the row count of each table. It tells you whether a subset is needed, how long a job should take, and gives you a number to verify afterwards (row counts before and after should reconcile with what you expect).</p>
+</div>
+
+<h2 id="c3-exercise-keys">3.8 Hands-on: which keys exist in the ShopSphere files?</h2>
+<p>This exercise rehearses the real situation from the logical keys section: data arrives as files, no database has declared any keys, and you must work out the relationships. It needs no tool, only reasoning. It matches the Day 51 topic "primary key basics and discovery".</p>
+<p>ShopSphere's partner system sends three files. None of them states any key.</p>
+<pre><code>customers.csv
+customer_id,first_name,last_name,email
+1001,Asha,Menon,asha.menon@example.com
+1002,Ravi,Kumar,ravi.k@example.com
+1003,Meera,Nair,meera.n@example.com
+1004,Asha,Menon,asha.m2@example.com
+
+orders.dat  (pipe-delimited, no header)
+5001|1001|2026-01-15|1098.00
+5002|1001|2026-02-03|1499.00
+5003|1002|2026-02-10|598.00
+5004|1004|2026-02-11|299.00
+
+order_items.txt  (fixed width: item_id 1-4, order_id 5-8, product 9-12, qty 13-15)
+90015001P100  1
+90025001P200  1
+90035002P300  1
+90045003P200  2
+90055004P200  1</code></pre>
+<p>Splitting the first item line by position gives item_id 9001, order_id 5001, product P100 and qty 1 (padded with two spaces to fill its field). Without the layout line above the file, the run of digits at the start would be meaningless. <strong>The layout specification is part of the data.</strong></p>
+<div class="exercise">
+<h4>Lab: find the keys (thinking lab, no tool needed)</h4>
+<p>Goal: decide the primary key of each file, the foreign keys between them, and any problems.</p>
+<ol class="steps">
+<li><strong>For each file, name a candidate primary key.</strong><p>A candidate must be unique and never empty in every row. Test it by looking for repeats.</p></li>
+<li><strong>Find the foreign keys.</strong><p>Which column in one file should match the primary key of another? Write each as <em>child.column to parent.column</em>.</p></li>
+<li><strong>Check integrity.</strong><p>For each foreign key, list the values and check each one exists in the parent. Note any orphans.</p></li>
+<li><strong>Spot a trap.</strong><p>Customers 1001 and 1004 look similar. Is that a key problem?</p></li>
+<li><strong>Decide how you would tell a tool.</strong><p>The files have no declared keys. What would you tell a TDM tool to treat as logical keys?</p></li>
+</ol>
+<details class="sol"><summary>Show a worked answer</summary>
+<p><strong>1. Primary keys.</strong> <code>customers.csv</code>: <code>customer_id</code> (1001 to 1004, all distinct). Not the name: Asha Menon appears twice. Not the email as a choice either; it is unique in this sample but emails can change, so it is a weaker key. <code>orders.dat</code>: the first field, the order id (5001 to 5004, all distinct). <code>order_items.txt</code>: item_id (9001 to 9005, all distinct).</p>
+<p><strong>2. Foreign keys.</strong> <code>orders</code> field 2 (customer id) refers to <code>customers.customer_id</code>. <code>order_items.order_id</code> refers to the order id in <code>orders.dat</code>. A <code>product</code> column also exists; it would point to a products file or table, which the partner did not send here.</p>
+<p><strong>3. Integrity.</strong> Order customers are 1001, 1001, 1002, 1004: all exist. Item orders are 5001, 5001, 5002, 5003, 5004: all exist. No orphans. Note that customer 1003 has no orders (legal).</p>
+<p><strong>4. The trap.</strong> Customers 1001 and 1004 share a first and last name but have different emails and IDs. They may be two people or one person registered twice. The keys are fine (the IDs are distinct); this is a data quality question, not a key problem. It matters for masking: a consistent masking rule that works on the name alone would give both the same fake name, which may or may not be what you want. Ask the data steward.</p>
+<p><strong>5. Telling the tool.</strong> Declare customer_id, order id and item_id as the logical primary keys of their files, and declare the two foreign key relationships as logical foreign keys, so that a subset starting from a customer follows its orders and items. In Informatica that is the logical constraints from the Discover > Tables view; in Delphix it is the logical key on the table, and file relationships are handled by the formats and the masking design. Details are in the tool chapters.</p>
+</details>
+</div>
+
+<h2 id="c3-mistakes">3.9 Common mistakes and gotchas</h2>
+<div class="callout warn">
+<strong class="ctitle">Treating a column as unique because the sample looks unique</strong>
+<p>Three rows with distinct emails do not prove emails are unique across three million rows. Test with counts of all rows against counts of distinct values.</p>
+</div>
+<div class="callout warn">
+<strong class="ctitle">Assuming the database enforces the keys</strong>
+<p>Many databases, especially older ones and data warehouses, have no declared foreign keys. Relationships exist only by convention. That is why profiling for keys and logical keys exist.</p>
+</div>
+<div class="callout warn">
+<strong class="ctitle">Masking keys inconsistently</strong>
+<p>If a key is masked in one table and not in its child tables (or masked differently), relationships break. Mask keys the same way everywhere, or leave them alone.</p>
+</div>
+<div class="callout warn">
+<strong class="ctitle">Uploading real data to define a format</strong>
+<p>A layout needs only structure. Delphix says not to upload production data, sample records or PII when defining file formats (<a href="https://help.delphix.com/cc/current/content/managing_file_formats.htm" target="_blank" rel="noopener">Managing file formats</a>). <span class="badge doc">From docs</span></p>
+</div>
+
+<h2 id="c3-recap">3.10 Recap</h2>
+<div class="callout recap">
+<strong class="ctitle">Recap</strong>
+<ul>
+<li>A database holds tables; a table has rows (records) and columns (fields) with data types. Metadata and schema describe the data without containing it.</li>
+<li>A primary key uniquely identifies a row; a foreign key in a child table points at a parent's primary key; together they give one-to-many relationships.</li>
+<li>Referential integrity means every foreign key matches an existing parent. Subsetting, masking and generation must all preserve it.</li>
+<li>Logical keys are keys declared to the tool when the database does not declare them. Informatica and Delphix both support them.</li>
+<li>Flat files have no built-in schema: know the layout (delimited or fixed-width), header and footer records, record types, line endings and encoding.</li>
+<li>XML and JSON nest children inside parents instead of using foreign keys.</li>
+<li>SELECT, WHERE, JOIN, COUNT, INSERT and UPDATE cover most of the SQL you will read. The orphan check (LEFT JOIN where the parent is null) is a TDM staple.</li>
+<li>Size drives time, cost and test fitness: ask for row counts first.</li>
+</ul>
+</div>
+
+<section class="sources"><h2 id="c3-sources">Sources used in this chapter</h2>
+<ul>
+<li>Informatica TDM 10.5.10 User Guide (PDF, February 2026): p.21 (primary key and foreign key profiles), p.23 (subsets keep key relationships), p.26 (TDM repository stores imported metadata), p.34 (worked example where logical keys are created), p.86 (foreign key profile adds logical constraints, not applied to source tables), p.109 (logical primary key), p.110 (logical foreign key), p.239 (logical keys for tables without primary keys).</li>
+<li><a href="https://help.delphix.com/cc/current/content/managing_file_formats.htm" target="_blank" rel="noopener">Delphix: Managing file formats</a>. Used for files lacking metadata, shared formats, end-of-record and delimiter settings, and the warning not to upload production data.</li>
+<li><a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Delphix: Managing rule sets</a>. Used for rule set types, logical key, filter (WHERE), custom SQL requirements, control characters, enclosure escaping and the Checklist.</li>
+<li><a href="https://help.delphix.com/cc/current/content/managing_record_types_and_header_footer_records.htm" target="_blank" rel="noopener">Delphix: Managing record types and header/footer records</a>. Used for record types, qualifiers, headers and footers.</li>
+<li><a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Delphix: Introduction to Delphix Masking</a>. Used for column-level and data-level profiling and key preservation.</li>
+<li><a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>. Used for the number-of-streams setting.</li>
+<li>General concept sections (databases, keys, SQL, encodings, XML/JSON, volumes) are my own explanation. The SQL results were produced by running the statements on the sample rows in SQLite.</li>
+</ul></section>

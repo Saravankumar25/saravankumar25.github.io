@@ -1,0 +1,247 @@
+<h2 id="c19-scenarios">19.4 Scenarios</h2>
+
+<h3 id="c19-scenario-what">19.4.1 What a scenario is</h3>
+
+<p><span class="badge doc">From docs</span> A scenario contains instructions that tell the GenRocket engine what synthetic data to generate and how much. You select the domains, say how many rows each produces, decide their order, download the scenario to a computer, and run it with the runtime. Domains, attributes, generators and receivers are its building blocks, so all four must exist first.</p>
+
+<p>A scenario is for <em>one primary domain</em>. If the primary domain has parents, the scenario pulls them in as helper domains so that foreign keys are valid: a scenario for Address with parents User and Department also creates departments and users. To output data for several related domains, create a scenario per domain and link them in a chain (below). The docs recommend a scenario for every domain, except pure helper domains.</p>
+
+<h3 id="c19-scenario-create">19.4.2 Creating a scenario</h3>
+
+<p>There are three ways: <em>New Scenario</em> (with or without a primary domain), <em>Quick Scenario</em> (named after the domain and built from its relationships) and <em>Batch New Scenarios</em> (a quick scenario for each of several domains).</p>
+
+<ol class="steps">
+<li><strong>Open the domain's dashboard and click <em>Quick Scenario</em>.</strong>
+<p>Quick is the fastest way when the domain's parent relationships are already right, because it builds the parent domains in for you.</p>
+</li>
+</ol>
+
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776785902758/1jg4Ff1LEKQzshmzwMMzAY-H14wJ9kNN9w.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776785902758/1jg4Ff1LEKQzshmzwMMzAY-H14wJ9kNN9w.png" alt="The Domain Dashboard for domain User with the Domain Scenarios pane at the right showing the New Scenario and Quick Scenario buttons, with an arrow pointing at Quick Scenario, and a DelimitedFileReceiver already listed in Domain Receivers" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> Quick Scenario is in the Domain Scenarios pane of the domain. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/scenarios-/how-do-i-create-a-scenario" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<ol class="steps" start="2">
+<li><strong>Accept the name (it matches the domain), add an optional description and click <em>Save</em>.</strong>
+<p class="expect">What you should see: the Scenario Dashboard for the new scenario.</p>
+</li>
+</ol>
+
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776785917634/kxXBkiTuZu9b4W5RtOKt_873PxHmLdE7iA.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776785917634/kxXBkiTuZu9b4W5RtOKt_873PxHmLdE7iA.png" alt="A Name Your Scenario dialog saying this action will automatically create a scenario including parent and sibling relationships with referential integrity for the User domain, with Name User, Description Generates User Data and a Save button" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The Quick Scenario dialog states what it does: it builds in parent and sibling relationships so referential integrity holds. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/scenarios-/how-do-i-create-a-scenario" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<p>For <em>New Scenario</em>, you enter a name and then choose to create it with or without a primary domain; with one, a wizard asks which domain and whether to add referential integrity automatically. Choose "without" when you want a different parent for this scenario only (see "Scenario domains and relationships" below).</p>
+
+<h3 id="c19-scenario-dash">19.4.3 The Scenario Dashboard</h3>
+
+<p>Open a scenario from the Scenarios pane of the Project Dashboard (or from the domain's Domain Scenarios pane).</p>
+
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776785069594/b9h2Al-c3Czir2uAY4hxlOQntlX1QZhyFQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776785069594/b9h2Al-c3Czir2uAY4hxlOQntlX1QZhyFQ.png" alt="The Scenario Dashboard for UserScenario with buttons Save, Download, Copy, Delete, Make Stateful, Categorize, Lock and Sync, and under Scenario Domains a table listing Organization, Department, User and Address with their loop count values such as #{global.User.loopCount} and summaries like 1 User For Each Department, plus Scenario Domain Receivers, Generators and Variables panes below" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The Scenario Dashboard. The Scenario Domains table shows each domain, its loop count and a summary such as "1 User For Each Department". Receivers, generators and variables for the selected scenario domain are underneath. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/scenarios-/-scenario-dashboard" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<div class="tablewrap">
+<table>
+<thead><tr><th>Area</th><th>What it does (docs)</th></tr></thead>
+<tbody>
+<tr><td>Top buttons</td><td>Save name and description, <em>Download</em> the scenario, <em>Copy</em>, <em>Delete</em>, make stateful or stateless, <em>Categorize</em>, <em>Lock</em> and <em>Sync</em></td></tr>
+<tr><td>Variable Set drop-down</td><td>Chooses a project-version variable set for the downloaded scenario</td></tr>
+<tr><td>Scenario Domains</td><td>Name, loop count, summary, which domain is primary and which is root. Add a template domain, remove a domain, randomise or change the loop count, choose the primary domain, <em>Optimize</em>, or <em>Disable Non-Primary Receivers</em></td></tr>
+<tr><td>Scenario Domain Receivers</td><td>Enable or disable each receiver for this scenario, and add references to its parameters</td></tr>
+<tr><td>Scenario Domain Generators</td><td>All generators in use; click one to see which attributes use it</td></tr>
+<tr><td>Scenario Variables</td><td>Create variables that exist only in this scenario</td></tr>
+<tr><td>Relationship tab</td><td>The parent, child and sibling diagram of this scenario</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>The loop count of a child domain is counted <em>per parent row</em>. In the vendor's chain example, Department generates 2 rows, User generates 10 per department (20 in total) and Address generates 1 per user (20 in total). So to get 100 orders for 50 customers, you set the Orders loop count to 2.</p>
+
+<div class="callout note">
+<strong class="ctitle">A reminder about where to change the number of rows</strong>
+<p>The domain page recommends test data cases for varying row counts. For this chapter, edit the loop count in the Scenario Domains table or on the domain. One quirk from the docs: if the first generator of an attribute is ListGen with <code>setLoop</code> true, the list length decides the count and the pencil icon is absent.</p>
+</div>
+
+<h3 id="c19-scenario-domain">19.4.4 Scenario domains, relationships and locks</h3>
+
+<p>A scenario holds <em>copies</em> of template domains (scenario domains). Template changes flow into scenarios unless the scenario, a scenario domain or an attribute is <em>locked</em>. A lock stops changes made higher up from cascading down; while a scenario is locked the Sync button is hidden, and a locked item cannot be deleted. Use <em>Sync</em> to pull in template changes deliberately.</p>
+
+<p>You can also change a relationship for one scenario only, leaving the template alone. The vendor's story: for the Student scenario, make Teacher the parent of Student instead of Subject. The steps are to add the Teacher domain to the scenario, remove the Student domain's current parent, and add Teacher as its parent. Changes at scenario level do not flow back up. Relationships cannot be changed at the test data case level, so this is the place to do it.</p>
+
+<h3 id="c19-vars-state">19.4.5 Scenario variables and scenario state</h3>
+
+<p><strong>Variables.</strong> Scenario variables are name-and-value pairs usable only inside the scenario that created them. In the Scenario Variables pane click <em>New Variable</em>, give a name and value and save, then reference it from a parameter (double-click the parameter field and pick it).</p>
+
+<p><strong>State.</strong> Normally every run of a scenario produces the same data, for example a RangeGen starting at 10000 starts there every time. Sometimes you want the next run to continue (ids 10000 to 10099 first, then 10100 and on). Clicking <em>Make Stateful</em> saves each generator's position at the end of every <em>successful</em> run; <em>Make Stateless</em> turns it off. By default scenarios are stateless. The state is kept in a small H2 database in the <code>.genrocket</code> folder of the machine, and two runtime options list or clear it: <code>--state-list</code> and <code>--state-clear</code> (with an id or <code>all</code>).</p>
+
+<h3 id="c19-chains">19.4.6 Scenario chains and chain sets</h3>
+
+<p>A <strong>scenario chain</strong> links two or more scenarios so that one downloaded file runs them in order. The vendor example has Department, User and Address scenarios that produce three files from one command. A <strong>chain set</strong> links chains. A chain holds up to 25 scenarios and a chain set up to 25 chains. Optionally set a <em>delay</em> in seconds after a scenario.</p>
+
+<ol class="steps">
+<li><strong>In the Scenario Chains pane click <em>New Scenario Chain</em>, enter a name and description and click <em>Save</em>.</strong>
+<p>Naming makes the chain findable among many.</p>
+</li>
+</ol>
+
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776791413777/Dt5evMuPNNfYMYzclgXmBeoyjPJV5H5rIg.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776791413777/Dt5evMuPNNfYMYzclgXmBeoyjPJV5H5rIg.png" alt="The Create New Scenario Chain dialog with Name Sample and Description Generate Department, User, and Address data, each with an arrow, and Save and Cancel buttons" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> Naming the chain. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/scenario-chains-/how-do-i-create-a-scenario-chain" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<ol class="steps" start="2">
+<li><strong>Click the plus beside each scenario to add it, in the order they should run.</strong>
+<p>Parents must come first so that their output exists before children use it.</p>
+</li>
+<li><strong>Set delays with the pencil icon if you want one, then <em>Save</em> and <em>Download</em>.</strong>
+<p class="expect">What you should see: a chain file you run just like a scenario.</p>
+</li>
+</ol>
+
+<h3 id="c19-run">19.4.7 Running a scenario with the runtime</h3>
+
+<p>The scenario file is run from a command window on a machine that has the runtime and your profile.</p>
+
+<ol class="steps">
+<li><strong>Download the scenario (or chain).</strong>
+<p>The Download button on the dashboard, or the cloud icon in the Scenarios pane. Several scenarios can be downloaded together as a ZIP with <em>Batch Download</em> (up to 15).</p>
+</li>
+<li><strong>Open a command window or terminal in the folder where the file was saved.</strong>
+<p>The command needs to find the file.</p>
+</li>
+</ol>
+
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776787017008/Ct_mW4OO558qLXARK1v2IKupp6an-BTZJQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776787017008/Ct_mW4OO558qLXARK1v2IKupp6an-BTZJQ.png" alt="An empty Windows Command Prompt window with the prompt C:\Users\April Hatton\Downloads" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> Start in the folder that holds the downloaded scenario. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/scenarios-/how-do-i-run-a-genrocket-scenario" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<ol class="steps" start="3">
+<li><strong>Run <code>genrocket -r &lt;ScenarioName&gt;.grs</code>.</strong>
+<p>The <code>-r</code> option means "run". Chains use the same command.</p>
+<p class="expect">What you should see: lines saying the licence was validated, the runtime versions, "Running Scenario ..." for each scenario, and finally "All done!" with the elapsed time.</p>
+</li>
+</ol>
+
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776791850923/zjCsru_sZh0SsC6H8g0UR79foz0hfIDEqA%20(1).png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776791850923/zjCsru_sZh0SsC6H8g0UR79foz0hfIDEqA%20(1).png" alt="A black console window showing the command genrocket -r AllScenarioChain.grs, then license validated, GenRocket versions 3.9.0, Running Scenario DepartmentScenario, Waiting 10 seconds before running next scenario, Running Scenario UserScenario, Waiting 10 seconds again, Running Scenario AddressScenario and All done with Time elapsed 24s" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> A chain run in a terminal. The two green arrows mark the delays between scenarios. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/scenario-chains-/-how-do-i-run-a-scenario-chain" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<p>When data is inserted into a database and loading fails, the runtime throws an exception to the command line (or to the testing framework when it runs in an automated pipeline), so no error means success. The vendor's note on stopping a run: press <kbd>Ctrl+C</kbd>, and on Windows answer the "Terminate batch job (Y/N)?" prompt with Y to abort.</p>
+
+<p>In automated environments the same command is placed in a build step (see the Jenkins section in <a href="17-genrocket-overview.html">the overview chapter</a>). Scenarios can also be run through a repository server or an API, which this guide does not cover.</p>
+
+<h3 id="c19-thread">19.4.8 The Scenario Thread Engine (overview)</h3>
+
+<p>The thread engine speeds up chains and chain sets by running several of their scenarios at the same time: <code>genrocket -r Chain.grs -threaded 10</code>. The docs caution that threads may run in any order, so use it only where order does not matter, for example many segment files that a merge receiver combines later (the engine waits for every segment before merging). Do <em>not</em> use it where SQL inserts depend on parent rows already being present, because the order matters for referential integrity. Their example generated 10,000 EDI documents in 23 minutes 50 seconds with 20 threads against 53 minutes 20 seconds with one (on the vendor's test machine).</p>
+
+<h2 id="c19-walk">19.5 ShopSphere end to end: CUSTOMERS to CSV and ORDERS to SQL inserts</h2>
+
+<p>Everything below uses the design from <a href="18-genrocket-domains-attributes-generators.html">the domains, attributes and generators chapter</a>. It is a practice build, not copied from a vendor page, so each step says which documented feature it uses. I chose SQLFileInsertReceiver for orders because it needs no database connection.</p>
+
+<div class="exercise">
+<h4>Lab: one chain, two outputs</h4>
+<p>Goal: produce <code>Customers.csv</code> with 50 customers and <code>Orders.sql</code> with 100 insert statements whose <code>customer_id</code> values all exist in the CSV.</p>
+<ol class="steps">
+<li><strong>Check your resources.</strong>
+<p>In the Resources pane the home and output directories must point to real folders on the machine that will run the scenario, and your profile must be in <code>.genrocket</code>. If you change one, download the profile again.</p>
+<p class="expect">Expected: three resource rows with paths (JDBC may be N/A).</p>
+</li>
+<li><strong>Add a DelimitedFileReceiver to the Customers domain.</strong>
+<p>Set <code>fileName</code> to <code>Customers.csv</code>, <code>delimiter</code> to a comma, <code>includeHeader</code> True, <code>quoteTextData</code> None, <code>appendToFile</code> false. Leave <code>path</code> as the output resource.</p>
+<p class="expect">Expected: the receiver appears in Domain Receivers.</p>
+</li>
+<li><strong>In its Attributes Property Keys tab, set <code>columnName</code> to the table's column names.</strong>
+<p>Set the id, names and other columns to <code>customer_id</code>, <code>first_name</code> and so on, so the CSV header matches the source database. Set <code>include</code> false for anything the consumer does not want.</p>
+</li>
+<li><strong>Add a SQLFileInsertReceiver to the Orders domain.</strong>
+<p>Set <code>tableName</code> to <code>ORDERS</code>, <code>fileName</code> to <code>Orders.sql</code>, <code>batchCount</code> 100, <code>statementSeparator</code> a semicolon, <code>quoteTextData</code> Single, <code>nullValue</code> NULL, <code>appendToFile</code> false. Set the column names to <code>order_id</code>, <code>customer_id</code>, <code>order_date</code> and <code>total_amount</code>.</p>
+<p>Setting <code>useQuotes</code> false on the numeric columns is a reasonable choice, but the vendor page only says "sometimes a numeric value should be quoted".</p>
+<p class="expect">Expected: the property-key tab shows the real column names.</p>
+</li>
+<li><strong>Create the scenarios.</strong>
+<p>Use <em>Quick Scenario</em> on Customers and on Orders. The Orders scenario brings Customers in as its parent. Both will normally have their receivers, so in the Orders scenario open the Scenario Domain Receivers pane and disable the Customers receiver (or use <em>Disable Non-Primary Receivers</em>), so the CSV is written once, by the Customers scenario.</p>
+<p class="expect">Expected: the Orders Scenario Dashboard lists Customers and Orders, with Orders as primary and Customers as root.</p>
+</li>
+<li><strong>Set the row counts in the Scenario Domains table.</strong>
+<p>Customers: 50. Orders: 2, meaning two orders for each customer, so 100 in total.</p>
+<p class="expect">Expected: the summary for Orders reads like "2 Orders For Each Customer" (the product's wording).</p>
+</li>
+<li><strong>Create a chain called ShopSphereChain with CustomersScenario first and OrdersScenario second, then download it.</strong>
+<p>Order matters: parents first.</p>
+</li>
+<li><strong>Run <code>genrocket -r ShopSphereChain.grs</code> from the download folder.</strong>
+<p class="expect">Expected: "Running Scenario CustomersScenario", then "Running Scenario OrdersScenario", then "All done". Output folder holds <code>Customers.csv</code> and <code>Orders.sql</code>.</p>
+</li>
+</ol>
+<details class="sol">
+<summary>Show how to check the result</summary>
+<p>Open the CSV: it should have a header and 50 rows with customer ids from 1001 to 1050 (if the id variable was set to 1001). Open the SQL file: it should contain 100 <code>insert into ORDERS(order_id,customer_id,order_date,total_amount) values (...)</code> lines whose <code>customer_id</code> values lie between 1001 and 1050, and every customer should appear twice. If you load both into a test database, load customers first so the foreign key is satisfied. (Load order is general database practice, not a documented GenRocket feature.) A header row in the CSV needs <code>includeHeader</code> true; if the Excel viewer shows a single column, the delimiter is wrong.</p>
+</details>
+</div>
+
+<div class="callout example">
+<strong class="ctitle">Variation: insert straight into a database</strong>
+<p>Replace the SQLFileInsertReceiver with GenericSQLInsertV2Receiver. Create a <code>config.properties</code> file with <code>driver</code>, <code>user</code>, <code>password</code>, <code>url</code> and <code>batchCount</code>, place it in the JDBC resource folder, set <code>resourceName</code>, <code>databaseName</code> and <code>tableName</code>, leave <code>truncate</code> on "notApplicable", and put the JDBC driver jar in the runtime's <code>lib</code> folder. Test the connection with <code>--test-jdbc</code>, then run the chain. This needs a database and credentials from the trainer or DBA, so it is optional here.</p>
+</div>
+
+<h2 id="c19-trouble">19.6 Troubleshooting</h2>
+
+<p>The vendor publishes several pages titled "ERROR: ..." plus related receiver and runtime notes. They are condensed here.</p>
+
+<div class="tablewrap">
+<table>
+<thead><tr><th>Message or symptom</th><th>Cause (docs)</th><th>What the docs advise</th></tr></thead>
+<tbody>
+<tr><td>"Could not find the required profile: GRXXXXXXXProfile.grp" (may add "Unable to validate license. Reason: INVALID ACCESS KEY")</td><td>The user profile is missing or outdated in <code>.genrocket</code></td><td>Download your profile again and place it in the <code>.genrocket</code> folder (replace any old one), then re-run</td></tr>
+<tr><td>"Unable to find domain &lt;Domain&gt; from &lt;Domain.Attribute&gt;"</td><td>An attribute refers to another domain's attribute at test-data-case level while no relationship exists between the domains</td><td>Define the relationship at the template domain level; add the parent to the scenario</td></tr>
+<tr><td><code>java.lang.OutOfMemoryError: GC overhead limit exceeded</code></td><td>Not enough heap: unique limits on generators, huge files read into memory, or large database queries</td><td>Set <code>JAVA_OPTS</code> (for example <code>-Xms1024m -Xmx2048m</code>), relax unique limits, use a batch-reading generator (CSVToMapGen instead of ListCSVGen), or raise the heap further</td></tr>
+<tr><td>"Communication link failure" when connecting to a database</td><td>Network, firewall, server down, wrong host, port or credentials in the JDBC file, or an incompatible driver</td><td>Check connectivity, that the server runs, firewall and VPN, the <code>config.properties</code> values and the driver (the page lists a dozen fixes, including MySQL settings)</td></tr>
+<tr><td>PostgreSQL: "column ... does not exist"</td><td>PostgreSQL folds unquoted names to lower case</td><td>Quote the identifier or change the receiver's column names to lower case</td></tr>
+<tr><td>"'genrocket' is not recognized" or "command not found"</td><td>Runtime folder, home variable or <code>PATH</code> is wrong</td><td>Check that the folder is named <code>genrocket</code>, the variables are set, and open a new terminal</td></tr>
+<tr><td><code>UnsupportedClassVersionError</code>, "JAVA_HOME is set to invalid directory"</td><td>Java too old, or the variable points to the wrong place</td><td>Check <code>java -version</code>, set <code>JAVA_OPTS</code> for Java above 1.8, correct <code>JAVA_HOME</code> or install the JDK</td></tr>
+<tr><td>"Could not find or load main class ..."</td><td>The dependent jars did not download</td><td>Run <code>genrocket -a</code>, or download the jars manually into <code>lib</code></td></tr>
+<tr><td>"Unable to Download Users Profile"</td><td>A resource has no value</td><td>Give every resource a valid path, then download again</td></tr>
+<tr><td>Excel generation: "Permission denied"</td><td>The temporary <code>profiles</code> folder under <code>/tmp</code> is not accessible</td><td>Fix folder permissions</td></tr>
+<tr><td>"Exhausted attempts to find the next valid random value"</td><td>RandomGen unique limit cannot supply that many rows</td><td>Widen the range, raise the limit or lower the row count</td></tr>
+</tbody>
+</table>
+</div>
+
+<h2 id="c19-mistakes">19.7 Common mistakes and gotchas</h2>
+
+<div class="callout warn">
+<strong class="ctitle">Watch for these</strong>
+<ul>
+<li><strong>Changing a receiver or loop count and re-running the old file.</strong> The scenario file is a snapshot. Download it again after every change.</li>
+<li><strong>Wrong chain order.</strong> Children before parents means keys do not exist when you load the data.</li>
+<li><strong>Column names that do not match the database.</strong> In SQL receivers, <code>columnName</code> must be the real column.</li>
+<li><strong>Parent data written twice.</strong> A child scenario brings its parents in; disable the non-primary receivers if you only want the child's file.</li>
+<li><strong>Using the thread engine with SQL inserts.</strong> Order matters there.</li>
+<li><strong>Truncating a table by accident.</strong> Leave <code>truncate</code> on "notApplicable".</li>
+<li><strong>Expecting the profile to refresh itself.</strong> After resource changes, download it again.</li>
+</ul>
+</div>
+
+<h2 id="c19-recap">19.8 Recap</h2>
+
+<div class="callout recap">
+<strong class="ctitle">Key points</strong>
+<ul>
+<li>A receiver turns generator output into a format. Sixteen categories, 120+ receivers; more than one can sit on a domain.</li>
+<li>Receivers use organisation resources for folders. Download your profile again whenever a resource changes.</li>
+<li>Delimited, fixed, JSON, XML, Excel and SQL-file receivers cover most beginner needs; segment-and-merge receivers make nested output; masking receivers replace values in existing files.</li>
+<li>JDBC receivers insert directly and need a JDBC config file; V2 adds resource path settings; bulk-load receivers are for very large volumes.</li>
+<li>A scenario is built for a primary domain and pulls in its parents. A child's loop count is per parent row.</li>
+<li>Download, then run with <code>genrocket -r</code>. Chains run several scenarios in order. Locks, state and variables control behaviour between runs.</li>
+<li>When something fails, the commonest causes are a missing profile, wrong paths or variables, relationship or ordering mistakes, and Java memory settings.</li>
+</ul>
+</div>
+
+<section class="sources">
+<h2 id="c19-sources">Sources used in this chapter</h2>
+<ul>
+<li>Receivers: <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/receivers-overview" target="_blank" rel="noopener">overview</a>, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/genrocket-supported-output-formats" target="_blank" rel="noopener">supported formats</a>, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/receiver-dashboard" target="_blank" rel="noopener">dashboard</a>, <a href="https://genrocket.helpjuice.com/en_US/adding-and-configuring-receivers/how-do-i-add-a-receiver-to-a-domain" target="_blank" rel="noopener">add to a domain</a>, <a href="https://genrocket.helpjuice.com/en_US/adding-and-configuring-receivers/how-do-i-add-a-receiver-to-multiple-domains" target="_blank" rel="noopener">add to many</a>, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/what-is-a-configuration-file" target="_blank" rel="noopener">configuration file</a>, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/what-are-v2-receivers" target="_blank" rel="noopener">V2</a>, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/what-are-bulk-load-receivers" target="_blank" rel="noopener">bulk load</a>, <a href="https://genrocket.helpjuice.com/en_US/organization-resources/how-do-i-change-resource-values-and-download-my-user-profile" target="_blank" rel="noopener">resource values and profile</a>, the receiver browser at <a href="https://app.genrocket.com/browse/receivers" target="_blank" rel="noopener">app.genrocket.com</a>.</li>
+<li>Receiver pages: <a href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-delimited-file-receiver" target="_blank" rel="noopener">DelimitedFileReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-fixed-file-receiver" target="_blank" rel="noopener">FixedFileReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-json-file-receiver" target="_blank" rel="noopener">JSONFileReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-xml-file-receiver" target="_blank" rel="noopener">XMLFileReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-excel-file-receiver" target="_blank" rel="noopener">ExcelFileReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-sql-file-insert-receiver" target="_blank" rel="noopener">SQLFileInsertReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/jdbc-receivers/how-do-i-use-the-generic-sql-insert-receiver" target="_blank" rel="noopener">GenericSQLInsertReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/jdbc-receivers/how-do-i-use-the-generic-sql-insert-v2-receiver" target="_blank" rel="noopener">GenericSQLInsertV2Receiver</a>, <a href="https://genrocket.helpjuice.com/en_US/jdbc-receivers/how-do-i-use-the-sql-update-receiver" target="_blank" rel="noopener">SQLUpdateReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/jdbc-receivers/how-do-i-use-the-sql-batch-update-receiver" target="_blank" rel="noopener">SQLBatchUpdateReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/segment-and-merge-receivers-nested-data/how-do-i-use-the-segment-data-creator-receiver" target="_blank" rel="noopener">SegmentDataCreatorReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/segment-and-merge-receivers-nested-data/how-do-i-use-the-json-segment-merge-receiver" target="_blank" rel="noopener">JSONSegmentMergeReceiver</a>, <a href="https://genrocket.helpjuice.com/en_US/file-masking/file-masking-overview" target="_blank" rel="noopener">File Masking Overview</a>, <a href="https://genrocket.helpjuice.com/en_US/in-place-masking-ipm/in-place-masking-ipm-for-databases-overview" target="_blank" rel="noopener">IPM overview</a>, <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/what-is-synthetic-data-replacement-sdr" target="_blank" rel="noopener">Synthetic Data Replacement</a>, <a href="https://genrocket.helpjuice.com/en_US/connecting-to-databases/what-is-a-jdbc-config-file" target="_blank" rel="noopener">JDBC config file</a>, <a href="https://genrocket.helpjuice.com/en_US/connecting-to-databases/how-to-test-a-jdbc-connection-test-jdbc" target="_blank" rel="noopener">--test-jdbc</a>, <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">FAQ</a>.</li>
+<li>Scenarios: <a href="https://genrocket.helpjuice.com/en_US/scenarios-/scenarios-overview" target="_blank" rel="noopener">overview</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/how-do-i-create-a-scenario" target="_blank" rel="noopener">create</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/-scenario-dashboard" target="_blank" rel="noopener">dashboard</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/how-do-i-run-a-genrocket-scenario" target="_blank" rel="noopener">run</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/how-do-i-download-multiple-scenarios-at-once" target="_blank" rel="noopener">batch download</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/what-are-scenario-variables" target="_blank" rel="noopener">variables</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/-managing-scenario-state" target="_blank" rel="noopener">state</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/what-are-scenario-level-locks" target="_blank" rel="noopener">locks</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/what-is-the-scenario-thread-engine" target="_blank" rel="noopener">thread engine</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/how-to-define-parentchild-relationships-at-the-scenario-level" target="_blank" rel="noopener">scenario-level relationships</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/-why-cant-i-update-the-loop-count-value-from-the-scenario" target="_blank" rel="noopener">loop count</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/terminate-batch-job-yn" target="_blank" rel="noopener">terminate batch job</a>, <a href="https://genrocket.helpjuice.com/en_US/scenario-chains-/what-is-a-scenario-chain" target="_blank" rel="noopener">chains</a>, <a href="https://genrocket.helpjuice.com/en_US/scenario-chains-/how-do-i-create-a-scenario-chain" target="_blank" rel="noopener">create a chain</a>, <a href="https://genrocket.helpjuice.com/en_US/scenario-chains-/-how-do-i-run-a-scenario-chain" target="_blank" rel="noopener">run a chain</a>, <a href="https://genrocket.helpjuice.com/en_US/scenario-chain-sets/what-is-a-scenario-chain-set" target="_blank" rel="noopener">chain sets</a>.</li>
+<li>Errors: <a href="https://genrocket.helpjuice.com/en_US/scenarios-/error-could-not-find-the-required-profile-grxxxxxxxprofilegrp" target="_blank" rel="noopener">profile</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/error-unable-to-find-domain-name-from-nameattribute" target="_blank" rel="noopener">unable to find domain</a>, <a href="https://genrocket.helpjuice.com/en_US/scenarios-/error-javalangoutofmemoryerror-gc-overhead-limit-exceeded" target="_blank" rel="noopener">out of memory</a>, <a href="https://genrocket.helpjuice.com/en_US/connecting-to-databases/error-communication-link-failure" target="_blank" rel="noopener">communication link failure</a>, <a href="https://genrocket.helpjuice.com/en_US/receivers-overview/why-are-there-errors-when-inserting-data-into-postgresql" target="_blank" rel="noopener">PostgreSQL</a>, <a href="https://genrocket.helpjuice.com/en_US/genrocket-runtime/genrocket-runtime-setup-warnings-and-errors" target="_blank" rel="noopener">runtime setup errors</a>, <a href="https://genrocket.helpjuice.com/en_US/financial-generators/how-do-i-use-the-randomgen-generator" target="_blank" rel="noopener">RandomGen</a>.</li>
+</ul>
+</section>

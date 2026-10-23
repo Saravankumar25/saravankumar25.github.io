@@ -1,0 +1,99 @@
+<h2 id="c20-datatype">20.9 Enforcing data type and size</h2>
+<h3 id="c20-datatype-plain">20.9.1 In plain words</h3>
+<p><span class="badge concept">General concept</span> Every database column has a type and a size. A <code>first_name VARCHAR(5)</code> column holds at most five characters. An <code>INT</code> column holds whole numbers up to about two billion. If your generator produces "Maximiliano" for that first-name column, the insert fails, and a hundred rows of perfectly good data are lost because one name was too long.</p>
+<p>There are two opposite needs. For <em>positive</em> data, the generated values must always fit the column, so loads never fail. For <em>negative</em> data (the long-name edge case in <a href="#c20-edgecasegen">20.6.5</a>) you deliberately break the size. GenRocket handles the first need with a switch called Enforce Type/Limit.</p>
+<h3 id="c20-enforce">20.9.2 Enforce Type/Limit</h3>
+<p><span class="badge doc">From docs</span> The page "How to Enforce Data Type and Size in Generated Data" explains the option (<a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-enforce-data-type-and-size-in-generated-data" target="_blank" rel="noopener">link</a>):</p>
+<ul>
+<li>Value limits are enforced automatically when you import a DDL (database table definition) or an XTS file (GenRocket's extracted table schema). The option is switched on for every generator assigned during such an import.</li>
+<li>It is available on every generator and can be set on any individual generator in a domain.</li>
+<li>Use it "whenever you want the generated data to be within a defined data type and size".</li>
+<li>When on, it limits output to the <code>Type</code> and <code>Size</code> parameters of the attribute.</li>
+</ul>
+<p>The page's example: NameGen with Enforce Type/Limit on, <code>Type</code> varchar and <code>Size</code> 5. First names in the Preview pane are limited to 5 characters.</p>
+<div class="tablewrap"><table><caption>Integer limits the page lists for Enforce Type/Limit</caption>
+<thead><tr><th>Data type</th><th>Largest value enforced</th></tr></thead>
+<tbody>
+<tr><td><code>tinyint</code></td><td>127</td></tr>
+<tr><td><code>smallint</code></td><td>32767</td></tr>
+<tr><td><code>mediumint</code></td><td>8388607</td></tr>
+<tr><td><code>int</code> or <code>integer</code></td><td>2147483647</td></tr>
+<tr><td><code>bit</code> or <code>vbit</code></td><td>1</td></tr>
+</tbody></table></div>
+<p>Those numbers are useful boundary values in their own right. If a column is <code>smallint</code>, then 32767 is its maximum, 32768 is "just above maximum", and a good negative test sends exactly that.</p>
+<h3 id="c20-enforce-steps">20.9.3 Setting it by hand</h3>
+<p>For a manually built domain: open the attribute, type a data type (<code>varchar</code>, <code>int</code>, <code>float</code>, <code>decimal</code>) in <strong>Type</strong> and the limit in <strong>Size</strong>, click Save, then tick <strong>Enforce Type/Limit</strong> in the generator form and save the generator. The Preview pane then shows values within the size.</p>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776504254116/khAG-yOAo-x0x-1f1nNTGJUS-SW9hNrBRg%20(1).png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776504254116/khAG-yOAo-x0x-1f1nNTGJUS-SW9hNrBRg%20(1).png" alt="NameGen with the Enforce Type/Limit checkbox ticked" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The NameGen form with the <strong>Enforce Type/Limit</strong> checkbox ticked (arrow), nameType firstName, caseType capitalize and sortOrder random. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-enforce-data-type-and-size-in-generated-data" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>The imported <code>Required</code> flag matters too: if it is ticked, do not put <code>% Null</code> on that attribute unless you are testing the rejection.</p>
+<div class="callout warn"><strong class="ctitle">Turning it off for edge cases</strong>
+<p>Because it is on by default for imported models, a generator will not produce the too-long name a negative test wants. Switch it off on that generator, or use a separate generator for the edge value, and check Preview.</p></div>
+
+<h3 id="c20-numberformat">20.9.4 Decimal places and number formatting</h3>
+<p>Money needs a fixed number of decimal places: 49.9 and 49.90 are different text, and a <code>DECIMAL(8,2)</code> column expects two places.</p>
+<p><span class="badge doc">From docs</span> <strong>NumberFormatGen</strong> formats a referenced number: pad with leading zeros, fix the number of decimal places, fix the number of digits, add commas, include a sign. Parameters (<a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-numberformatgen-generator" target="_blank" rel="noopener">NumberFormatGen</a>):</p>
+<ul>
+<li><code>reference*</code>: the attribute (or linked generator) to format. It should produce a floating-point number.</li>
+<li><code>decimalFormat*</code>: a pattern. The page's samples: <code>123456.789</code> with <code>###,###.###</code> gives 123,456.789; with <code>###.##</code> gives 123456.79; <code>124.78</code> with <code>000000.000</code> gives 000123.780; <code>9.95</code> with <code>000.###</code> gives 009.95.</li>
+<li><code>includeSign*</code>: NEVER, ALWAYS, POSITIVE_ONLY or NEGATIVE_ONLY.</li>
+<li><code>includeDecimal*</code>: whether the decimal point appears.</li>
+<li><code>padLength*</code>: how many zeros to pad on the left (a value of 10 turns 120024 into 0000120024).</li>
+</ul>
+<p>The page links NumberFormatGen to <strong>RangeDecimalGen</strong> and <strong>RandomDecimalGen</strong>, which supply the decimal number. I did not have separate pages for those two. From the page's screenshots, RangeDecimalGen shows parameters <code>startRange</code>, <code>endRange</code>, <code>decimalFormat</code>, <code>jumpAmount</code>, <code>waitAmount</code> and <code>sortOrder</code>, and RandomDecimalGen shows <code>startRange</code>, <code>endRange</code>, <code>decimalFormat</code> and <code>seed</code>.</p>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777275888089/zk1xjWirTQofaM2euoDt7mCg5igpFo1YMQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777275888089/zk1xjWirTQofaM2euoDt7mCg5igpFo1YMQ.png" alt="Output of RangeDecimalGen and NumberFormatGen from -10.00 upward alongside padded values like -00010.00" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The output of the page's first example: <code>gen1</code> is a decimal sequence from -10.00 in steps of 0.75, and <code>gen2</code> is the same number padded to five digits with the sign kept (-00010.00, -00009.25 and so on). <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-numberformatgen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777276010427/9cvDD4UAHnVQL2gIq9zzNpm-j3aMcDBDMQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777276010427/9cvDD4UAHnVQL2gIq9zzNpm-j3aMcDBDMQ.png" alt="Output with a four-decimal column beside a two-decimal column such as 53.8970 and 53.90" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The result of formatting those numbers to two places: <code>gen1</code> shows 53.8970 and <code>gen2</code> shows 53.90, 49.6710 and 49.67, and so on. This is the pattern for money columns. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-numberformatgen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>For the typical partition of <code>total_amount</code> use RandomDecimalGen from 1 to 5000 with a <code>seed</code>; by analogy with the screenshot's <code>#0.0000</code>, two decimals would be <code>#0.00</code> (check in Preview). Boundary rows come from <a href="#c20-lab-boundary">the boundary lab</a>.</p>
+
+<h2 id="c20-dates">20.10 Dates and times</h2>
+<h3 id="c20-dates-plain">20.10.1 In plain words</h3>
+<p><span class="badge concept">General concept</span> Dates are a rich source of bugs. A birth date that makes someone 17 versus 18, an order dated 29 February, a timestamp at midnight, a date written month-first in one system and day-first in another. Date test data needs three things: a <em>format</em> (how the date is written), a <em>range</em> (earliest and latest) and a <em>pattern</em> (sequential, random, or specific edge dates).</p>
+<h3 id="c20-flexibledaterange">20.10.2 FlexibleDateRangeGen</h3>
+<p><span class="badge doc">From docs</span> GenRocket automatically picks <strong>FlexibleDateRangeGen</strong> for attributes whose imported data type is "date" or "time" (<a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/how-are-generators-assigned-to-domain-attributes" target="_blank" rel="noopener">How are Generators Assigned</a>). It generates dates from a start date, moving by a range and a jump (<a href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/how-do-i-use-the-flexibledaterangegen-generator" target="_blank" rel="noopener">FlexibleDateRangeGen</a>).</p>
+<div class="tablewrap"><table><caption>FlexibleDateRangeGen parameters as documented</caption>
+<thead><tr><th>Parameter</th><th>Meaning</th></tr></thead>
+<tbody>
+<tr><td><code>format*</code></td><td>The date format for the start date and the output. Default <code>yyyy-MM-dd</code>. Others: <code>MM/dd/yy</code>, <code>MM-dd-yy</code>, <code>yyyy-MM-dd HH:mm:ss</code>.</td></tr>
+<tr><td><code>startDate</code></td><td>The anchor date. Empty means the current date.</td></tr>
+<tr><td><code>startRange*</code>, <code>endRange*</code></td><td>Integers: how far forward (positive) or backward (negative) to move from the start date. Zero means no change. An error occurs if <code>startRange</code> is more than <code>endRange</code>.</td></tr>
+<tr><td><code>initialJump*</code></td><td>How much to jump before the first value (Year, Month, Week, Day or Hour).</td></tr>
+<tr><td><code>jumpAmount*</code></td><td>How much to jump by for each value.</td></tr>
+<tr><td><code>nextBy*</code></td><td>Which part of the date moves: Year, Month, Day, Hour, Minute, Second or Millisecond.</td></tr>
+<tr><td><code>waitAmount*</code></td><td>Rows to repeat a date before moving on.</td></tr>
+<tr><td><code>randomize*</code></td><td>Sequential (false) or random (true) within the range.</td></tr>
+<tr><td><code>randomizeMonthDay*</code></td><td>Whether month and day are random when neither is the <code>nextBy</code> part (None, MonthAndDay, MonthOnly or DayOnly).</td></tr>
+<tr><td><code>seed</code></td><td>Repeatable random dates.</td></tr>
+<tr><td><code>exclude</code></td><td>Values to skip, as comma-separated integers within the range of the <code>nextBy</code> part (1 to 31 for days, 1 to 12 for months).</td></tr>
+</tbody></table></div>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777304503271/2TrfGJgKcJjEc-0bqWiHgK6zYO8ovDCm5Q.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777304503271/2TrfGJgKcJjEc-0bqWiHgK6zYO8ovDCm5Q.png" alt="Full FlexibleDateRangeGen parameter form" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The complete FlexibleDateRangeGen form on one screen: <code>format</code>, <code>startDate</code>, <code>startRange</code>, <code>endRange</code>, <code>initialJump</code>, <code>jumpAmount</code>, <code>nextBy</code>, <code>waitAmount</code>, <code>randomize</code>, <code>randomizeMonthDay</code>, <code>seed</code> and <code>exclude</code>. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/how-do-i-use-the-flexibledaterangegen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>The page's first example: <code>startDate</code> 01-01-1970, <code>startRange</code> 0, <code>endRange</code> 4, <code>initialJump</code> 0, <code>jumpAmount</code> 10, <code>nextBy</code> Year, <code>randomize</code> false and <code>randomizeMonthDay</code> None. The first record is 01-01-1970 and the year grows by 10 each record: 1970, 1980, 1990, 2000, then the pattern restarts at 1970 on the fifth record.</p>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777304595892/-eHa8oRhMp58yb8vN6olLHiCGpkI6SG9dA.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777304595892/-eHa8oRhMp58yb8vN6olLHiCGpkI6SG9dA.png" alt="Preview showing 01-01-1970, 01-01-1980, 01-01-1990, 01-01-2000 repeating" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The preview of that example: 01-01-1970, 01-01-1980, 01-01-1990, 01-01-2000, then 01-01-1970 again. The four-record cycle comes from <code>endRange</code> minus <code>startRange</code>. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/how-do-i-use-the-flexibledaterangegen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<div class="callout warn"><strong class="ctitle">Check the direction yourself</strong>
+<p>Example 2 contradicts itself: its <code>jumpBy</code> line says the year increases, but the title, records and screenshot go 1965 down to 1961. In the examples a cycle holds <code>endRange</code> minus <code>startRange</code> values (0 to 4 gives four dates). Change one parameter at a time and read the Preview pane.</p></div>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777304767506/CYD18QqI23f4MODbfr1xK-O_5v85REVMCw.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777304767506/CYD18QqI23f4MODbfr1xK-O_5v85REVMCw.png" alt="Preview showing 01-01-1965 down to 01-01-1961, then restarting" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The preview for the negative-range example: 01-01-1965, 01-01-1964, 01-01-1963, 01-01-1962, 01-01-1961, then back to 01-01-1965. The decreasing order is what the screenshot shows. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/how-do-i-use-the-flexibledaterangegen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<h3 id="c20-date-formats">20.10.3 Date formats</h3>
+<p><span class="badge doc">From docs</span> The "Date and Time format" page lists the pattern letters (<a href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/date-and-time-format" target="_blank" rel="noopener">link</a>). The ones you will use most:</p>
+<div class="tablewrap"><table><caption>Common date pattern letters from the documentation</caption>
+<thead><tr><th>Letter</th><th>Meaning</th><th>Example</th></tr></thead>
+<tbody>
+<tr><td><code>y</code></td><td>Year</td><td>1996 or 96</td></tr>
+<tr><td><code>M</code></td><td>Month in year</td><td>July, Jul or 07</td></tr>
+<tr><td><code>d</code></td><td>Day in month</td><td>10</td></tr>
+<tr><td><code>H</code></td><td>Hour in day (0 to 23)</td><td>0</td></tr>
+<tr><td><code>h</code></td><td>Hour in am/pm (1 to 12)</td><td>12</td></tr>
+<tr><td><code>m</code></td><td>Minute in hour</td><td>30</td></tr>
+<tr><td><code>s</code></td><td>Second in minute</td><td>55</td></tr>
+<tr><td><code>S</code></td><td>Millisecond</td><td>978</td></tr>
+<tr><td><code>a</code></td><td>Am/pm marker</td><td>PM</td></tr>
+<tr><td><code>z</code></td><td>Time zone (general)</td><td>PST</td></tr>
+</tbody></table></div>
+<p>Capital <code>M</code> is month and lower-case <code>m</code> is minute, so <code>yyyy-mm-dd</code> prints the minute where you wanted the month. Attributes also have a Date Format parameter that "defines the Date Format if the Attribute is generating a Date".</p>
+<h3 id="c20-datedelta">20.10.4 DateDeltaGen: the gap between two dates</h3>
+<p><span class="badge doc">From docs</span> <strong>DateDeltaGen</strong> "computes the delta between two dates", in days, months, years or hours. Parameters: <code>conversion*</code>, <code>formatOne*</code>, <code>formatTwo*</code>, <code>dateRefOne*</code>, <code>dateRefTwo*</code>. The page's example links two FlexibleDateRangeGen generators and subtracts their dates (<a href="https://genrocket.helpjuice.com/en_US/date-and-time-generators/how-do-i-use-the-datedeltagen-generator" target="_blank" rel="noopener">DateDeltaGen</a>).</p>
+<p>That gives a way to check an age rule in the data itself: generate a <code>date_of_birth</code>, hold a reference date in a ConstantGen (the ConstantGen page lists dates such as an effective date as a valid constant), and use DateDeltaGen with <code>conversion</code> years between them. The pages do not say how partial years are rounded, so verify the 17 versus 18 rows by eye before trusting the computed age column.</p>
+<div class="callout example"><strong class="ctitle">Worked example: the 17 versus 18 rows</strong>
+<p>For the boundary rows, a ListGen with <code>setLoop</code> True holds <code>2008-01-02</code>, <code>2008-01-01</code>, <code>2007-12-31</code> and <code>1990-04-12</code>, the four rows of the age table in <a href="#c20-bva-zero">20.8.1</a>. For a realistic spread of adult birth dates use FlexibleDateRangeGen with <code>nextBy</code> Year, <code>randomize</code> true and a <code>seed</code>, and check the range cannot produce under-18 dates unless you want them.</p></div>

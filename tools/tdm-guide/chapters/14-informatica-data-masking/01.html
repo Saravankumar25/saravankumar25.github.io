@@ -1,0 +1,99 @@
+<p>The previous chapters showed how to find sensitive columns (<a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>) and how to cut production down to a small consistent slice (<a href="13-informatica-data-subset.html">the Informatica data subset chapter</a>). This chapter covers the step that makes the slice safe to hand to testers: <dfn>data masking</dfn>, replacing real sensitive values with realistic fake ones, so a tester sees "Divya Iyer" where production has "Asha Menon". The general idea is in <a href="06-masking-concepts.html">the masking concepts chapter</a>; here is exactly how Informatica TDM does it.</p>
+
+<p>In the syllabus this is Day 44 (substitution, shuffle, key masking, encryption), Day 54 (masking rules, algorithms, mapplet creation, transformations), Days 55 and 56 (mask first name; alphanumeric text, SSN, telephone number) and the masking half of TDM_Handson2.</p>
+
+<div class="callout note">
+<strong class="ctitle">What this chapter is based on</strong>
+<p>Everything marked <span class="badge doc">From docs</span> is from the <strong>Informatica Test Data Management 10.5.10 User Guide (PDF, February 2026, 455 pages)</strong>: User Guide chapter 7 (p.135 to 150) and chapter 8 (p.151 to 189) read in full, plus chapter 4 "Policies" (p.71 to 85), cascades in chapter 5 (p.90 to 91), Data Masking transformation properties in chapter 3 (p.52 to 53) and plan settings in chapter 13 (p.275, p.281, p.286 to 287). Citations look like (User Guide 10.5.10, p.NN). ShopSphere data, before and after values and labs are <strong>my illustrations</strong>; real masked values will differ. The guide says little about <em>building</em> a mapplet in PowerCenter, and section 14.9 says where its coverage stops. Menu labels can differ between versions.</p>
+</div>
+
+<div class="callout recap">
+<strong class="ctitle">What you will learn</strong>
+<ul>
+<li>How rules, data domains, policies and column assignments fit together, and the flow from creating a rule to running a masking plan.</li>
+<li>The three kinds of rule: standard, advanced and mapplet, and how to preview a standard rule in the Rule Simulator before using it.</li>
+<li>The common parameters: repeatable output, seed, exception handling, override.</li>
+<li>Every masking technique in the guide (credit card, email, encryption, expression, IP address, key, nullification, phone, random, shuffle, SIN, SSN, substitution, URL, plus advanced and mapplet/custom): what it does, its parameters, ShopSphere before and after, gotchas.</li>
+<li>A decision table for choosing a technique.</li>
+<li>What the guide says about mapplets and the PowerCenter Data Masking transformation, and where it says nothing.</li>
+<li>Labs for TDM_Handson2, Day 55 (first name) and Day 56 (alphanumeric text, SSN, phone).</li>
+</ul>
+</div>
+
+<h2 id="c14-words">14.1 Words to know first</h2>
+
+<dl class="defs">
+<div><dt>Masking technique</dt><dd>The logic that replaces a value, such as "pick a name from a list" (substitution) or "swap values between rows" (shuffle).</dd></div>
+<div><dt>Masking parameters</dt><dd>The options of a technique, such as the dictionary to use, the seed, or the range of dates allowed.</dd></div>
+<div><dt>Masking rule</dt><dd>A technique plus its parameters, saved under a name. "FirstName_Substitution" is a rule. The same technique with different parameters is a different rule.</dd></div>
+<div><dt>Data domain</dt><dd>A named group of columns that mean the same thing (for example "Social Security Number"), found by patterns in the data or in column names. You can attach preferred masking rules to it.</dd></div>
+<div><dt>Policy</dt><dd>A bundle of data domains (and so their rules) that you reuse across projects. It holds no data source itself.</dd></div>
+<div><dt>Deterministic / repeatable</dt><dd>The same input always gives the same masked output, so "Asha" becomes the same fake name in every table and in every run.</dd></div>
+<div><dt>Seed</dt><dd>A starting number that makes repeatable output reproducible. Same seed, same rule, same input, same result.</dd></div>
+<div><dt>Dictionary</dt><dd>A flat file or database table of replacement values used by substitution, for example a list of first names.</dd></div>
+<div><dt>Mapplet</dt><dd>A reusable group of PowerCenter transformations with input and output ports. TDM can import one as a custom masking rule.</dd></div>
+<div><dt>Value cascade / auto cascade</dt><dd>Ways to make related columns receive the same masked value: a value cascade for similar columns you group by hand, an auto cascade for primary and foreign keys.</dd></div>
+</dl>
+
+<h2 id="c14-big-picture">14.2 The big picture: rules, domains, policies and assignments</h2>
+
+<h3 id="c14-parts">Six objects and how they connect</h3>
+
+<p>Start with the ShopSphere problem. Your <code>CUSTOMERS</code> table has first name, last name, email, phone, SSN, date of birth, zip code and tax ID, all sensitive. You do not want to configure "how to mask an SSN" nine times in nine projects. TDM lets you define it once and reuse it. The guide's building blocks (User Guide 10.5.10, p.71 to 73, p.135 to 138, p.149 to 150) <span class="badge doc">From docs</span>:</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Object</th><th>What it is</th><th>ShopSphere example</th></tr></thead>
+<tbody>
+<tr><td>Rule</td><td>A masking technique, an optional rule qualifier and masking parameters. Can have an override option.</td><td>"SSN_Rule" using SSN masking</td></tr>
+<tr><td>Data domain</td><td>The functional meaning of a column, identified from data patterns and column-name patterns; holds one or more preferred rules, one of them the default.</td><td>"Social Security Number Domain": data pattern for 999-99-9999 and column names matching SSN or SOCIAL</td></tr>
+<tr><td>Policy</td><td>A collection of data domains. Contains no data source; can be applied to many projects.</td><td>"ShopSphere_PII_Policy"</td></tr>
+<tr><td>Assignment</td><td>A rule attached to a column, either directly (column assignment) or through a data domain (domain assignment).</td><td><code>CUSTOMERS.ssn</code> uses SSN_Rule</td></tr>
+<tr><td>Plan</td><td>Defines the masking operation and whether to mask data in place in the source database or in stream into a target.</td><td>"ShopSphere_Mask_Plan"</td></tr>
+<tr><td>Value cascade</td><td>Masks similar columns in different tables with the same rule so the values match.</td><td>A <code>customer_ref</code> column in another system masked like <code>customer_id</code></td></tr>
+</tbody></table></div>
+
+<p>You can create rules, domains and policies in any order. The guide's high-level policy task flow (p.72): create masking rules, define data domains, assign the rules to the domains, create a policy, assign the domains to the policy. You can apply the rules to source columns, data domains, policies and plans (p.136).</p>
+
+<figure class="diagram"><svg viewBox="0 0 800 280" role="img" aria-label="A column is matched to a data domain by pattern, the domain offers a preferred rule, the rule uses a technique, the plan runs it">
+<defs><marker id="c14a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+<g font-family="sans-serif" font-size="13" fill="currentColor" stroke="currentColor">
+<rect x="10" y="30" width="170" height="70" rx="8" fill="var(--surface)"/>
+<text x="95" y="55" text-anchor="middle" stroke="none" font-weight="bold">Column</text>
+<text x="95" y="75" text-anchor="middle" stroke="none">CUSTOMERS.ssn</text>
+<text x="95" y="91" text-anchor="middle" stroke="none" font-size="11">123-45-6789</text>
+<rect x="225" y="30" width="170" height="70" rx="8" fill="var(--surface)"/>
+<text x="310" y="55" text-anchor="middle" stroke="none" font-weight="bold">Data domain</text>
+<text x="310" y="75" text-anchor="middle" stroke="none">Social Security Number</text>
+<text x="310" y="91" text-anchor="middle" stroke="none" font-size="11">pattern: [0-9]{3}-[0-9]{2}-[0-9]{4}</text>
+<rect x="440" y="30" width="170" height="70" rx="8" fill="var(--surface)"/>
+<text x="525" y="55" text-anchor="middle" stroke="none" font-weight="bold">Preferred rule</text>
+<text x="525" y="75" text-anchor="middle" stroke="none">SSN_Rule (default)</text>
+<text x="525" y="91" text-anchor="middle" stroke="none" font-size="11">technique + parameters</text>
+<rect x="655" y="30" width="135" height="70" rx="8" fill="var(--surface)"/>
+<text x="722" y="55" text-anchor="middle" stroke="none" font-weight="bold">Plan</text>
+<text x="722" y="75" text-anchor="middle" stroke="none">workflow run</text>
+<line x1="180" y1="65" x2="223" y2="65" stroke-width="2" marker-end="url(#c14a)"/>
+<line x1="395" y1="65" x2="438" y2="65" stroke-width="2" marker-end="url(#c14a)"/>
+<line x1="610" y1="65" x2="653" y2="65" stroke-width="2" marker-end="url(#c14a)"/>
+<text x="202" y="55" text-anchor="middle" stroke="none" font-size="10">matches</text>
+<text x="417" y="55" text-anchor="middle" stroke="none" font-size="10">offers</text>
+<text x="632" y="55" text-anchor="middle" stroke="none" font-size="10">added to</text>
+<rect x="225" y="160" width="385" height="90" rx="8" fill="none" stroke-dasharray="6 5"/>
+<text x="417" y="185" text-anchor="middle" stroke="none" font-weight="bold">Policy: ShopSphere_PII_Policy</text>
+<text x="417" y="205" text-anchor="middle" stroke="none" font-size="12">contains data domains (and through them, rules)</text>
+<text x="417" y="225" text-anchor="middle" stroke="none" font-size="12">assigned to a project's data source</text>
+<line x1="310" y1="100" x2="310" y2="158" stroke-width="1.5" stroke-dasharray="3 4"/>
+</g></svg>
+<figcaption>Original diagram: how a column ends up with a masking rule. A column is matched to a data domain (by data pattern or by column name), the domain offers a preferred rule, and the rule is added to a plan. The policy groups domains so the setup can be reused across projects. The Social Security pattern shown is the one the guide gives (User Guide 10.5.10, p.74 to 75).</figcaption></figure>
+
+<h3 id="c14-data-domains">Data domains and preferred rules</h3>
+
+<p>A data domain (User Guide 10.5.10, p.73 to 76) <span class="badge doc">From docs</span> "represents the functional meaning of a column based on the column data or the column name". The guide's SSN example: social security numbers may sit in a column called <code>SSN</code>, in another table's <code>SOCIAL_SECURITY</code> and even in a <code>COMMENTS</code> column. You define a <strong>data expression</strong> for the format (regular expression <code>[0-9]{3}-[0-9]{2}-[0-9]{4}</code>) and <strong>metadata expressions</strong> for column names such as <code>.*SSN*</code> and <code>.*SOCIAL*</code>. Data discovery profiles (see <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>) use these patterns to assign domains to columns; without Data Discovery you assign columns by hand (p.73). Link back to discovery: profiling finds the sensitive columns, domains carry the rule to them.</p>
+
+<p>When you attach masking rules to a domain they are called <strong>preferred rules</strong>. If you attach several, one is the <strong>default rule</strong>, applied to all columns of the domain, and you can change an individual column to another preferred rule (p.73). The guide's example: a <code>Last_Name</code> domain with shuffle as the default and substitution as another preferred rule for a different table.</p>
+
+<p>TDM ships three policy packs, <strong>PII</strong>, <strong>PHI</strong> and <strong>PCI</strong>, each listing domains with a default rule (p.77 to 80). The PII pack, for example, pairs First Name Domain with First Name Rule, Phone Domain with Phone Number Rule and Social Security Number Domain with Social Security Number Rule. The guide does not say which technique each default rule uses, so open a rule in your install to see.</p>
+
+<h3 id="c14-task-flow">The task flow</h3>
+
+<p>A masking plan must contain at least one rule or one policy (User Guide 10.5.10, p.135). The PowerCenter Integration Service does the masking when the workflow runs. If a plan has both subset and masking components, subsetting happens first (p.275), as in <a href="13-informatica-data-subset.html">the Informatica data subset chapter</a>. Plans are explained in <a href="16-informatica-plans-workflows-and-warehouse.html">the Informatica plans, workflows and warehouse chapter</a>, and the screens in <a href="11-informatica-tdm-tour.html">the Informatica TDM tour</a>.</p>

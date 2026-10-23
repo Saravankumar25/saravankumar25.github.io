@@ -1,0 +1,117 @@
+<h2 id="c3-files">3.5 Flat files</h2>
+<p>Not all test data lives in databases. Banks, insurers and retailers exchange huge amounts of data as <dfn>files</dfn>: one system writes a file overnight, another reads it in the morning. The syllabus includes masking "files (txt, dat)" (Day 53), so you need to read them comfortably.</p>
+<p>A <dfn>flat file</dfn> is a file holding records as lines of text. "Flat" means there is no table engine, no keys, no data types: it is just text in a layout that both sides agree on. All the structure lives in the agreement, not in the file.</p>
+<span class="badge concept">General concept</span>
+
+<h3 id="c3-file-extensions">.txt, .dat, .csv: what the extension tells you (little)</h3>
+<p>A file extension is only a label. <code>.txt</code> says "text", <code>.csv</code> says "comma-separated values", <code>.dat</code> says "data". None of them tells you how the records are laid out. A <code>.dat</code> file can be comma-separated, pipe-separated, fixed-width or something else; a <code>.txt</code> file can hold any of those too. You find the layout from the <strong>file specification</strong> (a document from the team that produces the file), or by opening the file and looking.</p>
+<div class="callout why">
+<strong class="ctitle">Why this matters</strong>
+<p>A tool that masks files has to be told the layout, because the file itself does not say. The Delphix documentation puts it directly: unlike databases, files typically have no built-in metadata describing the format of their fields, so you must provide that information (<a href="https://help.delphix.com/cc/current/content/managing_file_formats.htm" target="_blank" rel="noopener">Managing file formats</a>). <span class="badge doc">From docs</span></p>
+</div>
+
+<h3 id="c3-record-field">Records, fields, headers and footers</h3>
+<ul>
+<li>A <dfn>record</dfn> is one line (one customer, one order), ending with an <dfn>end-of-record</dfn> marker, usually a line break.</li>
+<li>A <dfn>field</dfn> is one value within the record.</li>
+<li>A <dfn>header</dfn> is a record at the top that is not data: often the column names, or a label with a date.</li>
+<li>A <dfn>footer</dfn> (or trailer) is a record at the end, often a count or a total so the reader can check nothing was lost.</li>
+</ul>
+
+<h3 id="c3-delimited">Delimited files</h3>
+<p>In a <dfn>delimited</dfn> file a special character, the <dfn>delimiter</dfn>, separates the fields. The most famous is the comma, giving the CSV (comma-separated values) format. Pipes (|), tabs and semicolons are also common, especially when data itself contains commas.</p>
+<p>Here is a ShopSphere customer file in CSV with a header row. All values are fake:</p>
+<pre><code>customer_id,first_name,last_name,email,phone
+1001,Asha,Menon,asha.menon@example.com,9876543210
+1002,Ravi,Kumar,ravi.k@example.com,9123456780
+1003,Meera,Nair,meera.n@example.com,9988776655</code></pre>
+<p>And an orders file, <code>.dat</code> extension, pipe-delimited, with a header record (H), data records (D) and a footer record (T) that carries the record count:</p>
+<pre><code>H|ORDERS|20260215
+D|5001|1001|2026-01-15|1098.00
+D|5002|1001|2026-02-03|1499.00
+D|5003|1002|2026-02-10|598.00
+T|3</code></pre>
+<p>Reading it: the first field of each line says what kind of record it is. This is a file with <em>several record types</em> in one file, a layout common in business exchanges. The footer says "3 data records", so a reader can detect a truncated file.</p>
+<p><strong>What if the data contains the delimiter?</strong> If a last name were "O'Neil, Jr." in a comma file the comma would split it into two fields. The usual answer is an <dfn>enclosure</dfn> (also called a qualifier or quote character), commonly the double quote: <code>1004,Liam,"O'Neil, Jr.",liam@example.com,9000000001</code>. Then a literal quote inside the field needs an <em>escape</em>, often by doubling it. The Delphix rule-set page documents settings for exactly this: an enclosure escaping strategy for delimited files, with a default of "Double enclosure" (the escape character is the same as the enclosure), and an option to use a custom single character (<a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>). <span class="badge doc">From docs</span></p>
+
+<h3 id="c3-fixed-width">Fixed-width files</h3>
+<p>In a <dfn>fixed-width</dfn> file there is no delimiter. Each field occupies an exact range of character positions, padded with spaces. The layout is defined by position:</p>
+<div class="tablewrap"><table class="sample"><caption>Layout specification for customers.txt (fixed-width)</caption><thead><tr><th>Field</th><th>Start</th><th>Length</th><th>Positions</th></tr></thead><tbody><tr><td>customer_id</td><td>1</td><td>4</td><td>1-4</td></tr>
+<tr><td>first_name</td><td>5</td><td>10</td><td>5-14</td></tr>
+<tr><td>last_name</td><td>15</td><td>10</td><td>15-24</td></tr>
+<tr><td>phone</td><td>25</td><td>10</td><td>25-34</td></tr></tbody></table></div>
+<p>The data, with a ruler line on top so you can count columns (the ruler is not part of the file):</p>
+<pre><code>1234567890123456789012345678901234
+1001Asha      Menon     9876543210
+1002Ravi      Kumar     9123456780
+1003Meera     Nair      9988776655</code></pre>
+<p>Every record is exactly 34 characters long. "Asha" is followed by six spaces so that the last name starts at position 15. Without the layout table you could not tell where "Asha" ends and "Menon" begins.</p>
+<div class="compare">
+<div>
+<h4>Delimited</h4>
+<ul>
+<li>Fields found by a separator character.</li>
+<li>Field length can vary.</li>
+<li>Needs rules for delimiters inside values.</li>
+<li>Easy to open in a spreadsheet.</li>
+</ul>
+</div>
+<div>
+<h4>Fixed-width</h4>
+<ul>
+<li>Fields found by position.</li>
+<li>Every field has a set length; short values are padded.</li>
+<li>No delimiter issues, but a masked value must not exceed the field width.</li>
+<li>Needs the layout specification to read at all.</li>
+</ul>
+</div>
+</div>
+<div class="callout warn">
+<strong class="ctitle">Fixed-width and masking</strong>
+<p>If you mask a name in a fixed-width file and the new name is longer than the field, it either overflows into the next field (corrupting the record) or is cut off. Masked values must fit the field. More detail for Delphix is in <a href="27-delphix-file-masking.html">the Delphix file masking chapter</a>.</p>
+</div>
+
+<h3 id="c3-line-endings">Line endings</h3>
+<p>The end of a record is marked by invisible characters that differ by platform. Windows traditionally uses two characters (carriage return then line feed, often written CR+LF); Linux uses one (line feed, LF). If a tool assumes the wrong one, records are read wrongly or every line gets an odd extra character. Delphix asks you to choose the end-of-record, Windows/DOS (CR+LF) or Linux (LF), when you assign a file format, and to enter the delimiter for a delimited file (<a href="https://help.delphix.com/cc/current/content/managing_file_formats.htm" target="_blank" rel="noopener">Managing file formats</a>). It also supports using a control character as the delimiter or end of record, entered in a particular format (<a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>). <span class="badge doc">From docs</span></p>
+
+<h3 id="c3-record-types">Records of different shapes in one file</h3>
+<p>The orders file above mixed header, data and footer lines. Other files mix different <em>kinds</em> of data record. The Delphix documentation gives an example where some records carry an account number and a postal address while others carry an account number and an email address, told apart by the first field ("address" or "email"). It calls the differentiating field a record type qualifier, supports up to three qualifiers, and says a record gets exactly one record type. It also says that header and footer records can be configured so unmodified copies go into the masked output, and that these features apply only to delimited and fixed-width formats (<a href="https://help.delphix.com/cc/current/content/managing_record_types_and_header_footer_records.htm" target="_blank" rel="noopener">Managing record types and header/footer records</a>). <span class="badge doc">From docs</span></p>
+<p>The point for you: a file is rarely "just rows". Before touching it, list the record types it contains. Masking a header line as if it were a customer would corrupt it.</p>
+
+<h3 id="c3-encoding">Encodings: how text becomes bytes</h3>
+<p>Computers store characters as numbers; an <dfn>encoding</dfn> is the agreed table. Two matter to you:</p>
+<ul>
+<li><strong>ASCII</strong>: an old, small table with 128 characters: English letters, digits, punctuation. One byte per character.</li>
+<li><strong>UTF-8</strong>: a modern encoding that can represent essentially every writing system, including Tamil, Hindi, Chinese and emoji. It is ASCII-compatible: plain English text looks identical, but other characters take two, three or four bytes.</li>
+</ul>
+<p>This causes two classic problems.</p>
+<ol>
+<li><strong>Garbled text.</strong> A file written in one encoding and read as another turns "Müller" into something like "MÃ¼ller". The data is not lost; it was read with the wrong table.</li>
+<li><strong>Fixed-width surprises.</strong> If a layout counts <em>bytes</em> but a name has an accented letter, "Müller" is 7 bytes in UTF-8 though it is 6 characters. The field after it shifts by one. Always ask whether widths are in bytes or characters.</li>
+</ol>
+<span class="badge concept">General concept</span>
+<p>The Delphix page on control characters says the control-character value supports the UTF-8 character set (<a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>); I did not find an encoding-selection setting described in the pages I read for this chapter, so check your version for how it handles encodings. <span class="badge doc">From docs</span></p>
+
+<h3 id="c3-xml-json">XML and JSON at a glance</h3>
+<p>Some files are not line-and-column shaped at all; they are <em>nested</em>. Two formats dominate.</p>
+<p><strong>XML</strong> wraps values in named tags (for example <code>&lt;firstName&gt;Asha&lt;/firstName&gt;</code>); <strong>JSON</strong> uses braces, names and values:</p>
+<pre><code>{
+  "customerId": 1001,
+  "firstName": "Asha",
+  "orders": [
+    { "orderId": 5001, "total": 1098.00 },
+    { "orderId": 5002, "total": 1499.00 }
+  ]
+}</code></pre>
+<p>In both formats the orders are <em>inside</em> the customer. The parent-child relationship is shown by nesting instead of by a foreign key. For TDM, the thing to remember is that sensitive values (here the name) hide inside the structure, and a tool must know the path to them. The Delphix rule-set page lists source types of Database, Fixed Width, Delimited, JSON, XML and DataSet, and the rule-set creation dialog offers Database, Semi-Structured, Flat Files and Copybook (<a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>). <span class="badge doc">From docs</span> A <em>copybook</em> describes mainframe record layouts; this guide only mentions it so that you recognise the word.</p>
+
+<h3 id="c3-delphix-notes">How the Delphix documentation treats file formats and keys</h3>
+<p>A short orientation, so that later Delphix chapters feel familiar. All statements below are from the pages linked; details come later in <a href="24-delphix-rule-sets-and-keys.html">the Delphix rule sets and keys chapter</a> and <a href="27-delphix-file-masking.html">the Delphix file masking chapter</a>.</p>
+<ul>
+<li><strong>Formats are defined separately from files.</strong> You add them under Settings, in a Data Formats area with a tab for File formats and one for Mainframe (<a href="https://help.delphix.com/cc/current/content/managing_file_formats.htm" target="_blank" rel="noopener">Managing file formats</a>).</li>
+<li><strong>A format is shared.</strong> Changing a file format's inventory affects every data file that uses that format. This applies to Fixed-Width, Delimited, Mainframe, JSON and XML formats.</li>
+<li><strong>Rule sets group the tables or files</strong> a job will work on, and a rule set can be of type database, flat file, semi-structured or copybook (<a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>).</li>
+<li><strong>Keys appear in the rule set.</strong> A database table's rule-set row shows a logical key column, and a table without a primary key needs one for in-place masking (see the logical keys section above).</li>
+<li><strong>A filter is a WHERE clause</strong> that limits the rows from a table, which is how a rule set does a simple subset. You will see WHERE in the SQL section next.</li>
+</ul>
+

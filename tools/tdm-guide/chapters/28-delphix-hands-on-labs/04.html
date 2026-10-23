@@ -1,0 +1,97 @@
+<h2 id="c28-lab6">28.6 Lab 6: mask a delimited and a fixed-width file (TDM_Handson6)</h2>
+<h3 id="c28-lab6-goal">Goal</h3>
+<p>Mask the customer files <code>customers.dat</code> (pipe-delimited) and <code>customers_fixed.txt</code> (fixed-width) with the file side of the engine. Files carry no built-in description of their columns, so this lab adds one step the database labs did not need: telling the engine what the fields are, with a file format.</p>
+<h3 id="c28-lab6-prereq">Prerequisites and setup data</h3>
+<ul>
+<li>The two files from the setup section exist in a working folder, and the originals are copied to a separate <code>original</code> folder.</li>
+<li>You know how the engine reaches that folder. The docs list the connection modes Filesystem Mount Point, SFTP, FTP, FTPS (mainframe datasets only), AWS S3, Other S3 Compatible Storage and Azure Blob Storage. Ask your trainer which one the lab uses. A mount point also needs a mount created through the Mount Filesystem API before you can pick it in the connector (<a href="https://help.delphix.com/cc/current/content/managing_remote_mounts_for_vm_continuous_compliance_engines.htm" target="_blank" rel="noopener">Managing remote mounts</a>). The file concepts are in <a href="27-delphix-file-masking.html">the file masking chapter</a>.</li>
+<li>A new environment named <code>ShopSphere_File_Mask</code> (same steps as in Lab 4, Purpose: Mask).</li>
+</ul>
+<h3 id="c28-lab6-steps">Steps</h3>
+<ol class="steps">
+<li><strong>Create two file connectors.</strong>
+<p>In the new environment open Connectors, click + Connection, and choose a File source type: Delimited for <code>SS_Delim_Conn</code> and Fixed Width for <code>SS_Fixed_Conn</code>. The type matters because it decides what the rule set will ask for later. For SFTP the credential step asks for Path (the directory that holds the files), Server Name, Port and User Name, plus Password or a public key. The docs add that, from version 6.0.9.0, an "User Directory as root" option exists when the path is relative to the SFTP user's home directory. Test the connection if the wizard offers it.</p>
+<p class="expect">Both connectors appear under the FILE group in the Connectors grid, with types Delimited and Fixed Width.</p></li>
+<li><strong>Write the two format files.</strong>
+<p>The docs say the engine needs a description of the fields and that a format file contains <em>only</em> the structure, never production data or personal information. For a delimited file the format file lists the field names, one per line, with no header. For a fixed-width file each line is a field name, a comma and the field length. The two official sketches below show the shape.</p>
+<p>My versions for ShopSphere, saved as <code>ss_delim.fmt</code> and <code>ss_fixed.fmt</code>:</p>
+<pre><code>customer_id
+first_name
+last_name
+ssn
+phone</code></pre>
+<pre><code>customer_id,4
+first_name,10
+last_name,10
+ssn,11
+phone,10</code></pre>
+<p>Give the fields meaningful names. The profiler uses names (and, with ASDD, values) to decide what is sensitive, so <code>first_name</code> is findable and <code>FIELD_03</code> is not. On Windows, save with LF line endings, because the docs warn that CRLF files can fail the engine's validation.</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/construct_file.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/construct_file.png" alt="A text file listing field names one per line: First_Name, Last_Name, DOB, SSN, Address, City, State, Zip_Code" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> the contents of an example delimited file format: only field names, one per line, no header. <a class="badge-link" href="https://help.delphix.com/cc/current/content/constructing_file_formats_for_upload.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/construct_file1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/construct_file1.png" alt="A text file listing field names with lengths: First_Name,20 Last_Name,30 DOB,10 SSN,11 Address,30 City,20 State,2 Zip_Code,10" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> an example fixed-width format file: field name, comma, length. Note SSN has length 11, which is exactly the width of 123-45-6789 with its dashes. <a class="badge-link" href="https://help.delphix.com/cc/current/content/constructing_file_formats_for_upload.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<ol class="steps" start="3">
+<li><strong>Import the formats.</strong>
+<p>Go to Settings, Data Formats, tab Files, click + File Format. The wizard asks for the Format Type, then the file to import (a custom name is optional), then, for delimited and fixed-width formats only, the number of header and footer records (leave them empty: the lab files have none), and ends with a Summary. Save. Do this twice, once per file type.</p>
+<p class="expect">Both formats appear in the Data Formats grid with their Type (Delimited or Fixed Width).</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/file_formats.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/file_formats.png" alt="Settings, Data Formats page with tabs File and Mainframe, a File Format button, and a grid listing default_fixed.fmt, default_delimited.fmt, books.xml and whole_file_single_field.fmt with their types" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> Settings, Data Formats. Each row has export, duplicate and delete icons. Remember what the docs say: a file inventory belongs to its format, so editing a format changes every file that uses it. <a class="badge-link" href="https://help.delphix.com/cc/current/content/working_with_file_formats.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<ol class="steps" start="4">
+<li><strong>Create a flat-file rule set for each file.</strong>
+<p>In the environment's Rule Sets tab click + Rule Set, choose Flat Files, and pick the matching connector. In the Data Files step click Add File Name, tick <code>customers.dat</code> (or <code>customers_fixed.txt</code>), and set its properties: Format File (ss_delim.fmt or ss_fixed.fmt), End of Record (Linux LF unless the file came from Windows), and, for the delimited file, the Delimiter <code>|</code>. Text Enclosure stays empty because the sample has no quotes. Save as <code>SS_Delim_RS</code> and <code>SS_Fixed_RS</code>.</p>
+<p class="expect">Each rule set lists one file with its format and delimiter.</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_ruleset7.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_ruleset7.png" alt="Edit Flat files Rule Set wizard on the Data Files step with buttons Add File Name, Add File Pattern, Edit Selected, Remove Selected, Reset All and a grid with columns File Name, Format File, End of Record, Delimiter, Text Enclosure, Enclosure Escape, Is Pattern and State" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> the Data Files step of a flat-file rule set. The columns are the properties you set per file. The sample rows are test data from the docs team, not a pattern to copy. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<ol class="steps" start="5">
+<li><strong>Profile both rule sets.</strong>
+<p>Create one profiling job per rule set exactly as in Lab 5 (+ Profiling Job, rule set, ASDD Standard) and run them. ASDD supports delimited and fixed-width files. The results grid lists File Name, Field Name, Algorithm and Domain.</p><p class="expect">Fields first_name, last_name, ssn and phone get domains. If the field names in your format were meaningless, only a data-level match could find them.</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/report_profile.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/report_profile.png" alt="Profiling Completed page for a fixed-width file job with Execution Summary, Execution Components and a Profile Results grid mapping fields DATA_00, DATA_01, FIRSTNAME_00, LASTNAME_00 to domains TELEPHONE_NO, EMAIL, FIRST_NAME, LAST_NAME" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> a completed profiling job on a fixed-width file. DATA_00 and DATA_01 have uninformative names yet were still classified as TELEPHONE_NO (dlpx-core:Phone Unique) and EMAIL (dlpx-core:Email Unique): the engine inspected the values. This proves why data-level profiling matters. The corner label reads 26.0.0.0. <a class="badge-link" href="https://help.delphix.com/cc/current/content/reporting_profiling_results.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<ol class="steps" start="6">
+<li><strong>Set the algorithms in the inventory.</strong>
+<p>Open each rule set's inventory, choose the file format in the drop-down if asked, and edit the fields: first_name gets <code>dlpx-core:FirstName</code>, last_name gets <code>dlpx-core:LastName</code>, ssn gets <code>dlpx-core:CM Digits</code> (the reason is in Lab 8). Leave customer_id and phone alone in this lab. Untick Enable Automatic Updates first if you override a profiler assignment.</p></li>
+<li><strong>Create a masking job per rule set.</strong>
+<p>Jobs tab, + Masking Job. Choose Masking Method In-Place so the working copy is overwritten, pick the rule set, and keep the other settings at their defaults. The docs say in-place jobs update the source with masked values, and on-the-fly jobs read from one place and write to another. A file job does not show the database-options step. Names: <code>SS_Mask_Delim</code> and <code>SS_Mask_Fixed</code>.</p></li>
+<li><strong>Run both jobs and check the status.</strong>
+<p>Run, then open Monitor, Job Executions. Click the job name and read the Execution Summary: files masked, rows masked, files with non-conforming data.</p><p class="expect">Status SUCCEEDED, rows masked 3 per file, no non-conforming data. A yellow WARNING means some values were left unmasked.</p></li>
+</ol>
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/create_jobs3.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/create_jobs3.png" alt="Create Masking Job wizard, Details step, with Masking Method On-The-Fly, a rule set called delimited, Select Source Environment, a Database to File job checkbox with a red arrow, and Select Source Connector" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> the on-the-fly variant of the job wizard. Source Environment and Source Connector appear only for On-The-Fly. The "Database to File job" checkbox (red arrow) makes database connectors appear in the source list. You use in-place in this lab; on-the-fly needs a source environment that is separate from the target. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<div class="callout note">
+<strong class="ctitle">Docs differ slightly on on-the-fly target files</strong>
+<p>The jobs page says target files are created automatically when the name pattern matches the source (but a database-to-delimited-file job needs the target files to exist beforehand). The connector page says the target rule set must point at an existing entry in the target directory. If an on-the-fly file job masks nothing, create an empty placeholder with the same file name in the target folder and run again.</p>
+</div>
+<h3 id="c28-lab6-verify">Verification checks</h3>
+<p>Run these in a shell on the folder that holds both the masked and the <code>original</code> files:</p>
+<pre><code>diff original/customers.dat customers.dat
+awk -F'|' '{print NF}' customers.dat | sort | uniq -c
+awk '{print length($0)}' customers_fixed.txt | sort | uniq -c
+diff &lt;(cut -c1-4,36-45 original/customers_fixed.txt) &lt;(cut -c1-4,36-45 customers_fixed.txt)</code></pre>
+<p>The last command compares only the customer_id (characters 1 to 4) and phone (characters 36 to 45) columns of the fixed-width file. It should print nothing. It needs a shell that supports process substitution, such as bash.</p>
+<ol>
+<li>Names and SSN differ between original and masked, and the SSN still looks like <code>ddd-dd-dddd</code>.</li>
+<li>customer_id and phone are identical to the original (they were out of scope).</li>
+<li>Every line of the delimited file has 5 fields, and every line of the fixed-width file is still 45 characters. A different count means the masked value did not fit the field or the format did not match the data.</li>
+<li>Row count is unchanged: 3 lines in each file.</li>
+<li>Consistency: save the masked files as <code>run1</code>, copy the originals back into the working folder, run both jobs again, and run <code>diff</code> against the <code>run1</code> copies. It should print nothing, because the docs describe the Name and Character Mapping frameworks as deterministic for the same configuration and key.</li>
+</ol>
+<h3 id="c28-lab6-wrong">What can go wrong</h3>
+<div class="tablewrap"><table>
+<thead><tr><th>Symptom</th><th>Likely cause</th><th>What to do</th></tr></thead>
+<tbody>
+<tr><td>Job succeeds but nothing changed</td><td>On-the-fly target file missing, or the file name or pattern does not match</td><td>Check the placeholder file and the File Name or Pattern column of the rule set</td></tr>
+<tr><td>A delimited file lost its last fields</td><td>More fields in the data than in the format file; the docs say extra fields are dropped after masking</td><td>Add the missing field names to the format and reimport; restore from the original</td></tr>
+<tr><td>A delimited file gained an extra delimiter</td><td>Fewer fields in the data than in the format (docs: delimiters are appended)</td><td>Make the format match the data</td></tr>
+<tr><td>Fixed-width: the wrong part of the line is masked</td><td>A wrong field length shifts every later offset</td><td>Recount lengths; the docs warn about exactly this</td></tr>
+<tr><td>Fixed-width line got longer</td><td>A masked name was longer than the field. The docs I read do not say how this case is handled</td><td>Check line length; on a copy of the algorithm set a Maximum Masked Name Length (an option of the Name framework)</td></tr>
+<tr><td>Format import fails on Windows</td><td>The format file has CRLF line endings</td><td>Convert to LF and import again</td></tr>
+<tr><td>Warning for a Phone or SSN value</td><td>Non-conforming data, such as text in a phone field</td><td>See the log of the file in Execution Components</td></tr>
+</tbody></table></div>
+<div class="callout real">
+<strong class="ctitle">What to say in the walkthrough</strong>
+<p>"Files have no schema, so I gave the engine one: a file format per file type with field names only, no real data. I made a file connector, a flat-file rule set and an inventory per file, profiled them, and assigned FirstName, LastName and a digit-mapping algorithm to the SSN field. I masked in-place on a working copy and compared against the original: the structure is unchanged, 5 fields per line and 45 characters per fixed-width line, and the names and SSNs are different. The same input gave the same output on a second run."</p>
+</div>

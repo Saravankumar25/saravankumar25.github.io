@@ -1,0 +1,178 @@
+<h2 id="c18-relationships">18.3 Relationships: parent, child and sibling</h2>
+
+<p>Real tables point at each other: <code>ORDERS.customer_id</code> is a foreign key to <code>CUSTOMERS</code> (<a href="03-data-basics.html">data basics chapter</a>). If you generate 50 customers and 80 orders with random customer numbers, some orders will point at customers that do not exist, which breaks <em>referential integrity</em>. GenRocket's answer is to generate data <em>in order, from parent to child</em>, so a child can only pick a key a parent has already made.</p>
+
+<p><span class="badge doc">From docs</span> The documentation says GenRocket "generates synthetic data with full referential integrity" because every domain has an id or primary attribute, and children refer to the parent's primary attribute. It also says GenRocket looks at relationships differently from a database. A database table can have several foreign keys. A GenRocket domain may have <strong>only one parent but many siblings</strong>, because generating sequentially along several parents would produce "a large amount of unnecessary data".</p>
+
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776678468898/ufo7G6Hv7M5rWKtF1vdsXaOsOUx5lgz4WA.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776678468898/ufo7G6Hv7M5rWKtF1vdsXaOsOUx5lgz4WA.png" alt="A diagram titled An entity may have only 1 parent but can have many siblings, showing department as Parent and role and security_level as Sibling above the user child table with foreign keys role_id, department_id and security_level_id" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The vendor's picture of the rule: the <code>user</code> table has three foreign keys, but in GenRocket only <code>department</code> is the parent; <code>role</code> and <code>security_level</code> are siblings (the vendor's earlier diagram shows all three as plain parents, the way a database sees it). <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/domains-overview/parent-child-and-sibling-relationships" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<div class="tablewrap">
+<table>
+<thead><tr><th>Term</th><th>Meaning</th><th>Rule of thumb from the docs</th><th>ShopSphere</th></tr></thead>
+<tbody>
+<tr><td>Parent</td><td>The domain whose rows are created first and which children point to</td><td>A real relationship between two tables, such as department and user</td><td>CUSTOMERS for ORDERS; ORDERS for ORDER_ITEMS</td></tr>
+<tr><td>Child</td><td>A domain that refers to its single parent's primary attribute</td><td>Exactly one parent</td><td>ORDERS, ORDER_ITEMS</td></tr>
+<tr><td>Sibling</td><td>A domain that only "describes" another, used for lookups</td><td>If the table is an adjective of another (role is an adjective of user), mark it a sibling</td><td>PRODUCTS describes an item: a sibling of ORDER_ITEMS</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>The scenario page adds a vocabulary pair: the <em>primary domain</em> is the one a scenario is created for, and the <em>root domain</em> is the first parent up the chain. For an ORDER_ITEMS scenario, ORDER_ITEMS is primary and CUSTOMERS is root, so the scenario creates customers, then orders, then items, and every key matches.</p>
+
+<div class="callout why">
+<strong class="ctitle">Why it matters</strong>
+<p>Valid foreign keys are the reason a test can load generated data into a real database and not see constraint errors. The same guarantee is what <a href="07-test-data-classification-and-generation-concepts.html">the generation concepts chapter</a> asked for in principle (parents before children); GenRocket builds it into the domain model.</p>
+</div>
+
+<h3 id="c18-rel-manual">18.3.1 Setting a parent or sibling by hand</h3>
+
+<ol class="steps">
+<li><strong>Open the <em>child</em> domain's dashboard and click the <em>Relationship</em> tab.</strong>
+<p>The relationship is stored on the child.</p>
+</li>
+<li><strong>Click <em>Add Referential Parent</em> and tick the parent's radio button, then <em>Save</em>.</strong>
+<p>Radio buttons enforce the one-parent rule.</p>
+</li>
+</ol>
+
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776679702191/DmQECXQER0s4oDZjcLvVvGBRKs1uRf_1Uw.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776679702191/DmQECXQER0s4oDZjcLvVvGBRKs1uRf_1Uw.png" alt="A dialog titled Add Parent of User listing Address, Department and Organization with radio buttons, Organization selected, and a Save button with an arrow" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> Choosing the parent: the dialog lists the other domains with one radio button each, so only one can be chosen. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-manually-set-parentchild-relationships-between-domains" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<ol class="steps" start="3">
+<li><strong>For a lookup table, click <em>Add Referential Sibling</em>, tick one or more domains, and add them to the scenarios you want.</strong>
+<p class="expect">What you should see: the Relationship tab draws a small diagram of the parent, the child and its siblings. If scenarios already exist, you are asked which scenarios should receive the new relationship.</p>
+</li>
+</ol>
+
+<h3 id="c18-rel-wizard">18.3.2 The Domain Referencing Wizard</h3>
+
+<p>After importing many tables, setting parents one by one is tedious. The wizard shows every domain with radio buttons for parent and checkboxes for siblings, and a diagram that updates as you click. It opens from the Project Versions pane or from step 2 of the XTS wizard.</p>
+
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776679411672/9i5TPN2izvupObn1cy4tCvz-tFdzv9h5kA.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776679411672/9i5TPN2izvupObn1cy4tCvz-tFdzv9h5kA.png" alt="The Domain Referencing Wizard with a list of ten bank domains (Account, AccountLevel, AccountType, Branch, CardProduct, CardType, Customer, CustomerAccount, Transaction, TransactionType) with a Reviewed column, a panel titled References for Account with AccountLevel selected as Parent, a Mark as Reviewed button, a progress pie showing 0 of 10 reviewed and a Domain Relationship Diagram" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The Domain Referencing Wizard. Left: domains and a Reviewed checkbox. Middle: for the selected domain (Account), the parent radio buttons and sibling checkboxes, and a progress pie. Right: a relationship diagram that redraws as you choose. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-use-the-domain-referencing-wizard" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<ol class="steps">
+<li><strong>Select a domain on the left.</strong>
+<p>Its possible parents appear in the middle pane.</p>
+</li>
+<li><strong>Click a parent's radio button.</strong>
+<p>Siblings are ticked automatically for the other domains, and the domain is marked Reviewed because you changed it.</p>
+</li>
+<li><strong>If a domain is already right, click <em>Mark as Reviewed</em>.</strong>
+<p>This is how you track progress when hundreds of tables exist.</p>
+<p class="expect">What you should see: the progress pie fills as domains are reviewed. In the XTS wizard, finish by clicking <em>Mark Completed</em> for step 2.</p>
+</li>
+</ol>
+
+<h2 id="c18-vars">18.4 Domain variables, loopCount and categories</h2>
+
+<p><span class="badge doc">From docs</span> A <strong>domain variable</strong> is an instance variable of a domain, named <code>global.DomainName.variableName</code>. Generator parameters throughout the project can refer to it, and changing the value instantly changes everything that references it. Three exist by default:</p>
+
+<div class="tablewrap">
+<table>
+<thead><tr><th>Variable</th><th>Controls</th><th>Default</th><th>Example from the docs</th></tr></thead>
+<tbody>
+<tr><td><code>global.X.id</code></td><td>The start of the <code>id</code> attribute. The <code>id</code> attribute's RangeGen reads it as <code>startRange</code></td><td>1</td><td>Set to 100: ids run 100, 101, 102...</td></tr>
+<tr><td><code>global.X.loopCount</code></td><td>How many rows the domain generates</td><td>1</td><td>Set to 10,000: ten thousand rows</td></tr>
+<tr><td><code>global.X.seed</code></td><td>The seed for random generators</td><td>1</td><td>Same seed in two domains gives the same random numbers in both</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>You can add your own, such as <code>global.User.startDate</code>. Defaults cannot be deleted.</p>
+
+<h3 id="c18-loop">18.4.1 Changing how many rows</h3>
+
+<p>The docs describe three levels at which the row count can be set, from broad to narrow: the domain (template) level, which applies everywhere; the <em>test data case</em> level, which they recommend as the most flexible because different tests can have different counts; and the scenario level, for special cases. This chapter changes it at the domain level.</p>
+
+<ol class="steps">
+<li><strong>Open the domain and find the <code>loopCount</code> variable in Domain Variables.</strong>
+<p>It starts at 1, which is why a first run produces a single row.</p>
+</li>
+<li><strong>Click its pencil icon, type the new value and click <em>Save</em>.</strong>
+<p class="expect">What you should see: the Value column changes (in the vendor example, from 1 to 25).</p>
+</li>
+</ol>
+
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776679873815/eD3y6iQs6RzoefjIFPggWnu7-dbKRukvPA.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776679873815/eD3y6iQs6RzoefjIFPggWnu7-dbKRukvPA.png" alt="The Edit Domain Variable dialog for global.User.loopCount with the description Defines the value for global.User.loopCount and the Value field set to 25, with Save and Cancel buttons" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> Editing <code>loopCount</code>: the name is fixed, the value is the number of rows. The vendor example changes it to 25. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-change-the-loopcount-for-a-domain" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<p>For many domains at once, the <em>Global Editing</em> menu has an "Edit Domains LoopCount" screen with checkboxes. One quirk: if a domain's first generator is a ListGen with <code>setLoop</code> set to true, the list length overrides the loop count and you cannot edit it from the scenario.</p>
+
+<h3 id="c18-cat">18.4.2 Domain categories</h3>
+
+<p>When a version has dozens of domains, group them: open a domain, click <em>Categorize</em>, create a category and save. Then filter the Domains pane by category or use Advanced Search. The same categorising works for scenarios, scenario chains and chain sets.</p>
+
+<h2 id="c18-attributes">18.5 Attributes: the columns</h2>
+
+<p><span class="badge doc">From docs</span> An attribute defines a characteristic of a domain, and a domain needs attributes for any data to exist. Importing creates them from the schema; otherwise you add them by hand. Every new domain starts with an <code>id</code> attribute that produces a unique number per row.</p>
+
+<p>Click an attribute to open the <strong>Attribute Dashboard</strong>. The top half holds the attribute's own parameters; the bottom half holds its generators.</p>
+
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776588720454/mJPoS7uNszSKezaRgxtyWclpNDR_ysgWqQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776588720454/mJPoS7uNszSKezaRgxtyWclpNDR_ysgWqQ.png" alt="The Attribute Dashboard for attribute firstName of domain User, outlined in green, showing fields Name, Original Name, % Null, Null Value, Output Condition, Type, Size, Table Reference, Date Format, Description and checkboxes Visible, Primary, Required and Unique, with a preview list of first names on the right and Save, Copy and Delete buttons" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The top half of the Attribute Dashboard: the attribute's own parameters and, on the right, a preview of values it would generate. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/attributes/attribute-dashboard" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<div class="tablewrap">
+<table>
+<thead><tr><th>Attribute parameter</th><th>Meaning (docs wording, shortened)</th></tr></thead>
+<tbody>
+<tr><td>Name / Original Name</td><td>Name is the camel-case name shown in the web platform. Original Name is the real column name as imported, and is what appears in output</td></tr>
+<tr><td>% Null and Null Value</td><td>The percentage of rows that get a null (for negative tests) and what "null" looks like</td></tr>
+<tr><td>Output Condition</td><td>Whether to leave the attribute out of a receiver's output when it is null, blank or both</td></tr>
+<tr><td>Visible</td><td>If false, receivers do not see the attribute (useful for helper attributes)</td></tr>
+<tr><td>Primary</td><td>Marks the key that children reference (a key icon appears)</td></tr>
+<tr><td>Type, Size, Required, Unique, Table Reference</td><td>Imported from DDL or XTS: the column's declared type, length, null-ability, uniqueness and foreign-key target</td></tr>
+<tr><td>Date Format</td><td>Format when the attribute generates a date</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="callout note">
+<strong class="ctitle">Name versus original name</strong>
+<p>For ShopSphere's <code>customer_id</code> column the attribute would be named <code>customerId</code> (GenRocket's camel-case convention), while its Original Name stays <code>customer_id</code>. Receivers such as the SQL-insert one use a separate <em>columnName</em> property key to write the real column name in the output.</p>
+</div>
+
+<h3 id="c18-attr-add">18.5.1 Adding an attribute</h3>
+
+<ol class="steps">
+<li><strong>In the Domain Dashboard, click <em>New Attribute</em>, type a name and <em>Save</em>.</strong>
+<p>The name matters, because GenRocket uses it to guess a generator.</p>
+</li>
+</ol>
+
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776589329293/ijzy4iv4DexJISv1O0xhAAup9Bbuymo91Q.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776589329293/ijzy4iv4DexJISv1O0xhAAup9Bbuymo91Q.png" alt="The Create New Attribute dialog with Domain User and the Name field containing firstName with an arrow, and Save and Cancel buttons" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> Adding an attribute needs only a domain and a name. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/attributes/how-do-i-add-an-attribute-to-a-domain" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<ol class="steps" start="2">
+<li><strong>Look at the generator that was assigned, change parameters if needed and click <em>Save Generator</em>.</strong>
+<p class="expect">What you should see: for <code>firstName</code>, the NameGen generator with parameters <code>nameType</code>, <code>caseType</code>, <code>sortOrder</code>, <code>seed</code> and <code>waitAmount</code>, and sample names in the preview.</p>
+</li>
+</ol>
+
+<p>To add columns that appeared later in the real database, the docs use Scratch Pad: type the existing domain name exactly as it is in GenRocket (not the table name), list the new column names, and choose <em>Create with Generators</em>.</p>
+
+<h3 id="c18-attr-ref">18.5.2 Referencing one attribute from another, and the ordering rule</h3>
+
+<p><span class="badge doc">From docs</span> Many generators have a <code>reference</code> parameter that takes another attribute's value. EmailGen, for example, can reference the <code>id</code> so each email is unique (user1@example.com, user2@example.com...). Double-click the reference field and pick the attribute with the plus button.</p>
+
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776589790679/g0WIFu5C3k30IwTNlOk4ztWR_wk5u1wxdw.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776589790679/g0WIFu5C3k30IwTNlOk4ztWR_wk5u1wxdw.png" alt="A dialog titled Select Attribute to Reference with tabs Domain Attributes, Attribute Generator, Global Variables, Resources and Organization Variables, listing attributes id, firstName and lastName each with a plus button" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The reference picker: double-click a reference parameter and choose from domain attributes, other generators in the same attribute, global variables, resources and organisation variables. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/attributes/how-do-i-reference-one-attribute-to-another" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776589805970/S4EaOjBieql0URSsmdsyDb40V4GyvL28XQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776589805970/S4EaOjBieql0URSsmdsyDb40V4GyvL28XQ.png" alt="The EmailGen generator parameters prefix user, reference #{User.id}, suffix example and extension com, with the Save Generator button" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The result: the <code>reference</code> parameter now shows <code>#{User.id}</code>. Save the generator, then check the preview. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/attributes/how-do-i-reference-one-attribute-to-another" target="_blank" rel="noopener">Source page ↗</a></figcaption>
+</figure>
+
+<div class="callout warn">
+<strong class="ctitle">Only look upward</strong>
+<p>An attribute can only reference attributes <em>above</em> it in the list, because the engine fills attributes from top to bottom. Referencing one below returns an empty value. If you need to, click <em>Rearrange Attributes</em> and drag the attribute lower, then close the dialog to save.</p>
+</div>
+
+<p>Other attribute tasks, in brief: <em>Copy</em> an attribute to another domain or project version (rename it if copying within the same domain); use <em>Group Edit</em> to change one parameter on many attributes, or remove many attributes at once; and use the gear icon (Browse and Manage Attributes) to see which generators are in use.</p>

@@ -1,0 +1,115 @@
+<h2 id="c4-pii-phi-pci">4.3 The three families: PII, PHI and PCI</h2>
+
+<p>People in TDM talk in three abbreviations. They overlap, and a single column can belong to more than one family, but each one points at a different law or standard and a different industry.</p>
+
+<h3 id="c4-pii">PII: personally identifiable information</h3>
+
+<p><span class="badge concept">General concept</span> PII is data that identifies a person. The definition differs a little between countries and laws, but the everyday list is stable:</p>
+
+<ul>
+<li>Names, email addresses, phone numbers, postal addresses.</li>
+<li>Government-issued numbers: SSN (US), passport number, driver's licence number, national ID. India's Aadhaar and PAN are comparable examples.</li>
+<li>Date of birth, age, gender, place of birth.</li>
+<li>Online identifiers such as IP addresses.</li>
+</ul>
+
+<p>ShopSphere's <code>CUSTOMERS</code> table is almost pure PII: <code>first_name</code>, <code>last_name</code>, <code>email</code>, <code>phone</code>, <code>ssn</code>, <code>date_of_birth</code>, <code>zip_code</code> and <code>tax_id</code>.</p>
+
+<p><span class="badge doc">From docs</span> Informatica ships a ready-made <strong>PII policy pack</strong>. It lists 26 data domains, each paired with a default masking rule (User Guide 10.5.10, pp.78 to 79). Reading the list is a quick way to see what a vendor treats as PII:</p>
+
+<div class="tablewrap"><table><caption>Data domains in the Informatica PII policy pack (User Guide 10.5.10, pp.78-79), grouped by us for readability</caption>
+<thead><tr><th>Group (our label)</th><th>Data domains in the pack</th></tr></thead>
+<tbody>
+<tr><td>Names</td><td>First Name, Last Name, Full Name</td></tr>
+<tr><td>Contact</td><td>Email Address, Phone, Full Address UPPER, Street Name, State, ZIP, Country</td></tr>
+<tr><td>Government and travel IDs</td><td>Social Security Number, Passport, Drivers License Number, UK National Identifier, Vehicle Registration Number</td></tr>
+<tr><td>Personal facts</td><td>Birth Date, Birth Place, Age, Gender</td></tr>
+<tr><td>Money and work</td><td>Credit Card, Salary, Job Position, Organization Name</td></tr>
+<tr><td>Other</td><td>IP Address, School Name, Grades</td></tr>
+</tbody></table></div>
+
+<p>Notice that the pack includes things you might not call "identity", such as Salary and Grades. A vendor's list is a starting point. Your organisation decides what else counts.</p>
+
+<h3 id="c4-phi">PHI: protected health information</h3>
+
+<p><span class="badge concept">General concept</span> PHI is health data that can be linked to a person. The health data alone ("type 2 diabetes") is not what makes it PHI. The link to an identifiable individual does. A list of diagnoses with no names or IDs and no way to trace back is a different thing from a patient record.</p>
+
+<p>ShopSphere is a retailer, so it has no medical records. To make the idea concrete, imagine a hypothetical ShopSphere feature, "ShopSphere Pharmacy", with a table <code>PRESCRIPTIONS(rx_id, customer_id, diagnosis_code, drug_name, insurer_member_id)</code>. Then:</p>
+
+<div class="tablewrap"><table class="sample"><caption>Illustrative only: a hypothetical ShopSphere PRESCRIPTIONS table (not part of the shared schema)</caption>
+<thead><tr><th>rx_id</th><th>customer_id</th><th>diagnosis_code</th><th>drug_name</th><th>insurer_member_id</th></tr></thead>
+<tbody>
+<tr><td>9001</td><td>1001</td><td>E11.9</td><td>Metformin</td><td>HP-5501-882</td></tr>
+<tr><td>9002</td><td>1003</td><td>J45.909</td><td>Salbutamol inhaler</td><td>HP-5501-913</td></tr>
+</tbody></table></div>
+
+<p>Here <code>diagnosis_code</code> and <code>drug_name</code> are health facts, <code>insurer_member_id</code> is an identifier, and <code>customer_id</code> links them to Asha or Meera. Together they are PHI. The same pack idea exists in Informatica: the <strong>PHI policy pack</strong> lists 17 domains, among them Medical Record Number, Health Plan Beneficiary Number, Device Identifier Serial Number, Certificate License Number, Account Number, Birth Date, Email Address, IP Address, Web URL, Social Security Number and ZIP (User Guide 10.5.10, p.79). <span class="badge doc">From docs</span></p>
+
+<div class="callout note"><strong class="ctitle">Look closely at what the pack contains</strong>
+
+<p>The PHI pack is mostly <em>identifiers</em> that appear in healthcare data: names, record numbers, plan numbers, dates, ZIP. It does not try to list every diagnosis. That tells you how privacy rules think: what makes a health record dangerous is that it can be traced to a person, so removing or masking the identifiers does most of the protective work.</p></div>
+
+<p>Delphix organises its detection logic into <em>profile sets</em>. Besides the recommended ASDD Standard set, it ships legacy sets named "Financial - Legacy" and "HIPAA - Legacy" (Delphix "Out of the box profiling settings"). <span class="badge doc">From docs</span> Delphix's standard set also has domains with explicitly medical names, such as MEDICAL_CODES, MEDICAL_DRUG and BLOOD_TYPE, and a domain called HIPAA_DATE (Delphix "ASDD standard profile set" listing). The words "HIPAA Date" hint at a rule HIPAA has about dates, which section 4.5 explains.</p>
+
+<h3 id="c4-pci">PCI: payment card data</h3>
+
+<p><span class="badge concept">General concept</span> PCI refers to the Payment Card Industry. The <em>PCI DSS</em> (Data Security Standard) is a rulebook created by the card brands for anyone who stores, processes or sends card data. It is not a government law. It is a contractual standard: merchants who ignore it can lose the right to take card payments, and can be fined by their payment partners. In TDM talk, "PCI data" means card number, card expiry date, security code, cardholder name.</p>
+
+<p>ShopSphere's shared schema has no card column, but any real online shop would have one (or would store a token from a payment provider). If it did, it would look like <code>4539 1596 8210 2773</code>. This is the number Informatica's own documentation uses as a masking example (User Guide 10.5.10, p.158).</p>
+
+<p><span class="badge doc">From docs</span> The Informatica <strong>PCI policy pack</strong> is short: Account Number, Birth Date, Credit Card, Expiration Date, First Name and Last Name (User Guide 10.5.10, p.80).</p>
+
+<div class="callout warn"><strong class="ctitle">Do not copy these numbers from the docs into your own tests</strong>
+
+<p>A card number from a documentation page may look fake and still be a real, working card by coincidence. When you need card numbers for testing, use numbers designed for testing (payment providers publish "test card numbers") or let a generator or masking tool make numbers that pass the format check but belong to no account.</p></div>
+
+<h2 id="c4-identifiers">4.4 Direct and indirect identifiers: why "just remove the names" fails</h2>
+
+<p>A common beginner idea is: "We will delete the name column and then the data is anonymous." It is not, and understanding why is the most important privacy idea in this chapter.</p>
+
+<h3 id="c4-direct-indirect">Two kinds of identifier</h3>
+
+<div class="compare"><div><h4>Direct identifiers</h4>
+
+<p>Point to one person by themselves.</p>
+
+<ul><li>Full name (mostly)</li><li>SSN, passport number</li><li>Email address, phone number</li><li>Card number</li></ul>
+
+<p>Removing or replacing these is the obvious first step.</p></div>
+<div><h4>Indirect identifiers (quasi-identifiers)</h4>
+
+<p>Harmless alone, identifying in combination.</p>
+
+<ul><li>Zip or postal code</li><li>Date of birth</li><li>Gender</li><li>Job title, employer</li><li>Rare product or rare diagnosis</li></ul>
+
+<p>Easy to forget, which is why they cause leaks.</p></div></div>
+
+<p><span class="badge concept">General concept</span> Research on public records, most famously by the computer scientist Latanya Sweeney, has found that a large share of people in the United States can be singled out from just three facts: zip code, full date of birth and gender. The exact percentage depends on the data set and the year, so do not quote a number from this guide. Remember the shape of the result: three boring columns, one unique person.</p>
+
+<h3 id="c4-reid-example">A worked example with ShopSphere</h3>
+
+<p>Imagine a careless tester shares an "anonymised" extract with a contractor. Names, emails, phones and SSNs were deleted. What remains:</p>
+
+<div class="tablewrap"><table class="sample"><caption>"Anonymised" extract: direct identifiers removed, indirect ones kept</caption>
+<thead><tr><th>customer_id</th><th>date_of_birth</th><th>zip_code</th><th>total_spent</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>1990-04-12</td><td>560001</td><td>41,250</td></tr>
+<tr><td>1002</td><td>1985-11-02</td><td>600017</td><td>9,800</td></tr>
+<tr><td>1003</td><td>1999-07-23</td><td>682001</td><td>27,430</td></tr>
+</tbody></table></div>
+
+<p>Now suppose the contractor also has an outside list: a public club membership page, a leaked mailing list, a social media profile that mentions "born 12 April 1990" and a city. Matching the outside list against the extract on birth date plus zip code finds exactly one row. The contractor now knows that Asha spent 41,250 at ShopSphere. No name was ever in the extract.</p>
+
+<ol class="steps">
+<li><strong>Take the extract.</strong><p>Birth date and zip code are in it.</p></li>
+<li><strong>Take any outside list that has the same two facts plus a name.</strong><p>The linking columns do not have to be sensitive on their own.</p><p class="expect">Result: the outside list's "Asha Menon" matches one row of the extract.</p></li>
+<li><strong>Read everything else in the matched row.</strong><p>Everything in the row now belongs to a named person.</p></li>
+</ol>
+
+<div class="callout why"><strong class="ctitle">What this means for masking</strong>
+
+<p>Protecting a data set means looking at <em>combinations</em>. It is why the PII and PHI packs both include Birth Date, ZIP and State, not only names and ID numbers. It is also why masking techniques that move a date a little or blur a number (see <a href="06-masking-concepts.html">the masking concepts chapter</a>) exist: they weaken the combination while keeping the data useful for testing.</p></div>
+
+<div class="callout real"><strong class="ctitle">Free text is the other hiding place</strong>
+
+<p>Informatica's data domain page notes that a Social Security number might sit in an <code>SSN</code> column, in a column called <code>SOCIAL_SECURITY</code> in another table, and also inside a <code>COMMENTS</code> column (User Guide 10.5.10, p.73). <span class="badge doc">From docs</span> A support agent typing "customer 123-45-6789 called about refund" into a notes field has just put an SSN where no column name will ever warn you. Delphix's Free Text Redaction algorithm exists for exactly this problem (<a href="06-masking-concepts.html">the masking concepts chapter</a> explains it).</p></div>

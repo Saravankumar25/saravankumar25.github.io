@@ -1,0 +1,190 @@
+
+<h2 id="c7-model-design-deploy-manage">7.9 The lifecycle: Model, Design, Deploy, Manage</h2>
+<p>The syllabus for Day 46 says "Data generation: model, design, deploy, manage". That is GenRocket's own phrase: its help centre states that GenRocket uses a "Model, Design, Deploy, Manage" methodology and explains it in a video that I could not watch, so the page text is all I can report. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/the-genrocket-methodology" target="_blank" rel="noopener">The GenRocket Methodology ↗</a></p>
+<p>The four words describe a cycle that any generation effort goes through, in any tool. The table below is my teaching interpretation, built from the pieces I could ground. <span class="badge concept">General concept</span></p>
+<div class="tablewrap"><table><thead>
+<tr><th>Phase</th><th>Question it answers</th><th>ShopSphere activity</th><th>What you produce</th></tr>
+</thead>
+<tbody>
+<tr><td><strong>Model</strong></td><td>What does the data look like?</td><td>List the tables, columns, types, keys and relationships (CUSTOMERS, ORDERS, ORDER_ITEMS, PRODUCTS)</td><td>A data model the tool can read, often imported from an existing database definition</td></tr>
+<tr><td><strong>Design</strong></td><td>Which values, how many, and why?</td><td>Choose a rule per column, set the distributions, decide the boundary and null rows (section 7.10)</td><td>Rules, counts and a coverage matrix</td></tr>
+<tr><td><strong>Deploy</strong></td><td>How do the rows reach the test system?</td><td>Run the generation, write to the QA database or to files, check keys and counts</td><td>Loaded, verified test data</td></tr>
+<tr><td><strong>Manage</strong></td><td>How do we keep it right and reusable?</td><td>Version the rules, record the seed, handle requests for changes, retire old data sets</td><td>A catalogue of data sets and a change history</td></tr>
+</tbody>
+</table>
+</div>
+<p>Evidence for the pieces. GenRocket's General FAQ says it assigns the more complex test data tasks to a small group of trained "Test Data Engineers" who <em>model</em> test data projects and <em>design</em> the data (the FAQ's examples are integration, load and negative data), while testers and developers only need to learn how to search for the data they need, integrate or <em>deploy</em> it into their test environment, and modify it with a questionnaire tool. <span class="badge doc">From docs</span> Its architecture page adds that GenRocket is hybrid: synthetic data is modelled and designed in a cloud component and generated locally in an on-premises component. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-architecture" target="_blank" rel="noopener">GenRocket Architecture ↗</a></p>
+<p>GenRocket also names five building blocks that the phases work on. The reference table on its "Five Key Components" page reads like this in my words: a <em>domain</em> is a noun such as a table or file; an <em>attribute</em> is a characteristic of a domain, such as a column; a <em>generator</em> produces the values for an attribute; a <em>receiver</em> turns generated data into a usable format such as SQL, CSV or JSON; and a <em>scenario</em> holds the instructions for what to generate and how much. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-five-key-components" target="_blank" rel="noopener">GenRocket Five Key Components ↗</a> Placing them on the cycle is my own reading: domains and attributes are mostly Model work, generators and scenarios are Design work, receivers carry the Deploy step. The <a href="17-genrocket-overview.html">GenRocket overview chapter</a> takes this further.</p>
+<div class="callout note"><strong class="ctitle">Where Informatica fits on the same cycle</strong>
+<p>Informatica's task flow has the same shape: import metadata into a project (model), create generation rules and assign them to columns (design), create a plan, generate a workflow and run it (deploy), then watch it in the Monitor view (User Guide 10.5.10, p.192). <span class="badge doc">From docs</span> The guide does not use the words Model, Design, Deploy, Manage; the mapping is mine.</p>
+</div>
+
+<h2 id="c7-worked-example">7.10 Worked example: 50 ShopSphere customers and their orders</h2>
+<p><strong>The request.</strong> The QA team testing ShopSphere's Customer Orders app asks the TDM engineer for a new data set in a QA database: 50 customers, with orders and items, covering the registration rules, the order history page and a customer-search feature. No production data may be used. We follow Model, Design and Deploy; Manage is covered by the lab at the end.</p>
+<h3 id="c7-model-step">7.10.1 Model</h3>
+<p>The tables are the ShopSphere tables from the data basics chapter. The relationships are the only thing the generator needs to respect: <code>ORDERS.customer_id</code> points at <code>CUSTOMERS</code>, <code>ORDER_ITEMS.order_id</code> points at <code>ORDERS</code>, and <code>ORDER_ITEMS.product_code</code> points at <code>PRODUCTS</code>. PRODUCTS is a small reference table of four rows that we load by hand (P-100 Laptop Stand, P-200 USB Cable, P-300 Phone Case, P-400 Desk Lamp), because it is better to control the catalogue than to invent products.</p>
+<p>These business rules are invented for this example. They are what the test conditions will aim at: <em>customers must be 18 or older; first and last names are at most 30 characters; phone is 10 digits when present; zip code is 6 digits when present; email is optional; each order has between 1 and 4 items</em>.</p>
+<h3 id="c7-design-step">7.10.2 Design: a rule for every column</h3>
+<div class="tablewrap"><table class="sample">
+<caption>Generation rules for CUSTOMERS (my design; the 'ssn' prefix 900 and 'example.test' domain are my choices so values cannot be mistaken for real ones)</caption><thead>
+<tr><th>Column</th><th>Rule</th><th>Sensitivity</th></tr>
+</thead>
+<tbody>
+<tr><td>customer_id</td><td>Sequential from 2001, step 1</td><td>Internal</td></tr>
+<tr><td>first_name</td><td>Random pick from a made-up list of 200 names</td><td>Personal (synthetic)</td></tr>
+<tr><td>last_name</td><td>Random pick from a made-up list of 200 surnames</td><td>Personal (synthetic)</td></tr>
+<tr><td>email</td><td>first name + "." + customer_id + "@example.test", lower case</td><td>Personal (synthetic)</td></tr>
+<tr><td>phone</td><td>"9" followed by 9 random digits</td><td>Personal (synthetic)</td></tr>
+<tr><td>ssn</td><td>"900-" then 2 random digits, "-" and 4 random digits; unique</td><td>Highly restricted (synthetic)</td></tr>
+<tr><td>date_of_birth</td><td>Random between 1950-01-01 and 2008-10-22</td><td>Highly restricted (synthetic)</td></tr>
+<tr><td>zip_code</td><td>Random 6 digits from 560001 to 560099</td><td>Personal (synthetic)</td></tr>
+<tr><td>tax_id</td><td>Pattern of 5 letters, 4 digits, 1 letter; unique</td><td>Highly restricted (synthetic)</td></tr>
+</tbody>
+</table>
+</div>
+<p>Next, the customers are split by purpose. The counts below must add up to 50, and each group overrides the default rules for the columns it targets.</p>
+<div class="tablewrap"><table class="sample">
+<caption>Customer groups by purpose</caption><thead>
+<tr><th>Group</th><th>Rows</th><th>What differs from the default rules</th></tr>
+</thead>
+<tbody>
+<tr><td>Typical (positive)</td><td>33</td><td>None</td></tr>
+<tr><td>Boundary</td><td>6</td><td>1 customer exactly 18 today (born 2008-10-23); 1 aged 18 years and 1 day (2008-10-22); first_name of 1 character; first_name of 30 characters; last_name of 30 characters; zip_code 560001 (lowest in range)</td></tr>
+<tr><td>Null / empty</td><td>5</td><td>phone NULL (2 rows); email NULL (1); zip_code empty string (1); tax_id NULL (1)</td></tr>
+<tr><td>Edge case</td><td>6</td><td>last_name O'Brien; hyphenated last_name; first_name with a leading and trailing space; accented letters in first_name; date_of_birth on a leap day (2000-02-29); one customer sharing another customer's last_name and zip_code (to test search)</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>50</strong></td><td>&nbsp;</td></tr>
+</tbody>
+</table>
+</div>
+<p>Invalid and security values (letters in a phone number, an email with no "@", a name that contains SQL text) are <em>not</em> in the table. They go into a separate four-row input file that the tester types or posts through the registration screen, because the database would refuse to store them. That is the point made in the tip in 7.3.3.</p>
+<p>Now the children. Orders per customer follow the distribution below, drawn from the Python snippet in 7.7.2.</p>
+<div class="tablewrap"><table class="sample">
+<caption>Orders per customer</caption><thead>
+<tr><th>Orders per customer</th><th>Customers</th><th>Share</th><th>Orders created</th></tr>
+</thead>
+<tbody>
+<tr><td>0</td><td>10</td><td>20%</td><td>0</td></tr>
+<tr><td>1</td><td>20</td><td>40%</td><td>20</td></tr>
+<tr><td>2</td><td>15</td><td>30%</td><td>30</td></tr>
+<tr><td>5</td><td>5</td><td>10%</td><td>25</td></tr>
+<tr><td><strong>Total</strong></td><td><strong>50</strong></td><td>100%</td><td><strong>75</strong></td></tr>
+</tbody>
+</table>
+</div>
+<p>Each order has 1 to 4 items picked at random, each item has a random product code from PRODUCTS, a quantity of 1 to 3, and a <code>unit_price</code> copied from that product's <code>price</code> (so prices always agree with the catalogue). With seed 42 in my run that gave 179 items. <code>total_amount</code> on each order is calculated as the sum of its items, so totals always match. Without that last rule the data would be internally contradictory, and tests of the order total report would fail for the wrong reason.</p>
+<h3 id="c7-coverage-matrix">7.10.3 The coverage matrix</h3>
+<p>The matrix shows which data group serves which test area. An empty column is a gap. A tick means a row exists that exercises that area.</p>
+<div class="tablewrap"><table class="sample">
+<caption>Coverage matrix: data groups against test areas (✓ = covered)</caption><thead>
+<tr><th>Data group</th><th>Registration validation</th><th>Customer search</th><th>Order history page</th><th>Order total report</th><th>Privacy export</th></tr>
+</thead>
+<tbody>
+<tr><td>Typical (33)</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Boundary (6)</td><td>✓</td><td>✓</td><td></td><td></td><td></td></tr>
+<tr><td>Null / empty (5)</td><td>✓</td><td>✓</td><td></td><td></td><td>✓</td></tr>
+<tr><td>Edge case (6)</td><td>✓</td><td>✓</td><td>✓</td><td></td><td>✓</td></tr>
+<tr><td>Customers with 0 orders (10)</td><td></td><td></td><td>✓</td><td>✓</td><td>✓</td></tr>
+<tr><td>Customers with 5 orders (5)</td><td></td><td></td><td>✓</td><td>✓</td><td></td></tr>
+<tr><td>Negative input file (4 rows, not loaded)</td><td>✓</td><td></td><td></td><td></td><td></td></tr>
+</tbody>
+</table>
+</div>
+<p>Look at the empty cells. Boundary customers have no tick for the order history page, because the design does not say whether they have orders. A good review catches that. Fix it by requiring that at least two boundary customers and two null-phone customers are among the 40 customers who have orders, so the order history page is also tried with them.</p>
+<h3 id="c7-deploy-step">7.10.4 Deploy and verify</h3>
+<p>After the run, check three things before you hand the data over. These SQL checks are what I ran against my generated rows in SQLite; the syntax works on most databases.</p>
+<pre><code>-- 1. No orphan orders (expected: 0)
+SELECT COUNT(*) FROM orders o
+LEFT JOIN customers c ON c.customer_id = o.customer_id
+WHERE c.customer_id IS NULL;
+
+-- 2. The orders-per-customer distribution matches the design
+SELECT n AS orders_per_customer, COUNT(*) AS customers
+FROM (SELECT c.customer_id, COUNT(o.order_id) AS n
+      FROM customers c
+      LEFT JOIN orders o ON o.customer_id = c.customer_id
+      GROUP BY c.customer_id) t
+GROUP BY n ORDER BY n;
+
+-- 3. The null and empty rows really exist (expected: 2, 1, 1, 1)
+SELECT SUM(CASE WHEN phone IS NULL THEN 1 ELSE 0 END)    AS null_phone,
+       SUM(CASE WHEN email IS NULL THEN 1 ELSE 0 END)    AS null_email,
+       SUM(CASE WHEN zip_code = '' THEN 1 ELSE 0 END)    AS empty_zip,
+       SUM(CASE WHEN tax_id IS NULL THEN 1 ELSE 0 END)   AS null_tax_id
+FROM customers;</code></pre>
+<p class="expect">Expected result: check 1 returns 0. Check 2 returns four rows: (0, 10), (1, 20), (2, 15), (5, 5); I got exactly this from the snippet in 7.7.2. Check 3 returns 2, 1, 1, 1 once the null and empty overrides from the design table are applied. The snippet in 7.7.2 generates only the typical shape, so I did not run check 3 against it; it is a template for you to run on a real design.</p>
+
+<h2 id="c7-tdaas">7.11 Test data as a service</h2>
+<p><strong>Concept.</strong> "Test data as a service" means test data is something teams can <em>ask for and receive</em>, like a ticket to a service desk, instead of something each team builds in secret. A small group owns the know-how and the rules; many teams consume the results. <span class="badge concept">General concept</span> The phrase itself does not appear in the documentation pages I read, so I use it as a label for what the three tools describe in their own words.</p>
+<p><strong>Why it matters.</strong> Without it, every team writes its own scripts, nobody can reproduce another team's data and the same sensitive columns get masked ten different ways. With it, a request is a small form ("50 customers with orders, boundary included"), and the answer is a catalogued, repeatable data set.</p>
+<div class="tablewrap"><table><thead>
+<tr><th>Tool</th><th>What its docs say that fits the idea</th></tr>
+</thead>
+<tbody>
+<tr><td>GenRocket</td><td>G-Portal is described as part of a distributed self-service platform in which a small group of Test Data Engineers in a Center of Excellence supports large distributed teams. Requesters search for existing test data, create requests, track them and download components. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/g-portal/g-portal-overview" target="_blank" rel="noopener">G-Portal Overview ↗</a></td></tr>
+<tr><td>GenRocket</td><td>Test Data Cases (G-Cases) change the components inside a scenario so the same scenario can produce many permutations for different test cases, organised in suites with categories such as Beta, Unit or Load. <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/test-data-cases-g-cases/test-data-cases-g-cases-overview" target="_blank" rel="noopener">G-Cases Overview ↗</a></td></tr>
+<tr><td>Informatica TDM</td><td>A test data warehouse stores data sets; the guide says multiple teams using different machines that host a Test Data Manager Service in a domain can access a single test data warehouse (User Guide 10.5.10, p.24). <span class="badge doc">From docs</span></td></tr>
+<tr><td>Delphix</td><td>The terminology page describes Delphix Self-Service as a user interface designed for project teams, application developers and testers to manage their virtualised datasets. <span class="badge doc">From docs</span> <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology ↗</a></td></tr>
+</tbody>
+</table>
+</div>
+<div class="callout example"><strong class="ctitle">What a ShopSphere request might look like</strong>
+<p><strong>Requester:</strong> QA engineer. <strong>Need:</strong> customers with 0, 1, 2 and 5 orders; 5 null-phone customers. <strong>Environment:</strong> QA2. <strong>Refresh:</strong> weekly, same seed. <strong>Owner:</strong> TDM engineer. <strong>Delivered as:</strong> a named data set "SHOPSPHERE-CUST-50-v3" with the rule version and seed recorded. This record is the "Manage" phase of 7.9 in miniature.</p>
+</div>
+
+<h2 id="c7-lab">7.12 Hands-on lab: design a smaller data set on paper</h2>
+<div class="exercise">
+<h4>Lab: model and design 20 customers</h4>
+<p>Goal: practise turning a request into a Model, a Design and a coverage matrix. You need pen and paper or a text editor; no tool is required.</p>
+<ol class="steps">
+<li><strong>Write the request.</strong><p>"20 customers with orders for the order history page. Customers must be 18 or older. Zip code is 6 digits."</p><p class="expect">You should have one sentence naming the tables, the count and the rules.</p></li>
+<li><strong>Split the 20 customers by purpose.</strong><p>Use typical, boundary, null or empty and edge case. The groups must add up to 20.</p><p class="expect">A table with four rows and a total of 20.</p></li>
+<li><strong>Pick an orders-per-customer distribution.</strong><p>Choose counts that add up to 20 customers and state the total orders.</p></li>
+<li><strong>Draw a coverage matrix</strong> with your groups down the side and the test areas "registration" and "order history" across the top. Mark ticks and find one gap.</li>
+<li><strong>Write two SQL checks</strong> you would run after generation.</li>
+</ol>
+<details class="sol">
+<summary>Show a worked answer</summary>
+<p><strong>Groups:</strong> typical 12, boundary 3 (exactly 18; 18 and one day; zip 560001), null or empty 2 (phone NULL; email NULL), edge case 3 (O'Brien; hyphenated surname; leap-day birthday). Total 12 + 3 + 2 + 3 = 20.</p>
+<p><strong>Orders:</strong> 0 orders for 4 customers, 1 order for 8, 2 orders for 6, 4 orders for 2. Total orders = 0 + 8 + 12 + 8 = 28.</p>
+<p><strong>Gap you should find:</strong> the order history column is empty for the groups unless you require some of the boundary and null customers to have orders. A fix: make 2 of the 3 boundary customers and both null customers belong to the groups that have orders.</p>
+<p><strong>Checks:</strong> the orphan-order query from 7.10.4 (expect 0), and a count of customers with exactly 4 orders (expect 2).</p>
+</details>
+</div>
+
+<h2 id="c7-mistakes">7.13 Common mistakes and gotchas</h2>
+<div class="callout warn"><strong class="ctitle">Mistakes beginners make</strong>
+<ul>
+<li><strong>Generating children before parents.</strong> The foreign keys then point at nothing. Always parents first, or have the child rule read from the finished parent table.</li>
+<li><strong>All-random data and no designed edges.</strong> Random values almost never hit an exact boundary, a null, or a name with an apostrophe. Put those rows in on purpose.</li>
+<li><strong>Not recording the seed.</strong> A failed test cannot be reproduced if the data cannot be rebuilt.</li>
+<li><strong>Requesting "about 10% null".</strong> In a 50-row data set that can come out as zero. Ask for an exact count.</li>
+<li><strong>Totals that do not add up.</strong> Derive <code>total_amount</code> from the items instead of generating it separately.</li>
+<li><strong>Loading invalid values into constrained columns.</strong> The load fails or the constraint is silently dropped. Keep negative data in the input channel.</li>
+<li><strong>Treating synthetic as automatically realistic.</strong> It only mirrors what you modelled. Compare a few generated distributions against real, masked, aggregated figures.</li>
+<li><strong>Reusing real values as the "dictionary".</strong> A name list exported from production defeats the purpose.</li>
+</ul>
+</div>
+
+<h2 id="c7-recap">7.14 Recap</h2>
+<div class="callout recap"><strong class="ctitle">Recap</strong>
+<ul>
+<li>Classify test data along three lines: <strong>source</strong> (production-derived or synthetic), <strong>sensitivity</strong> (what harm a leak causes) and <strong>purpose</strong> (what the row must prove).</li>
+<li>The seven purposes are valid, invalid, boundary, edge case, null or empty, volume and security. The syllabus data patterns (boundary, sequential, random, edge cases, null) are ways of shaping values to serve them.</li>
+<li>Synthetic data is created from rules. It gives privacy and designed coverage; masked production gives real-world mess. Hybrids use both.</li>
+<li>Generation needs a target shape, a rule or generator per column, and run settings. A <strong>seed</strong> makes it repeatable and a <strong>distribution</strong> makes it realistic.</li>
+<li>Generate parents first and make every foreign key copy an existing parent id; control how many children each parent gets.</li>
+<li>GenRocket's cycle is Model, Design, Deploy, Manage. Test data as a service means requestable, catalogued, repeatable data owned by a small expert group.</li>
+<li>A coverage matrix shows gaps before the testers find them.</li>
+</ul>
+</div>
+
+
+<section class="sources"><h2 id="c7-sources">Sources used in this chapter</h2>
+<ul>
+<li>Informatica TDM 10.5.10 User Guide (February 2026): User Guide chapter 9 "Data Generation" (pp.190 to 207: overview, components, task flow, rule types, conditional constraints pp.201 to 202); chapter 10 (pp.208 to 211, 220, 229: technique list, exception test data, random and reference lookup generation); chapter 13 p.285 (data generation plan settings for child records and error options); chapter 1 p.24 (compliance standards, test data warehouse).</li>
+<li>GenRocket: <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/why-synthetic-test-data" target="_blank" rel="noopener">Why Synthetic Test Data?</a> (definition); <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/the-genrocket-methodology" target="_blank" rel="noopener">The GenRocket Methodology</a> (the four-word phrase); <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-five-key-components" target="_blank" rel="noopener">Five Key Components</a>; <a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/genrocket-architecture" target="_blank" rel="noopener">Architecture</a>; <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">General FAQ</a> (roles, seeds, referential integrity, hybrid use); <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/generators-overview" target="_blank" rel="noopener">Generators Overview</a>; <a href="https://genrocket.helpjuice.com/en_US/generators-overview-12/-what-is-seeding" target="_blank" rel="noopener">What is Seeding?</a>; <a href="https://genrocket.helpjuice.com/en_US/domains-overview/parent-child-and-sibling-relationships" target="_blank" rel="noopener">Parent, Child, and Sibling Relationships</a>; <a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/how-to-generate-children-based-on-weights-percentages" target="_blank" rel="noopener">Generate Children based on Weights</a>; <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/what-is-synthetic-data-replacement-sdr" target="_blank" rel="noopener">What is SDR?</a>; <a href="https://genrocket.helpjuice.com/en_US/business-logic-generators/how-do-i-use-the-edgecasegen-generator" target="_blank" rel="noopener">EdgeCaseGen</a>; <a href="https://genrocket.helpjuice.com/en_US/g-portal/g-portal-overview" target="_blank" rel="noopener">G-Portal Overview</a>; <a href="https://genrocket.helpjuice.com/en_US/test-data-cases-g-cases/test-data-cases-g-cases-overview" target="_blank" rel="noopener">G-Cases Overview</a>.</li>
+<li>Delphix: <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a> (Continuous Compliance 2026.5): one definition of Self-Service.</li>
+
+<li>Not used as sources: the YouTube videos (transcripts could not be retrieved). "Cog IPs" are organisation-specific; ask your trainer.</li>
+<li>All ShopSphere numbers, rules and code are my own illustrations, run in SQLite 3.45 and Python 3.13 before printing.</li>
+</ul></section>

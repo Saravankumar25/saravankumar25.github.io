@@ -1,0 +1,79 @@
+
+<h2 id="c9-overlap">9.4 Where they overlap</h2>
+<p>Every TDM capability in the syllabus is an ETL operation with a TDM twist. <span class="badge concept">General concept</span></p>
+<div class="tablewrap"><table>
+<thead><tr><th>TDM capability</th><th>ETL equivalent</th><th>The TDM twist</th></tr></thead>
+<tbody>
+<tr><td>Discovery and profiling</td><td>Source profiling before building a mapping</td><td>Looks for <em>sensitive</em> data (SSN, phone) and for the relationships between tables</td></tr>
+<tr><td>Subsetting</td><td>A filtered, incremental extract</td><td>Must follow foreign keys so parents and children stay together</td></tr>
+<tr><td>Masking</td><td>A transformation (value replacement)</td><td>Deterministic and format-preserving; the original must not be recoverable from the output unless reversible by design</td></tr>
+<tr><td>Generation</td><td>A source (the data comes from rules, not a system)</td><td>Parents before children; designed boundary, null and volume data (see <a href="07-test-data-classification-and-generation-concepts.html">the generation concepts chapter</a>)</td></tr>
+<tr><td>Provisioning and refresh</td><td>A load, with truncate-and-load or reset</td><td>Resettable to a known state; often self-service for testers</td></tr>
+<tr><td>Rules, policies, rule sets</td><td>Mapping definitions in the metadata repository</td><td>Reusable by data domain ("every SSN column gets this rule")</td></tr>
+<tr><td>Plan, workflow, job</td><td>Workflow and schedule</td><td>Generated from a specification, not drawn by hand</td></tr>
+<tr><td>Monitor, logs, audit</td><td>Monitoring and logging</td><td>Also a compliance record</td></tr>
+</tbody></table></div>
+<h3 id="c9-etl-view-of-masking">9.4.1 Masking really is a transformation</h3>
+<p>Look back at the previous chapter's cleaning transformation: <code>LOWER(TRIM(email))</code> changes a value row by row, according to a rule. A masking rule such as <code>'user' || customer_id || '@example.test'</code> does exactly the same. The only difference is the reason: cleaning makes a value <em>better</em>; masking makes it <em>safe</em>. In the Informatica guide, masking rules that come from mapplets are literally PowerCenter transformation logic imported into TDM (User Guide 10.5.10, p.137). <span class="badge doc">From docs</span> The same is true of generation: a custom generation rule is built from mapplet logic (p.192). <span class="badge doc">From docs</span></p>
+<h3 id="c9-etl-view-of-subset">9.4.2 Subsetting really is a filtered extract</h3>
+<p>The Informatica guide defines an entity as a <em>driving table</em> plus the tables related to it through constraints. Define a filter, such as EmpID equal to 10, and the workflow loads the Employee row, its history rows and its orders into the target (pp.114 and 121). <span class="badge doc">From docs</span> In SQL that is <code>WHERE</code> on the parent plus joins down to the children. Delphix rule sets offer the same at table level: each table can carry a <em>Filter</em>, "a WHERE clause to filter or subset the data", or a custom SQL SELECT (Managing rule sets). <span class="badge doc">From docs</span> <a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets ↗</a> GenRocket's G-Subset offers a "Where" clause, a percentage of rows, or a number of rows (G-Subset overview).</p>
+<h3 id="c9-etl-view-of-provisioning">9.4.3 Provisioning really is a load</h3>
+<p>Loading rules from the previous chapter apply directly: load parents before children, decide truncate versus append, use commit sizes, handle constraints. Delphix on-the-fly jobs expose a <em>Truncate</em> checkbox, <em>Commit Size</em>, <em>Batch Update</em> and <em>Disable Constraints</em>. Informatica's plan has an update strategy and a commit interval (p.284 to 285). Provisioning adds one thing ETL rarely has: a path <em>back</em>. Informatica's test data warehouse stores versions of data sets and lets you reset a target to any version (pp.236 to 237). <span class="badge doc">From docs</span></p>
+
+<h2 id="c9-reference-architecture">9.5 A reference architecture for a TDM pipeline</h2>
+<p>Here is the picture to keep in your head for the tool chapters. Every stage is something you met in the ETL chapter; the two extra boxes at the ends (profile and test) are TDM additions. <span class="badge concept">General concept</span></p>
+<figure class="diagram"><svg viewBox="0 0 900 360" role="img" aria-label="TDM pipeline. Left to right: production source, profile, extract subset, mask and transform, load to test, verify. Test environments on the right. Below: rules repository, orchestrator and scheduler, audit and logs, and a test data store.">
+<rect x="10" y="40" width="110" height="110" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="65" y="85" text-anchor="middle" fill="currentColor" font-weight="bold">Production</text>
+<text x="65" y="108" text-anchor="middle" fill="currentColor" font-size="12">or a generator</text>
+<text x="65" y="128" text-anchor="middle" fill="currentColor" font-size="12">(read only)</text>
+<rect x="150" y="40" width="110" height="110" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="205" y="75" text-anchor="middle" fill="currentColor" font-weight="bold">1. Profile</text>
+<text x="205" y="98" text-anchor="middle" fill="currentColor" font-size="12">find sensitive</text>
+<text x="205" y="115" text-anchor="middle" fill="currentColor" font-size="12">columns and</text>
+<text x="205" y="132" text-anchor="middle" fill="currentColor" font-size="12">relationships</text>
+<rect x="290" y="40" width="120" height="110" rx="10" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+<text x="350" y="75" text-anchor="middle" fill="currentColor" font-weight="bold">2. Extract</text>
+<text x="350" y="98" text-anchor="middle" fill="currentColor" font-size="12">subset, following</text>
+<text x="350" y="115" text-anchor="middle" fill="currentColor" font-size="12">foreign keys</text>
+<rect x="440" y="40" width="120" height="110" rx="10" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+<text x="500" y="75" text-anchor="middle" fill="currentColor" font-weight="bold">3. Mask</text>
+<text x="500" y="98" text-anchor="middle" fill="currentColor" font-size="12">transform values,</text>
+<text x="500" y="115" text-anchor="middle" fill="currentColor" font-size="12">keep keys</text>
+<text x="500" y="132" text-anchor="middle" fill="currentColor" font-size="12">consistent</text>
+<rect x="590" y="40" width="120" height="110" rx="10" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+<text x="650" y="75" text-anchor="middle" fill="currentColor" font-weight="bold">4. Load</text>
+<text x="650" y="98" text-anchor="middle" fill="currentColor" font-size="12">write to the test</text>
+<text x="650" y="115" text-anchor="middle" fill="currentColor" font-size="12">database or files</text>
+<rect x="740" y="40" width="150" height="110" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="815" y="75" text-anchor="middle" fill="currentColor" font-weight="bold">5. Verify, then test</text>
+<text x="815" y="98" text-anchor="middle" fill="currentColor" font-size="12">no orphans, no leaks,</text>
+<text x="815" y="115" text-anchor="middle" fill="currentColor" font-size="12">counts match; then</text>
+<text x="815" y="132" text-anchor="middle" fill="currentColor" font-size="12">testers use it</text>
+<g stroke="var(--accent)" stroke-width="2" fill="none"><path d="M120 95 L148 95"/><path d="M260 95 L288 95"/><path d="M410 95 L438 95"/><path d="M560 95 L588 95"/><path d="M710 95 L738 95"/></g>
+<g fill="var(--accent)"><polygon points="148,95 139,90 139,100"/><polygon points="288,95 279,90 279,100"/><polygon points="438,95 429,90 429,100"/><polygon points="588,95 579,90 579,100"/><polygon points="738,95 729,90 729,100"/></g>
+<text x="450" y="185" text-anchor="middle" fill="currentColor" font-size="12">Boxes 2, 3 and 4 are the ETL core (accent border). Mask before the data reaches the target.</text>
+<rect x="30" y="230" width="190" height="80" rx="10" fill="var(--surface)" stroke="currentColor" stroke-dasharray="5 4"/>
+<text x="125" y="258" text-anchor="middle" fill="currentColor" font-weight="bold">Rules repository</text>
+<text x="125" y="280" text-anchor="middle" fill="currentColor" font-size="12">policies, rule sets, entities</text>
+<rect x="250" y="230" width="190" height="80" rx="10" fill="var(--surface)" stroke="currentColor" stroke-dasharray="5 4"/>
+<text x="345" y="258" text-anchor="middle" fill="currentColor" font-weight="bold">Orchestrator</text>
+<text x="345" y="280" text-anchor="middle" fill="currentColor" font-size="12">plans, jobs, schedule, queue</text>
+<rect x="470" y="230" width="190" height="80" rx="10" fill="var(--surface)" stroke="currentColor" stroke-dasharray="5 4"/>
+<text x="565" y="258" text-anchor="middle" fill="currentColor" font-weight="bold">Audit and logs</text>
+<text x="565" y="280" text-anchor="middle" fill="currentColor" font-size="12">who ran what, row counts</text>
+<rect x="690" y="230" width="190" height="80" rx="10" fill="var(--surface)" stroke="currentColor" stroke-dasharray="5 4"/>
+<text x="785" y="258" text-anchor="middle" fill="currentColor" font-weight="bold">Test data store</text>
+<text x="785" y="280" text-anchor="middle" fill="currentColor" font-size="12">versions, reset, self-service</text>
+</svg><figcaption>Original diagram: a TDM pipeline built from ETL-style stages. Solid arrows are the data path; dashed boxes are the supporting services.</figcaption></figure>
+<h3 id="c9-stage-by-stage">9.5.1 Stage by stage</h3>
+<ol class="steps">
+<li><strong>Profile.</strong><p>Reason: you cannot mask what you have not found. Profiling scans columns for patterns (SSN-like, phone-like) and learns which tables relate.</p><p class="expect">Output: a list of sensitive columns and a relationship map, approved by a data steward. Covered in <a href="12-informatica-discovery-and-profiling.html">the Informatica profiling chapter</a> and <a href="25-delphix-profiling.html">the Delphix profiling chapter</a>.</p></li>
+<li><strong>Extract the subset.</strong><p>Reason: copying everything is slow and expands the exposure. Choose driver rows, then pull in all related rows so the subset is whole.</p><p class="expect">Output: a consistent slice in staging or in a stream, still containing real values.</p></li>
+<li><strong>Mask (transform).</strong><p>Reason: this is the stage that removes risk, so it must happen before data lands anywhere testers can read.</p><p class="expect">Output: the same rows with sensitive values replaced consistently.</p></li>
+<li><strong>Load.</strong><p>Reason: put the result where tests run, in the right order and within the target's constraints.</p><p class="expect">Output: a populated test database or set of files.</p></li>
+<li><strong>Verify, then test.</strong><p>Reason: nobody should trust a TDM job on its exit code. Check keys, counts and, crucially, that no original sensitive value survived.</p><p class="expect">Output: pass or fail evidence, stored with the run.</p></li>
+</ol>
+<p>The supporting services mirror ETL architecture: a rules repository (metadata), an orchestrator (scheduler), logs (monitoring), plus a place to keep versions of data sets. Informatica provides the last as the test data warehouse, which stores multiple versions of test data in a central location, shareable across teams (User Guide 10.5.10, p.236). <span class="badge doc">From docs</span></p>
+<div class="callout why"><strong class="ctitle">Why the order extract, mask, load matters</strong>
+<p>If you load first and mask afterwards (an ELT-style order), there is a time window in which real personal data sits in the test database, copies may be taken, and a failed masking job leaves the original data behind. Delphix says it plainly for in-place jobs: when a masking job fails, the target "may be in a partially masked or unmasked state" (Job monitoring), and stopping a running job results in semi-masked data (Running and Stopping Jobs). <span class="badge doc">From docs</span> On-the-fly masking avoids the window by never writing unmasked data to the target.</p></div>

@@ -1,0 +1,136 @@
+<h2 id="c20-null-blank">20.7 Null and blank values</h2>
+<h3 id="c20-null-plain">20.7.1 In plain words</h3>
+<p><span class="badge concept">General concept</span> Imagine a paper form with a "middle name" box. There are three different situations. The person wrote a name (a value). The person wrote nothing and left the box empty (blank). Or the box was crossed out because the question did not apply (not applicable). Databases make the same distinction.</p>
+<div class="tablewrap"><table class="sample"><caption>Four things an email column can hold (illustrative)</caption>
+<thead><tr><th>What is stored</th><th>Name</th><th>Typical bug it exposes</th></tr></thead>
+<tbody>
+<tr><td><code>asha.menon@example.com</code></td><td>A value</td><td>None, this is the normal case.</td></tr>
+<tr><td>(nothing, the cell is "unknown")</td><td>NULL</td><td>Code that calls a method on the email crashes with a null error.</td></tr>
+<tr><td><code></code> (zero characters)</td><td>Empty string</td><td>Validation lets "" through because it is not null.</td></tr>
+<tr><td><code>   </code> (only spaces)</td><td>Blank text</td><td>Trim logic missing, so the app thinks a value exists.</td></tr>
+</tbody></table></div>
+<p>Applications treat these four differently, so test data needs all of them. GenRocket gives you three places to produce null and blank data.</p>
+
+<h3 id="c20-null-attribute">20.7.2 Place 1: the attribute's own null settings</h3>
+<p><span class="badge doc">From docs</span> Every attribute has parameters on the Attribute Dashboard, above the generator. Four of them control nulls and visibility (<a href="https://genrocket.helpjuice.com/en_US/attributes/attribute-dashboard" target="_blank" rel="noopener">Attribute Dashboard</a>):</p>
+<div class="tablewrap"><table><caption>Attribute parameters that affect nulls and output, as documented</caption>
+<thead><tr><th>Parameter</th><th>What the docs say</th><th>Use</th></tr></thead>
+<tbody>
+<tr><td><code>% Null</code></td><td>"Defines the percentage of time the null value is used for negative testing."</td><td>Make about 10 percent of emails null with one number.</td></tr>
+<tr><td><code>Null Value</code></td><td>"Define the null value or click * for an empty string."</td><td>Choose what a null looks like. The asterisk means an empty string.</td></tr>
+<tr><td><code>Output Condition</code></td><td>Whether to exclude the attribute from a receiver's output when its value is null, blank, or both.</td><td>Drop empty keys from JSON.</td></tr>
+<tr><td><code>Visible</code></td><td>Visible to receivers when true, invisible when false.</td><td>Hide helper attributes from the output.</td></tr>
+</tbody></table></div>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776588679198/1zoLgBmiARXiLBjPfFF4bP3j6YByJJSAkg%20(1).png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776588679198/1zoLgBmiARXiLBjPfFF4bP3j6YByJJSAkg%20(1).png" alt="Attribute Dashboard for firstName showing % Null 0, Null Value, Output Condition None, Visible checked and a NameGen generator below" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The Attribute Dashboard for a <code>firstName</code> attribute. The top-left block holds the fields from the table: <strong>% Null</strong> (0 here), <strong>Null Value</strong> (blank, with a star button for "empty string"), <strong>Output Condition</strong> (None) and the <strong>Visible</strong> and <strong>Primary</strong> checkboxes. The generator form (NameGen) is underneath and a Preview pane sits on the right. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/attributes/attribute-dashboard" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>I found no worked example of <code>% Null</code> in the pages I had, so set it, save, and watch the Preview pane. It works for any generator because it sits on the attribute.</p>
+
+<h3 id="c20-null-generators">20.7.3 Place 2: generators that return null or blank</h3>
+<p><span class="badge doc">From docs</span> The help centre shows two generators for this purpose, in the walk-through "Flat/Nested JSON: Hide an Attribute when Value is NULL or Blank" (<a href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/flatnested-json-hide-an-attribute-when-value-is-null-or-blank" target="_blank" rel="noopener">link</a>):</p>
+<ul>
+<li><strong>NullGen</strong>: "generates a NULL value". The screenshot shows a single parameter, <code>nullType</code>, set to NULL. I did not find a page listing other <code>nullType</code> choices, so I only claim NULL.</li>
+<li><strong>ConstantGen</strong>: "generates a constant, non-changing value", and its <code>value</code> parameter accepts <code>#{BLANK}</code> to generate blank values and <code>#{EMPTY}</code> to generate an empty string (<a href="https://genrocket.helpjuice.com/en_US/string-manipulation-generators/how-do-i-use-the-constantgen-generator" target="_blank" rel="noopener">ConstantGen</a>).</li>
+</ul>
+<p>The string-generators list also describes <strong>FillerGen</strong> as generating "a repeating value as a filler", with examples <code>#{BLANK}</code>, <code>#{EMPTY)</code> and <code>null</code>. I had no separate FillerGen page, so use it with care and check the Preview pane.</p>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777377954569/qM4PLBrmQ5I9mmjHYZvkwaas_mR9W5S0JQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777377954569/qM4PLBrmQ5I9mmjHYZvkwaas_mR9W5S0JQ.png" alt="ConstantGen with value #{BLANK}" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> ConstantGen with the <code>value</code> parameter set to <code>#{BLANK}</code>, the documented way to generate blank values. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/string-manipulation-generators/how-do-i-use-the-constantgen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777377967697/_AhyyPp3GDjTG0Y-dty93vCSB2mkjfWBbQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777377967697/_AhyyPp3GDjTG0Y-dty93vCSB2mkjfWBbQ.png" alt="ConstantGen with value #{EMPTY}" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> ConstantGen with <code>value</code> set to <code>#{EMPTY}</code>, the documented way to generate an empty string. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/string-manipulation-generators/how-do-i-use-the-constantgen-generator" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<div class="callout note"><strong class="ctitle">BLANK versus EMPTY</strong>
+<p>The ConstantGen page lists them as separate examples ("Generate Blank Values" and "Generate an Empty String") but does not spell out the difference in what ends up in the file. Use each one in a test scenario, open the output, and see what your receiver writes. Do not assume.</p></div>
+
+<h3 id="c20-null-mix">20.7.4 Mixing normal, null and empty by percentage</h3>
+<p>The JSON walk-through combines both ideas in one attribute. A tester wants an <code>address2</code> (apartment or suite) that is sometimes filled, sometimes null and sometimes empty. Four linked generators do it:</p>
+<ol>
+<li><code>gen1</code> ListGen: Apt A, Apt B, Suite A, Suite B.</li>
+<li><code>gen2</code> NullGen: a NULL value.</li>
+<li><code>gen3</code> ConstantGen with <code>#{EMPTY}</code>: an empty value.</li>
+<li><code>gen4</code> MultiWeightGen with <code>valueList</code> <code>#{self.gen1}</code>, <code>#{self.gen2}</code>, <code>#{self.gen3}</code> and <code>percentList</code> 60, 15, 25.</li>
+</ol>
+<p>About 60 percent of rows get an apartment or suite, 15 percent NULL and 25 percent empty. Only the rightmost generator becomes the attribute's value.</p>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776530212974/ewdTR-hMtSxgjvLfXmovOXu-Tj6c0ti2sQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776530212974/ewdTR-hMtSxgjvLfXmovOXu-Tj6c0ti2sQ.png" alt="Linked Generators table with ListGen, ConstantGen, NullGen and MultiWeightGen" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The four linked generators of the <code>address2</code> attribute, in the order <code>gen1</code> ListGen, <code>gen2</code> ConstantGen, <code>gen3</code> NullGen and <code>gen4</code> MultiWeightGen. On this screenshot the second row is ConstantGen and the third is NullGen, while the page text (and the separate configuration forms named <code>gen2</code> and <code>gen3</code>) put NullGen second and ConstantGen third. The page is not consistent with itself, so in your own project always read the Linked Generators table on screen to see which <code>genN</code> is which before you wire up the percentages. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/flatnested-json-hide-an-attribute-when-value-is-null-or-blank" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776530385184/W4dBlHfke3XkNwlgKeTOe-vZ4WxMQ9F-rw.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776530385184/W4dBlHfke3XkNwlgKeTOe-vZ4WxMQ9F-rw.png" alt="MultiWeightGen with valueList self.gen1, gen2, gen3 and percentList 60, 15, 25" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The MultiWeightGen that mixes the three: <code>valueList</code> references <code>#{self.gen1}</code>, <code>#{self.gen2}</code>, <code>#{self.gen3}</code> and <code>percentList</code> is 60, 15, 25, with <code>exactPercentage</code> True. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/assigning-and-configuring-generators/flatnested-json-hide-an-attribute-when-value-is-null-or-blank" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>Choosing an <strong>Output Condition</strong> on the attribute leaves a null or blank <code>address2</code> out of the JSON for that record; the page's sample output omits the key on those rows. That matters for APIs that treat "missing key" and "null value" differently.</p>
+
+<h3 id="c20-null-receiver">20.7.5 Place 3: how the receiver writes a null</h3>
+<p>A null is only a null inside GenRocket. The receiver decides how it is written to the file. The <code>DelimitedFileReceiver</code> documents a required parameter <code>nullValue</code> ("Represents a Null value") and a <code>booleanValue</code> format (<a href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-delimited-file-receiver" target="_blank" rel="noopener">DelimitedFileReceiver</a>). The screenshot of its form shows <code>nullValue</code> pre-filled with <code>(null)</code>. If a downstream loader expects the literal text NULL or an empty cell, change this parameter before you generate. A mismatch here is a classic source of "the data looks right in GenRocket but my load fails".</p>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280315284/A4hcWBF_fX3v8lom_N3LZ4mA1_EB11Rp3A.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1777280315284/A4hcWBF_fX3v8lom_N3LZ4mA1_EB11Rp3A.png" alt="DelimitedFileReceiver parameters including nullValue (null) and includeHeader True" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The DelimitedFileReceiver form. Look at <code>nullValue</code>, pre-filled with <code>(null)</code>, together with <code>delimiter</code>, <code>quoteTextData</code>, <code>booleanValue</code>, <code>includeHeader</code> and <code>appendToFile</code>. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/common-receivers/how-do-i-use-the-delimited-file-receiver" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<div class="callout warn"><strong class="ctitle">Common null-testing mistakes</strong>
+<ul>
+<li><strong>Only testing NULL.</strong> NULL, empty string and spaces are three different inputs. Cover all three.</li>
+<li><strong>Nulls in a primary key.</strong> Never use <code>% Null</code> on an id or a foreign key unless you are deliberately testing that the database rejects it.</li>
+<li><strong>Forgetting the receiver.</strong> A null written as <code>(null)</code> may load as the five-character text "(null)". Check <code>nullValue</code>.</li>
+<li><strong>Referencing a generator to the right.</strong> In a linked set, the percentage generator must be rightmost, or it will see null values from generators that have not run yet.</li>
+</ul></div>
+
+<h2 id="c20-boundary">20.8 Boundary values and edge cases</h2>
+<h3 id="c20-bva-zero">20.8.1 Boundary value analysis, explained from zero</h3>
+<p><span class="badge concept">General concept</span> Suppose a form accepts an age from 18 to 65. You cannot test every possible number. Boundary value analysis (BVA) is a way to pick a handful of values that find most bugs. The idea comes from experience: programmers make "off by one" mistakes. They write <code>age &gt; 18</code> when they meant <code>age &gt;= 18</code>. Such a bug is invisible when you test age 40 and obvious when you test age 18.</p>
+<p>Here is the method in four steps.</p>
+<ol class="steps">
+<li><strong>Find the rule.</strong><p>Write down the allowed range. ShopSphere example: an order total is valid from 0.00 up to 999999.99.</p></li>
+<li><strong>Split the world into groups ("partitions").</strong><p>Everything below the range is invalid, everything inside is valid, everything above is invalid. Testing one value from inside each group covers "the typical case" of each.</p></li>
+<li><strong>Pick the values at each edge.</strong><p>For each boundary test the value just below it, on it and just above it.</p></li>
+<li><strong>Write the expected result for each value.</strong><p>Decide accept or reject for every value before generating anything, so the data file doubles as a test oracle.</p></li>
+</ol>
+<p>For an inclusive range from a minimum to a maximum, the classic set is seven values: just below the minimum, the minimum, just above the minimum, one typical value, just below the maximum, the maximum, and just above the maximum.</p>
+<div class="tablewrap"><table class="sample"><caption>Boundary values for a ShopSphere order total valid from 0.00 to 999999.99 (illustrative rule, written for this guide)</caption>
+<thead><tr><th>Case</th><th>Value</th><th>Expected result</th><th>Bug it would catch</th></tr></thead>
+<tbody>
+<tr><td>Just below minimum</td><td>-0.01</td><td>Reject</td><td>App accepts negative totals.</td></tr>
+<tr><td>Minimum</td><td>0.00</td><td>Accept</td><td>Code says <code>total &gt; 0</code> and rejects a free order.</td></tr>
+<tr><td>Just above minimum</td><td>0.01</td><td>Accept</td><td>Rounding drops one cent to zero.</td></tr>
+<tr><td>Typical</td><td>500.00</td><td>Accept</td><td>The normal flow itself is broken.</td></tr>
+<tr><td>Just below maximum</td><td>999999.98</td><td>Accept</td><td>Off-by-one at the high end.</td></tr>
+<tr><td>Maximum</td><td>999999.99</td><td>Accept</td><td>Column too small for the largest legal value.</td></tr>
+<tr><td>Just above maximum</td><td>1000000.00</td><td>Reject</td><td>Overflow: the column or code cannot hold it.</td></tr>
+</tbody></table></div>
+<p>An age rule works the same way. Say a ShopSphere customer must be 18 or older on a reference date of 2026-01-01.</p>
+<div class="tablewrap"><table class="sample"><caption>Boundary values for the 18-or-older rule, reference date 2026-01-01 (illustrative rule)</caption>
+<thead><tr><th>Date of birth</th><th>Age on 2026-01-01</th><th>Expected result</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td>2008-01-02</td><td>17 (turns 18 the next day)</td><td>Reject</td><td>The classic 17-versus-18 boundary.</td></tr>
+<tr><td>2008-01-01</td><td>18 (birthday is the reference date)</td><td>Accept</td><td>Tests the "on the day" case.</td></tr>
+<tr><td>2007-12-31</td><td>18 (birthday was one day earlier)</td><td>Accept</td><td>Just inside the valid group.</td></tr>
+<tr><td>1990-04-12</td><td>35</td><td>Accept</td><td>Typical adult (Asha Menon's fake date of birth).</td></tr>
+</tbody></table></div>
+
+<h3 id="c20-bva-genrocket">20.8.2 How GenRocket produces boundary data</h3>
+<p>As noted at the start, the pages I had do not name a boundary generator. The documented building blocks combine into a few reliable recipes.</p>
+<div class="tablewrap"><table><caption>Recipes for boundary and edge data, all built from documented generators</caption>
+<thead><tr><th>Need</th><th>Recipe</th><th>Source page</th></tr></thead>
+<tbody>
+<tr><td>A small fixed set of exact values, each exactly once</td><td>ListGen with <code>setLoop</code> True and the values in <code>list</code>. The loop count becomes the list length (up to 15 items).</td><td>ListGen</td></tr>
+<tr><td>Mostly typical data, with the edge value every few rows</td><td>EdgeCaseGen with <code>source</code> the typical generator, <code>edgeCase</code> the edge value and <code>cycle</code> N.</td><td>EdgeCaseGen</td></tr>
+<tr><td>Mostly typical data, with an edge value a set share of the time</td><td>EdgeCaseGen with <code>percentage</code>, or WeightGen/MultiWeightGen.</td><td>EdgeCaseGen; WeightGen</td></tr>
+<tr><td>Too-long text for a column</td><td>EdgeCaseGen with a list of short names and a list of long names, or RandomStringGen with a large <code>length</code>.</td><td>EdgeCaseGen; RandomStringGen</td></tr>
+</tbody></table></div>
+<p><strong>Why exact lists:</strong> a random generator might hit 999999.99 once in a million rows, or never; a boundary test must hit it every time.</p>
+
+<h3 id="c20-lab-boundary">20.8.3 Lab: a boundary-value suite for ShopSphere orders</h3>
+<div class="exercise"><h4>Lab: generate the seven order-total boundary rows</h4>
+<p>Goal: a small domain that produces exactly one row per boundary case, with the expected result next to each value, and a delimited file you can hand to a tester. This lab reuses the project setup steps from <a href="21-genrocket-hands-on-50-records.html#c21-lab-steps">the 50-record lab</a>, so if the click paths are new to you, read that lab's steps first. The lockstep behaviour of three ListGens in one domain is my design inference and you must confirm it in the Preview pane.</p>
+<ol class="steps">
+<li><strong>Create a domain named <code>OrderBoundary</code>.</strong><p>In the Domains pane choose New Domain, then New Domain, enter the name and Save. Domain names take letters and numbers only. The new domain starts with only an <code>id</code> attribute.</p><p class="expect">A Domain Dashboard with <code>id</code> and the variable <code>global.OrderBoundary.loopCount</code> equal to 1.</p></li>
+<li><strong>Add attribute <code>caseName</code> and give it a ListGen.</strong><p>New Attribute, name it, Save. Replace the default generator with ListGen (Quick Generator Replacement menu, type ListGen, Replace). In <code>list</code> enter one item per line: below min, min, min plus 1, typical, max minus 1, max, above max. Set <code>setLoop</code> to True.</p><p class="expect">The Preview shows seven labels. In a scenario the loop count will be locked to "N", as the ListGen page describes.</p></li>
+<li><strong>Add attribute <code>totalAmount</code> with a ListGen.</strong><p>Enter -0.01, 0.00, 0.01, 500.00, 999999.98, 999999.99, 1000000.00, one per line, in the same order. Leave <code>random</code> False and <code>setLoop</code> False.</p><p class="expect">The Preview lists the seven amounts in order. If a trailing zero such as 0.00 is shown as 0, see the formatting note below.</p></li>
+<li><strong>Add attribute <code>expected</code> with a ListGen.</strong><p>Enter REJECT, ACCEPT, ACCEPT, ACCEPT, ACCEPT, ACCEPT, REJECT in the same order.</p><p class="expect">Rows line up: row 1 is "below min", -0.01, REJECT; row 7 is "above max", 1000000.00, REJECT.</p></li>
+<li><strong>Add a DelimitedFileReceiver, create a scenario and run it.</strong><p>Follow steps 11, 12 and 14 to 16 of the 50-record lab: add the receiver with a comma delimiter and a file name such as <code>OrderBoundary.csv</code>, create a scenario with this domain as the primary domain, download it and run <code>genrocket -r OrderBoundary.grs</code> (use your scenario's name).</p><p class="expect">A file with a header and exactly seven rows. A row count other than seven means <code>setLoop</code> was not applied to the first generator of <code>caseName</code>.</p></li>
+</ol>
+<details class="sol"><summary>Show a worked answer</summary>
+<div class="tablewrap"><table class="sample"><caption>Illustrative expected output (shape only, not captured from a real run)</caption>
+<thead><tr><th>id</th><th>caseName</th><th>totalAmount</th><th>expected</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>below min</td><td>-0.01</td><td>REJECT</td></tr>
+<tr><td>2</td><td>min</td><td>0.00</td><td>ACCEPT</td></tr>
+<tr><td>3</td><td>min plus 1</td><td>0.01</td><td>ACCEPT</td></tr>
+<tr><td>4</td><td>typical</td><td>500.00</td><td>ACCEPT</td></tr>
+<tr><td>5</td><td>max minus 1</td><td>999999.98</td><td>ACCEPT</td></tr>
+<tr><td>6</td><td>max</td><td>999999.99</td><td>ACCEPT</td></tr>
+<tr><td>7</td><td>above max</td><td>1000000.00</td><td>REJECT</td></tr>
+</tbody></table></div>
+<p>Because the list holds text, 0.00 stays "0.00". You could compute <code>expected</code> with EvalCaseGen instead of a third list, but its page shows only whole-number comparisons, so test a decimal equation in Preview first.</p></details>
+</div>

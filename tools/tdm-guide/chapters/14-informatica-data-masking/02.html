@@ -1,0 +1,183 @@
+<h2 id="c14-rules">14.3 Creating masking rules</h2>
+
+<p>A rule is created in the Policies view, then added to a project, then assigned to columns. The guide recognises three kinds (User Guide 10.5.10, p.136 to 138) <span class="badge doc">From docs</span>:</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Kind</th><th>What it is</th><th>Columns</th><th>Use it when</th></tr></thead>
+<tbody>
+<tr><td>Standard</td><td>A built-in technique with parameters. One masking technique per rule.</td><td>One input column, one output column</td><td>Most cases: mask a name, an SSN, a date</td></tr>
+<tr><td>Advanced</td><td>A combination of techniques; masks multiple source columns, or one column based on more than one input.</td><td>Input, variable and output columns</td><td>A full name built from masked first and last name; conditional masking; dependent columns</td></tr>
+<tr><td>Mapplet</td><td>Logic imported from a mapplet exported from PowerCenter or the Model repository.</td><td>Multiple input and output columns</td><td>You need a PowerCenter masking technique TDM does not offer natively</td></tr>
+</tbody></table></div>
+
+<h3 id="c14-standard-rule">Creating a standard rule</h3>
+
+<ol class="steps">
+<li><strong>Click Policies, then Actions > New > Masking Rule.</strong>
+<p>The Rule Wizard opens (User Guide 10.5.10, p.139).</p>
+</li>
+<li><strong>Enter a name and optional description. Pick the datatype of the column the rule will be applied to.</strong>
+<p>Techniques depend on datatype: you cannot blur a string by a percentage. A rule can be created for string, numeric and date types (p.72).</p>
+</li>
+<li><strong>Select the Standard masking rule type. Tick Override Allowed if users may change parameters when they assign the rule. Click Next.</strong>
+<p>Override is described below. The next screen changes depending on the masking technique you select (p.139).</p>
+</li>
+<li><strong>Enter the masking parameters.</strong>
+<p>These decide exactly how values are masked: dictionary, seed, range, mask format and so on. Section 14.6 lists them per technique.</p>
+</li>
+<li><strong>Enter the exception handling options.</strong>
+<p>Decide what to do with nulls, empty spaces and errors (14.5). Click Finish (p.139 to 140).</p>
+<p class="expect">The rule appears in the Policies view and can be edited, copied (Actions > Duplicate) or deleted there (p.139, p.146).</p>
+</li>
+</ol>
+
+<h3 id="c14-simulator">Previewing a rule: the Rule Simulator</h3>
+
+<p>The guide describes a built-in preview so you do not have to run a full workflow to see what a rule does (User Guide 10.5.10, p.137, p.140) <span class="badge doc">From docs</span>. It works for <strong>standard</strong> rules only (the text says "simulate the output of a standard rule").</p>
+
+<ol class="steps">
+<li><strong>Policies view, click a masking rule name to open its Rule Properties, then click Rule Simulator.</strong>
+<p>This opens the simulator tab.</p>
+</li>
+<li><strong>Choose a source in Source Details: Default, My Test Data or Connection, then click Edit.</strong>
+<p>Default uses sample data supplied by TDM. My Test Data lets you type rows (up to 100). Connection reads real rows (the Configure Source Details page opens).</p>
+</li>
+<li><strong>If Connection: open the Connection tab, pick connection and owner, Browse to the table, choose the column.</strong>
+<p>By default up to 10 random columns are listed; type the column name if yours is missing. Enter the number of rows: default 20, maximum 100. Click OK.</p>
+</li>
+<li><strong>Click Go.</strong>
+<p class="expect">The Rule Simulator tab lists original values beside masked values.</p>
+</li>
+<li><strong>Adjust the rule and run the simulation again on the same data.</strong>
+<p>The latest simulation configuration is stored in the browser cache, and clearing the cache deletes it (p.137).</p>
+</li>
+</ol>
+
+<h3 id="c14-override">Override</h3>
+
+<p>With Override Allowed ticked, whoever assigns the rule may change its parameters for one column (p.136, p.146): select the column, Actions > Override, edit, Save. The Override column then reads Yes-Overridden. Different overridden seeds on columns that must match will break the match.</p>
+
+<h3 id="c14-mapplet-rule">Creating a mapplet rule</h3>
+
+<p>The wizard path (p.140 to 141): Policies, Actions > New > Masking Rule, name, datatype, Mapplet masking type, browse to the exported XML (for Hadoop, select Hadoop and browse to a Developer tool mapplet), Next, mark <em>at least one input and one output column as mandatory</em>, Finish. Details and limits are in 14.9.</p>
+
+<h3 id="c14-advanced-rule">Creating an advanced rule</h3>
+
+<ol class="steps">
+<li><strong>Policies, Actions > New > Masking Rule. Enter a name and description, choose Advanced, click Next.</strong>
+<p>Advanced rules combine techniques (User Guide 10.5.10, p.141).</p>
+</li>
+<li><strong>In Input Columns click Add New. Give the name, datatype, precision and scale. Choose whether assigning it is mandatory in every project.</strong>
+<p>You cannot enter masking properties on input columns, because input columns just receive the source value.</p>
+</li>
+<li><strong>In Variable Columns click Add New. For each, enter an expression, a masking rule or a dependent column.</strong>
+<p>Variable columns are scratch fields for intermediate results. If you apply a masking rule, say which input column feeds it.</p>
+</li>
+<li><strong>In Output Columns click Add New. Enter an expression, a masking rule or a dependent column.</strong>
+<p>The output column receives the final value written to the target.</p>
+</li>
+<li><strong>Click OK and finish.</strong>
+<p>The column names in the rule do not have to match source column names; you map them at assignment time (p.156 to 157).</p>
+</li>
+</ol>
+
+<p>The full parameter tables for advanced rules are in 14.8.</p>
+
+<h2 id="c14-assign">14.4 Assigning rules to columns</h2>
+
+<h3 id="c14-add-to-project">Add rules to the project first</h3>
+
+<p>Rules live in the Policies area; a project only sees them after you add them. Projects, open the project, Overview > Policies, Actions > Add Additional Rules, tick your rules, OK; they appear under Additional Rules (User Guide 10.5.10, p.141 to 142) <span class="badge doc">From docs</span>.</p>
+
+<h3 id="c14-assign-view">The Define | Data Masking view</h3>
+
+<p>Assignment happens in the project's Define | Data Masking view (p.138 to 139). Each row is one column of the source.</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Column in the view</th><th>Meaning (p.138 to 139)</th></tr></thead>
+<tbody>
+<tr><td>Name / Owner / Columns</td><td>Table name, schema name, column to mask</td></tr>
+<tr><td>Data Type</td><td>Datatype of the column</td></tr>
+<tr><td>Domain</td><td>Domain assigned by discovery or by hand</td></tr>
+<tr><td>Sensitive</td><td>Yes or No: whether the column is marked sensitive</td></tr>
+<tr><td>Similar Value Columns</td><td>Number of other columns in a cascade with this one</td></tr>
+<tr><td>Policy</td><td>The policy the column is assigned to</td></tr>
+<tr><td>Masking Rule</td><td>Click to choose a rule; a domain's preferred rule shows an asterisk before its name</td></tr>
+<tr><td>Override</td><td>Yes if parameters may be overridden; Yes-Overridden once you have</td></tr>
+</tbody></table></div>
+
+<h3 id="c14-assign-steps">Assigning a standard rule, step by step</h3>
+
+<ol class="steps">
+<li><strong>Open the project, click Define | Data Masking, select a column.</strong>
+<p>Choose the column that needs masking, for example <code>CUSTOMERS.first_name</code>.</p>
+</li>
+<li><strong>If Domain is blank, click the Policy column and pick a policy that contains the rule you want.</strong>
+<p>The list of rules comes from the data domain's preferred rules, then the policy's rules (p.142, p.145).</p>
+</li>
+<li><strong>Click inside the Masking Rule column and pick a rule.</strong>
+<p>Domain preferred rules are at the top; the rest of the policy's rules are below. For a substitution rule you can set the rule assignment parameters (lookup condition, unique substitution column, see 14.6). For a mapplet or advanced rule you map columns (below).</p>
+</li>
+<li><strong>Click Save for each column.</strong>
+<p>If you move to another row without saving, TDM discards the assignment (p.145). This is the most common beginner loss.</p>
+</li>
+<li><strong>If you changed an assignment that other objects use, the Impacted Objects dialog lists plans, columns and domains.</strong>
+<p>Click Export for a CSV, Continue to save. Regenerate and rerun the affected plans (p.142).</p>
+</li>
+</ol>
+
+<div class="callout warn">
+<strong class="ctitle">No rules appear in the list?</strong>
+<p>No rules listed? Check that a rule exists for the column datatype, that the project has a policy with masking rules, and that the domain's preferred rule is in a policy assigned to the project (p.145). The Integration Service does not mask integers longer than 28 characters (p.145, p.152).</p>
+</div>
+
+<h3 id="c14-assign-custom">Assigning a mapplet or advanced rule (port mapping)</h3>
+
+<p>These rules have named input and output ports, so you map source columns to them (User Guide 10.5.10, p.142 to 143) <span class="badge doc">From docs</span>. Pick the rule in the Masking Rule column; a Custom Rule Assignment or Advanced Rule Assignment dialog opens. Select a source column and a same-datatype rule input port, click Link (or Show Simple), then Next, link rule output ports to source columns, Save. For an <em>expression cascade</em> in an advanced rule, Add Associated Table lets you combine two tables with a join condition. Sybase to Hadoop limits a custom rule to 20 columns (p.143).</p>
+
+<h3 id="c14-multi">Many columns, many rules</h3>
+
+<ul>
+<li><strong>One rule on many columns:</strong> search for similar columns, for example all ID columns, tick them and click Single Rule Assignment. Pick a policy and a masking rule, click OK (p.147 to 148). The guide's figure on p.148 shows this dialog.</li>
+<li><strong>Clearing:</strong> select the column and click Clear Assignment, confirm, and Continue if the Impacted Objects dialog appears (p.148).</li>
+</ul>
+
+<h3 id="c14-cascades">Cascades: keeping values consistent between tables</h3>
+
+<p>The ShopSphere <code>customer_id</code> is a primary key in <code>CUSTOMERS</code> and a foreign key in <code>ORDERS</code>. If you mask the key but the foreign key keeps its old value, the join breaks. TDM handles this with cascades (User Guide 10.5.10, p.90 to 91) <span class="badge doc">From docs</span>:</p>
+
+<ul>
+<li><strong>Auto cascade:</strong> masks a primary key in a parent table and the related foreign keys in child tables with the same value. Applied by default to tables with key constraints; can be switched off or on. Needs key constraints between parent and child. Not available for XSD, MongoDB and Cassandra sources.</li>
+<li><strong>Value cascade:</strong> for similar columns <em>not</em> linked by key constraints (the guide's example: <code>employee_num</code> in one table and <code>EmpID</code> in another). Select the columns in Discover | Columns, Actions > Set as similar value columns, and choose a driving column. A rule assigned to the driving column is assigned to all the group. The columns must have the same type. In the masking view the driving column shows the number of other columns in the cascade.</li>
+<li><strong>Not for computed columns:</strong> you cannot apply masking or generation rules to computed columns or build cascades on them (p.90).</li>
+</ul>
+
+<h3 id="c14-modify">Changing or deleting rules after assignment</h3>
+
+<p>Editing or deleting a rule shows an Impacted Objects dialog, but changes do <em>not</em> flow into plans: regenerate and rerun them. Deleting a rule does not remove it from the columns, domains and plans using it. If you change a custom rule's field names or types, import the mapplet again (p.144 to 146) <span class="badge doc">From docs</span>. For XSD sources you apply rules to XML elements and attributes in Discover > Files (p.144); shuffle is not allowed for XSD (p.135).</p>
+
+<h2 id="c14-common-params">14.5 Parameters that most techniques share</h2>
+
+<p>Before the techniques, three ideas appear again and again (User Guide 10.5.10, p.153 to 155) <span class="badge doc">From docs</span>.</p>
+
+<h3 id="c14-repeatable">Repeatable output and the seed</h3>
+
+<p><strong>Repeatable</strong> output returns deterministic values: the same input gives the same masked value, every time you generate and run the workflow. Use it when the same value occurs in several tables and the target tables must show the same masked value. The guide's example: customer John Smith has account numbers 1234 and 5678 in many tables; masking turns John Smith into Frank Martinez everywhere, 1234 into 6549, 5678 into 3214, on every run.</p>
+
+<p>The <strong>seed</strong> is the generator's starting point: 1 to 999, default 1 (p.154; the key masking string table says 1,000, p.168, so I use 999). Give the <em>same</em> seed to columns that must match, such as <code>Cust_ID</code> in four tables. You can put the seed in a parameter file variable. A TDM administrator can set a <strong>central seed</strong> that overrides every other seed (p.155).</p>
+
+<p>Substitution and expression masking keep a <em>storage table</em> of source and masked value pairs; you name the storage connection in the plan (p.286: <code>IDM_SUBSTITUTION_STORAGE</code>, <code>IDM_EXPRESSION_STORAGE</code>), and expression masking fails without it (p.163). Key masking is deterministic from source, rule and seed (p.164). Repeatable means "same in, same out", not "reversible".</p>
+
+<h3 id="c14-exception">Exception handling</h3>
+
+<p>Every rule has an Exception Handling section that decides what happens with nulls, blanks and errors (p.155):</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Option</th><th>What it does</th></tr></thead>
+<tbody>
+<tr><td>Preprocessing Expression</td><td>Optional expression applied to the data before masking</td></tr>
+<tr><td>Post processing Expression</td><td>Optional expression applied to the masked data before it is written</td></tr>
+<tr><td>Null and Empty Spaces</td><td>Constant (mask with a value you give); Log error and continue; Treat as value (mask the space or null as a valid value); Ignore (leave it unmasked). For dependent masking columns there is no separate rule: they follow the column they depend on.</td></tr>
+<tr><td>Error Handling</td><td>Constant; Log exception and continue; Ignore and continue; Error (log and stop)</td></tr>
+<tr><td>Trim Leading or Trailing Spaces</td><td>When on, " Jones", "Jones" and "Jones " are the same value</td></tr>
+</tbody></table></div>

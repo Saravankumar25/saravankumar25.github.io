@@ -1,0 +1,76 @@
+<h2 id="c25-how-asdd-decides">25.4 How the profiler decides: classifiers, strengths and thresholds</h2>
+<p>The profiler looks at each column and asks a panel of four judges. Each judge looks at a different kind of evidence and answers with a score. The scores are combined into one confidence per domain. If the best confidence reaches the assignment threshold, that domain (and its algorithm) is written into the inventory.</p>
+
+<h3 id="c25-four-frameworks">The four classifier frameworks</h3>
+<p>A <dfn>classifier framework</dfn> is a kind of judge; a <dfn>classifier instance</dfn> is one configured judge for one domain. The docs list four frameworks and say you cannot install more <span class="badge doc">From docs</span>.</p>
+<div class="tablewrap"><table><thead><tr><th>Framework</th><th>Looks at</th><th>Level</th><th>Plain-English job</th></tr></thead><tbody>
+<tr><td>PATH</td><td>The name (for databases: table name and column name)</td><td>Column</td><td>"The column is called <em>first_name</em>, so it is probably a first name."</td></tr>
+<tr><td>TYPE</td><td>Data type and length</td><td>Column</td><td>Rejects impossible matches, e.g. a yes/no flag cannot be an SSN.</td></tr>
+<tr><td>REGEX</td><td>The actual values, using patterns</td><td>Data</td><td>"The values look like <code>123-45-6789</code>."</td></tr>
+<tr><td>LIST</td><td>The actual values, checked against a list</td><td>Data</td><td>"The values are all on the list of known first names."</td></tr>
+</tbody></table></div>
+<p>PATH and TYPE are cheap, because they only need the table definition. REGEX and LIST must read sample rows, so they are what lets the profiler find a sensitive column even when its name is meaningless, such as <code>COL_17</code>. The built-in value lists carry English values, so data-level detection is limited to English <span class="badge doc">From docs</span>.</p>
+
+<h3 id="c25-strengths">Match strength, reject strength and how scores combine</h3>
+<p>Inside the engine every classifier reports a number from -1.0 to 1.0. The UI shows the same idea as -100 to 100, and in practice you only see 0 to 100 because non-matches are not displayed <span class="badge doc">From docs</span>.</p>
+<ul>
+<li><strong>Match strength</strong>: how sure the classifier is that this data belongs only to its domain. 0.01 means "maybe, but it could be many things". 1.0 means "certainly this and nothing else".</li>
+<li><strong>Reject strength</strong>: how strongly a <em>non-match</em> counts against the domain. -1.0 eliminates the domain at once.</li>
+<li><strong>Combining</strong>: if results disagree in sign, the larger absolute value wins; if they agree, the match gets stronger. Only the strongest column-level result and the strongest data-level result are combined, and the docs warn that the exact formula may change.</li>
+</ul>
+<div class="callout example"><strong class="ctitle">Two worked examples from the docs <span class="badge doc">From docs</span></strong>
+<p><strong>Rejection.</strong> A column named <code>ssn_present</code> matches the SSN PATH classifier (0.67). But it is boolean, the SSN TYPE classifier returns -1.0, and the verdict is -1.0, so SSN is not assigned.</p>
+<p><strong>Competition.</strong> A column named <code>passport_no</code> holds 9-digit numbers. Both the SSN and the PASSPORT_NO REGEX classifiers give 0.5. Only the PASSPORT_NO PATH classifier also matches (0.67). Final confidence: PASSPORT_NO 0.84, SSN 0.5, so PASSPORT_NO wins.</p></div>
+<figure class="diagram"><svg viewBox="0 0 800 260" role="img" aria-label="Bar chart: for column passport_no, PASSPORT_NO confidence 0.84 beats SSN 0.5">
+<text x="20" y="28" fill="currentColor" font-size="16" font-weight="bold">Column passport_no (9 digits): how the scores add up</text>
+<text x="20" y="70" fill="currentColor" font-size="14">SSN</text>
+<rect x="130" y="52" width="250" height="26" fill="none" stroke="currentColor"/>
+<text x="140" y="70" fill="currentColor" font-size="13">REGEX 0.5</text>
+<text x="400" y="70" fill="currentColor" font-size="13">PATH: no match (0)  ⇒  final 0.5</text>
+<text x="20" y="130" fill="currentColor" font-size="14">PASSPORT_NO</text>
+<rect x="130" y="112" width="250" height="26" fill="none" stroke="currentColor"/>
+<text x="140" y="130" fill="currentColor" font-size="13">REGEX 0.5</text>
+<rect x="380" y="112" width="167" height="26" fill="var(--accent)" fill-opacity="0.35" stroke="currentColor"/>
+<text x="390" y="130" fill="currentColor" font-size="13">PATH 0.67</text>
+<text x="560" y="130" fill="currentColor" font-size="13">⇒  final 0.84 (wins)</text>
+<line x1="130" y1="170" x2="630" y2="170" stroke="var(--line)"/>
+<text x="130" y="190" fill="currentColor" font-size="12">0</text>
+<text x="380" y="190" fill="currentColor" font-size="12">0.5</text>
+<text x="620" y="190" fill="currentColor" font-size="12">1.0</text>
+<text x="20" y="225" fill="currentColor" font-size="13">The block widths are drawn to scale from the docs' example. The engine's exact combining formula is not published and may change.</text>
+</svg>
+<figcaption>Original diagram: the "passport_no" example from the classifier documentation. Both domains get the same data-level score, and only PASSPORT_NO also matches by column name.</figcaption></figure>
+<p>The built-in PATH classifiers usually carry 0.67. A REGEX or LIST classifier has to beat that to override a name match, which is why the docs advise a low match strength (0.1 to 0.5) for patterns that are not unique. A nine-digit pattern could be an SSN, an account number or a row id, so it gets a small score. A dashed pattern like <code>001-23-4567</code> is distinctive, so it gets a high one.</p>
+
+<h3 id="c25-ssn-example">What the SSN classifiers actually look like</h3>
+<p>The ASDD Standard profile set is published as JSON. For the SSN domain it holds three classifiers (listing as of the 21.0.0.0 release). I summarise rather than copy:</p>
+<div class="tablewrap"><table><thead><tr><th>Classifier</th><th>Framework</th><th>What it checks</th><th>Strength</th></tr></thead><tbody>
+<tr><td>Social Security Number - Path</td><td>PATH</td><td>Name ends in <em>ssn</em> or contains <em>social security</em> plus number, code or id</td><td>match 0.67</td></tr>
+<tr><td>Social Security Number - Regex</td><td>REGEX</td><td>Dashed or spaced pattern, plain nine digits</td><td>dashed forms 0.7, plain nine digits 0.1, reject 0.1</td></tr>
+<tr><td>Social Security Number - Type</td><td>TYPE</td><td>Number or String, at least 9 long</td><td>no match strength, rejects other types</td></tr>
+</tbody></table></div>
+<p>Notice the design: the name gives a good clue, the value pattern confirms it, and the type check rules out nonsense. The same three-part shape repeats for most domains.</p>
+
+<h3 id="c25-coverage">Which domains can be found by value, and which only by name?</h3>
+<p>Not every domain has all three kinds of evidence. Reading the ASDD Standard listing (21.0.0.0) shows the pattern, and it matters when column names are cryptic. I grouped the domains by the classifier frameworks that the listing gives them:</p>
+<div class="tablewrap"><table><thead><tr><th>Evidence available</th><th>Domains (examples from the listing)</th><th>What it means for you</th></tr></thead><tbody>
+<tr><td>Name, type and value list</td><td>FIRST_NAME, LAST_NAME, FULL_NAME, CITY, COUNTRY, COMPANY_NAME, GENDER, JOB_TITLE, US_STATE</td><td>Can be found even in a column called <code>COL_17</code>, as long as values are in the English lists</td></tr>
+<tr><td>Name, type and value pattern</td><td>SSN, EMAIL, TELEPHONE_NO, ZIP, CREDIT CARD, IBAN, IP ADDRESS, US_PASSPORT, PAYMENT_AMOUNT, ADDRESS</td><td>Value patterns can rescue a badly named column, if the values fit the pattern (US-shaped for ZIP and phone)</td></tr>
+<tr><td>Name and type only</td><td>DOB, TAX_ID, ACCOUNT_NO, CUSTOMER_NO, USER_ID, TEXT, PASSWORD, SERIAL_NO</td><td>No value check: if the column is not named sensibly, the profiler will not find it</td></tr>
+</tbody></table></div>
+<p>Two ShopSphere consequences follow. <code>date_of_birth</code> and <code>tax_id</code> are found only because their names are clear, so a legacy table with a column called <code>DT1</code> would slip through. And all grouping here comes from my reading of the JSON, so check the live Classifiers screen of your engine for the exact picture.</p>
+<h3 id="c25-threshold">Assignment threshold</h3>
+<p>The default minimum confidence for ASDD is 1, so "any positive match, no matter how weak, triggers an assignment" <span class="badge doc">From docs</span>. That is very permissive, and the docs contrast it with the legacy profiler, which by default wanted an 80% match for data-level expressions. You can raise the threshold per profile set (integer 1 to 100) or globally with the application setting <code>ASDD/DefaultAssignmentThreshold</code>. A higher threshold means fewer false alarms and more missed columns. Because a missed column is worse than a false alarm, many teams keep the threshold low and review the inventory.</p>
+
+<h3 id="c25-sampling">How much data the profiler reads</h3>
+<p>For data-level classifiers the ASDD profiler samples rows instead of reading whole tables. These documented settings steer it; the values are the defaults in the 2026.5 Masking API client page <span class="badge doc">From docs</span>.</p>
+<div class="tablewrap"><table><thead><tr><th>Application setting (ASDD group)</th><th>Default</th><th>What it controls</th></tr></thead><tbody>
+<tr><td><code>DefaultTableSampleRows</code></td><td>1000</td><td>Rows sampled per table</td></tr>
+<tr><td><code>DefaultAssignmentThreshold</code></td><td>1</td><td>Minimum confidence to assign</td></tr>
+<tr><td><code>DefaultNullFilterThreshold</code></td><td>75</td><td>Percent of null or empty values that triggers an extra query for more values</td></tr>
+<tr><td><code>DefaultMultipleProfilerExpressionAlgorithm</code></td><td>NullValueLookup</td><td>Algorithm used when the "multiple profiler expression" option finds a tie</td></tr>
+</tbody></table></div>
+<p>Statistical sampling (so the sample reflects the whole table) is supported for Oracle, SQL Server and SAP ASE. When sampling is used, the sample percentage is always 1%, and if that yields too few rows the query is repeated without sampling <span class="badge doc">From docs</span>. The page does not say what happens on other databases beyond this; check your version.</p>
+<h3 id="c25-legacy">The legacy profiler, briefly</h3>
+<p>Before ASDD, profiling used <em>search expressions</em> (patterns on column names or data) and <em>type expressions</em> (data type and minimum length). The legacy profile sets are kept so that old jobs keep giving the same results, and they contain no type classifiers to restrict matches by column type <span class="badge doc">From docs</span>. The legacy classifier tables list patterns such as <code>ssn(?!\w*ID)</code> for SSN and <code>(?&gt;((tele?)?phone)|...)</code> for telephone. The legacy version of the Add Profile Set dialog (not the ASDD one pictured below) carries a banner saying legacy profile sets are deprecated and will be removed in a future release. Use ASDD for new work; the <a href="https://help.delphix.com/cc/current/content/profiletypeexpressions.htm" target="_blank" rel="noopener">profileTypeExpressions</a> page only shows API scripts for legacy type expressions.</p>
+<p>ASDD currently supports databases, delimited files, fixed-width files, JSON files, XML files and mainframe data <span class="badge doc">From docs</span>. Its stated limits: XML or JSON documents stored inside database columns are not profiled, and the Informix database is a known problem for discovery because of the column-truncation SQL.</p>

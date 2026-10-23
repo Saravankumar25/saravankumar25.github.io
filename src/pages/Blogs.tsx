@@ -48,6 +48,13 @@ export default function Blogs() {
             <p>Ten chapters tracing machine learning from its foundations through neural networks, NLP, and modern Transformers.</p>
           </a>
         </li>
+        <li>
+          <a href="/blogs/tdm-guide/">
+            <span className="mono">2026-10-23 · Illustrated learning blog</span>
+            <h3>TDM Guide</h3>
+            <p>Test Data Management from zero: data, privacy, ETL, then hands-on Informatica TDM, GenRocket and Delphix.</p>
+          </a>
+        </li>
         {posts.map((p) => (
           <li key={p.slug}>
             <Link to={`/blogs/${p.slug}`}>

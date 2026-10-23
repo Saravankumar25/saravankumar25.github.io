@@ -1,0 +1,50 @@
+<p>So far in this part you have met the building blocks of GenRocket (<a href="17-genrocket-overview.html">the overview</a>, <a href="18-genrocket-domains-attributes-generators.html">domains, attributes and generators</a>, <a href="19-genrocket-receivers-and-scenarios.html">receivers and scenarios</a>). This chapter asks a sharper question: <em>which</em> values should a generator produce so that your tests find bugs?</p>
+<p>The bugs live at the edges: an order total of exactly 0.00 or 999999.99, a customer exactly 18 years old, an empty email, a phone number with a digit too few. Testers call these deliberate shapes <strong>data patterns</strong>. This chapter covers the Day 47 patterns: sequential, random, boundary and edge cases, and null. For each one you get a plain-words explanation with a ShopSphere example, then how GenRocket does it using only documented generators and parameters, then a pattern coverage table and a boundary-value lab. The <a href="21-genrocket-hands-on-50-records.html">next chapter</a> uses several of these patterns in a full hands-on lab.</p>
+<div class="callout recap"><strong class="ctitle">What you will learn</strong>
+<ul>
+<li>Why test data needs patterns, and the difference between positive tests and negative tests.</li>
+<li>Sequential data: counting up for primary keys and numbered rows (RangeGen, ListGen, the domain id).</li>
+<li>Random data, and how a seed makes random data repeatable (RandomGen, NameGen, RandomStringGen).</li>
+<li>Lists, weights and percentages: making 70 percent of orders "Pass" and 30 percent "Fail" (WeightGen, MultiWeightGen).</li>
+<li>Linked and conditional generators: values that depend on other values (EvalCaseGen, EdgeCaseGen, linked generators).</li>
+<li>Null and blank values: the attribute settings and generators that produce them.</li>
+<li>Boundary value analysis explained from zero, and a worked order-total and age example.</li>
+<li>Enforcing data type and size, and dates and times (Enforce Type/Limit, NumberFormatGen, FlexibleDateRangeGen, DateDeltaGen).</li>
+</ul></div>
+<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
+<p>Every GenRocket-specific statement comes from pages of the official GenRocket help centre (genrocket.helpjuice.com) that I read in full; the full list with links is in the sources section at the end. The screenshots are the vendor's own, and I downloaded and looked at each one before writing its caption. The help centre changes over time, so a parameter name or default may differ in your version.</p>
+<p>Two honest gaps. First, the pages I had contain no generator whose name or description says "boundary value", so boundary data is something you assemble from other generators, and this chapter shows how. (The only "Boundary Values" entry I found is an SSN masking scenario on the Synthetic Data Replacement page.) Second, several generators are only named inside other pages (RandomDecimalGen, RangeDecimalGen, FlexiblePhoneNumberGen, RandomPhoneNumberGen, AlphabetGen, FillerGen, RangeConstantGen); where I use one I say so.</p></div>
+
+<h2 id="c20-words">20.1 Words to know first</h2>
+<dl class="defs">
+<div><dt>Positive test</dt><dd>A test that feeds the app data it should accept, to check it works. Example: a valid order of 49.99.</dd></div>
+<div><dt>Negative test</dt><dd>A test that feeds the app data it should reject or handle gracefully, to check it fails safely. Example: an order total of -5.00.</dd></div>
+<div><dt>Sequential data</dt><dd>Values that follow a fixed order, such as 1, 2, 3, 4. The usual choice for ids and numbered records.</dd></div>
+<div><dt>Random data</dt><dd>Values picked unpredictably from a set or range. Good for realistic variety.</dd></div>
+<div><dt>Seed</dt><dd>A starting number for the random picker. Same seed in, same "random" values out, every run. This is how random data becomes repeatable.</dd></div>
+<div><dt>Boundary value</dt><dd>A value at, just below or just above the limit of what is allowed. The limit is the "boundary".</dd></div>
+<div><dt>Edge case</dt><dd>A rare or unusual situation outside the typical pattern, such as a name longer than the column allows. GenRocket's own definition is "a rare or unexpected scenario outside the typical usage pattern".</dd></div>
+<div><dt>Null</dt><dd>"No value at all" in a database column. Different from an empty string, which is a value that happens to contain zero characters.</dd></div>
+</dl>
+
+<h2 id="c20-why-patterns">20.2 Why test data needs patterns</h2>
+<p><span class="badge concept">General concept</span> A vending machine tested only with the exact price always passes. Bugs appear with one coin too few, one too many, or none. Software is the same: defects hide where rules change, at a limit, an empty field or a rare combination. So testing needs <strong>typical data</strong> (positive tests: looks real, proves the main flows) and <strong>tricky data</strong> (negative and edge tests: sits on the rules, proves the app rejects bad input safely). A production copy is poor at the second kind: it may contain no order of exactly 0.00 and no 17-year-old customer. Synthetic data fixes that, because you decide what exists.</p>
+<p><span class="badge doc">From docs</span> GenRocket's CI/CD page says its web platform can design "any form of test data (positive, negative, patterns, permutations, boundary values, dynamic, load, etc.)" for a data model (<a href="https://genrocket.helpjuice.com/en_US/cicd-pipeline-and-cots-integrations/automating-data-generation-using-cicd-pipeline" target="_blank" rel="noopener">Automating Data Generation using CI/CD Pipeline</a>).</p>
+
+<h3 id="c20-shopsphere-patterns">20.2.1 The ShopSphere patterns we will build</h3>
+<p>Throughout this chapter we use the fictional ShopSphere tables from earlier chapters. All data is invented. The table below lists the patterns we want and where each is built.</p>
+<div class="tablewrap"><table class="sample"><caption>ShopSphere data patterns and the section that builds each (requirements are illustrative, written for this guide)</caption>
+<thead><tr><th>Column</th><th>Pattern wanted</th><th>Example values</th><th>Built in</th></tr></thead>
+<tbody>
+<tr><td><code>customer_id</code>, <code>order_id</code></td><td>Sequential, unique</td><td>1001, 1002, 1003</td><td><a href="#c20-sequential">20.3</a></td></tr>
+<tr><td><code>first_name</code>, <code>last_name</code></td><td>Random, realistic</td><td>Asha, Menon</td><td><a href="#c20-random">20.4</a></td></tr>
+<tr><td><code>phone</code></td><td>Sequential valid numbers; a few too short, too long or empty</td><td>(800) 600-1000; 98765; (empty)</td><td><a href="#c20-sequential">20.3</a>, <a href="#c20-null-blank">20.7</a></td></tr>
+<tr><td><code>order status</code></td><td>Weighted: most Delivered, some Pending</td><td>Delivered 70 percent</td><td><a href="#c20-weights">20.5</a></td></tr>
+<tr><td><code>total_amount</code></td><td>Typical, plus boundaries</td><td>49.99; 0.00; 0.01; 999999.99</td><td><a href="#c20-boundary">20.8</a></td></tr>
+<tr><td><code>email</code></td><td>Mostly valid; some null; some empty</td><td>user1@example.com; NULL; (empty)</td><td><a href="#c20-null-blank">20.7</a></td></tr>
+<tr><td><code>date_of_birth</code></td><td>Typical adults, plus exactly 17 and 18 years old on a reference date</td><td>1990-04-12; 2008-01-01</td><td><a href="#c20-boundary">20.8</a>, <a href="#c20-dates">20.10</a></td></tr>
+<tr><td><code>first_name</code> length</td><td>Mostly short, some longer than the column allows</td><td>"Asha"; a 12-letter name</td><td><a href="#c20-conditional">20.6</a></td></tr>
+</tbody></table></div>
+
+<h3 id="c20-how-genrocket-thinks">20.2.2 How GenRocket thinks about a pattern</h3>
+<p><span class="badge doc">From docs</span> In GenRocket a pattern is a <em>generator choice plus its parameters</em> on an attribute; there is no separate "pattern" switch. You pick a generator (see <a href="18-genrocket-domains-attributes-generators.html">the chapter on domains, attributes and generators</a>), set its parameters and read the Preview pane. Generators only create raw values; <a href="19-genrocket-receivers-and-scenarios.html">receivers</a> format them. Three mechanisms cover this chapter: one generator with parameters (RangeGen, RandomGen, ListGen), several generators linked in one attribute, and attribute settings such as <code>% Null</code> that sit outside the generator. The help centre says GenRocket has over 765 generators, so we stay with the ones that map to the syllabus.</p>

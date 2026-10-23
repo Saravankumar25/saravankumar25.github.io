@@ -1,0 +1,51 @@
+<p>Part I (<a href="01-start-here.html">the start-here chapter</a> through <a href="09-etl-and-tdm.html">the ETL and TDM chapter</a>) explained <em>why</em> test teams need safe, small, realistic data and which techniques produce it. From here on we look at tools. This chapter opens Part II with Informatica Test Data Management, usually shortened to <dfn>TDM</dfn>. Before you click anything in it, you need a mental map: what the product is for, which pieces run behind the web page, where each kind of information is stored, and what order of work the product expects.</p>
+<p>That map matters because almost every error message and permission problem you meet later is really a "this piece cannot reach that piece" problem. If you know the pieces, you can guess where to look. The next chapter, <a href="11-informatica-tdm-tour.html">A guided tour of Test Data Manager</a>, walks through the screens. <a href="12-informatica-discovery-and-profiling.html">The Informatica discovery and profiling chapter</a> goes deep on discovery and profiling.</p>
+
+<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
+<p>Everything tool-specific here comes from the <strong>Informatica Test Data Management 10.5.10 User Guide, PDF, February 2026, 455 pages</strong>, chapter 1 "Introduction to Test Data Management" (PDF pages 21 to 36). I read that chapter in full and looked at the architecture figure on page 25. Page numbers in brackets look like <em>(User Guide 10.5.10, p.25)</em>.</p>
+<p>The learner-supplied online version of the architecture topic is linked below but <strong>I could not open it</strong>: <a href="https://docs.informatica.com/data-security-group/test-data-management/10-5-10/user-guide/introduction-to-test-data-management/tdm-architecture.html" target="_blank" rel="noopener">TDM architecture (official online page)</a> <span class="badge unverified">not fetched, site blocks automated access</span>. The PDF text is my source, not that page. Later versions of the product may differ in details.</p></div>
+
+<div class="callout recap"><strong class="ctitle">What you will learn</strong>
+
+<ul>
+<li>What problems Informatica TDM solves: discovery, subset, masking, data generation and stored test data sets.</li>
+<li>The three use-case families in the guide: performance, security and compliance, and verified test data with Data Validation Option.</li>
+<li>The architecture: four kinds of tools, the TDM Server, the application services, the seven databases, and the connections that join them.</li>
+<li>The end-to-end TDM process, from the first policy to watching the workflow run.</li>
+<li>The guide's own worked example, retold with our fictional company ShopSphere.</li>
+<li>What parameters are for and the idea behind "advanced parameterization".</li>
+</ul></div>
+
+<h2 id="c10-words">10.1 Words to know first</h2>
+
+<dl class="defs"><div><dt>Test Data Manager (TDM)</dt><dd>The web page you work in. The same name is also used for the whole product, which is confusing. In this guide, "Test Data Manager" with spaces means the web client, and "TDM" means the whole product.</dd></div>
+<div><dt>Policy</dt><dd>A named bundle that says "these kinds of data must be protected, and this is how". It holds data domains and holds no actual data.</dd></div>
+<div><dt>Data domain</dt><dd>A group of columns that mean the same thing, for example "all columns that hold a Social Security number", found by looking at column names or at the values.</dd></div>
+<div><dt>Project</dt><dd>The workspace for one job: it holds your imported source tables, profiles, masking assignments, subset definitions and plans.</dd></div>
+<div><dt>Plan</dt><dd>The final recipe: which tables, which rules, from which connection to which connection. You turn a plan into a workflow and run it.</dd></div>
+<div><dt>Workflow</dt><dd>The runnable job that actually copies and changes data. TDM generates it from a plan, and a PowerCenter service runs it.</dd></div>
+<div><dt>Application service</dt><dd>A background program in the Informatica installation that does one job, such as running profiles or running workflows. You never see it on the Test Data Manager screens, but TDM calls it.</dd></div>
+<div><dt>Repository</dt><dd>A relational database where Informatica keeps its own working information (definitions, metadata, results). It is not your business data.</dd></div>
+<div><dt>Metadata</dt><dd>Data about data: table names, column names, data types, keys. Importing "metadata" copies this description, not the rows.</dd></div>
+<div><dt>Informatica domain</dt><dd>The family of Informatica services installed together and managed as one unit, with a shared set of users.</dd></div></dl>
+
+<h2 id="c10-purpose">10.2 What Informatica TDM is for</h2>
+<p>Start with ShopSphere's problem. The online retailer has a production database, <code>SHOPSPHERE_PROD</code>, with real customers. Testers need data that behaves like it, but real names, phone numbers and SSNs must never reach the test lab. Copying the whole database is slow and risky. Writing test rows by hand is slow and unrealistic.</p>
+<p>The guide describes TDM as a product that works with PowerCenter, PowerExchange and other Informatica applications to manage <dfn>nonproduction data</dfn> (anything that is not the live system: test, development, training) <span class="badge doc">From docs</span> (User Guide 10.5.10, p.21). With it an organisation can make a smaller copy of production data, mask the sensitive parts, find the sensitive columns in the first place, or build test data that never touched production. It can also store test data in a central place and reset it later.</p>
+
+<div class="tablewrap"><table>
+<caption>The capabilities TDM groups under Test Data Manager (User Guide 10.5.10, pp.21-23), with a ShopSphere example for each</caption>
+<thead><tr><th>Capability</th><th>What the guide says it does</th><th>ShopSphere example</th></tr></thead>
+<tbody>
+<tr><td>Data discovery</td><td>Run profiles to find sensitive columns and key relationships; define data domains to group sensitive columns by pattern.</td><td>Find that <code>ssn</code> and <code>tax_id</code> in <code>CUSTOMERS</code> hold identity numbers.</td></tr>
+<tr><td>Data subset</td><td>Build a small test database, for example by time, function or geography.</td><td>Copy only customers from the last 6 months with their orders and items.</td></tr>
+<tr><td>Data masking</td><td>Apply rules such as substitution, shuffle, key masking and encryption; results can be repeatable; several rules can go on one column.</td><td>Replace <code>first_name</code> and <code>last_name</code> with believable fake names, always the same fake for the same real person.</td></tr>
+<tr><td>Data generation</td><td>Create test data from rules, with no production data involved, in a schema you can test against.</td><td>Create 5,000 brand-new customers for a load test.</td></tr>
+<tr><td>Data sets (test data warehouse)</td><td>Store versions of test data, edit them, and reset a test system to a version.</td><td>Save "clean masked set v1" and restore it after a destructive test run.</td></tr>
+<tr><td>Self-service portal</td><td>A simpler screen for users who only use stored data and do not create it.</td><td>A tester who only needs to reset data, not design masking.</td></tr>
+<tr><td>Data coverage analysis</td><td>Check, across pairs of columns, whether the data set has enough variety for the test cases.</td><td>Check that there are customers in every zip-code band with orders of every size band.</td></tr></tbody></table></div>
+<p>Two more things are worth knowing now. TDM also includes a command-line program, <code>ilmcmd</code>, which can do a subset of the Test Data Manager tasks without the web page (User Guide 10.5.10, p.23). And users have <dfn>roles and privileges</dfn> (rules about who may do what) that an administrator manages in the Informatica Administrator, so two people can log in to the same Test Data Manager and see different things.</p>
+<p>Other items in the guide's overview, which we only name here: exporting flat-file results to an HP ALM test-management server, and masking or moving data on Hadoop clusters (User Guide 10.5.10, pp.22-23). They are real features of the 10.5.10 guide but not part of the ShopSphere path in this book.</p>
+
+<div class="callout why"><strong class="ctitle">Why it matters</strong>
+<p>The guide's own motivation (p.21) is blunt: organisations guard production tightly but protect test copies far less. TDM exists to close that gap without making developers rewrite code to create test data. When someone asks you "what does TDM do?", the short honest answer is: <em>find the sensitive data, shrink the data, mask it, or generate it instead, and keep versions of the result</em>.</p></div>

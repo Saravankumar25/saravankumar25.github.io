@@ -1,0 +1,87 @@
+<p>The programme ends with a project, evaluated by the business-unit subject-matter expert (BU SME) in the final project evaluation and the final technical evaluation on Days 58 to 60. The syllabus lists three activities: data profiling and masking of FirstName and LastName; data profiling and a data subset; and data profiling and masking of SSN, alphanumeric values, TaxID and ZipCode. Daily progress tracking is good practice, so this chapter gives you a day-by-day plan, a brief for each activity, acceptance criteria you can test with queries, and the evidence to collect.</p>
+
+<p>Nothing new is taught here. Each step links to the chapter or lab that teaches it. What is new is the set of design decisions, mainly how to mask SSN, TaxID and ZipCode while keeping format and integrity. Every such decision is labelled as taken from the documentation or as my own design.</p>
+
+<div class="callout recap">
+<strong class="ctitle">What you will learn</strong>
+<ul>
+<li>How to plan and track the project daily, from set-up to the final presentation.</li>
+<li>Which tool to use for each activity and why.</li>
+<li>For each activity: inputs, steps, acceptance criteria, test queries and evidence.</li>
+<li>How to mask SSN, TaxID, ZipCode and alphanumeric codes so that format and integrity survive.</li>
+<li>What the evaluators look for, a rubric for reviewing your own work, and a pre-submission checklist.</li>
+</ul>
+</div>
+
+<div class="callout note">
+<strong class="ctitle">What this chapter is based on</strong>
+<p>Tool statements come from the Delphix Continuous Compliance 2026.5 documentation (algorithm and framework pages named inline), the Informatica TDM 10.5.10 User Guide (February 2026, cited by PDF page) and the GenRocket help pages. The project brief is the syllabus wording only; I do not have your trainer's detailed brief, data set or deadline, so the plan, data and acceptance criteria below are <strong>my illustration</strong> and you must adapt them. <span class="badge doc">From docs</span> marks a documented fact. <span class="badge concept">Design choice</span> is used in running text for my decisions, and nothing marked as design is a product requirement.</p>
+</div>
+
+<h2 id="c30-words">30.1 Words to know first</h2>
+
+<dl class="defs">
+<div><dt>Activity</dt><dd>One of the three syllabus project parts. Each ends with verified output and evidence.</dd></div>
+<div><dt>Acceptance criterion</dt><dd>A measurable statement that decides whether an activity is done, such as "0 orphan orders".</dd></div>
+<div><dt>Deterministic masking</dt><dd>The same input always gives the same masked output (for the same algorithm and key). It lets one SSN mask identically in a database and a file.</dd></div>
+<div><dt>Format-preserving</dt><dd>The masked value has the same shape as the original: same length, same dashes, digits stay digits.</dd></div>
+<div><dt>Referential integrity</dt><dd>Every foreign key still points at an existing row, so joins still work (<a href="03-data-basics.html">data basics</a>).</dd></div>
+<div><dt>Evidence pack</dt><dd>The collection of queries, screenshots and reports that proves each acceptance criterion, as in <a href="28-delphix-hands-on-labs.html">the Delphix labs</a>.</dd></div>
+</dl>
+
+<h2 id="c30-overview">30.2 The project at a glance</h2>
+
+<p>The running example is ShopSphere again: CUSTOMERS, ORDERS, ORDER_ITEMS and PRODUCTS, plus two lab-only additions, <code>membership_code</code> (an alphanumeric value such as <code>SS-A7K29X</code>) and a customer extract file. The sample rows use six-digit postal codes (560001) and a US-style SSN (123-45-6789), and TaxID is an invented nine-digit value such as <code>98-7654321</code>.</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Activity</th><th>Syllabus wording</th><th>Columns or tables</th><th>Primary tool</th><th>Why this tool (my reasoning)</th></tr></thead>
+<tbody>
+<tr><td>1</td><td>Data profiling and data masking for FirstName, LastName</td><td>first_name, last_name</td><td>Delphix; Informatica as the cross-check</td><td>The Delphix hands-ons (FirstName, TDM_Handson7) practise exactly this; the Name algorithms are documented</td></tr>
+<tr><td>2</td><td>Data profiling and data subset</td><td>All four tables, subset by a criterion</td><td>Informatica TDM</td><td>Its entities and driving tables are built for referentially intact subsets (User Guide 10.5.10, p.114); the programme's profiling-and-subset hands-on is on the Informatica side</td></tr>
+<tr><td>3</td><td>Data profiling and masking for SSN, alphanumeric values, TaxID, ZipCode</td><td>ssn, membership_code, tax_id, zip_code</td><td>Delphix; Informatica as the cross-check</td><td>The SSN, alphanumeric and telephone hands-on (TDM_Handson8) is on the Delphix side; both tools document format-keeping algorithms</td></tr>
+<tr><td>Support</td><td>None, but useful</td><td>Source data, edge rows</td><td>GenRocket</td><td>It generates fake rows in volume and edge cases without production data (<a href="https://genrocket.helpjuice.com/en_US/welcome-to-genrocket/why-synthetic-test-data" target="_blank" rel="noopener">Why synthetic test data</a>)</td></tr>
+</tbody></table></div>
+
+<p>The tool mapping is my reading of the syllabus hands-on list; if your trainer assigns a different tool to an activity, follow the trainer and reuse the acceptance criteria. The whole sequence is shown below.</p>
+
+<div class="flow">
+<div class="node"><b>Prepare</b>data, baseline, log</div>
+<div class="arrow">→</div>
+<div class="node"><b>Activity 1</b>profile, mask names</div>
+<div class="arrow">→</div>
+<div class="node"><b>Activity 2</b>profile, subset</div>
+<div class="arrow">→</div>
+<div class="node"><b>Activity 3</b>mask SSN, codes, TaxID, Zip</div>
+<div class="arrow">→</div>
+<div class="node"><b>Present</b>Day 57, then evaluation</div>
+</div>
+
+<h2 id="c30-plan">30.3 Day-by-day plan with daily tracking</h2>
+
+<p>The syllabus fixes the end of the project (presentation on Day 57, evaluations on Days 58 to 60) but not how many working days you have to implement it. The plan below assumes eight project days before the presentation; compress or stretch it to your trainer's schedule, keeping the order.</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Project day</th><th>Work</th><th>Done when</th></tr></thead>
+<tbody>
+<tr><td>P1</td><td>Prepare: lab database and files, source data (generate more rows if needed), "before" snapshot, baseline counts, progress log started, access confirmed</td><td>Orphan queries return 0 on the source; snapshot saved</td></tr>
+<tr><td>P2</td><td>Activity 1: connector, rule set, profile; review and decide the name columns</td><td>Inventory shows both name columns with a recorded decision</td></tr>
+<tr><td>P3</td><td>Activity 1: mask, verify, collect evidence</td><td>All Activity 1 criteria pass</td></tr>
+<tr><td>P4</td><td>Activity 2: profile keys and relations; design the subset (driving table, criterion)</td><td>Relationship map agreed</td></tr>
+<tr><td>P5</td><td>Activity 2: run the subset, verify counts and orphans</td><td>All Activity 2 criteria pass</td></tr>
+<tr><td>P6</td><td>Activity 3: profile; choose and record an algorithm per column; create custom algorithm instances</td><td>Algorithm sheet complete, each line marked docs or design</td></tr>
+<tr><td>P7</td><td>Activity 3: mask, verify format, uniqueness, cross-system consistency; investigate warnings</td><td>All Activity 3 criteria pass</td></tr>
+<tr><td>P8</td><td>Evidence pack, final report, rehearsal using <a href="29-planning-real-engagements.html">the presentation outline</a></td><td>Pre-submission checklist ticked</td></tr>
+<tr><td>Day 57</td><td>Final presentation and feedback</td><td>Feedback logged with actions</td></tr>
+<tr><td>Days 58 to 60</td><td>Project evaluation and technical evaluation by the BU SME</td><td>Deliverables accepted, or rework list</td></tr>
+</tbody></table></div>
+
+<p>For daily tracking, write a short entry at the end of every day, the same shape each time, so a reviewer can see progress at a glance:</p>
+
+<pre><code>Day P3   Date: ______
+Done:      Activity 1 job SS_Mask_Names ran on a restored copy; 4 of 5 criteria pass
+Evidence:  A1_queries.txt, A1_exec_summary.png
+Next:      Investigate A1-5 (single-letter first name returned unchanged)
+Blockers:  None
+Decisions: Keep first_name collisions (docs: not unique); noted for report</code></pre>
+
+<p>If a day slips, say so in the log and re-plan; an honest log with a recovery plan scores better with an evaluator than a perfect-looking one with gaps.</p>

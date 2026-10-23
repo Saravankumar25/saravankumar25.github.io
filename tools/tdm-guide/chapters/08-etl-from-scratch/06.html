@@ -1,0 +1,275 @@
+
+<h2 id="c8-worked-example">8.17 The complete ShopSphere ETL job on one page</h2>
+<p>Sections 8.5 to 8.8 showed the pieces. Here is how they fit into one job, the way you would document it for a colleague. The target is a small star schema for sales reporting.</p>
+<figure class="diagram"><svg viewBox="0 0 800 270" role="img" aria-label="Star schema. The fact table fact_order_line is in the centre. dim_customer is on the left, joined by customer_id. products (product dimension) is on the right, joined by product_code. agg_daily_sales sits below, built from the fact table.">
+<rect x="20" y="40" width="200" height="120" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="120" y="68" text-anchor="middle" fill="currentColor" font-weight="bold">dim_customer</text>
+<text x="120" y="95" text-anchor="middle" fill="currentColor" font-size="12">customer_key (surrogate)</text>
+<text x="120" y="115" text-anchor="middle" fill="currentColor" font-size="12">customer_id, full_name, email</text>
+<text x="120" y="135" text-anchor="middle" fill="currentColor" font-size="12">zip_code, valid_from, valid_to</text>
+<rect x="300" y="30" width="200" height="140" rx="10" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+<text x="400" y="58" text-anchor="middle" fill="currentColor" font-weight="bold">fact_order_line</text>
+<text x="400" y="85" text-anchor="middle" fill="currentColor" font-size="12">item_id, order_id, order_date</text>
+<text x="400" y="105" text-anchor="middle" fill="currentColor" font-size="12">customer_id, product_code</text>
+<text x="400" y="125" text-anchor="middle" fill="currentColor" font-size="12">order_status, quantity</text>
+<text x="400" y="145" text-anchor="middle" fill="currentColor" font-size="12">line_amount</text>
+<rect x="580" y="40" width="200" height="120" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="680" y="68" text-anchor="middle" fill="currentColor" font-weight="bold">products</text>
+<text x="680" y="95" text-anchor="middle" fill="currentColor" font-size="12">product_code, product_name</text>
+<text x="680" y="115" text-anchor="middle" fill="currentColor" font-size="12">price</text>
+<rect x="300" y="205" width="200" height="50" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="400" y="235" text-anchor="middle" fill="currentColor" font-size="13">agg_daily_sales (summary)</text>
+<g stroke="currentColor" stroke-width="1.5" fill="none"><path d="M220 100 L298 100"/><path d="M502 100 L578 100"/><path d="M400 172 L400 203"/></g>
+<text x="259" y="92" text-anchor="middle" fill="currentColor" font-size="11">customer_id</text>
+<text x="540" y="92" text-anchor="middle" fill="currentColor" font-size="11">product_code</text>
+</svg><figcaption>Original diagram: the target star schema. The fact table holds one row per order line; the dimensions describe who and what; the summary table is built from the fact table.</figcaption></figure>
+<h3 id="c8-run-log">8.17.1 What the two runs did</h3>
+<p>These row counts come from my two SQLite runs of the full job. Run 1 is the first load; run 2 is the next day, after Asha's zip code changed and two new orders (5006 and 5007) arrived.</p>
+<div class="tablewrap"><table class="sample"><caption>Run log (counts at each step)</caption>
+<thead><tr><th>Step</th><th>Run 1</th><th>Run 2</th></tr></thead>
+<tbody>
+<tr><td>Watermark before</td><td>0</td><td>5005</td></tr>
+<tr><td>Extracted: customers / orders / items</td><td>4 / 5 / 6</td><td>3 / 2 / 2</td></tr>
+<tr><td>Customers after dedup</td><td>3</td><td>3</td></tr>
+<tr><td>Customer versions closed / inserted</td><td>0 / 3</td><td>1 / 1</td></tr>
+<tr><td>Orders rejected</td><td>2 (5004, 5005)</td><td>0</td></tr>
+<tr><td>Fact rows loaded</td><td>4</td><td>2</td></tr>
+<tr><td>Daily summary rows</td><td>2</td><td>3</td></tr>
+<tr><td>Watermark after</td><td>5005</td><td>5007</td></tr>
+</tbody></table></div>
+<p>Order 5007 has an unknown product (P-999) and an unmapped status (Z); it still loads, as "UNKNOWN PRODUCT" and "Unknown", because the lookups use left joins. The 2026-10-23 summary row (2 orders, 3 units, 220.0) includes that line. Whether unknown products count as revenue is a decision to raise, not to bury.</p>
+
+<h2 id="c8-labs">8.18 Hands-on labs</h2>
+<p>You need any SQL database. I used SQLite because it is free and has no setup: install the SQLite command-line tool or use an online SQLite playground, open a new empty in-memory database, and paste each block. If you use another database, adjust the function names as noted in section 8.7.</p>
+<div class="exercise"><h4>Lab 1: ETL by hand with SQL</h4>
+<p>Goal: run extract-staged data through clean, deduplicate, reject, convert, look up, derive, aggregate and reconcile, and compare your results with mine. The staged data is the ShopSphere batch 1 from section 8.6. <span class="badge concept">Illustrative data, not from vendor docs</span></p>
+<ol class="steps">
+<li><strong>Create the staging and target tables.</strong><p>Staging holds the raw text; the targets are empty until the transform runs.</p><pre><code>CREATE TABLE stg_customers (customer_id TEXT, first_name TEXT, last_name TEXT, email TEXT, zip_code TEXT);
+INSERT INTO stg_customers VALUES
+ ('1001', ' Asha ', 'MENON', 'Asha.Menon@Example.com ', '560001'),
+ ('1002', 'Ravi',   'Kumar', 'ravi.k@example.com',       '600017'),
+ ('1002', 'Ravi',   'Kumar', 'ravi.k@example.com',       '600017'),
+ ('1003', 'Meera',  'Nair',  NULL,                       '682001');
+
+CREATE TABLE stg_orders (order_id TEXT, customer_id TEXT, order_date TEXT, total_amount TEXT);
+INSERT INTO stg_orders VALUES
+ ('5001', '1001', '20/10/2026', '1499.00'),
+ ('5002', '1002', '20/10/2026', '250.50'),
+ ('5003', '1001', '21/10/2026', '75.00'),
+ ('5004', '1003', '21/10/2026', 'abc'),
+ ('5005', '9999', '22/10/2026', '303.00');
+
+CREATE TABLE stg_order_items (item_id TEXT, order_id TEXT, product_code TEXT, quantity TEXT, unit_price TEXT);
+INSERT INTO stg_order_items VALUES
+ ('1', '5001', 'P-100', '1', '1499.00'),
+ ('2', '5002', 'P-200', '2', '100.00'),
+ ('3', '5002', 'P-300', '1', '50.50'),
+ ('4', '5003', 'P-400', '1', '75.00'),
+ ('5', '5004', 'P-200', '1', '100.00'),
+ ('6', '5005', 'P-300', '6', '50.50');
+
+CREATE TABLE products (product_code TEXT PRIMARY KEY, product_name TEXT, price REAL);
+INSERT INTO products VALUES
+ ('P-100', 'Laptop Stand', 1499.00), ('P-200', 'USB Cable', 100.00),
+ ('P-300', 'Phone Case', 50.50),     ('P-400', 'Desk Lamp', 75.00);
+
+CREATE TABLE dim_customer (customer_id INTEGER PRIMARY KEY, full_name TEXT, email TEXT, zip_code TEXT);
+CREATE TABLE reject_orders (order_id TEXT, reason TEXT);
+CREATE TABLE fact_order_line (item_id INTEGER PRIMARY KEY, order_id INTEGER, order_date TEXT,
+  customer_id INTEGER, product_code TEXT, product_name TEXT, quantity INTEGER, line_amount REAL);
+CREATE TABLE agg_daily_sales (order_date TEXT, orders_count INTEGER, units INTEGER, revenue REAL);</code></pre><p class="expect">No output. Check with <code>SELECT COUNT(*) FROM stg_customers;</code>, which should return 4.</p></li>
+<li><strong>Clean, deduplicate and load customers.</strong><p>Trimming and case fixes make equal things equal; <code>ROW_NUMBER()</code> keeps one row for customer 1002.</p><p class="expect">The customer table has three rows: Asha Menon, Ravi Kumar, and Meera Nair with email "not provided".</p></li>
+<li><strong>Reject bad orders.</strong><p>Bad rows are parked with a reason, not dropped.</p><p class="expect">Two reject rows: 5004 "total_amount is not a number" and 5005 "customer 9999 not found".</p></li>
+<li><strong>Build the fact table.</strong><p>This converts text to dates and numbers, looks up the product name and derives the line amount.</p><p class="expect">Four fact rows (items 1 to 4). Item 2 has line_amount 200.0 (2 times 100.00).</p></li>
+<li><strong>Aggregate, then reconcile.</strong><p>The summary shows revenue per day, and the reconciliation proves nothing was lost.</p><p class="expect">Revenue 1749.5 for 2026-10-20 and 75.0 for 2026-10-21. Reconciliation returns 5, 3 and 2: five orders read, three loaded, two rejected.</p></li>
+</ol>
+<p>Run steps 2 to 5 as one script:</p>
+<pre><code>-- STEP 1: clean, deduplicate and load customers
+INSERT INTO dim_customer (customer_id, full_name, email, zip_code)
+SELECT CAST(customer_id AS INTEGER),
+       UPPER(SUBSTR(TRIM(first_name),1,1)) || LOWER(SUBSTR(TRIM(first_name),2)) || ' ' ||
+       UPPER(SUBSTR(TRIM(last_name),1,1))  || LOWER(SUBSTR(TRIM(last_name),2)),
+       COALESCE(LOWER(TRIM(email)), 'not provided'),
+       zip_code
+FROM (SELECT s.*, ROW_NUMBER() OVER (PARTITION BY customer_id ORDER BY customer_id) AS rn
+      FROM stg_customers s)
+WHERE rn = 1;
+SELECT * FROM dim_customer;
+-- STEP 2: reject bad orders with a reason
+INSERT INTO reject_orders
+SELECT o.order_id,
+       CASE WHEN o.total_amount = '' OR o.total_amount GLOB '*[^0-9.]*'
+            THEN 'total_amount is not a number'
+            ELSE 'customer ' || o.customer_id || ' not found' END
+FROM stg_orders o
+WHERE o.total_amount = '' OR o.total_amount GLOB '*[^0-9.]*'
+   OR NOT EXISTS (SELECT 1 FROM dim_customer d WHERE d.customer_id = CAST(o.customer_id AS INTEGER));
+SELECT * FROM reject_orders;
+-- STEP 3: build the fact table (convert, look up, derive)
+INSERT INTO fact_order_line
+SELECT CAST(i.item_id AS INTEGER), CAST(o.order_id AS INTEGER),
+       SUBSTR(o.order_date,7,4) || '-' || SUBSTR(o.order_date,4,2) || '-' || SUBSTR(o.order_date,1,2),
+       CAST(o.customer_id AS INTEGER), i.product_code, p.product_name,
+       CAST(i.quantity AS INTEGER), CAST(i.quantity AS INTEGER) * CAST(i.unit_price AS REAL)
+FROM stg_order_items i
+JOIN stg_orders o ON o.order_id = i.order_id
+JOIN products p   ON p.product_code = i.product_code
+WHERE o.order_id NOT IN (SELECT order_id FROM reject_orders);
+SELECT * FROM fact_order_line;
+-- STEP 4: aggregate
+INSERT INTO agg_daily_sales
+SELECT order_date, COUNT(DISTINCT order_id), SUM(quantity), SUM(line_amount)
+FROM fact_order_line GROUP BY order_date;
+SELECT * FROM agg_daily_sales ORDER BY order_date;
+-- STEP 5: reconcile
+SELECT (SELECT COUNT(*) FROM stg_orders) AS read_rows,
+       (SELECT COUNT(DISTINCT order_id) FROM fact_order_line) AS loaded,
+       (SELECT COUNT(*) FROM reject_orders) AS rejected;</code></pre>
+<details class="sol"><summary>Show a worked answer</summary>
+<p>If your numbers differ, check that the staging inserts are exact copies (including the space in " Asha " and the duplicate 1002 row), that you ran each step once (running step 1 or 3 twice raises a primary key error), and your dialect's text and date functions.</p>
+</details></div>
+<div class="exercise"><h4>Lab 2: the next day, with a watermark and history</h4>
+<p>Goal: run day 2 of the job incrementally, keep Asha's old zip code as history, survive an unknown product and a code with no mapping, and prove that a re-run changes nothing. Use a fresh empty database. This script builds the state at the end of day 1 and day 2's incoming feeds.</p>
+<ol class="steps">
+<li><strong>Create the end-of-day-1 state and the day 2 feeds.</strong><p>You start with warehouse tables already holding day 1, a watermark of 5005, and the new feeds, where Asha's zip is 560002 and orders 5006 and 5007 are new.</p><pre><code>-- State at the end of run 1 (day 1)
+CREATE TABLE dim_customer (customer_key INTEGER PRIMARY KEY AUTOINCREMENT, customer_id INTEGER,
+  full_name TEXT, email TEXT, zip_code TEXT, valid_from TEXT, valid_to TEXT, is_current INTEGER);
+INSERT INTO dim_customer (customer_id, full_name, email, zip_code, valid_from, valid_to, is_current) VALUES
+ (1001, 'Asha Menon',  'asha.menon@example.com', '560001', '2026-10-23', '9999-12-31', 1),
+ (1002, 'Ravi Kumar',  'ravi.k@example.com',     '600017', '2026-10-23', '9999-12-31', 1),
+ (1003, 'Meera Nair',  'not provided',           '682001', '2026-10-23', '9999-12-31', 1);
+
+CREATE TABLE fact_order_line (item_id INTEGER PRIMARY KEY, order_id INTEGER, order_date TEXT,
+  customer_id INTEGER, product_code TEXT, product_name TEXT, quantity INTEGER, line_amount REAL);
+INSERT INTO fact_order_line VALUES
+ (1, 5001, '2026-10-20', 1001, 'P-100', 'Laptop Stand', 1, 1499.0),
+ (2, 5002, '2026-10-20', 1002, 'P-200', 'USB Cable',    2, 200.0),
+ (3, 5002, '2026-10-20', 1002, 'P-300', 'Phone Case',   1, 50.5),
+ (4, 5003, '2026-10-21', 1001, 'P-400', 'Desk Lamp',    1, 75.0);
+
+CREATE TABLE etl_control (job_name TEXT PRIMARY KEY, last_order_id INTEGER);
+INSERT INTO etl_control VALUES ('orders_daily', 5005);
+
+CREATE TABLE products (product_code TEXT PRIMARY KEY, product_name TEXT, price REAL);
+INSERT INTO products VALUES
+ ('P-100', 'Laptop Stand', 1499.00), ('P-200', 'USB Cable', 100.00),
+ ('P-300', 'Phone Case', 50.50),     ('P-400', 'Desk Lamp', 75.00);
+CREATE TABLE status_map (status_code TEXT PRIMARY KEY, status_name TEXT);
+INSERT INTO status_map VALUES ('S','Shipped'), ('P','Pending'), ('C','Cancelled');
+
+-- Day 2 feeds (text, as the source system writes them)
+CREATE TABLE feed_customers (customer_id TEXT, first_name TEXT, last_name TEXT, email TEXT, zip_code TEXT);
+INSERT INTO feed_customers VALUES
+ ('1001', 'Asha',  'Menon', 'asha.menon@example.com', '560002'),
+ ('1002', 'Ravi',  'Kumar', 'ravi.k@example.com',     '600017'),
+ ('1003', 'Meera', 'Nair',  NULL,                     '682001');
+CREATE TABLE feed_orders (order_id TEXT, customer_id TEXT, order_date TEXT, total_amount TEXT, status_code TEXT);
+INSERT INTO feed_orders VALUES
+ ('5001','1001','20/10/2026','1499.00','S'), ('5002','1002','20/10/2026','250.50','S'),
+ ('5003','1001','21/10/2026','75.00','P'),   ('5004','1003','21/10/2026','abc','S'),
+ ('5005','9999','22/10/2026','303.00','S'),
+ ('5006','1002','23/10/2026','100.00','C'),  ('5007','1001','23/10/2026','120.00','Z');
+CREATE TABLE feed_order_items (item_id TEXT, order_id TEXT, product_code TEXT, quantity TEXT, unit_price TEXT);
+INSERT INTO feed_order_items VALUES
+ ('1','5001','P-100','1','1499.00'), ('2','5002','P-200','2','100.00'), ('3','5002','P-300','1','50.50'),
+ ('4','5003','P-400','1','75.00'),   ('5','5004','P-200','1','100.00'), ('6','5005','P-300','6','50.50'),
+ ('7','5006','P-200','1','100.00'),  ('8','5007','P-999','2','60.00');
+
+CREATE TABLE stg_customers (customer_id TEXT, first_name TEXT, last_name TEXT, email TEXT, zip_code TEXT);
+CREATE TABLE stg_orders (order_id TEXT, customer_id TEXT, order_date TEXT, total_amount TEXT, status_code TEXT);
+CREATE TABLE stg_order_items (item_id TEXT, order_id TEXT, product_code TEXT, quantity TEXT, unit_price TEXT);</code></pre><p class="expect">No output. <code>SELECT * FROM etl_control;</code> returns orders_daily with 5005.</p></li>
+<li><strong>Extract past the watermark.</strong><p>Only orders with an id above 5005 should reach staging. Customers are small, so they are copied in full.</p><p class="expect">Staging holds orders 5006 and 5007.</p></li>
+<li><strong>Close the changed customer, then insert the new version.</strong><p>Two statements keep history instead of overwriting it.</p><p class="expect">Customer 1001 has two rows. Key 1: zip 560001, valid until 2026-10-24, is_current 0. Key 4: zip 560002, valid from 2026-10-24 to 9999-12-31, is_current 1.</p></li>
+<li><strong>Load the new fact rows.</strong><p>Left join keeps order 5007 even though product P-999 is unknown.</p><p class="expect">Two new rows: USB Cable with 100.0, and UNKNOWN PRODUCT with 120.0.</p></li>
+<li><strong>Move the watermark last, then re-run the extract.</strong><p>If the extract finds nothing, the job is safe to repeat.</p><p class="expect">The watermark reads 5007, and the re-run extracts 0 rows.</p></li>
+</ol>
+<p>Run steps 2 to 5 as one script:</p>
+<pre><code>-- STEP 1: extract. Customers: full copy. Orders and items: only beyond the watermark.
+INSERT INTO stg_customers SELECT * FROM feed_customers;
+INSERT INTO stg_orders
+SELECT * FROM feed_orders
+WHERE CAST(order_id AS INTEGER) &gt; (SELECT last_order_id FROM etl_control WHERE job_name = 'orders_daily');
+INSERT INTO stg_order_items
+SELECT * FROM feed_order_items WHERE order_id IN (SELECT order_id FROM stg_orders);
+SELECT order_id FROM stg_orders;
+-- STEP 2: close the old version of any customer whose data changed
+UPDATE dim_customer
+SET valid_to = '2026-10-24', is_current = 0
+WHERE is_current = 1
+  AND EXISTS (SELECT 1 FROM stg_customers s
+              WHERE CAST(s.customer_id AS INTEGER) = dim_customer.customer_id
+                AND (s.zip_code &lt;&gt; dim_customer.zip_code
+                  OR COALESCE(LOWER(TRIM(s.email)),'not provided') &lt;&gt; dim_customer.email));
+-- STEP 3: insert a current version for every customer who has none
+INSERT INTO dim_customer (customer_id, full_name, email, zip_code, valid_from, valid_to, is_current)
+SELECT CAST(s.customer_id AS INTEGER),
+       UPPER(SUBSTR(TRIM(s.first_name),1,1)) || LOWER(SUBSTR(TRIM(s.first_name),2)) || ' ' ||
+       UPPER(SUBSTR(TRIM(s.last_name),1,1))  || LOWER(SUBSTR(TRIM(s.last_name),2)),
+       COALESCE(LOWER(TRIM(s.email)), 'not provided'), s.zip_code,
+       '2026-10-24', '9999-12-31', 1
+FROM stg_customers s
+WHERE NOT EXISTS (SELECT 1 FROM dim_customer d
+                  WHERE d.customer_id = CAST(s.customer_id AS INTEGER) AND d.is_current = 1);
+SELECT customer_key, customer_id, zip_code, valid_from, valid_to, is_current
+FROM dim_customer ORDER BY customer_id, customer_key;
+-- STEP 4: load new fact rows, with lookups that do not lose rows
+INSERT INTO fact_order_line
+SELECT CAST(i.item_id AS INTEGER), CAST(o.order_id AS INTEGER),
+       SUBSTR(o.order_date,7,4) || '-' || SUBSTR(o.order_date,4,2) || '-' || SUBSTR(o.order_date,1,2),
+       CAST(o.customer_id AS INTEGER), i.product_code,
+       COALESCE(p.product_name, 'UNKNOWN PRODUCT'),
+       CAST(i.quantity AS INTEGER), CAST(i.quantity AS INTEGER) * CAST(i.unit_price AS REAL)
+FROM stg_order_items i
+JOIN stg_orders o ON o.order_id = i.order_id
+LEFT JOIN products p ON p.product_code = i.product_code;
+SELECT item_id, order_id, order_date, product_name, quantity, line_amount
+FROM fact_order_line WHERE order_id &gt;= 5006;
+-- STEP 5: move the watermark, last
+UPDATE etl_control
+SET last_order_id = (SELECT MAX(CAST(order_id AS INTEGER)) FROM stg_orders)
+WHERE job_name = 'orders_daily';
+SELECT * FROM etl_control;
+-- STEP 6: run it again by mistake: the watermark makes the second run a no-op
+DELETE FROM stg_orders;
+INSERT INTO stg_orders
+SELECT * FROM feed_orders
+WHERE CAST(order_id AS INTEGER) &gt; (SELECT last_order_id FROM etl_control WHERE job_name = 'orders_daily');
+SELECT COUNT(*) AS rows_extracted_on_rerun FROM stg_orders;</code></pre>
+<details class="sol"><summary>Show a worked answer</summary>
+<p>Output I got for the final query of each step: staging order ids 5006 and 5007; four customer rows (keys 1, 4, 2, 3); fact rows 7 and 8; watermark 5007; re-run extract 0.</p>
+<p>This lab omits the reject step; see 8.13.3. Challenge: add the reject step from Lab 1, with a batch id.</p>
+</details></div>
+
+<h2 id="c8-mistakes">8.19 Common mistakes and gotchas</h2>
+<div class="callout warn"><strong class="ctitle">Mistakes beginners make</strong>
+<ul>
+<li><strong>Transforming while extracting.</strong> Business logic buried in the source query is invisible and slows the source.</li>
+<li><strong>Inner joins on lookups.</strong> A failed match silently deletes rows. Use left joins with a default, or an explicit reject.</li>
+<li><strong>Moving the watermark before the load finishes.</strong> A failure then loses data forever.</li>
+<li><strong>Overwriting when history matters.</strong> Upsert is right for corrections; a history-keeping load is right when reports must show "as it was".</li>
+<li><strong>Letting one bad row stop everything, or letting bad rows disappear.</strong> Reject with a reason, and set a threshold for when to stop.</li>
+<li><strong>No reconciliation.</strong> A job that "succeeds" with the wrong totals is worse than one that fails loudly.</li>
+<li><strong>Forgetting that deletes are invisible to a watermark.</strong> Plan for them, or accept and document the gap.</li>
+</ul></div>
+
+<h2 id="c8-recap">8.20 Recap</h2>
+<div class="callout recap"><strong class="ctitle">Recap</strong>
+<ul>
+<li>ETL moves data from sources to targets in three steps: <strong>extract</strong> (read), <strong>transform</strong> (clean, convert, enrich, combine, summarise) and <strong>load</strong> (write), usually through a <strong>staging area</strong> that keeps a raw copy.</li>
+<li>Extraction can be full or incremental; a <strong>watermark</strong> or change data capture tells an incremental run what is new.</li>
+<li>Transformation covers cleaning, type conversion, value mapping, deduplication, lookups, filtering and rejecting, joining, derived columns and aggregation. Lookups and joins must decide what happens when nothing matches.</li>
+<li>Loads can be truncate and load, append, incremental, upsert, bulk, or history-keeping (slowly changing dimension). A safe load can be run twice without harm.</li>
+<li>An ETL architecture has sources, an integration engine, a metadata repository, a scheduler, monitoring and logs, and targets. Tools add layers: mappings, sessions, workflows, schedules.</li>
+<li>A <strong>mapplet</strong> is Informatica's reusable group of transformations. TDM can import mapplets as masking and generation rules.</li>
+<li>Good ETL rejects bad rows with reasons, tolerates a set number of errors, reconciles counts, and records every run.</li>
+<li>ELT loads raw data first and transforms inside the target; test data work usually transforms (masks) before loading.</li>
+</ul></div>
+
+<section class="sources"><h2 id="c8-sources">Sources used in this chapter</h2>
+<ul>
+<li>Informatica TDM 10.5.10 User Guide (PDF, February 2026): chapter 1 pp.24 to 29 (architecture, Data Validation Option); chapter 7 pp.137, 144, 150 (mapplet rules and exported mapplets, generated components warning); chapter 9 pp.192 (custom generation rule); chapter 10 p.211 (custom generation example); chapter 13 pp.274 to 278 and 284 to 285, 308 (plans, connections, update strategy, error and recovery, workflow generation).</li>
+<li>Delphix Continuous Compliance 2026.5: <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs</a> (truncate, batch update, commit size, streams, constraint options) and <a href="https://help.delphix.com/cc/current/content/job_monitoring.htm" target="_blank" rel="noopener">Job monitoring</a> (state of a failed job).</li>
+<li>GenRocket: <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">General FAQ</a> (bulk load receivers, supported targets).</li>
+<li>Not used as sources: the YouTube mapplet video (transcript could not be retrieved). Tool names in 8.16 other than Informatica PowerCenter are unverified.</li>
+<li>All SQL, data and results are my own illustrations, executed in SQLite 3.45. Dialect differences are noted in the text.</li>
+</ul></section>

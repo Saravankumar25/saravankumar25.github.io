@@ -1,0 +1,84 @@
+<h2 id="c28-lab4">28.4 Lab 4: create a connector to a VDB (TDM_Handson4)</h2>
+
+<h3 id="c28-lab4-goal">Goal and prerequisites</h3>
+
+<p>Create an application, an environment and a database connector so that the engine can reach the ShopSphere VDB, and prove the connection works. Every later lab depends on it. You need the setup data and "before" snapshot, plus from your trainer or DBA: database type, host, port, database name, schema, and a masking user and password. A wrong guess here is the most common reason Test Connection fails.</p>
+
+<p><strong>What "a connector to a VDB" means.</strong> The documentation pages I read describe database connectors and describe a VDB as a database that Delphix Continuous Data provisions (<a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>); they describe no special "VDB connector". My reading, to confirm with your trainer, is that you create an ordinary database connector and point it at the VDB's host, port and database name. In-place masking rewrites data, so doing it on a disposable VDB keeps production untouched. (Masking as part of VDB provisioning is a separate setup with restrictions, described on <a href="https://help.delphix.com/cc/current/content/provision_masked_vdbs.htm" target="_blank" rel="noopener">Provision masked VDBs</a>; this lab does not use it.)</p>
+
+<h3 id="c28-lab4-steps">Steps</h3>
+
+<ol class="steps">
+<li><strong>Log in and open the Environments page.</strong>
+<p>Everything else (connectors, rule sets, jobs) hangs under an environment.</p>
+<p class="expect">A grid with ID, Application, Environment, Purpose and Approval, plus + Application, + Environment and Actions buttons.</p></li>
+</ol>
+
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_environments.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_environments.png" alt="Environments page with one row and buttons Application, Environment and Actions" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> the Environments list; the three buttons at top right are where Lab 4 starts. The corner label reads 21.0.0.0, so a newer engine may differ. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_environments.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+
+<ol class="steps" start="2">
+<li><strong>Add the application, then the environment.</strong>
+<p>Click + Application, enter <code>ShopSphere</code>, Save: the docs say an application must exist before an environment can be created. Then + Environment: application ShopSphere, name <code>ShopSphere_DB_Mask</code>, Purpose Mask. Leave the approval-workflow box off: it makes an approver sign off a database inventory before any job runs, which suits real projects but is a hurdle in a first lab. Choose Save And View.</p>
+<p class="expect">The environment shows three empty tabs: Jobs, Rule Sets, Connectors.</p></li>
+<li><strong>Open Connectors and click + Connection.</strong>
+<p>The wizard has the steps Details, Credentials, Custom Properties and Summary.</p></li>
+</ol>
+
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/manage_connector.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/manage_connector.png" alt="Connectors tab with connectors grouped under Database, File and Mainframe and warning triangles beside some names" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> the Connectors tab, grouped by Meta Data Source. The orange triangles mean, per the docs, that authentication (password, key, credential path or access keys) is missing. <a class="badge-link" href="https://help.delphix.com/cc/current/content/managing_connectors.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+
+<ol class="steps" start="4">
+<li><strong>Details: name it and choose the type.</strong>
+<p>Connection Name <code>SS_VDB_Conn</code>. Each Source Type entry is prefixed with its Meta Data Source ("Database - Sybase" in the screenshot). For Oracle, MS SQL Server and Sybase you also choose Basic (host and port) or Advanced (a full JDBC URL); pick Basic unless told otherwise.</p></li>
+</ol>
+
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/create_connection.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/create_connection.png" alt="Create Connection wizard, Details step, with Connection Name, Source Type Database - Sybase and the Hostname/IP (Basic) or JDBC URL (advanced) choice" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> the Details step. The Sybase source only shows the form; your VDB type will differ. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__test__edit__and_delete_a_connector.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+
+<ol class="steps" start="5">
+<li><strong>Credentials: the database facts.</strong>
+<p>Fields depend on the type. The docs list Schema Name (the schema holding the tables), Database Name (<em>case-sensitive</em>: it must match what the instance knows), Host Name/IP, Port (SQL Server defaults to 1433), SID (Oracle) and Instance Name (SQL Server: if given, the port is ignored and port 1434 of the SQL Server Browser Service is used, so the firewall must allow it). Then the masking user's name and password.</p>
+<p class="expect">All required fields filled; the password shows as dots.</p></li>
+</ol>
+
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/create_connection1.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/create_connection1.png" alt="Create Connection wizard, Credentials step, with Schema Name, Database Name, Host, Port, Authentication Type, Username and Password" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> the Credentials step with placeholder values from the docs, not values to copy. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__test__edit__and_delete_a_connector.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+
+<ol class="steps" start="6">
+<li><strong>Skip Custom Properties.</strong>
+<p>That step uploads a Java properties file. The docs warn that its values are readable by anyone who can view connectors, so secrets belong in the form fields.</p></li>
+<li><strong>Click Test Connection, then Save.</strong>
+<p>The docs say the engine uses the wizard's information to attempt a database connection and reports success or failure. Testing before saving lets you fix mistakes while the form is open.</p>
+<p class="expect">A success message. After Save, SS_VDB_Conn appears under DATABASE with a Connector ID.</p></li>
+<li><strong>Test the saved connector from the grid.</strong>
+<p>Open the row's actions menu and choose Test Connection. This proves the saved connector works, not only the form.</p></li>
+</ol>
+
+<figure class="shot"><a href="https://help.delphix.com/cc/current/content/resources/images/create_connection7.png" target="_blank" rel="noopener"><img src="https://help.delphix.com/cc/current/content/resources/images/create_connection7.png" alt="Connectors grid with the actions menu open showing Edit, Test Connection and Delete" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> the row actions menu. The red arrow points at Test Connection. The docs say deleting a connector also deletes its rule sets and inventory data. <a class="badge-link" href="https://help.delphix.com/cc/current/content/create__test__edit__and_delete_a_connector.htm" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+
+<h3 id="c28-lab4-verify">Verification checks</h3>
+
+<ol>
+<li>Test Connection succeeds twice (wizard and grid); screenshot the message.</li>
+<li>SS_VDB_Conn is under DATABASE with an ID and no warning triangle. The docs say the numeric ID is how the masking API refers to the connector.</li>
+<li>With the masking user in your SQL client, <code>SELECT COUNT(*) FROM customers;</code> returns 3.</li>
+<li>Record the exact database name, schema and host.</li>
+</ol>
+
+<h3 id="c28-lab4-wrong">What can go wrong</h3>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Symptom</th><th>Likely cause</th><th>What to do</th></tr></thead>
+<tbody>
+<tr><td>"Database not found" style failure</td><td>Database Name in the wrong case (the field is case-sensitive)</td><td>Copy the name exactly from the DBA</td></tr>
+<tr><td>Hang or timeout</td><td>Host, port or firewall; for a SQL Server instance name, port 1434</td><td>Check routes from the engine</td></tr>
+<tr><td>Warning triangle after saving</td><td>Authentication incomplete</td><td>Edit, tick Change Password, re-enter</td></tr>
+<tr><td>Test passes but Lab 5 lists no tables</td><td>Wrong schema or missing rights</td><td>Fix Schema Name and grants</td></tr>
+</tbody></table></div>
+
+<div class="callout real">
+<strong class="ctitle">What to say in the walkthrough</strong>
+<p>"I created an application and a masking environment, then a database connector pointing at the ShopSphere VDB, not production. I used host, port, database name and schema from the DBA, tested in the wizard and again from the grid, and both passed. I used a dedicated masking user and kept the password out of the properties file, which anyone who can view connectors can read." If asked whether a VDB connector is different: "In the documentation I read there is no separate type; the VDB matters because it is safe to change."</p>
+</div>

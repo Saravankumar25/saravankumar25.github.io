@@ -1,0 +1,102 @@
+<h2 id="c26-labs">26.12 Labs on ShopSphere (Day 55 and Day 56)</h2>
+<p>Both labs mask a <strong>test copy</strong> of ShopSphere, never <code>SHOPSPHERE_PROD</code>. They assume the environment, connector and rule set from <a href="23-delphix-connectors-and-vdb.html">the connectors chapter</a> and <a href="24-delphix-rule-sets-and-keys.html">the rule sets chapter</a>, and an inventory from <a href="25-delphix-profiling.html">the profiling chapter</a>. The SQL is generic; adjust it for your database (Oracle, PostgreSQL and SQL Server differ in small ways, noted where it matters). The Delphix hands-on chapter repeats these labs in a wider flow: <a href="28-delphix-hands-on-labs.html">the Delphix hands-on labs chapter</a>.</p>
+<div class="callout warn"><strong class="ctitle">Take a "before" snapshot first</strong>
+<p>An in-place job overwrites the data, so create a copy of the original rows to compare against. In PostgreSQL or Oracle: <code>CREATE TABLE customers_before AS SELECT * FROM customers;</code> (SQL Server: <code>SELECT * INTO customers_before FROM customers;</code>). This snapshot table is my lab convention, not a Delphix feature. Drop it when you finish: it holds the real-looking data.</p></div>
+
+<div class="exercise"><h4>Lab A (Day 55, TDM_Handson7): mask FirstName</h4>
+<p>Goal: mask <code>CUSTOMERS.first_name</code> with <code>dlpx-core:FirstName</code>, run an in-place job and prove the result with SQL.</p>
+<ol class="steps">
+<li><strong>Take the snapshot (above) and note the row counts of CUSTOMERS and ORDERS.</strong><p>You need the "before" numbers to judge "after".</p></li>
+<li><strong>Open the rule set inventory and make sure only <code>first_name</code> carries an assignment: domain FIRST_NAME, algorithm <code>dlpx-core:FirstName</code>.</strong><p>One column keeps the lab clear. Use the Clear Masking Assignment icon on other columns, as described in the profiling chapter.</p><p class="expect">The inventory shows one assigned column in CUSTOMERS.</p></li>
+<li><strong>Create the job: <em>+ Masking Job</em>, name <code>ShopSphere_Mask_FirstName</code>, Masking Method In-Place, your rule set.</strong><p>In-place is right here because the target is already a disposable copy.</p></li>
+<li><strong>Database Options: leave Commit Size at the default, Update Threads 1, Batch Update ticked. Configuration: 1 stream, Min and Max Memory 1024.</strong><p>Tiny tables need no tuning; one update thread avoids deadlock risk.</p></li>
+<li><strong>Save, run the job from its "..." menu and watch Monitor &gt; Job Executions.</strong><p class="expect">Status Queued or Running, then Succeeded. Open the job: Tables Masked 1, Rows Masked equals your CUSTOMERS row count, Tables with Nonconforming Data 0.</p></li>
+<li><strong>Verify with SQL.</strong><p>Run the queries below and compare to the expected results.</p></li>
+</ol>
+<pre><code>-- 1. row count unchanged
+SELECT (SELECT COUNT(*) FROM customers_before) AS before_rows,
+       (SELECT COUNT(*) FROM customers)        AS after_rows;
+
+-- 2. side by side
+SELECT b.customer_id, b.first_name AS before_name, a.first_name AS after_name
+FROM customers_before b JOIN customers a ON a.customer_id = b.customer_id
+ORDER BY b.customer_id;
+
+-- 3. how many names were left unchanged
+SELECT COUNT(*) FROM customers_before b JOIN customers a
+  ON a.customer_id = b.customer_id WHERE a.first_name = b.first_name;
+
+-- 4. distinct counts before and after
+SELECT (SELECT COUNT(DISTINCT first_name) FROM customers_before) AS d_before,
+       (SELECT COUNT(DISTINCT first_name) FROM customers)        AS d_after;
+
+-- 5. determinism: any original name mapped to more than one output?
+SELECT b.first_name, COUNT(DISTINCT a.first_name) AS outputs
+FROM customers_before b JOIN customers a ON a.customer_id = b.customer_id
+GROUP BY b.first_name HAVING COUNT(DISTINCT a.first_name) &gt; 1;
+
+-- 6. other columns untouched, joins intact
+SELECT COUNT(*) FROM customers_before b JOIN customers a
+  ON a.customer_id = b.customer_id WHERE a.last_name &lt;&gt; b.last_name;
+SELECT COUNT(*) FROM orders o JOIN customers c ON c.customer_id = o.customer_id;</code></pre>
+<details class="sol"><summary>Show a worked answer</summary>
+<p><strong>Expected results.</strong></p>
+<ul>
+<li>Query 1: both counts equal. Query 2: every row shows a new name; compare with the illustrative table in the first name section.</li>
+<li>Query 3: a small number. The documentation says <code>dlpx-core:FirstName</code> can mask a name to itself, so do not demand zero. With three rows, zero or one is normal.</li>
+<li>Query 4: <code>d_after</code> is at most <code>d_before</code>, because Name algorithms are not unique.</li>
+<li>Query 5: no rows. The same input must give the same output (deterministic). Rows here would mean the algorithm was re-keyed during the run or case settings differ.</li>
+<li>Query 6: zero mismatches, and the orders-to-customers join count equals the total number of orders, because <code>customer_id</code> was not touched.</li>
+</ul>
+<p><strong>If it fails:</strong> status Warning means open the Error Report (see the non-conformant data part above); status Failed means read the Execution Log. An unchanged column means the algorithm was never saved in the inventory.</p></details></div>
+
+<div class="exercise"><h4>Lab B (Day 56, TDM_Handson8): mask alphanumeric text, SSN and telephone number</h4>
+<p>Goal: mask <code>tax_id</code> (alphanumeric), <code>ssn</code> and <code>phone</code> with format-preserving algorithms and prove uniqueness, format and consistency. Start from a fresh test copy (restore the original rows and take a new <code>customers_before</code> snapshot).</p>
+<ol class="steps">
+<li><strong>Create the SSN algorithm: Settings &gt; Algorithms &gt; <em>+ Algorithm</em>, name <code>SHOPSPHERE_SSN</code>, framework Segment Mapping.</strong><p>Built-in instances exist, but building one shows how Segment Mapping works and guarantees uniqueness.</p></li>
+<li><strong>Add three segments: length 3 Mask numeric, length 2 Mask numeric, length 4 Mask numeric. Set Ignore Characters to specific characters and enter <code>-</code>. Leave Short Numeric Segment Handling on "Report nonconforming data". Save.</strong><p>The dashes are removed before masking and restored after, so "123-45-6789" keeps its shape.</p><p class="expect">The algorithm shows in the grid with owner admin and framework Segment Mapping.</p></li>
+<li><strong>In the rule set inventory, edit each column: untick Enable Automatic Updates, then set <code>tax_id</code> to domain TAX_ID with <code>dlpx-core:CM Alpha-Numeric</code>, <code>ssn</code> to domain SSN with <code>SHOPSPHERE_SSN</code>, and <code>phone</code> to domain TELEPHONE_NO with <code>dlpx-core:Phone Unique</code>. Save each.</strong><p>Overriding the domain default needs automatic updates off, otherwise a later profiling run may undo your choice.</p></li>
+<li><strong>Create and run job <code>ShopSphere_Mask_Sensitive</code> (In-Place, Update Threads 1, Batch Update on, 1 stream, memory 1024) as in Lab A.</strong><p class="expect">Succeeded, with no tables or columns reported under nonconforming data. A Warning here usually means a value did not fit: open the Error Report.</p></li>
+<li><strong>Verify with SQL.</strong></li>
+</ol>
+<pre><code>-- Format: SSN keeps dashes (expect 0 rows violating)
+SELECT COUNT(*) FROM customers WHERE ssn NOT LIKE '___-__-____';
+
+-- Uniqueness: rows minus distinct values (expect 0 for tax_id and ssn)
+SELECT COUNT(*) - COUNT(DISTINCT tax_id) AS tax_dupes,
+       COUNT(*) - COUNT(DISTINCT ssn)    AS ssn_dupes
+FROM customers;
+
+-- Changed? (SSN and tax_id: expect 0 or very close to 0)
+SELECT COUNT(*) FROM customers_before b JOIN customers a
+  ON a.customer_id = b.customer_id
+WHERE a.ssn = b.ssn OR a.tax_id = b.tax_id;
+
+-- Tax id shape, Oracle syntax (PostgreSQL: tax_id !~ '^[A-Z]{5}[0-9]{4}[A-Z]$')
+SELECT COUNT(*) FROM customers
+WHERE NOT REGEXP_LIKE(tax_id, '^[A-Z]{5}[0-9]{4}[A-Z]$');
+
+-- Phone: ten digits, first three unchanged (expect 0 and 0)
+SELECT COUNT(*) FROM customers WHERE LENGTH(phone) &lt;&gt; 10;
+SELECT COUNT(*) FROM customers_before b JOIN customers a
+  ON a.customer_id = b.customer_id
+WHERE SUBSTR(a.phone,1,3) &lt;&gt; SUBSTR(b.phone,1,3);
+
+-- Phone distinct counts, then side by side
+SELECT (SELECT COUNT(DISTINCT phone) FROM customers_before) AS d_before,
+       (SELECT COUNT(DISTINCT phone) FROM customers)        AS d_after;
+SELECT b.customer_id, b.ssn, a.ssn, b.tax_id, a.tax_id, b.phone, a.phone
+FROM customers_before b JOIN customers a ON a.customer_id = b.customer_id;
+
+-- Joins still work (orders to customers)
+SELECT COUNT(*) FROM orders o JOIN customers c ON c.customer_id = o.customer_id;</code></pre>
+<details class="sol"><summary>Show a worked answer</summary>
+<p><strong>Why each expectation is justified.</strong></p>
+<ul>
+<li><strong>tax_id:</strong> Character Mapping keeps letters as letters and digits as digits, and gives no two inputs the same output, so the shape and uniqueness checks should pass. The docs promise a masked value never equals the input if at least one character is masked.</li>
+<li><strong>ssn:</strong> Segment Mapping produces "no overlaps or repetitions", so duplicates should be 0. The page does not say a value can never map to itself, which is why that check is "0 or very close". If your application validates SSN rules (no 000 or 666 area, for instance), inspect the output; these frameworks do not promise valid issuing patterns.</li>
+<li><strong>phone:</strong> Phone Unique masks only the last seven digits and keeps all other characters, so the first three digits must be unchanged. The documentation excerpt I had does not guarantee distinct inputs always give distinct outputs, so a lower <code>d_after</code> than <code>d_before</code> is a finding to report, not necessarily a failure.</li>
+<li><strong>Joins:</strong> none of these columns is a key, so the join count equals the number of orders.</li>
+</ul>
+<p><strong>Consistency across tables.</strong> If an SSN or tax id also appears in another table or file, that column must use the same algorithm, or the same person gets two different masked values and tests break.</p>
+<p><strong>Extra challenge.</strong> Repeat the SSN step with <code>dlpx-core:CM Digits</code> instead of the custom algorithm and compare the output. Which one gave better-looking SSNs?</p></details></div>

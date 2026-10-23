@@ -1,0 +1,90 @@
+<h2 id="c11-policies">11.13 Policies</h2>
+<p>A <dfn>policy</dfn> is a data masking component that describes how to protect specific types of source data (User Guide 10.5.10, p.71). It is built from three smaller things that you can create separately, in any order:</p>
+
+<div class="flow">
+<div class="node"><b>Rule</b>one masking (or generation) technique with specific settings</div><div class="arrow">→</div>
+<div class="node"><b>Data domain</b>a group of columns that mean the same thing, plus its preferred rules</div><div class="arrow">→</div>
+<div class="node"><b>Policy</b>a set of data domains</div><div class="arrow">→</div>
+<div class="node"><b>Project</b>you assign the policy to a data source</div>
+</div>
+<p>The ShopSphere reading: a <em>rule</em> is "replace first names from a dictionary of fake names". A <em>domain</em> is "First Name", the group of every column that holds first names. The <em>policy</em> is the compliance officer's list of domains that must be masked in any customer-data project. Once the policy exists, the Customer Orders project simply receives it and every first-name column gets the first-name rule. You can apply one policy to many projects (p.71).</p>
+<p><strong>Policies task flow</strong> (p.72): create masking rules, define data domains that describe which columns can receive the same rules, assign the rules to the domains, create a policy, assign the domains to the policy. The order is flexible; you can create a policy first and fill it later.</p>
+
+<h3 id="c11-rules">Rules</h3>
+<p>A rule defines logic to mask sensitive data <em>or</em> to generate test data (p.72). You can create rules for string, numeric and date data types. You can add rules to data domains and then use the domains in policies and plans. After you add rules to a project, you still assign them to columns, matching the column's data type. The built-in masking techniques (substitution, shuffle, key masking and so on) are the subject of the <a href="14-informatica-data-masking.html">Informatica masking chapter</a>; generation rules are in the <a href="15-informatica-data-generation.html">Informatica data generation chapter</a>.</p>
+
+<h3 id="c11-data-domains">Data domains</h3>
+<p>A data domain represents the functional meaning of a column, based on its data or its name. Assign a masking rule to the domain and <strong>all columns in that domain are masked with the same rule</strong>. You can also give it generation rules so generated data follows the same logic (p.73). The guide says to assign at least one masking rule to each domain.</p>
+<p>The guide's Social Security example: the number might be in a column called <code>SSN</code>, in a column called <code>SOCIAL_SECURITY</code> in another table, or buried in a <code>COMMENTS</code> column. One domain describes all three: a data expression for the format <code>999-99-9999</code> and metadata expressions for the likely column names such as SSN or Social (p.73).</p>
+<p>If you do not have Data Discovery, you can still use domains to group data, but you must associate columns with domains <strong>manually</strong> (p.73). With discovery, a profile does the assignment for you (<a href="12-informatica-discovery-and-profiling.html">the discovery and profiling chapter</a>).</p>
+
+<h4 id="c11-preferred-rules">Preferred rules and the default rule</h4>
+<p>Rules you attach to a domain are called <strong>preferred rules</strong>. If there are several, you mark one as the <strong>default</strong>, which applies to every column in the domain. You may change an individual column to another preferred rule, and you can even apply more than one rule to a column (p.73).</p>
+
+<div class="callout example"><strong class="ctitle">Guide example, with a ShopSphere twist</strong>
+<p>The guide's Last_Name domain has a shuffle rule as default and a substitution rule as another preferred rule: shuffle for customer last names in one table, substitution in another (p.73). In ShopSphere: <code>last_name</code> in <code>CUSTOMERS</code> uses the default, while a hypothetical <code>shipping_contact_last_name</code> in another table uses the second preferred rule. Generation rules work the same way: in the guide, Date_of_Birth defaults to date random generation and also offers date sequence generation (p.74). The ShopSphere column is ours.</p></div>
+
+<h3 id="c11-patterns">Data patterns and metadata patterns</h3>
+<p>A <dfn>regular expression</dfn> (regex) is a text string that describes a search pattern; it matches strings of characters in the source data (p.74). TDM uses regexes in two ways, and a domain may hold several of each. A column belongs to the domain if <strong>any</strong> expression matches (pp.74-75).</p>
+
+<div class="compare">
+<div><h4>Data pattern (look at values)</h4>
+<p>Describes what the data looks like. SSN example from the guide: <code>[0-9]{3}-[0-9]{2}-[0-9]{4}</code>.</p>
+<p>Use when you do not trust column names (an SSN hidden in a <code>COMMENTS</code> column).</p></div>
+<div><h4>Metadata pattern (look at column names)</h4>
+<p>Describes the column name. Guide example: <code>.*Name*</code> matches Name, Employee_Name and Organization_Name; <code>.*SSN*</code>, <code>.*SOCIAL*</code>, <code>.*SECURITY*</code> find SSN columns.</p>
+<p>Use when names are reliable and values vary.</p></div>
+</div>
+
+<h4 id="c11-regex-primer">A regex primer, using only what the guide lists</h4>
+<p>Regexes are <strong>case sensitive</strong>. The guide lists these building blocks (pp.74-75), and gives a tutorial site for more. I added the ShopSphere reading.</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Piece</th><th>Guide's meaning</th><th>Reading</th></tr></thead><tbody>
+<tr><td>Ordinary characters</td><td>All except <code>[\^$.|?*+()</code> match themselves; <code>abc</code> matches abc.</td><td><code>ssn</code> matches the letters s, s, n in order (and not SSN, because of case).</td></tr>
+<tr><td><code>\</code></td><td>Escapes a special character so it loses its special meaning.</td><td><code>\.</code> means a real dot.</td></tr>
+<tr><td><code>*</code></td><td>Matches the previous token zero or more times.</td><td><code>.*SSN*</code> style names.</td></tr>
+<tr><td><code>[ ]</code></td><td>One character from a set; a hyphen gives a range, such as <code>[a-zA-Z0-9]</code>.</td><td><code>[0-9]</code> is one digit.</td></tr>
+<tr><td><code>?</code></td><td>Makes the previous item optional.</td><td><code>-?</code> an optional dash.</td></tr>
+<tr><td><code>{n}</code></td><td>Repeats the previous item n times (n is 1 or more).</td><td><code>[0-9]{4}</code> is four digits.</td></tr></tbody></table></div>
+
+<div class="callout warn"><strong class="ctitle">Case and shape traps</strong>
+<p>Because regexes are case sensitive, a pattern in capitals may not match a lower-case column name such as <code>ssn</code>. Whether TDM treats metadata expressions case-insensitively is not stated in the part of the guide I read, so test it on your own data. And a 10-digit phone pattern also matches any other 10-digit column. This is why you review profile results rather than approving everything blindly.</p></div>
+
+<h3 id="c11-domain-options">Data domain options</h3>
+<p>A data domain has four options (p.75): <strong>Name</strong>; <strong>Sensitivity level</strong>, applied to every column in the domain and chosen from the levels the administrator defines (the Overview dashboards use it); <strong>Description</strong>; and <strong>Status</strong>, enabled or disabled, where an enabled domain is included in discovery profiles (default enabled).</p>
+
+<h3 id="c11-create-domain">Creating a data domain</h3>
+
+<div class="exercise">
+<h4>Task: create a "Customer SSN" data domain</h4>
+<p>Goal: a domain that finds SSN-like data and SSN-like column names in ShopSphere. Steps are from the guide (p.76); the name, pattern and rule choice are our illustration. Assume a Social Security masking rule already exists (see the <a href="14-informatica-data-masking.html">Informatica masking chapter</a>).</p>
+
+<ol class="steps">
+<li><strong>Click Policies.</strong>
+<p class="expect">The Policies view lists policies, data domains and rules in the TDM repository.</p></li>
+<li><strong>Click Actions &gt; New &gt; Data Domain.</strong>
+<p>This starts the domain wizard.</p></li>
+<li><strong>Enter the name, sensitivity level and description, then click Next.</strong>
+<p>For example Name <code>Customer_SSN</code>, a high sensitivity level (your administrator's list decides what exists), description "US-style SSN in customer data".</p></li>
+<li><strong>On the data pattern page, optionally enter a regular expression; click the + icon to add more.</strong>
+<p>Enter <code>[0-9]{3}-[0-9]{2}-[0-9]{4}</code>. This finds the SSN even when the column name is odd.</p></li>
+<li><strong>Click Next for the column-name page (or Finish to stop here), then enter name expressions.</strong>
+<p>Enter <code>.*SSN*</code> and <code>.*SOCIAL*</code>. You can add several.</p></li>
+<li><strong>Click Next to add preferred rules, or Finish to stop.</strong>
+<p>To add rules, click Add Rules, select masking and generation rules in the Add Rules dialog, click OK.</p></li>
+<li><strong>Enable one default masking rule and one default generation rule, then click Finish.</strong>
+<p class="expect">The new data domain appears in the Policies view.</p></li>
+</ol>
+
+<details class="sol"><summary>Show a worked answer</summary>
+<p>Result (illustrative): domain <code>Customer_SSN</code>, status Enabled, one data pattern, two metadata patterns, one preferred masking rule marked default. When you later run a data domain profile on <code>CUSTOMERS</code>, <code>ssn</code> should appear as a candidate for this domain, with both the column name and values matching. <code>tax_id</code> may or may not match depending on its format, which is the kind of question you review in the <a href="12-informatica-discovery-and-profiling.html">discovery and profiling chapter</a>.</p></details>
+</div>
+
+<h3 id="c11-domain-manage">Copying, editing and deleting a domain</h3>
+
+<ul>
+<li><strong>Copy:</strong> in Policies, click a data domain <em>description</em> to select it without opening it, Actions &gt; Duplicate, change the name and description, Save (p.76).</li>
+<li><strong>Edit:</strong> click the domain name so it opens in a tab, Actions &gt; Edit, then use the Data Patterns, Metadata Patterns and Preferred Rules tabs, Save. If you delete a rule that has assignments, the Impacted Objects dialog lists affected columns and plans. Click Export to download the list as CSV, then Continue. <strong>Regenerate and run the affected plans</strong> for changes to take effect (pp.76-77).</li>
+<li><strong>Delete:</strong> select it, Actions &gt; Delete, confirm. Deleting a domain deletes its <em>assignments</em> but <strong>not</strong> the rules inside it. A domain with assignments shows Impacted Objects; Continue to proceed, Export for the CSV (p.77).</li>
+</ul>

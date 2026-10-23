@@ -1,0 +1,148 @@
+<h2 id="c16-create">16.4 Creating plans</h2>
+
+<h3 id="c16-create-ms">16.4.1 A data masking and data subset plan</h3>
+
+<p>You may combine subset and masking in one plan or keep separate plans; generation needs its own (User Guide 10.5.10, p.304). The wizard, with reasons:</p>
+
+<ol class="steps">
+<li><strong>Open the project, click Execute, then Actions &gt; New. Enter a plan name and optional description.</strong><p>Plans belong to a project so they can use its rules, entities and parameters.</p></li>
+<li><strong>Click Add Masking Components and select policies and rules. Click Next.</strong><p>Pick only what this run needs. You may add rules assigned to a policy and rules that are not.</p></li>
+<li><strong>Click Add Subset Components and select entities, groups, templates or XSD files. Click Next.</strong><p>This is where you say which tables to copy. If an entity is already inside a chosen template, you cannot add the same entity again (p.277).</p></li>
+<li><strong>Skip the generation step with Next.</strong><p>Generation cannot be combined here.</p></li>
+<li><strong>Switch off any masking rule you want to skip, using the check box and Off.</strong><p>A cheap way to test one rule at a time.</p></li>
+<li><strong>Filter subset components: choose a basic or advanced expression, or click Limit and choose percentage, absolute value or an interval of rows. Click Next.</strong><p>An XSD subset component cannot have its criteria overridden. Details in the <a href="13-informatica-data-subset.html">Informatica subsetting chapter</a>.</p></li>
+<li><strong>Configure connections and other properties.</strong><p>For a flat-file target you can set test tool integration. If you choose the test data warehouse as the target you enter the data set properties. With an XSD source you cannot add other source types. Click Next.</p></li>
+<li><strong>Optionally override plan settings for one data source, or data source settings for one table. Click Finish.</strong><p>Overrides handle the one table that needs special treatment.</p><p class="expect">The plan appears in the project's Execute list. Nothing has run.</p></li>
+</ol>
+
+<p><em>Steps from User Guide 10.5.10, pp.304-305.</em></p>
+
+<h3 id="c16-create-gen">16.4.2 A data generation plan</h3>
+
+<p>The wizard is the same, but you skip the masking and subset pages, add generation components (entities and tables), enter the number of records and set connections (p.305). The full walk-through, with ShopSphere examples, is in <a href="15-informatica-data-generation.html">the Informatica generation chapter</a>. There is also a one-column ad hoc generation plan reached from Define | Data Generation with Actions &gt; Generate and Execute (p.306).</p>
+
+<h2 id="c16-components">16.5 Plan components in practice</h2>
+
+<h3 id="c16-comp-mask">16.5.1 Masking and subset components</h3>
+
+<p><strong>Masking components</strong> are policies and rules. You may restrict a run to some of them, and turn masking on or off per column in the plan criteria. A plan that decrypts with a Format Preserving Encryption rule cannot include other masking rules (p.292). <strong>Subset components</strong> are entities, groups, templates or XSD files (p.293).</p>
+
+<p><strong>Component criteria.</strong> For each column of a subset component, choose a filter method in the Plan Components panel: <em>Custom</em> (a Basic expression with an operator and operand, or an Advanced expression with several columns, functions and parameters) or <em>Limit</em> (percentage, absolute value or interval of rows). To disable masking for a column click the masking component, select the column in the Criteria panel and click OFF (or ON) (p.294).</p>
+
+<div class="callout example"><strong class="ctitle">ShopSphere: shrink to about 5 percent</strong>
+<p>The plan holds one entity (driving table <code>CUSTOMERS</code>, children <code>ORDERS</code> and <code>ORDER_ITEMS</code>) and one policy <code>PII_Policy</code>. For the entity's customer criteria choose <strong>Limit</strong> by percentage and enter 5. Subset runs first, so only the customers in the slice, and their orders and items, are masked (p.275). Check the Row Count report after the first run to see how the limit applied to the entity.</p></div>
+
+<h4 id="c16-order-example">What subset-then-mask does to three rows</h4>
+
+<p>My illustration of the rule on p.275: subset runs first, so customer 1002 never reaches the target, and masking then changes only the rows that arrived.</p>
+
+<div class="tablewrap"><table class="sample">
+<caption>Illustrative: before and after a plan with an entity and a PII policy</caption>
+<thead><tr><th>customer_id</th><th>In production</th><th>In the subset?</th><th>In the target</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>Asha Menon, 123-45-6789</td><td>Yes</td><td>Meera Joshi, 456-78-9012 (masked)</td></tr>
+<tr><td>1002</td><td>Ravi Kumar, 234-56-7890</td><td>No</td><td>not present</td></tr>
+<tr><td>1003</td><td>Meera Nair, 345-67-8901</td><td>Yes</td><td>Kiran Rao, 567-89-0123 (masked)</td></tr>
+</tbody></table></div>
+
+<h3 id="c16-connections">16.5.2 Connections</h3>
+
+<p>A workflow connects to the Integration Service, the TDM repository and one or more connection objects. You choose them in the plan (p.276):</p>
+
+<div class="tablewrap"><table>
+<caption>Connections you can set in a plan (User Guide 10.5.10, p.276)</caption>
+<thead><tr><th>Connection</th><th>Purpose</th></tr></thead>
+<tbody>
+<tr><td>Source</td><td>Where data is read from</td></tr>
+<tr><td>Target</td><td>Where data is written: relational, test data warehouse, flat file or Hadoop HDFS, or a variable</td></tr>
+<tr><td>Staging</td><td>A database for temporary staging tables; a default comes from Preferences. Recommended to be the source connection for cyclic subsets and similar cases (p.286).</td></tr>
+<tr><td>Lookup</td><td>A database that holds lookup tables</td></tr>
+<tr><td>Storage</td><td>A database for storage tables used for repeatable masking (substitution and expression); default from Preferences</td></tr>
+<tr><td>Teradata</td><td>An ODBC connection to Teradata</td></tr>
+<tr><td>Dictionary</td><td>A database with a dictionary table for substitution, email masking and data generation</td></tr>
+</tbody></table></div>
+
+<p>Plans also need connections to repositories, and this has a hard limit. An offline job needs three connections to the TDM repository, each workflow in a multi-workflow plan needs one more, and you can run at most <strong>eight workflows at a time</strong> (eight workflows need 11 connections). Extra workflows wait in the queued state (p.276).</p>
+
+<p>The guide also states that <strong>Use Source Connection as Target Connection</strong> is for in-place masking, where data is changed in the same database it came from (p.279). That is risky; we never do it on ShopSphere's production copy.</p>
+
+<h3 id="c16-prepost">16.5.3 Pre and post workflows, and target SQL</h3>
+
+<p>You can run another existing workflow in the project's PowerCenter folder <em>before</em> the TDM workflow (it must finish successfully first) or <em>after</em> all TDM workflows complete successfully. Example from the guide: copy files from production area to test area, mask them, then run database statistics. You can disable triggers before and enable them after. Not available for Hadoop, reset and restore plans (p.277).</p>
+
+<p>You can also run <strong>target pre SQL and post SQL</strong> in the plan's Advanced Options, using the variables <code>$OWNERNAME</code>, <code>$SCHEMA</code> and <code>$TABLENAME</code>. Example from the guide: <code>TRUNCATE TABLE $OWNERNAME.$TABLENAME;</code> deletes all rows before the load (pp.277-278). Use these variables so one statement works across environments.</p>
+
+<h2 id="c16-settings">16.6 Plan settings you will actually touch</h2>
+
+<h3 id="c16-target">16.6.1 Target options</h3>
+
+<div class="tablewrap"><table>
+<caption>Target options (User Guide 10.5.10, pp.282-283)</caption>
+<thead><tr><th>Option</th><th>What it does</th><th>ShopSphere advice</th></tr></thead>
+<tbody>
+<tr><td>Truncate Table</td><td>Truncates the table before loading. Off by default.</td><td>On for a private test schema, off for a shared one</td></tr>
+<tr><td>Disable Indexes</td><td>Faster loading</td><td>Safe if nobody else uses the tables during the load</td></tr>
+<tr><td>Disable Constraints</td><td>Disables physical constraints before the load and enables after. If enabling fails, the workflow fails and you must enable them by hand and rerun.</td><td>Needed for parallel loads, but tests on those tables may fail during the window</td></tr>
+<tr><td>Skip Validation of Constraints</td><td>Skips validation when enabling (Oracle and similar targets)</td><td>Only if you trust the data</td></tr>
+<tr><td>Disable Triggers</td><td>Disables DML triggers; selected automatically with Truncate for relational targets</td><td>Remember: only DML triggers</td></tr>
+<tr><td>Optimize Relationship Type for Entities</td><td>Optimizes relations at plan level; needs plan-level criteria</td><td>Leave default</td></tr>
+</tbody></table></div>
+
+<p>Two platform notes from the guide: on a DB2 for z/OS target, disabling constraints leaves the tablespace in Check Pending state until a Check Data utility is run; on PostgreSQL, exclusion constraints are not disabled (p.283).</p>
+
+<h3 id="c16-error">16.6.2 Error and recovery</h3>
+
+<div class="tablewrap"><table>
+<caption>Error and recovery options (User Guide 10.5.10, pp.285-286)</caption>
+<thead><tr><th>Option</th><th>Meaning and default</th></tr></thead>
+<tbody>
+<tr><td>Stop on Error</td><td>Number of non-fatal errors before the session stops. Zero means never stop for them. Default 0.</td></tr>
+<tr><td>Suspend on Error</td><td>Suspend the workflow so you can fix and restart. Default No.</td></tr>
+<tr><td>Rollback Transactions on Error</td><td>Roll back at the next commit point on a non-fatal write error. Default Yes.</td></tr>
+<tr><td>Recover Strategy</td><td>Resume from last checkpoint; Restart task; or Fail task and continue workflow (default)</td></tr>
+<tr><td>Enable High Availability Recovery</td><td>Allows recovery from a checkpoint. Default No.</td></tr>
+<tr><td>Commit Type and Interval</td><td>Target-based by default; commit every 10,000 rows by default</td></tr>
+<tr><td>Error Log Type and Directory</td><td>Flat file or none; default none</td></tr>
+</tbody></table></div>
+
+<h3 id="c16-advanced">16.6.3 Advanced options (selection)</h3>
+
+<ul>
+<li><strong>Tables Per Workflow:</strong> number of tables per workflow, default 10 (p.287). More tables than that means several workflows from one plan.</li>
+<li><strong>Max Parallel Sessions:</strong> sessions that may run at once, relevant when indexes and constraints are disabled (p.287).</li>
+<li><strong>Data Integrity for Subset:</strong> Referential only; Transactional Integrity for Major Relation Type (default); One-way; Two-way (p.287). See the subsetting chapter.</li>
+<li><strong>Email:</strong> notification address, subject and text for when the plan finishes (p.287).</li>
+<li><strong>Target Load Type:</strong> Normal (default) or Bulk. Bulk is faster but limits recovery because no database logging happens (p.288).</li>
+<li><strong>Source and Target Schema Name:</strong> use when the tables sit in a different schema; may be a parameter (p.288).</li>
+<li><strong>Batch Update and Batch Size:</strong> for in-place masking (p.288).</li>
+<li><strong>Shared Storage Table, Cache Size, Storage Commit Interval:</strong> tuning for repeatable masking (pp.289-290).</li>
+<li><strong>Enable special characters in metadata:</strong> default No (p.289).</li>
+<li><strong>Reset Recovery prefix:</strong> used only to restore after a failed reset (p.289).</li>
+<li><strong>Locale, Datetime Format String, Enable High Precision, DTM Buffer Size, SSN High Group File, Use SoftHSM:</strong> specialised settings (pp.287-290).</li>
+</ul>
+
+<h2 id="c16-source-override">16.7 Source, table and file overrides</h2>
+
+<p>Many plan settings can be overridden for one data source or one table; where a property is not offered at that level, the plan-level value applies (p.295). Examples: connections, flat-file name, delimiter and encoding, schema names, pre and post SQL, batch size, table name overrides and partitioning (pp.295-301).</p>
+
+<p>For flat-file sources you can supply a <strong>file list</strong>, a text file naming one source file per line; all listed files must share the same properties (p.303).</p>
+
+<h2 id="c16-params">16.8 Parameters and parameter files</h2>
+
+<p>Parameters let one plan serve many runs. You may use <strong>project parameters</strong> and <strong>global parameters</strong> (created by an administrator, shown with an asterisk) in connections, owner names and filter criteria (pp.275, 279). In an entity or plan you can use a parameter instead of a fixed value in a criterion.</p>
+
+<p>A <strong>parameter file</strong> lists every parameter used in a plan with its default value. Criteria parameters carry an <em>ignore flag</em> that defaults to "N" (include); set it to "Y" and save to ignore that criterion in a run. Parameters you cannot override do not change, and the workflow logs an error (pp.309-311). Create one with Actions &gt; Create Parameter File on the plan. If you use parameters for connections, the parameter file must be on the node that runs the Test Data Manager Service, in the same path on every node (p.279).</p>
+
+<p>When you execute the workflow you choose how values are supplied (pp.310-311):</p>
+
+<div class="tablewrap"><table>
+<caption>Parameter value options at execution</caption>
+<thead><tr><th>Option</th><th>Behaviour</th></tr></thead>
+<tbody>
+<tr><td>Default</td><td>Use the parameter file named in the plan settings</td></tr>
+<tr><td>Use Parameter File</td><td>Browse to a different file for this run</td></tr>
+<tr><td>Add Parameter Values</td><td>Type values in a list. Criteria parameters are not listed by default; use Select Parameter to add them or the workflow ignores them.</td></tr>
+</tbody></table></div>
+
+<div class="callout example"><strong class="ctitle">ShopSphere: one plan, three regions</strong>
+<p>Make the subset criterion on <code>zip_code</code> a criteria parameter <code>p_zip</code>. Run the same plan with <code>560001</code> for the Bengaluru team, <code>600017</code> for Chennai, <code>682001</code> for Kochi. No plan edits, three different data sets. This is the guide's "test data on demand" idea (p.309) in ShopSphere clothes.</p></div>

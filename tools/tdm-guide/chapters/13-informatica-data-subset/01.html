@@ -1,0 +1,80 @@
+<p><a href="05-discovery-and-subsetting-concepts.html">the discovery and subsetting concepts chapter</a> explained <em>why</em> a team would shrink a production database before using it for testing. Then <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a> showed how to find the tables, keys and sensitive columns in a source. This chapter is where you actually build the smaller copy in Informatica Test Data Management (TDM). A <dfn>data subset</dfn> is a small slice of production data that still hangs together: if you keep a customer, you also keep that customer's orders and the order lines inside them.</p>
+
+<p>Why do you care? A full copy of production is slow to load, expensive to store and full of real people's data. A random sample of rows is cheap but useless, because a sampled order may point to a customer that was not sampled. A subset gives you the middle path: small <em>and</em> consistent. In the syllabus this is Day 44 ("types of subset, driver tables") and the subset half of the hands-on exercise TDM_Handson3 (data profiling and subset).</p>
+
+<div class="callout note">
+<strong class="ctitle">What this chapter is based on</strong>
+<p>Everything marked <span class="badge doc">From docs</span> comes from the <strong>Informatica Test Data Management 10.5.10 User Guide (PDF, February 2026, 455 pages)</strong>: User Guide chapter 6 "Creating a Data Subset" (pages 112 to 134) in full, plus the related parts of User Guide chapter 3 "Projects" (parameters, p.57), User Guide chapter 5 "Data Discovery" (constraints, p.107 to 109) and User Guide chapter 13 "Plans and Workflows" (plan settings, criteria and workflow generation, p.274 to 310). Page numbers are written as (User Guide 10.5.10, p.NN).</p>
+<p>The ShopSphere tables, the numbers and the 10 percent target are <strong>my own illustrative example</strong> (<span class="badge concept">General concept</span> or labelled "illustrative"), not from the guide. Where the guide does not say something I say so. Menu names can differ slightly between TDM versions, so confirm against your install.</p>
+</div>
+
+<div class="callout recap">
+<strong class="ctitle">What you will learn</strong>
+<ul>
+<li>What a data subset is and the three kinds of source TDM can subset (relational, flat file, XSD).</li>
+<li>What an entity, a driving table, a group and a template are, and when to use each.</li>
+<li>How filter criteria, operators, parameters and the plan-level Limit (percentage, absolute value, interval) decide which rows are picked.</li>
+<li>How TDM pulls related rows: major and minor constraints, and the four data integrity options.</li>
+<li>The full workflow from an empty project to a running subset plan, with the reason for every step.</li>
+<li>A worked ShopSphere example that cuts 20 customers down to 2 (10 percent) with their orders, items and products, and a lab you can repeat.</li>
+</ul>
+</div>
+
+<h2 id="c13-words">13.1 Words to know first</h2>
+
+<dl class="defs">
+<div><dt>Data subset</dt><dd>A small, targeted copy of production data that keeps related rows together, so it can be used in development, test or training.</dd></div>
+<div><dt>Referential integrity</dt><dd>The rule that every foreign key points at a row that exists. An order whose customer is missing breaks it.</dd></div>
+<div><dt>Entity</dt><dd>In TDM, a set of tables that are related by physical or logical constraints, built around one starting table. You filter the entity to say "which customers".</dd></div>
+<div><dt>Driving table</dt><dd>The one table you pick as the starting point of an entity. The guide says "driving table"; the syllabus says "driver table". They mean the same thing. People also say "root table", but the guide does not use that word.</dd></div>
+<div><dt>Group</dt><dd>A set of tables that are <em>not</em> related to each other (or that you want copied without filtering), added to a plan as they are.</dd></div>
+<div><dt>Template</dt><dd>An optional container that holds entities and groups. The guide mentions it but gives almost no detail (see 13.5).</dd></div>
+<div><dt>Constraint</dt><dd>A rule linking two tables, usually a foreign key from a child table to a parent table. It can be <em>physical</em> (declared in the database) or <em>logical</em> (added in TDM because the database does not declare it).</dd></div>
+<div><dt>Major / minor constraint</dt><dd>A severity setting on a foreign key. Major moves in both directions (child to parent and parent to child). Minor moves only child to parent.</dd></div>
+<div><dt>Criteria parameter</dt><dd>A named placeholder (for example <code>$$CRITERIAVALUE</code>) used in an entity filter so the value can change at run time without editing the entity.</dd></div>
+<div><dt>Plan / workflow</dt><dd>A plan lists what to do (which entities, groups, rules, connections). A workflow is the runnable job TDM generates from the plan.</dd></div>
+</dl>
+
+<h2 id="c13-overview">13.2 What a data subset is, and what TDM can subset</h2>
+
+<h3 id="c13-overview-idea">The idea in one example</h3>
+
+<p>Imagine ShopSphere's production database holds 2 million customers. Your QA team needs a test environment that holds about 10 percent of them, with every order and order line for those customers, and the products those lines refer to. Nothing else. If you did this by hand you would write SQL joins for each table and hope you did not miss a foreign key. TDM lets you describe the shape once (an entity) and the filter once (criteria), then repeats it on demand.</p>
+
+<h3 id="c13-overview-docs">What the guide says <span class="badge doc">From docs</span></h3>
+
+<ul>
+<li>You create a subset when you need "a small, targeted, and referentially intact copy" of production data for a non-production environment such as development, test or training. The guide's own example is financial data for one region or one time period (User Guide 10.5.10, p.112).</li>
+<li>Sources can be <strong>relational</strong> databases, <strong>flat files</strong> or <strong>XSD</strong> (XML structure) files (p.112).</li>
+<li>You define <strong>data subset components</strong> and add them to a <strong>plan</strong>. You then generate a workflow from the plan, and the workflow loads the subset into a target database (p.112).</li>
+</ul>
+
+<h2 id="c13-process-flow">13.3 The big picture: process flow and components</h2>
+
+<h3 id="c13-flow">The tasks, in order</h3>
+
+<div class="flow">
+<div class="node"><b>Project</b>add sources</div>
+<div class="arrow">→</div>
+<div class="node"><b>Parameters</b>optional</div>
+<div class="arrow">→</div>
+<div class="node"><b>Entities / groups</b>define the shape</div>
+<div class="arrow">→</div>
+<div class="node"><b>Optimize</b>optional</div>
+<div class="arrow">→</div>
+<div class="node"><b>Plan</b>add components</div>
+<div class="arrow">→</div>
+<div class="node"><b>Run + monitor</b>workflow</div>
+</div>
+
+<h3 id="c13-components">The three component types</h3>
+
+<p>A component is a building block you define before you build the plan. The guide names three (User Guide 10.5.10, p.113 to 114) <span class="badge doc">From docs</span>:</p>
+
+<div class="tablewrap"><table>
+<thead><tr><th>Component</th><th>What it defines</th><th>Source types</th><th>Use it when</th></tr></thead>
+<tbody>
+<tr><td>Entity</td><td>A set of tables related by physical or logical constraints, starting from a driving table</td><td>Relational, flat file</td><td>You want related data copied together, filtered by criteria</td></tr>
+<tr><td>Group</td><td>A set of unrelated tables</td><td>Relational, flat file</td><td>You want some tables copied with no filtering, or tables with no relationship to the entity</td></tr>
+<tr><td>XSD files</td><td>Criteria applied to elements or attributes, plus a "scope"</td><td>XSD</td><td>You subset XML data</td></tr>
+</tbody></table></div>

@@ -1,0 +1,114 @@
+<h2 id="c6-choosing">6.9 Choosing a technique</h2>
+
+<p>Start from the column, not the technique. Ask four questions: What is it (name, number, date, free text)? Must it stay unique or linked to other tables? Must it keep a format the application checks? Do tests depend on its meaning (for example an age band)? The table gives a reasoned first choice for the ShopSphere columns. <span class="badge concept">General concept</span> (technique names are from section 6.4)</p>
+
+<div class="tablewrap"><table><caption>Decision table for ShopSphere columns (a starting point, to be confirmed with the compliance officer)</caption>
+<thead><tr><th>Column</th><th>Constraint</th><th>First choice</th><th>Why</th></tr></thead>
+<tbody>
+<tr><td>first_name, last_name</td><td>Realistic; repeats allowed</td><td>Substitution from a dictionary</td><td>Looks real; no uniqueness needed</td></tr>
+<tr><td>email</td><td>Valid format; maybe unique; should match the masked name</td><td>Email masking built from the masked names (chaining)</td><td>Keeps consistency inside the row</td></tr>
+<tr><td>phone</td><td>10 digits</td><td>Format-preserving phone masking</td><td>Keeps the shape the application validates</td></tr>
+<tr><td>ssn</td><td>999-99-9999 format; unique</td><td>Format-preserving SSN masking, deterministic</td><td>Valid shape; same output wherever it appears</td></tr>
+<tr><td>date_of_birth</td><td>Plausible; age bands matter</td><td>Date shift or blurring by a few days</td><td>Hides the exact date, keeps the age band</td></tr>
+<tr><td>zip_code</td><td>Valid code; region may matter</td><td>Substitution from valid codes, or keep the first digits</td><td>Reduces re-identification, keeps regional logic</td></tr>
+<tr><td>tax_id</td><td>Shape like AAAAADDDDA</td><td>Character replacement with a mask format, or null</td><td>Same shape, no real content</td></tr>
+<tr><td>customer_id (key)</td><td>Joins to ORDERS</td><td>Leave as is (a meaningless surrogate), or key masking with the same seed in every table</td><td>A made-up number identifies nobody on its own, but must stay consistent</td></tr>
+<tr><td>total_amount</td><td>Must match order items</td><td>Leave alone, unless amounts are sensitive</td><td>Masking it breaks arithmetic</td></tr>
+<tr><td>Free-text notes</td><td>Unknown content</td><td>Free text redaction or null</td><td>Cannot be fixed by column-level rules</td></tr>
+</tbody></table></div>
+
+<div class="callout tip"><strong class="ctitle">Not every column needs masking</strong>
+
+<p>Masking has a cost: it can break realism and arithmetic. A surrogate key like <code>customer_id</code> that carries no meaning is often safe to leave, as long as nothing else in the row identifies a person. The compliance officer decides, not the tool.</p></div>
+
+<h2 id="c6-validate">6.10 Validating masked data</h2>
+
+<p>A masking job that finishes without errors is not proof that the data is safe or useful. Check the result against the goals from section 6.3.</p>
+
+<div class="tablewrap"><table><caption>A validation checklist</caption>
+<thead><tr><th>Check</th><th>How</th></tr></thead>
+<tbody>
+<tr><td>Nothing sensitive is left</td><td>Run discovery again on the masked copy. Search free-text columns for SSN-like and phone-like patterns. Compare: no real value from the source should appear in the target for masked columns.</td></tr>
+<tr><td>Joins still work</td><td>Run orphan queries between each parent and child table.</td></tr>
+<tr><td>Consistency</td><td>The same real value gives the same masked value in every table and system that holds it.</td></tr>
+<tr><td>Valid format</td><td>Pattern check on each masked column, for example SSN <code>[0-9]{3}-[0-9]{2}-[0-9]{4}</code> and card numbers pass the checksum.</td></tr>
+<tr><td>Uniqueness</td><td>No duplicates in columns that must be unique.</td></tr>
+<tr><td>Realism</td><td>Look at a sample by eye. Null counts and value distributions should be believable.</td></tr>
+<tr><td>Repeatability</td><td>Run twice with the same settings; results match when they should.</td></tr>
+<tr><td>Job logs</td><td>Read warnings. Delphix shows a yellow warning marker on a job when non-conformant data was found; Informatica logs exceptions per its exception-handling settings.</td></tr>
+</tbody></table></div>
+
+<pre><code>-- duplicates in a column that must be unique
+SELECT ssn, COUNT(*) FROM CUSTOMERS GROUP BY ssn HAVING COUNT(*) &gt; 1;
+
+-- any order without a customer (orphan)
+SELECT o.order_id FROM ORDERS o
+LEFT JOIN CUSTOMERS c ON c.customer_id = o.customer_id
+WHERE c.customer_id IS NULL;
+
+-- any SSN-shaped text left in a notes column (pattern syntax varies by database)
+SELECT order_id FROM ORDER_NOTES WHERE notes LIKE '%___-__-____%';
+</code></pre>
+
+<p><span class="badge doc">From docs</span> Tools help with previewing. Informatica's Rule Simulator shows original and masked values for a standard rule before you assign it, using default sample data, your own sample or a connection, with up to 100 rows and a default of 20 (pp.137 and 140). Delphix says its platform generates reports and email notifications to confirm that sensitive data has been masked (Delphix "Introduction to Delphix Masking"). Neither removes the need to inspect the result yourself.</p>
+
+<div class="exercise"><h4>Lab: design and check a mask for the ShopSphere customers</h4>
+
+<p>Goal: pick a technique for every sensitive column of CUSTOMERS, apply it to the three sample rows by hand, and prove the result is consistent.</p>
+
+<ol class="steps">
+<li><strong>Write the rule set.</strong><p>For each column in the decision table, choose one technique and say whether it must be deterministic. Decide the seed or key story: one seed, shared by every column that joins elsewhere.</p></li>
+<li><strong>Apply it to rows 1001 to 1003.</strong><p>Use made-up values that respect each column's format. Build the email from the masked first and last names.</p><p class="expect">Three masked rows with valid phone, SSN and date formats and no original value surviving.</p></li>
+<li><strong>Check the rules.</strong><p>Does any masked value equal a real one? Is any value duplicated? Does the masked email match the masked name? Would an orphan appear in <code>ORDERS</code> if customer_id were masked here but not there?</p></li>
+<li><strong>Re-run in your head with the same seed.</strong><p>Would 1001 still become the same row next week? If not, which technique is random?</p></li>
+</ol>
+
+<details class="sol"><summary>Show a worked answer</summary>
+
+<div class="tablewrap"><table class="sample"><caption>One acceptable answer (all masked values are made up)</caption>
+<thead><tr><th>Column</th><th>Technique</th><th>1001</th><th>1002</th><th>1003</th></tr></thead>
+<tbody>
+<tr><td>first_name</td><td>Substitution (deterministic)</td><td>Asha to Leela</td><td>Ravi to Sanjay</td><td>Meera to Anita</td></tr>
+<tr><td>last_name</td><td>Substitution (deterministic)</td><td>Menon to Pillai</td><td>Kumar to Gupta</td><td>Nair to Joshi</td></tr>
+<tr><td>email</td><td>Built from masked names</td><td>leela.pillai@example.com</td><td>sanjay.gupta@example.com</td><td>anita.joshi@example.com</td></tr>
+<tr><td>phone</td><td>Format-preserving</td><td>9876543210 to 9412087365</td><td>9123456780 to 9055512346</td><td>9988776655 to 9770011223</td></tr>
+<tr><td>ssn</td><td>Format-preserving SSN</td><td>123-45-6789 to 561-80-3472</td><td>234-56-7890 to 478-21-9054</td><td>345-67-8901 to 612-39-1180</td></tr>
+<tr><td>date_of_birth</td><td>Date shift, fixed +3 days</td><td>1990-04-12 to 1990-04-15</td><td>1985-11-02 to 1985-11-05</td><td>1999-07-23 to 1999-07-26</td></tr>
+<tr><td>zip_code</td><td>Substitution from valid codes</td><td>560001 to 560047</td><td>600017 to 600089</td><td>682001 to 682030</td></tr>
+<tr><td>customer_id</td><td>Left unchanged (surrogate)</td><td>1001</td><td>1002</td><td>1003</td></tr>
+</tbody></table></div>
+
+<p>Checks: no original value survives; all SSNs are different; each masked email matches its masked name; because customer_id is unchanged, <code>ORDERS</code> joins still work; every technique used is deterministic, so a rerun with the same seed or key gives the same rows. A fixed shift keeps relative order of dates, whereas a variable shift would not be repeatable. If you had chosen to mask customer_id, the same seed would be needed in <code>ORDERS</code>. Note that <code>zip_code</code> kept the first three digits (a regional shape) so test logic still works, and the compliance officer should confirm that is acceptable.</p></details></div>
+
+<h2 id="c6-mistakes">Common mistakes and gotchas</h2>
+
+<div class="callout warn"><strong class="ctitle">Mistakes beginners make</strong>
+
+<ul>
+<li><strong>Calling encryption "masking".</strong> It can be reversed. Use it only when reversal is intended.</li>
+<li><strong>Masking keys independently.</strong> Joins break. Use the same seed or key, or cascades.</li>
+<li><strong>Ignoring the job warnings.</strong> In Delphix, non-conformant values are left unmasked by default and only flagged.</li>
+<li><strong>Trusting one technique for everything.</strong> Shuffle leaves real values in place; substitution can collide; date shifting can reorder dates.</li>
+<li><strong>Forgetting free text and indirect identifiers.</strong> They defeat column-level masking.</li>
+<li><strong>Sharing the seed or key with the test team.</strong> It makes the mapping reproducible by anyone who has it.</li>
+<li><strong>Declaring success without validating.</strong> Run discovery again on the masked data and check joins.</li>
+</ul></div>
+
+<h2 id="c6-recap">Recap</h2>
+
+<div class="callout recap"><strong class="ctitle">Remember</strong><ul>
+<li>Masking replaces real values with realistic fake ones, usually irreversibly. Encryption and tokenization are reversible; anonymisation is a legal goal that masking helps reach.</li>
+<li>Good masked data is safe, realistic, valid, consistent, repeatable and still fit for the tests.</li>
+<li>Common techniques: substitution, shuffle, key masking, encryption, nulling and redaction, date shifting, numeric variance, format-preserving masking, character replacement, and chaining several of them.</li>
+<li>Deterministic masking (same input, same output, from a seed or key) is what keeps keys and joins working across tables and systems. Random masking is for columns nothing links to.</li>
+<li>Choose by column type, uniqueness, format and test needs. Not every column needs masking, and free text needs special handling.</li>
+<li>Masking can be in place or on the fly; static copies are the norm for test data.</li>
+<li>Always validate: rediscover, check joins, formats, uniqueness, repeatability and job warnings.</li>
+</ul></div>
+
+<section class="sources"><h2 id="c6-sources">Sources used in this chapter</h2><ul>
+<li>Informatica TDM 10.5.10 User Guide (February 2026): chapter 7 pp.135 to 150 (masking overview, rules, rule simulator, plans); chapter 8 pp.151 to 185 (techniques and parameters: advanced, credit card, email, encryption, expression, IP, key, nullification, phone, random, shuffle, SIN, SSN, substitution, URL, examples); chapter 5 pp.90 to 91 (value and auto cascades).</li>
+<li>Delphix Continuous Compliance 2026.5: <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>; <a href="https://help.delphix.com/cc/current/content/algorithms.htm" target="_blank" rel="noopener">Algorithms</a>; <a href="https://help.delphix.com/cc/current/content/algorithm_frameworks.htm" target="_blank" rel="noopener">Algorithm frameworks</a>; <a href="https://help.delphix.com/cc/current/content/secure_lookup__algorithm_frameworks_.htm" target="_blank" rel="noopener">Secure Lookup</a>; <a href="https://help.delphix.com/cc/current/content/secureshuffle.htm" target="_blank" rel="noopener">SecureShuffle</a>; <a href="https://help.delphix.com/cc/current/content/date_shift__algorithm_frameworks_.htm" target="_blank" rel="noopener">Date Shift</a>; <a href="https://help.delphix.com/cc/current/content/payment_card__algorithm_frameworks_.htm" target="_blank" rel="noopener">Payment Card</a>; <a href="https://help.delphix.com/cc/current/content/character_mapping__algorithm_frameworks_.htm" target="_blank" rel="noopener">Character Mapping</a>; <a href="https://help.delphix.com/cc/current/content/character_replacement__algorithm_frameworks_.htm" target="_blank" rel="noopener">Character Replacement</a>; <a href="https://help.delphix.com/cc/current/content/free_text_redaction__algorithm_frameworks_.htm" target="_blank" rel="noopener">Free Text Redaction</a>; <a href="https://help.delphix.com/cc/current/content/string_algorithm_chain__algorithm_frameworks_.htm" target="_blank" rel="noopener">String Algorithm Chain</a>; <a href="https://help.delphix.com/cc/current/content/tokenization__algorithm_frameworks_.htm" target="_blank" rel="noopener">Tokenization</a>; <a href="https://help.delphix.com/cc/current/content/min_max_number__algorithm_frameworks_.htm" target="_blank" rel="noopener">Min Max Number</a>; <a href="https://help.delphix.com/cc/current/content/algorithm_syncability.htm" target="_blank" rel="noopener">Algorithm syncability</a>; <a href="https://help.delphix.com/cc/current/content/best_practices_for_delphix_data_masking.htm" target="_blank" rel="noopener">Best practices for Delphix data masking</a>; <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs</a>; <a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a>.</li>
+<li>GenRocket: <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/what-is-synthetic-data-replacement-sdr" target="_blank" rel="noopener">What is Synthetic Data Replacement</a>; <a href="https://genrocket.helpjuice.com/en_US/data-subsetting-and-masking-2/synthetic-data-masking-sdm-and-data-subsetting-overview" target="_blank" rel="noopener">SDM and Data Subsetting Overview</a>.</li>
+<li>General concepts written for this guide: the term comparison, static versus dynamic masking, risks, decision table and validation checklist. All masked sample values are invented.</li>
+</ul></section>
