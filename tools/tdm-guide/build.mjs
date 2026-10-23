@@ -169,8 +169,8 @@ for (const c of chapters) {
 
 // ---------- templates ----------
 const nav = `<nav aria-label="Main navigation"><a href="${SITE}/">Home</a><a href="${SITE}/projects/">Projects</a><a href="${SITE}/blogs/">Blogs</a><a href="index.html">TDM Guide</a></nav>`;
-function head(title, desc, canonical) {
-  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>${esc(title)}</title><meta name="description" content="${esc(desc)}"><link rel="canonical" href="${canonical}"><meta property="og:type" content="article"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="${SITE}/">SK</a>${nav}<div class="tools"><button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header>`;
+function head(title, desc, canonical, hasSidebar = false) {
+  return `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#0a0a0b"><title>${esc(title)}</title><meta name="description" content="${esc(desc)}"><link rel="canonical" href="${canonical}"><meta property="og:type" content="article"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><link rel="stylesheet" href="assets/guide.css"><script>try{var t=localStorage.getItem('tdm-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}try{var s=localStorage.getItem('tdm-sidebar');if(!s&&matchMedia('(max-width:860px)').matches)s='hidden';if(s==='hidden')document.documentElement.setAttribute('data-sidebar','hidden')}catch(e){}</script></head><body><div id="progress" aria-hidden="true"></div><a class="skip" href="#main">Skip to content</a><header class="header"><div class="wrap headbar"><a class="brand" href="${SITE}/">SK</a>${nav}<div class="tools">${hasSidebar ? '<button id="sidebar-toggle" type="button" aria-controls="sidebar" aria-expanded="true" title="Hide or show the sidebar ([)">☰ <span>Contents</span></button>' : ""}<button id="search-open" type="button" aria-label="Search the guide">Search <kbd>/</kbd></button><button id="theme-toggle" type="button" aria-label="Toggle light and dark theme">◐</button></div></div></header>`;
 }
 const foot = `<footer class="sitefooter"><div class="wrap">© 2026 Saravan Kumar M K · <a href="${SITE}/">Portfolio</a> · <a href="index.html">TDM Guide</a> · <a href="syllabus.html">Syllabus index</a> · <a href="${structure.extra.file}">Sources &amp; limitations</a> · Study notes: always confirm screen details against your own tool version.</div></footer><div id="search-modal" hidden><div class="search-box" role="dialog" aria-label="Search"><input id="search-input" type="search" placeholder="Search the whole guide (e.g. 'primary key', 'shuffle', 'receiver')…" autocomplete="off"><div id="search-results"></div><p class="search-hint">Esc to close · ↑↓ to move · Enter to open</p></div></div><script src="assets/guide.js" defer></script></body></html>`;
 
@@ -179,7 +179,7 @@ function contentsList(c, cls) {
   return c.groups.map((g, gi) => `<details class="grpbox"${gi === 0 ? " open" : ""}${g.id ? ` data-grp="${g.id}"` : ""}><summary>${esc(g.title || "Sections")}</summary><div class="${cls}">${g.items.map((t) => `<a href="#${t.id}">${esc(t.text)}</a>`).join("")}</div></details>`).join("");
 }
 function sidebar(current) {
-  let h = `<aside class="sidebar" aria-label="Chapter navigation"><a class="allchap" href="index.html">← All ${main.length} chapters</a><h3>Chapters</h3><div class="chapter-list">`;
+  let h = `<aside class="sidebar" id="sidebar" aria-label="Chapter navigation"><div class="sbtop"><a class="allchap" href="index.html">← All ${main.length} chapters</a><button type="button" class="sbhide" data-sidebar-hide title="Hide the sidebar ([)">« Hide</button></div><h3>Chapters</h3><div class="chapter-list">`;
   for (const c of main) h += `<a class="${current && c.num === current.num ? "current" : ""}" href="${c.file}"><span class="n">${pad(c.num)}</span> ${esc(c.title)}</a>`;
   h += `<a class="${current && current.extra ? "current" : ""}" href="${structure.extra.file}"><span class="n">··</span> About the sources</a></div>`;
   if (current) h += `<h3>In this chapter</h3><div class="section-list">${contentsList(current, "secs")}</div>`;
@@ -194,7 +194,7 @@ function chapterPage(c, i) {
   const title = c.extra ? `${c.title} | TDM Guide` : `Chapter ${c.num}: ${c.title} | TDM Guide`;
   const toc = c.groups.length ? `<details class="pagetoc"><summary>Contents of this chapter</summary>${contentsList(c, "secs")}</details>` : "";
   const body = `<main id="main"><div class="article-layout">${sidebar(c)}<article class="prose"><div class="article-top"><p class="eyebrow">${eyebrow}</p><h1>${esc(c.title)}</h1><div class="meta"><span>Saravan Kumar M K</span><span>Updated ${UPDATED}</span>${c.sectionCount ? `<span>${c.sectionCount} sections</span>` : ""}</div><p class="chapter-summary">${esc(c.summary)}</p></div>${toc}${c.html}<nav class="chapter-nav" aria-label="Previous and next chapter">${prev ? `<a href="${prev.file}">← ${esc(label(prev))}</a>` : "<span></span>"}${next ? `<a href="${next.file}">${esc(label(next))} →</a>` : "<span></span>"}</nav></article></div></main>`;
-  return head(title, c.summary, `${SITE}/blogs/tdm-guide/${c.file}`) + body + foot;
+  return head(title, c.summary, `${SITE}/blogs/tdm-guide/${c.file}`, true) + body + foot;
 }
 function partOf(id) { return structure.parts.find((p) => p.id === id); }
 
@@ -218,7 +218,7 @@ function indexPage() {
 const curriculum = JSON.parse(fs.readFileSync(path.join(here, "curriculum.json"), "utf8"));
 const secLink = (m) => { const w = where[m]; return w ? `<a href="${w.file}#${w.id}">Ch ${w.ch.num}</a> <span class="muted">${esc(minis[m] ? minis[m].meta.title : "")}</span>` : ""; };
 function syllabusPage() {
-  let h = head("Syllabus index | TDM Guide", "Where each syllabus day and hands-on item is covered in the TDM Guide.", `${SITE}/blogs/tdm-guide/syllabus.html`);
+  let h = head("Syllabus index | TDM Guide", "Where each syllabus day and hands-on item is covered in the TDM Guide.", `${SITE}/blogs/tdm-guide/syllabus.html`, true);
   h += `<main id="main"><div class="article-layout">${sidebar(null)}<article class="prose"><div class="article-top"><p class="eyebrow">TDM GUIDE / INDEX</p><h1>Syllabus index</h1><p class="chapter-summary">Every day of the programme syllabus and every hands-on item, with the topic in this guide that covers it.</p></div>`;
   h += `<h2 id="days">Syllabus days</h2><div class="tablewrap"><table><thead><tr><th>Day</th><th>Topic</th><th>Where to read it</th></tr></thead><tbody>`;
   for (const r of curriculum.days) h += `<tr><td><span class="day">${esc(r.day)}</span></td><td><strong>${esc(r.topic)}</strong><br><span class="muted">${esc(r.desc)}</span></td><td>${r.chapters.map(secLink).filter(Boolean).join("<br>")}</td></tr>`;
