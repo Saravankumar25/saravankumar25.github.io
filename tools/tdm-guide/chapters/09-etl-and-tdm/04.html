@@ -95,12 +95,12 @@ SELECT 'Tester' || 1001 = last_name AS same_as_first_run FROM t_customers WHERE 
 <h3 id="c9-pit-consistency">9.8.2 Consistency across ETL and masking</h3>
 <p>When keys are masked, they must be masked identically wherever they appear. I tested this with the three ShopSphere customers and four orders by adding 70000 to the key.</p>
 <pre><code>-- Customer keys masked, order keys left alone: the join breaks
-SELECT COUNT(*) FROM ord o JOIN (SELECT customer_id + 70000 AS customer_id FROM cust) c
+SELECT COUNT(*) FROM orders o JOIN (SELECT customer_id + 70000 AS customer_id FROM customers) c
   ON c.customer_id = o.customer_id;                        -- returns 0
 
 -- The same rule applied to both tables: the join works
-SELECT COUNT(*) FROM (SELECT order_id, customer_id + 70000 AS customer_id FROM ord) o
-  JOIN (SELECT customer_id + 70000 AS customer_id FROM cust) c
+SELECT COUNT(*) FROM (SELECT order_id, customer_id + 70000 AS customer_id FROM orders) o
+  JOIN (SELECT customer_id + 70000 AS customer_id FROM customers) c
   ON c.customer_id = o.customer_id;                        -- returns 4</code></pre>
 <p>Two further consistency risks come from ETL-style staging. First, if the same person appears in two systems (CRM and billing) and each is masked by a separate job with a random rule, the person gets two different fake identities and cross-system tests fail. Use deterministic rules and share the algorithm and its key across jobs. Delphix algorithms differ in this respect: some are non-deterministic and "cannot guarantee the same output for the same input across masking jobs", while others are fixed (<a href="https://help.delphix.com/cc/current/content/algorithm_syncability.htm" target="_blank" rel="noopener">Algorithm syncability ↗</a>); the terminology page also notes that a secure lookup can collide, which matters when a column must stay unique. <span class="badge doc">From docs</span> Second, a <em>reversible</em> method such as tokenization (the only algorithm type that allows reversing, per the terminology page) is a deliberate exception, not a default.</p>
 <h3 id="c9-pit-performance">9.8.3 Performance</h3>
