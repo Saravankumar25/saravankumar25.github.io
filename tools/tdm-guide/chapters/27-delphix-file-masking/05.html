@@ -1,0 +1,92 @@
+<h2 id="c27-lab">27.13 Lab: mask a ShopSphere customers.dat file (Day 53, TDM_Handson6)</h2>
+<div class="exercise"><h4>Lab: from a text file to a masked file</h4>
+<p>Goal: mask <code>customers.dat</code> in place on a file server, using a delimited format, a connector, a file rule set, algorithm assignments and a masking job, then verify the output with shell commands. All data is fake. Use a work copy on a disposable path, never a real feed. The names (<code>customers_delimited.fmt</code>, <code>/data/shopsphere/work</code>) are my own choices. The algorithms were introduced in <a href="26-delphix-algorithms-and-masking-jobs.html">the algorithms and masking jobs chapter</a>.</p>
+<ol class="steps">
+<li><strong>Create the sample file on the file server and keep an untouched backup elsewhere.</strong><p>Use the four lines shown earlier, saved with LF line endings. Put <code>customers.dat</code> in <code>/data/shopsphere/work/</code> and a copy named <code>customers.dat.orig</code> somewhere the connector cannot see, such as your home directory. You need the original to prove the change.</p><p class="expect">The work directory holds exactly one file.</p></li>
+<li><strong>Create the format definition <code>customers_delimited.fmt</code>: nine lines, one field name per line, in file order, no header.</strong><p><code>customer_id</code>, <code>first_name</code>, <code>last_name</code>, <code>email</code>, <code>phone</code>, <code>ssn</code>, <code>date_of_birth</code>, <code>zip_code</code>, <code>tax_id</code>. The first line of <em>data</em> is a header, but the definition lists names only.</p></li>
+<li><strong>Import it: Settings &gt; Data Formats &gt; + File Format &gt; Delimited, choose the file, set <em>1</em> header record and <em>0</em> footer records, Save.</strong><p>The header line <code>customer_id|first_name|...</code> is then copied through unmasked instead of being treated as a customer.</p><p class="expect">A format named customers_delimited.fmt of type Delimited appears in the File tab.</p></li>
+<li><strong>Create the connector: Connectors &gt; + Connection, Source Type File - Delimited, mode SFTP (or Filesystem Mount Point), server, port, path <code>/data/shopsphere/work</code>, credentials. Click Test Connection, then Save.</strong><p>The connector's path is where the engine looks for files.</p><p class="expect">Test Connection reports success.</p></li>
+<li><strong>Create the rule set: Rule Sets &gt; Add Rule Set &gt; Flat Files, name <code>ShopSphere_Files</code>, choose the connector, then in Data Files click <em>Add File Name</em>, tick <code>customers.dat</code>, and set Format File to <code>customers_delimited.fmt</code>, End of Record LF, Delimiter <code>|</code>, Text Enclosure blank. Save, Next, Save.</strong><p>Delimiter and end-of-record are properties of the data file, not of the format.</p><p class="expect">The rule set shows Source Type Delimited with one file.</p></li>
+<li><strong>Optional: run a profiling job on the rule set (see the profiling chapter) to see which fields the ASDD profiler flags.</strong><p>Field names such as first_name, ssn and email are recognisable, so most fields should be flagged. Compare with your plan below.</p></li>
+<li><strong>Open the inventory and assign algorithms, one Edit per field, unticking Enable Automatic Updates first.</strong><p>Plan: <code>first_name</code> FIRST_NAME with <code>dlpx-core:FirstName</code>; <code>last_name</code> LAST_NAME with <code>dlpx-core:LastName</code>; <code>email</code> EMAIL with <code>dlpx-core:Email Unique</code>; <code>phone</code> TELEPHONE_NO with <code>dlpx-core:Phone Unique</code>; <code>ssn</code> SSN with your <code>SHOPSPHERE_SSN</code> or <code>dlpx-core:CM Digits</code>; <code>date_of_birth</code> DOB with a Date Shift algorithm and Date Format <code>yyyy-MM-dd</code>; <code>zip_code</code> ZIP with <code>dlpx-core:CM Digits</code>; <code>tax_id</code> TAX_ID with <code>dlpx-core:CM Alpha-Numeric</code>. Leave <code>customer_id</code> unassigned.</p><p class="expect">Eight fields carry an algorithm; customer_id has none.</p></li>
+<li><strong>Create the job: + Masking Job, name <code>ShopSphere_Mask_File</code>, In-Place, rule set <code>ShopSphere_Files</code>. Configuration: 1 stream, memory 1024, Save. Run it from the "..." menu.</strong><p>There is no database step for file rule sets.</p><p class="expect">Status Queued, Running, Succeeded. Execution Components lists <code>customers.dat</code> with 100% progress.</p></li>
+<li><strong>Verify with the commands below.</strong><p>Run them in the work directory and compare to the expected results.</p></li>
+</ol>
+<pre><code># 1. line count and header
+wc -l customers.dat customers.dat.orig
+head -1 customers.dat
+
+# 2. every line still has 9 fields
+awk -F'|' '{print NF}' customers.dat | sort | uniq -c
+
+# 3. no original value survives in the columns that use unique-style algorithms
+for c in 4 5 6 9; do
+  cut -d'|' -f$c customers.dat.orig | tail -n +2 &gt; /tmp/orig_$c.txt
+  echo "column $c exact matches:" $(cut -d'|' -f$c customers.dat | tail -n +2 | grep -c -x -F -f /tmp/orig_$c.txt)
+done
+
+# 4. SSN shape (expect 0) and duplicates (expect 0)
+cut -d'|' -f6 customers.dat | tail -n +2 | grep -c -v -E '^[0-9]{3}-[0-9]{2}-[0-9]{4}$'
+cut -d'|' -f6 customers.dat | tail -n +2 | sort | uniq -d | wc -l
+
+# 5. customer_id untouched
+diff &lt;(cut -d'|' -f1 customers.dat.orig) &lt;(cut -d'|' -f1 customers.dat) &amp;&amp; echo ids identical
+
+# 6. no leftover temporary file, same owner and permissions
+ls -la</code></pre>
+<details class="sol"><summary>Show a worked answer</summary>
+<p><strong>Expected results.</strong></p>
+<ul>
+<li>Command 1: both files have 4 lines; the first line of the masked file is still the header.</li>
+<li>Command 2: <code>4 9</code>, meaning four lines with nine fields each. A different number means the delimiter or format is wrong, or a masked value contained the delimiter.</li>
+<li>Command 3: all zeros. The algorithms for email, phone, SSN and tax id are designed to change every value. Do not run this check for names: the docs allow a masked name to equal the original.</li>
+<li>Command 4: 0 and 0. The shape holds and the SSNs are unique.</li>
+<li>Command 5: "ids identical".</li>
+<li>Command 6: only <code>customers.dat</code> is present. The hidden <code>.msk</code> temporary file used by in-place masking has been renamed over the original, and owner and group are unchanged.</li>
+</ul>
+<p><strong>An illustrative masked line</strong> (invented by the author, your values will differ): <code>1001|Nimisha|Haldane|XF35TNMKPPTMQF4CX5264ZRXOMJJL2DQVE3KTZNIJ2NS6EUH7GLA@example.com|9874120685|804-27-1956|1990-04-17|312904|KMQTR6021Z</code>. Notice: the email is the long Email Unique form, the phone keeps its first three digits, and the date moved five days with the same format.</p>
+<p><strong>If it did not work.</strong> Nothing masked but status Succeeded: the file name or pattern does not match any file on the connector path. Fields shifted: wrong delimiter or format. Header masked: header count is 0. Extra characters at line ends: end-of-record should be CR+LF if the file came from Windows. Job fails on missing file: the connector path is wrong.</p></details></div>
+<div class="exercise"><h4>Mini exercise: a fixed-width version</h4>
+<p>Goal: see why lengths matter. Make a format <code>customers_fixed.fmt</code> with lines <code>customer_id,6</code>, <code>first_name,12</code>, <code>last_name,12</code>, and a data line <code>1001  Asha        Menon       </code>.</p>
+<ol class="steps">
+<li><strong>Import it as Fixed Width, add a fixed-width rule set and assign <code>dlpx-core:FirstName</code> to first_name.</strong><p>The format gives the start position of each field from the cumulative lengths.</p></li>
+<li><strong>Change first_name to length 10 and rerun on a fresh copy.</strong><p class="expect">The masked first name no longer lines up with the original field: the engine now reads characters 7 to 16 as the first name, so part of the last name and padding get masked or left behind. This is my prediction from the docs' warning about wrong lengths; try it and look.</p></li>
+</ol></div>
+
+<h2 id="c27-mistakes">27.14 Common mistakes and gotchas</h2>
+<div class="callout warn"><strong class="ctitle">Watch out for these</strong>
+<ul>
+<li><strong>Uploading real data as a "format".</strong> Format files are schema only. A copy of last week's feed in the format dialog puts real values in the engine.</li>
+<li><strong>Forgetting that a format is shared.</strong> Editing fields or algorithm assignments for one file changes every file and rule set that uses the same format.</li>
+<li><strong>Wrong delimiter or end-of-record.</strong> The job may succeed while masking the wrong text. Open the output and look.</li>
+<li><strong>Header not declared.</strong> The header row is masked as if it were a customer.</li>
+<li><strong>Field count mismatch.</strong> Extra fields are silently dropped and missing ones are padded with delimiters.</li>
+<li><strong>Wrong fixed-width lengths.</strong> Every later field shifts. Count characters, not bytes.</li>
+<li><strong>File name pattern that matches nothing.</strong> The job can still end in success, so read the Execution Components.</li>
+<li><strong>Windows line endings in the format file.</strong> Use LF to avoid parsing failures.</li>
+<li><strong>Assuming UTF-16 or other encodings work.</strong> The docs list ASCII and UTF-8 (UTF-8 for Parquet, EBCDIC for mainframe).</li>
+<li><strong>Treating a masked file as safe without checking it.</strong> Run the verification commands and grep for known real values.</li>
+</ul></div>
+
+<h2 id="c27-recap">27.15 Recap</h2>
+<div class="callout recap"><strong class="ctitle">Key points</strong>
+<ul>
+<li>Files have no built-in column names, so a file format definition (schema only) maps positions or names to fields. Formats are global and shared.</li>
+<li>Delimited files need a delimiter and end-of-record (and optionally an enclosure and escape strategy); fixed-width files need exact lengths.</li>
+<li>Record types with up to three qualifiers handle mixed layouts; header and footer counts protect unmasked lines.</li>
+<li>Connectors reach files by filesystem mount, SFTP, FTP or FTPS, S3, S3-compatible storage and Azure Blob; mainframe data needs EBCDIC and a copybook.</li>
+<li>A file rule set lists files or patterns and gives each its format, end-of-record and delimiter; the inventory assigns algorithms to fields.</li>
+<li>In-place file masking writes a hidden <code>.msk</code> file and replaces the original on success; on-the-fly writes to a separate target and is faster.</li>
+<li>Always verify the output file: line counts, field counts, original values gone, unique fields still unique.</li>
+</ul></div>
+
+<section class="sources"><h2 id="c27-sources">Sources used in this chapter</h2>
+<ul>
+<li><a href="https://help.delphix.com/cc/current/content/files_connector.htm" target="_blank" rel="noopener">Files connector</a>: supported types and encodings; <a href="https://help.delphix.com/cc/current/content/accessing_files.htm" target="_blank" rel="noopener">Accessing Files</a>: read, but it concerns algorithm plugins and is not used for masking steps.</li>
+<li><a href="https://help.delphix.com/cc/current/content/managing_file_formats.htm" target="_blank" rel="noopener">Managing file formats</a>, <a href="https://help.delphix.com/cc/current/content/working_with_file_formats.htm" target="_blank" rel="noopener">Working with file formats</a>, <a href="https://help.delphix.com/cc/current/content/constructing_file_formats_for_upload.htm" target="_blank" rel="noopener">Constructing file formats for upload</a>, <a href="https://help.delphix.com/cc/current/content/add__view__edit__and_delete_fields_for_file_formats.htm" target="_blank" rel="noopener">Add, view, edit, delete fields</a>: format purpose, building, importing, editing, schema-only rule, mismatch behaviour.</li>
+<li><a href="https://help.delphix.com/cc/current/content/managing_record_types_and_header_footer_records.htm" target="_blank" rel="noopener">Record types and header/footer</a>, <a href="https://help.delphix.com/cc/current/content/configure_enclosure_escape_character.htm" target="_blank" rel="noopener">Configure enclosure escape character</a>: record types, qualifiers, header and footer, escaping.</li>
+<li><a href="https://help.delphix.com/cc/current/content/file_structure_for_masking.htm" target="_blank" rel="noopener">File structure for masking</a>, <a href="https://help.delphix.com/cc/current/content/json_structure.htm" target="_blank" rel="noopener">JSON structure</a>, <a href="https://help.delphix.com/cc/current/content/xml_structure.htm" target="_blank" rel="noopener">XML structure</a>, <a href="https://help.delphix.com/cc/current/content/parquet_structure.htm" target="_blank" rel="noopener">Parquet structure</a>, <a href="https://help.delphix.com/cc/current/content/whole_file_masking.htm" target="_blank" rel="noopener">Whole file masking</a>: structured file paths and whole-file masking.</li>
+<li><a href="https://help.delphix.com/cc/current/content/amazon_simple_storage_service__s3__connector_for_files.htm" target="_blank" rel="noopener">S3 connector</a>, <a href="https://help.delphix.com/cc/current/content/azure_blob_storage_connector_for_files.htm" target="_blank" rel="noopener">Azure Blob connector</a>, <a href="https://help.delphix.com/cc/current/content/mainframe_dataset_connector.htm" target="_blank" rel="noopener">Mainframe data set connector</a>, <a href="https://help.delphix.com/cc/current/content/managing_connectors.htm" target="_blank" rel="noopener">Managing connectors</a>: connection modes, in-place and on-the-fly file masking behaviour.</li>
+<li><a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>, <a href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Managing inventories</a>, <a href="https://help.delphix.com/cc/current/content/create__view__edit__delete__verify_jobs.htm" target="_blank" rel="noopener">Create, view, edit, delete, verify jobs</a> (the learner's truncated <code>.../content/create</code> link, 404, most likely meant this page): file rule set properties, inventory, job wizard.</li>
+<li>Not resolved: whether the on-the-fly target file must pre-exist (two pages differ); whether JSON rule sets can be profiled (two pages differ). Not read in full: the Mount Filesystem API details. Verification commands and the masked sample line are my own.</li>
+</ul></section>

@@ -1,0 +1,86 @@
+<p>Not all sensitive data sits in a database. Customers export spreadsheets, partners drop <code>.dat</code> feeds on an SFTP server, and batch jobs write flat text files that testers later load. A masking project has to cover those files too. The good news is that Delphix masks files with the same algorithms and the same ideas you have already met: a connector, a rule set, an inventory and a masking job. The new piece is the <dfn>file format</dfn>: because a text file has no built-in column names, you must tell the engine where the fields are.</p>
+<p>This chapter teaches that from zero and ends with the Day 53 lab (TDM_Handson6): masking a ShopSphere <code>customers.dat</code> file end to end. Connectors and rule sets are introduced in <a href="23-delphix-connectors-and-vdb.html">the connectors chapter</a> and <a href="24-delphix-rule-sets-and-keys.html">the rule sets chapter</a>; profiling and the inventory are in <a href="25-delphix-profiling.html">the profiling chapter</a>; the algorithms and job options come from <a href="26-delphix-algorithms-and-masking-jobs.html">the algorithms and masking jobs chapter</a>. Flat-file basics are also in <a href="03-data-basics.html">the data basics chapter</a>.</p>
+<div class="callout recap"><strong class="ctitle">What you will learn</strong>
+<ul>
+<li>How a text file becomes fields the engine can mask, and what a file format definition is.</li>
+<li>Delimited versus fixed-width files, end-of-record, delimiters, enclosures, escaping and encodings.</li>
+<li>Record types, qualifiers and header or footer records.</li>
+<li>Which connection modes reach files (mount, SFTP, FTP, S3, Azure Blob) and what the mainframe connector adds.</li>
+<li>How to build a file rule set, assign algorithms, run a file masking job in-place or on-the-fly, and verify the output.</li>
+<li>How JSON, XML, Parquet and whole-file masking differ, in brief.</li>
+</ul></div>
+<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
+<p>Delphix Continuous Compliance documentation 2026.5 (last published October 16, 2026), read in full: <a href="https://help.delphix.com/cc/current/content/files_connector.htm" target="_blank" rel="noopener">Files connector</a>, <a href="https://help.delphix.com/cc/current/content/accessing_files.htm" target="_blank" rel="noopener">Accessing Files</a>, <a href="https://help.delphix.com/cc/current/content/managing_file_formats.htm" target="_blank" rel="noopener">Managing file formats</a>, <a href="https://help.delphix.com/cc/current/content/add__view__edit__and_delete_fields_for_file_formats.htm" target="_blank" rel="noopener">Add, view, edit, and delete fields for file formats</a>, <a href="https://help.delphix.com/cc/current/content/constructing_file_formats_for_upload.htm" target="_blank" rel="noopener">Constructing file formats for upload</a>, <a href="https://help.delphix.com/cc/current/content/file_structure_for_masking.htm" target="_blank" rel="noopener">File structure for masking</a>, <a href="https://help.delphix.com/cc/current/content/managing_record_types_and_header_footer_records.htm" target="_blank" rel="noopener">Managing record types and header/footer records</a>, <a href="https://help.delphix.com/cc/current/content/configure_enclosure_escape_character.htm" target="_blank" rel="noopener">Configure enclosure escape character</a>, <a href="https://help.delphix.com/cc/current/content/json_structure.htm" target="_blank" rel="noopener">JSON structure</a>, <a href="https://help.delphix.com/cc/current/content/parquet_structure.htm" target="_blank" rel="noopener">Parquet structure</a>, <a href="https://help.delphix.com/cc/current/content/amazon_simple_storage_service__s3__connector_for_files.htm" target="_blank" rel="noopener">Amazon S3 connector for files</a>, <a href="https://help.delphix.com/cc/current/content/azure_blob_storage_connector_for_files.htm" target="_blank" rel="noopener">Azure Blob Storage connector for files</a> and <a href="https://help.delphix.com/cc/current/content/mainframe_dataset_connector.htm" target="_blank" rel="noopener">Mainframe data set connector</a>. For the end-to-end flow I also used <a href="https://help.delphix.com/cc/current/content/managing_rule_sets.htm" target="_blank" rel="noopener">Managing rule sets</a>, <a href="https://help.delphix.com/cc/current/content/managing_connectors.htm" target="_blank" rel="noopener">Managing connectors</a>, <a href="https://help.delphix.com/cc/current/content/working_with_file_formats.htm" target="_blank" rel="noopener">Working with file formats</a>, <a href="https://help.delphix.com/cc/current/content/whole_file_masking.htm" target="_blank" rel="noopener">Whole file masking</a>, <a href="https://help.delphix.com/cc/current/content/xml_structure.htm" target="_blank" rel="noopener">XML structure</a> and <a href="https://help.delphix.com/cc/current/content/managing_inventories.htm" target="_blank" rel="noopener">Managing inventories</a>.</p>
+<p>Note: the "Accessing Files" page is about how <em>algorithms</em> open their own input files (for example lookup files) when written with the plugin SDK. It is not about masking data files, so this chapter only mentions it. Screenshots come from engine versions 22.0.0.0 to 999.0.0.0 (a build number shown in some banners). The <code>customers.dat</code> sample and every masked value are illustrative inventions of mine.</p></div>
+
+<h2 id="c27-words">27.1 Words to know first</h2>
+<dl class="defs">
+<div><dt>Flat file</dt><dd>A plain text file where each line is a record and each record holds fields in a fixed order, such as a <code>.txt</code>, <code>.csv</code> or <code>.dat</code> file. The extension is only a habit; the engine cares about the layout.</dd></div>
+<div><dt>Record / field</dt><dd>A record is one line (one customer). A field is one value in it (the phone number).</dd></div>
+<div><dt>Delimited file</dt><dd>Fields are separated by a character such as <code>,</code> or <code>|</code>.</dd></div>
+<div><dt>Fixed-width file</dt><dd>Every field has a set length, so field two starts at a known position, with no separator.</dd></div>
+<div><dt>File format (definition)</dt><dd>A small description file you upload that lists a file's field names (and, for fixed width, lengths). It is metadata only. Many data files can share one format.</dd></div>
+<div><dt>End-of-record</dt><dd>The character or characters that end a line: LF on Linux, CR+LF on Windows.</dd></div>
+<div><dt>Text enclosure</dt><dd>A character, often a double quote, that wraps a value so the value may contain the delimiter. <code>"Menon, Asha"</code> is one field.</dd></div>
+<div><dt>Escape</dt><dd>How a literal enclosure character inside an enclosed value is written, by default by doubling it.</dd></div>
+<div><dt>Record type and qualifier</dt><dd>When one file mixes record layouts, a record type names each layout and up to three qualifiers say how to recognise it.</dd></div>
+<div><dt>Header and footer</dt><dd>Lines at the start or end that should be copied through unmasked.</dd></div>
+<div><dt>File connector / rule set</dt><dd>The connector says <em>where</em> the files are. The file rule set lists <em>which</em> files (or name patterns) to process and which format each uses.</dd></div>
+<div><dt>Encoding</dt><dd>How characters become bytes. ASCII and UTF-8 are supported for the main file types; mainframe data must be EBCDIC.</dd></div>
+</dl>
+
+<h2 id="c27-from-file-to-fields">27.2 How a text file becomes fields the engine can mask</h2>
+<p>A database table knows its own columns. A text file does not. Here is the ShopSphere sample used throughout this chapter, as a pipe-delimited file. All data is fake.</p>
+<pre><code>customer_id|first_name|last_name|email|phone|ssn|date_of_birth|zip_code|tax_id
+1001|Asha|Menon|asha.menon@example.com|9876543210|123-45-6789|1990-04-12|560001|ABCDE1234F
+1002|Ravi|Kumar|ravi.k@example.com|9123456780|234-56-7890|1985-11-02|600017|PQRST5678K
+1003|Meera|Nair|meera.n@example.com|9988776655|345-67-8901|1999-07-23|682001|LMNOP9012Q</code></pre>
+<p>To the engine this is just characters. For it to apply "first name algorithm to field 2", it needs a map: field 1 is <code>customer_id</code>, field 2 is <code>first_name</code>, and so on. That map is the file format. The rest of the chain mirrors databases:</p>
+<div class="flow">
+<div class="node"><b>File format</b>names the fields</div><div class="arrow">→</div>
+<div class="node"><b>Connector</b>where the files live</div><div class="arrow">→</div>
+<div class="node"><b>Rule set</b>which files, which format</div><div class="arrow">→</div>
+<div class="node"><b>Inventory</b>field → algorithm</div><div class="arrow">→</div>
+<div class="node"><b>Masking job</b>reads, masks, writes</div>
+</div>
+<p>The docs state the reason directly: unlike databases, files typically carry no built-in metadata describing their fields, so you supply it in Settings &gt; Data Formats <span class="badge doc">From docs</span>.</p>
+
+<h3 id="c27-inspect">Look at the file before you describe it</h3>
+<p>The extension (<code>.txt</code>, <code>.dat</code>, <code>.csv</code>) tells the engine nothing; only the layout matters. Before you write a format, answer four questions about the actual file. These commands are ordinary Linux tools, not Delphix features, and are my suggestion:</p>
+<pre><code>head -3 customers.dat                      # what separates the fields?
+cat -A customers.dat | head -2             # $ marks LF; ^M$ means CR+LF (Windows)
+awk -F'|' '{print NF}' customers.dat | sort | uniq -c   # same field count on every line?
+file customers.dat                         # ASCII or UTF-8 text?</code></pre>
+<p>If <code>cat -A</code> shows <code>^M$</code> at line ends, the end-of-record is CR+LF. If the field counts vary, the file has several record layouts or stray delimiters, which points to record types or enclosures.</p>
+<p>The same ShopSphere record as fixed width, with lengths 6, 12, 12 and 30, looks like this (dots stand for padding spaces):</p>
+<pre class="ascii">1001..Asha........Menon.......asha.menon@example.com......
+^1-6  ^7-18       ^19-30      ^31-60</pre>
+<p>Field 2 starts at position 7 because field 1 is six characters long. The engine computes every start from the lengths you list, which is why one wrong length shifts everything after it.</p>
+<h2 id="c27-supported">27.3 Supported file types and encodings</h2>
+<div class="tablewrap"><table><thead><tr><th>Type</th><th>Encodings</th><th>Notes</th></tr></thead><tbody>
+<tr><td>Fixed Width</td><td>ASCII, UTF-8</td><td>Supported</td></tr>
+<tr><td>Delimited</td><td>ASCII, UTF-8</td><td>Supported</td></tr>
+<tr><td>XML</td><td>ASCII, UTF-8</td><td>Supported</td></tr>
+<tr><td>JSON</td><td>ASCII, UTF-8</td><td>Supported</td></tr>
+<tr><td>Parquet</td><td>UTF-8</td><td>Supported</td></tr>
+<tr><td>Mainframe data set</td><td>EBCDIC only</td><td>Uses a COBOL copybook as the format; separate connector page</td></tr>
+</tbody></table></div>
+<p>All of these are masked with the same algorithms available for other sources. JSON or XML stored <em>inside</em> a database column or a delimited field can be handled by Document Store Type masking, which is outside this chapter <span class="badge doc">From docs</span>.</p>
+
+<h2 id="c27-delimited-vs-fixed">27.4 Delimited versus fixed-width, and the characters that matter</h2>
+<div class="compare"><div><h4>Delimited</h4>
+<p>Fields separated by a delimiter. Needs: the delimiter, optionally a text enclosure, an end-of-record. Fields can have any length. The format file lists field names, one per line, and no header.</p>
+<p>Sample: <code>1001|Asha|Menon</code></p></div>
+<div><h4>Fixed-width</h4>
+<p>Fields occupy fixed positions. Needs: an end-of-record and exact field lengths. The format file lists <code>name,length</code> per line. Length is counted in characters, not bytes, so multi-byte characters count once.</p>
+<p>Sample: <code>1001Asha      Menon     </code></p></div></div>
+<h3 id="c27-eor">End-of-record</h3>
+<p>Choose LF for Linux-style files and CR+LF for Windows-style ones in the rule set's file properties. The docs do not describe the failure mode; my expectation is that a wrong choice glues lines together or leaves a stray carriage return in the last field. The rule set page also lets you use a control character as delimiter or end-of-record: click the CTRL button for a virtual keyboard, or type it as <code>$[hex value]</code>, for example <code>$[01]</code> for ^A. The docs say to avoid typing <code>^t</code> or <code>\t</code> <span class="badge doc">From docs</span>.</p>
+<h3 id="c27-enclosure">Enclosures and escaping</h3>
+<p>Take the line <code>1004|"Rao, Kiran"|...</code> with a pipe delimiter and a double quote enclosure. The comma inside the quotes belongs to the value. If a value itself contains a quote, it must be escaped. The rule set offers an <em>Enclosure Escaping Strategy</em> <span class="badge doc">From docs</span>:</p>
+<ul>
+<li><strong>Double Enclosure</strong> (the default): the escape character is the enclosure character, so <code>""</code> means one literal quote.</li>
+<li><strong>Custom</strong>: any single character except escape sequences and control characters.</li>
+<li><strong>Escape "Enclosure Escape Character"</strong> (checkbox): the escape character can also escape itself, so with <code>*</code> as escape, <code>**</code> is one literal <code>*</code>.</li>
+</ul>
+<p>For a large number of rule sets the docs provide an API script that updates these settings through <code>PUT /file-metadata</code>, for all delimited rule sets with an enclosure or for one rule set ID. A custom escape character or the "escape the escape" flag is not supported for delimited fields holding structured (JSON or XML) data; only double enclosure is.</p>
