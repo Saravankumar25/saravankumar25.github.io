@@ -104,4 +104,29 @@
 <p>Consequence: the source stays untouched. The supported pairings are limited: same-type to same-type (Oracle to Oracle, delimited file to delimited file), and database to delimited file.</p>
 <p>It needs a second environment and connector for the source side.</p></div>
 </div>
+<figure class="diagram"><svg viewBox="0 0 820 300" role="img" aria-label="Two rows. In-place: one database box with an arrow looping back to itself labelled masked values overwrite originals. On-the-fly: a source box, a masking engine box and a different target box in a line.">
+<defs><marker id="c22ar2" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 z" fill="currentColor"/></marker></defs>
+<g font-size="13" fill="currentColor">
+<text x="10" y="24" font-weight="700">In-Place</text>
+<rect x="40" y="40" width="190" height="64" rx="6" fill="var(--surface)" stroke="currentColor"/><text x="52" y="66">Copy of the database</text><text x="52" y="86">(real values inside)</text>
+<rect x="330" y="40" width="160" height="64" rx="6" fill="var(--surface)" stroke="currentColor"/><text x="342" y="66" font-weight="700">Masking engine</text><text x="342" y="86">reads, masks, updates</text>
+<rect x="590" y="40" width="190" height="64" rx="6" fill="var(--surface)" stroke="currentColor"/><text x="602" y="66">Same database</text><text x="602" y="86">(masked values now)</text>
+<g stroke="currentColor" stroke-width="1.5" marker-end="url(#c22ar2)"><line x1="230" y1="72" x2="330" y2="72"/><line x1="490" y1="72" x2="590" y2="72"/></g>
+<text x="40" y="128" font-size="12">After the run the originals are gone. Each row is found again by its key to be updated.</text>
+<text x="10" y="176" font-weight="700">On-The-Fly</text>
+<rect x="40" y="192" width="190" height="64" rx="6" fill="var(--surface)" stroke="currentColor"/><text x="52" y="218">Source database or files</text><text x="52" y="238">(untouched)</text>
+<rect x="330" y="192" width="160" height="64" rx="6" fill="var(--surface)" stroke="currentColor"/><text x="342" y="218" font-weight="700">Masking engine</text><text x="342" y="238">reads, masks, writes</text>
+<rect x="590" y="192" width="190" height="64" rx="6" fill="var(--surface)" stroke="currentColor"/><text x="602" y="218">Different target</text><text x="602" y="238">(masked values only)</text>
+<g stroke="currentColor" stroke-width="1.5" marker-end="url(#c22ar2)"><line x1="230" y1="224" x2="330" y2="224"/><line x1="490" y1="224" x2="590" y2="224"/></g>
+<text x="40" y="280" font-size="12">Needs a second environment and connector for the source side. Source stays as it was.</text>
+</g></svg><figcaption>Original diagram: the two masking methods. The one-sentence definitions come from the job-creation page; the "found again by its key" note comes from the database preparation pages and is explained in the keys chapter.</figcaption></figure>
 <p>One more difference shows up in the keys discussion of <a href="24-delphix-rule-sets-and-keys.html">the rule set chapter</a>: because an in-place job has to find each row again in order to update it, it needs a key per table. The database preparation pages for SQL Server, Db2 and Sybase offer on-the-fly masking as the alternative when a table has no usable key.</p>
+<h3 id="c22-classify-demo">22.3.4 Seeing profiling on ShopSphere</h3>
+<p>The discovery page names four classifier frameworks. Pairing them with ShopSphere's CUSTOMERS table shows why the engine can use both column names and values. The matches below are what each framework <em>would look at</em>, not output from a real profiling run, since I had no engine to run one on.</p>
+<div class="tablewrap"><table class="sample"><caption>Which classifier framework could help with each CUSTOMERS column (illustrative)</caption><thead><tr><th>Column</th><th>PATH (column name)</th><th>TYPE (data type and length)</th><th>REGEX / LIST (the values)</th></tr></thead><tbody>
+<tr><td>first_name</td><td>name looks like "first name"</td><td>rules out a number or a date</td><td>LIST: is the value in a list of known first names?</td></tr>
+<tr><td>ssn</td><td>name looks like "ssn"</td><td>a short string, not a date</td><td>REGEX: does the value look like three digits, two digits, four digits?</td></tr>
+<tr><td>email</td><td>name contains "email"</td><td>a string of enough length</td><td>REGEX: does it have an "@" and a dot?</td></tr>
+<tr><td>customer_id</td><td>no sensitive-sounding name</td><td>a number</td><td>nothing matches, so it is not flagged by profiling</td></tr>
+</tbody></table></div>
+<p>The last row teaches something important. <code>customer_id</code> is not "sensitive" to a profiler, yet it is a key, and keys can break if you mask one side of a relationship. Profiling finds sensitive <em>values</em>; it does not understand your business relationships. You, or the data steward, must add key columns to the masking plan on purpose. That is the topic of <a href="24-delphix-rule-sets-and-keys.html">the keys chapter</a>.</p>
