@@ -109,7 +109,7 @@ WHERE  NOT EXISTS (SELECT 1 FROM dim_customer d
 <tr><td>Strength</td><td>Sensitive data can be cleaned or masked before it lands in the target</td><td>Uses the target's power; raw data can be re-transformed later</td></tr>
 <tr><td>Weakness</td><td>The engine can become a bottleneck</td><td>Raw (maybe sensitive) data sits in the target</td></tr>
 </tbody></table></div>
-<p>Look at the last row, because it matters for test data. If raw data holds real personal details, ELT would place them in the target before masking. That is why TDM favours the ETL order: mask first, then load. The ShopSphere example in this chapter is really a hybrid: staging is a lightweight "EL" step and the transformation is done by SQL. Many practical systems mix both styles. <span class="badge concept">General concept</span></p>
+<p>Look at the last row, because it matters for test data. If raw data holds real personal details, ELT would place them in the target before masking. That is why test data work usually follows the ETL order: mask first, then load. The ShopSphere example in this chapter is really a hybrid: staging is a lightweight "EL" step and the transformation is done by SQL. Many practical systems mix both styles. <span class="badge concept">General concept</span></p>
 
 <h2 id="c8-architecture">8.10 ETL architecture</h2>
 <p>An ETL tool is more than a place to run SQL. Look back at the diagram in 8.4. Here is each part and what a real product adds to the plain SQL of our example.</p>
@@ -168,7 +168,7 @@ WHERE  NOT EXISTS (SELECT 1 FROM dim_customer d
 <li>Test Data Manager can create a masking rule <em>from a mapplet</em>. The mapplet holds the logic that masks the input columns and returns data to the target columns (User Guide 10.5.10, p.137). <span class="badge doc">From docs</span></li>
 <li>You import the mapplet from an XML file exported from the PowerCenter repository or the Model repository, and the mapplet can contain "any passive transformations" (p.137). A passive transformation is one that does not change the number of rows. <span class="badge doc">From docs</span></li>
 <li>A mapplet can have multiple input and multiple output columns; at least one input and one output must be marked required. When you assign the rule to a column you map the mapplet's column names to the real table columns (p.137). <span class="badge doc">From docs</span></li>
-<li>The TDM repository stores the mapplet logic when imported, and you cannot change the mapplet inside Test Data Manager. To change it, edit it in PowerCenter and import it again (pp.137 and 151). <span class="badge doc">From docs</span></li>
+<li>The TDM repository stores the mapplet logic when imported, and you cannot change the mapplet inside Test Data Manager. The guide also says that if you change the name or type of a field of a custom masking rule, you must import the mapplet again (p.144). <span class="badge doc">From docs</span></li>
 <li>Data generation uses the same idea: a <em>custom generation rule</em> is based on PowerCenter mapplet logic, for example one that joins first and last name into a full name (pp.192 and 211). <span class="badge doc">From docs</span></li>
 </ul>
 <p>The syllabus mentions "mapplet creation" on Day 54, so the <a href="14-informatica-data-masking.html">Informatica data masking chapter</a> returns to this with the actual TDM steps. For the building of a mapplet in PowerCenter itself, this guide has no documentation excerpt, so I only link the related video above, whose content I could not check.</p>
