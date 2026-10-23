@@ -1,0 +1,175 @@
+<h2 id="c14-design">14.10 Putting it together: a masking design for ShopSphere</h2>
+<p>This section is my own design, built from the techniques above.
+It is the kind of table a TDM engineer fills in before touching the tool, and it is what the labs in 14.11 follow.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Column</th><th>Domain (policy pack name if one exists)</th><th>Technique and key parameters</th><th>Reason</th></tr></thead>
+<tbody>
+<tr><td>first_name</td><td>First Name Domain</td><td>Substitution, dictionary FIRSTNAMES, Repeatable Output, seed 1</td><td>Realistic names; same customer gets the same name in every run</td></tr>
+<tr><td>last_name</td><td>Last Name Domain</td><td>Shuffle, Representative, seed 1</td><td>Real surnames, detached from people; same surname always maps the same way</td></tr>
+<tr><td>email</td><td>Email Address Domain</td><td>Email (advanced), columns from mapping, delimiter ".", constant domain example.com</td><td>Address matches the masked name, no real domain leaks</td></tr>
+<tr><td>phone</td><td>Phone Domain</td><td>Phone masking</td><td>Keeps the number layout the app expects</td></tr>
+<tr><td>ssn</td><td>Social Security Number Domain</td><td>SSN masking, Repeatable Output, seed 7</td><td>Valid-looking, avoids issued numbers, stable across runs</td></tr>
+<tr><td>date_of_birth</td><td>Birth Date Domain</td><td>Random, blurring unit year, low 2, high 2</td><td>Keeps age band, hides the real date</td></tr>
+<tr><td>zip_code</td><td>ZIP Domain</td><td>Random, mask format <code>+++DDD</code></td><td>Keeps the postal area, randomises the rest</td></tr>
+<tr><td>tax_id</td><td>(custom domain, found by column name)</td><td>Key, mask format <code>AAAAADDDDA</code>, seed 5</td><td>Keeps the letter-digit-letter shape, deterministic</td></tr>
+<tr><td>customer_id (PK) and orders.customer_id (FK)</td><td>none</td><td>Left unmasked here. If you chose to mask them, rely on the auto cascade, or key masking with the same seed in both</td><td>A surrogate id is not personal data by itself; this is a project decision</td></tr>
+</tbody></table></div>
+<div class="tablewrap"><table class="sample"><caption>CUSTOMERS rows after masking (illustrative; real output will differ)</caption>
+<thead><tr><th>customer_id</th><th>first_name</th><th>last_name</th><th>email</th><th>phone</th><th>ssn</th><th>date_of_birth</th><th>zip_code</th></tr></thead>
+<tbody>
+<tr><td>1001</td><td>Divya</td><td>Nair</td><td>divya.nair@example.com</td><td>9876012345</td><td>612-73-4410</td><td>1991-03-30</td><td>560417</td></tr>
+<tr><td>1002</td><td>Arjun</td><td>Menon</td><td>arjun.menon@example.com</td><td>9123870465</td><td>478-09-2231</td><td>1986-01-19</td><td>600358</td></tr>
+<tr><td>1003</td><td>Latha</td><td>Kumar</td><td>latha.kumar@example.com</td><td>9988120473</td><td>559-21-7068</td><td>1998-09-05</td><td>682940</td></tr>
+</tbody></table></div>
+<p>Before, for comparison: 1001 Asha Menon, 1002 Ravi Kumar, 1003 Meera Nair, with the original emails, phones, SSNs, dates of birth and zip codes of the shared sample data.
+Check the logic: the email names match the masked names (that is the point of the advanced email rule), the zip codes keep their first three digits, the dates stay within two years, and the surnames are the same three surnames moved around.</p>
+<div class="callout warn"><strong class="ctitle">A privacy check the tool will not do for you</strong>
+<p>Shuffle plus blurring can still be weak when the combination is unique.
+A reviewer may argue that "1991-03-30, zip 560417" in a small table is identifying.
+Decide with your compliance officer whether the combination of retained shape (zip prefix, age band) is acceptable.
+This is <span class="badge concept">General concept</span> advice, not from the guide.</p></div>
+
+<h3 id="c14-run">Running the masking operation: the guide's steps</h3>
+<p>The guide's list for performing a masking operation (User Guide 10.5.10, p.148 to 149) <span class="badge doc">From docs</span>, with reasons:</p>
+<ol class="steps">
+<li><strong>Create a data masking rule.</strong><p>The rule is the recipe (14.3). Preview it in the Rule Simulator.</p></li>
+<li><strong>Create a project and import metadata.</strong><p>The project knows the tables and columns. Use separate projects for XSD and relational sources.</p></li>
+<li><strong>Optional: create parameters or import global parameters.</strong><p>For example a seed variable in a parameter file, so you can change the seed without editing the rule (p.155).</p></li>
+<li><strong>Add the rule to the project.</strong><p>Projects only see rules you add (14.4).</p></li>
+<li><strong>Assign the rule to a target column (or to an XML element).</strong><p>This is where you say "mask ssn with SSN_Rule". Save each row.</p></li>
+<li><strong>Create a plan, add the rule, and configure source and target connections.</strong><p>A plan holds at least one rule or policy.
+It states whether data is masked in place in the source database or in stream into a target (p.150).
+Add a storage connection if any rule is repeatable substitution or expression masking (p.286).</p></li>
+<li><strong>Generate and run the workflow.</strong><p>PowerCenter creates mappings, sessions and a workflow and runs them (p.150).
+Use Actions > Generate and Execute, then pick parameter values (p.310 to 311).</p></li>
+<li><strong>Monitor the workflow.</strong><p>Check Workflow Executions for Success, then open the logs if not (p.311 to 312).</p><p class="expect">Target columns hold masked values; source untouched (when masking in stream into a target).</p></li>
+</ol>
+<p>Plans and workflow settings are in <a href="16-informatica-plans-workflows-and-warehouse.html">the Informatica plans, workflows and warehouse chapter</a>.
+If you also subset, masking runs on the subset result (p.275), as in <a href="13-informatica-data-subset.html">the Informatica data subset chapter</a>.</p>
+
+<h2 id="c14-labs">14.11 Hands-on labs</h2>
+<p>The syllabus lists TDM_Handson2 (data profiling and masking), Day 55 (mask FirstName) and Day 56 (mask alphanumeric text, SSN and telephone number).
+The curriculum also connects Day 55 and Day 56 to the Delphix material (<a href="26-delphix-algorithms-and-masking-jobs.html">algorithms and masking jobs</a> and <a href="28-delphix-hands-on-labs.html">the Delphix labs</a>); the labs here are the Informatica version.
+Screens and field names come from the guide as cited.
+The ShopSphere data, dictionary and seeds are my illustration, so adapt names to your lab database.</p>
+<div class="exercise"><h4>Lab 1 (TDM_Handson2): profile ShopSphere and apply masking rules by domain</h4>
+<p>Goal: find the sensitive columns of <code>CUSTOMERS</code> with a data domain profile (see <a href="12-informatica-discovery-and-profiling.html">the Informatica discovery and profiling chapter</a>), let the domains suggest rules, and mask them.</p>
+<ol class="steps">
+<li><strong>Create a project and import the ShopSphere source metadata.</strong><p>The project is where discovery results and rule assignments live (p.149).</p><p class="expect">The four tables are listed under the project.</p></li>
+<li><strong>Run a data domain discovery profile.</strong><p>Domains with data and column-name patterns (SSN, phone, email, zip) tag columns automatically (p.73 to 75).</p><p class="expect">Columns such as <code>ssn</code>, <code>phone</code>, <code>email</code> show a Domain value in Define | Data Masking; where it is blank, you assign a policy or domain by hand.</p></li>
+<li><strong>Mark sensitive columns and add the PII policy pack (or your own policy) to the project.</strong><p>The policy decides which preferred rules appear in the rule list (p.142, p.145).</p></li>
+<li><strong>Preview two rules in the Rule Simulator.</strong><p>Open an SSN rule and a phone rule, Source Details > My Test Data, type the three sample rows, click Go (p.140).</p><p class="expect">Original and masked values appear side by side.</p></li>
+<li><strong>In Define | Data Masking, select the sensitive columns and click Rule Assignment > Default Assignments, then Save.</strong><p>Default assignments give each column its domain's default rule (p.145, p.147).</p><p class="expect">The Masking Rule column fills in; rule names from domains show an asterisk.</p></li>
+<li><strong>Create a plan with the rules, generate and execute it.</strong><p>Pick a target database that is not production (p.148 to 149).</p><p class="expect">Status Success.</p></li>
+<li><strong>Verify.</strong><p>Query the target and compare with the source (see the SQL after Lab 3).</p></li>
+</ol>
+<details class="sol"><summary>Show a worked answer</summary>
+<p>What you should end up with is a target <code>CUSTOMERS</code> whose sensitive columns differ from the source row by row, with the same customer ids and untouched non-sensitive columns.
+If a column was not masked, check (a) the assignment was saved (unsaved assignments are discarded, p.145), (b) the column has a rule that matches its datatype, (c) the plan includes that rule or policy.
+If the profile tagged <code>tax_id</code> with no domain, assign a rule by hand in the Policy column.
+The profiling half of the same exercise is in the discovery chapter linked above; this lab only covers the masking half.</p></details></div>
+
+<div class="exercise"><h4>Lab 2 (Day 55): mask FirstName with substitution</h4>
+<p>Goal: replace every <code>first_name</code> with a value from a dictionary, the same way every run.</p>
+<ol class="steps">
+<li><strong>Create the dictionary file <code>FIRSTNAMES.csv</code></strong> with a header row and 30 or more names, for example <code>SNO,FIRSTNAME</code> then <code>1,Divya</code>, <code>2,Arjun</code> and so on (the guide's sample dictionary also has COUNTRY and GENDER columns, p.178).<p>Substitution needs a list to pick from.
+For a unique substitution the list must have at least as many distinct names as the column has distinct values.</p></li>
+<li><strong>Add it in Administrator | Dictionaries: Actions > New Dictionary, type Flat File, name it, Choose File, pick the encoding, Save.</strong><p>(p.178).
+<span class="badge doc">From docs</span></p><p class="expect">The dictionary appears in the Dictionaries view.</p></li>
+<li><strong>Create the rule: Policies, Actions > New > Masking Rule, string datatype, Standard, Override Allowed, Next.</strong><p>(p.139, p.179).</p></li>
+<li><strong>Choose Substitution.
+Set Repeatable Output and Seed 1.
+Fill Dictionary Information: Dictionary, Masked Value FIRSTNAME, Serial Number Column SNO and the lookup column if your version requires one.</strong><p>The guide's example used a lookup column of GENDER; my dictionary has no gender column, so what is mandatory in your version is something to check (p.177, p.179).</p></li>
+<li><strong>Leave the exception handling at its defaults. Click Finish.</strong><p>The defaults ignore nulls and continue on error (shown on p.154).</p></li>
+<li><strong>Open the rule, Rule Simulator, Connection source, pick <code>CUSTOMERS.first_name</code>, 20 rows, Go.</strong><p>(p.140).</p><p class="expect">Each original name beside a dictionary name.</p></li>
+<li><strong>Add the rule to the project, assign it to <code>CUSTOMERS.first_name</code>, Save.</strong><p>(p.141 to 142).</p></li>
+<li><strong>Create a plan with this rule, set the storage connection (required for repeatable substitution), generate and execute.</strong><p>(p.176, p.286).</p><p class="expect">Success.
+Rows now show names from your dictionary.</p></li>
+<li><strong>Run the same plan again.</strong><p>Because Repeatable Output is on with the same seed, row 1001 should get the same name as in the first run.</p></li>
+</ol>
+<details class="sol"><summary>Show a worked answer</summary>
+<p>First run: 1001 Asha to Divya, 1002 Ravi to Arjun, 1003 Meera to Latha (your dictionary gives different ones).
+Second run: identical output.
+Check: <code>SELECT COUNT(*) FROM target.customers t JOIN src.customers s ON t.customer_id = s.customer_id WHERE t.first_name = s.first_name;</code> should return 0 unless your dictionary happens to contain an original name.
+If the operation fails, the likeliest cause is Unique Substitution Data with a dictionary shorter than the number of distinct names (p.176), or a missing storage table for repeatable output.</p></details></div>
+
+<div class="exercise"><h4>Lab 3 (Day 56): mask alphanumeric text, SSN and telephone number</h4>
+<p>Goal: mask <code>tax_id</code> (letters and digits), <code>ssn</code> and <code>phone</code> so each keeps the shape the application expects.</p>
+<ol class="steps">
+<li><strong>Create a key masking rule for tax_id.</strong><p>Policies, Actions > New > Masking Rule, string, Standard, Key.
+Seed 5, Mask Format <code>AAAAADDDDA</code> (five letters, four digits, one letter).
+Leave Source String Characters blank so every character is masked.
+Finish (p.164 to 165).</p><p class="expect">The rule is listed.
+In the simulator <code>ABCPM1234K</code> becomes five letters, four digits, one letter.</p></li>
+<li><strong>Create an SSN rule.</strong><p>String, Standard, SSN, tick Repeatable Output, Seed 7. Finish (p.175).</p></li>
+<li><strong>Create a phone rule.</strong><p>String, Standard, Phone. Finish (p.169).</p></li>
+<li><strong>Preview all three in the Rule Simulator with My Test Data.</strong><p>Type the sample values: <code>ABCPM1234K</code>, <code>123-45-6789</code>, <code>9876543210</code> (p.140).</p></li>
+<li><strong>Add the rules to the project and assign them: tax_id, ssn, phone. Save each row.</strong><p>(p.141 to 142, p.145).</p></li>
+<li><strong>Create a plan, generate and execute.</strong><p>(p.148 to 149).</p><p class="expect">Status Success.</p></li>
+<li><strong>Check the results in the target with SQL.</strong></li>
+</ol>
+<pre><code>-- General SQL; adjust syntax to your database.
+-- 1. SSN keeps its pattern (expect same count as total rows):
+SELECT COUNT(*) FROM customers WHERE ssn LIKE '___-__-____';
+-- 2. Phone keeps its length (expect all rows; null phones excluded):
+SELECT COUNT(*) FROM customers WHERE LENGTH(phone) = 10;
+-- 3. tax_id keeps length 10 (expect all rows):
+SELECT COUNT(*) FROM customers WHERE LENGTH(tax_id) = 10;
+-- 4. Nothing unchanged (expect 0), joining target to a copy of source on id:
+SELECT COUNT(*) FROM customers t JOIN src_customers s
+  ON t.customer_id = s.customer_id
+WHERE t.ssn = s.ssn OR t.phone = s.phone OR t.tax_id = s.tax_id;</code></pre>
+<details class="sol"><summary>Show a worked answer</summary>
+<p>Expected: queries 1 to 3 return the full row count, query 4 returns 0 (a rare collision is possible with random-looking output, in which case rerun with a different seed).
+Example masked values (illustrative): tax_id ABCPM1234K to QWZRT5820M, ssn 123-45-6789 to 612-73-4410, phone 9876543210 to 9876012345.
+Gotchas to check if your results differ: a mask format shorter than the value leaves the end characters unmasked (p.164); SSN masking cannot guarantee uniqueness (p.175), so if <code>ssn</code> has a unique constraint count duplicates; phone masking keeps the format (p.169) but the guide does not say which digits are kept, so do not assume the first digits stay the same.</p></details></div>
+
+<h2 id="c14-mistakes">14.12 Common mistakes and gotchas</h2>
+<div class="callout warn"><strong class="ctitle">Watch out for these</strong>
+<ul>
+<li><strong>Forgetting to click Save</strong> after each assignment; TDM discards unsaved assignments (User Guide 10.5.10, p.145).</li>
+<li><strong>Not rerunning plans.</strong> Edits to rules, assignments or domains do not change existing plans until you regenerate and run them (p.144 to 148).</li>
+<li><strong>Different seeds on columns that must match.</strong> The same seed gives the same output across columns (p.154, p.167).
+Different seeds give different values, and joins break.</li>
+<li><strong>Repeatable substitution or expression masking with no storage table.</strong> Expression masking fails; substitution cannot remember pairs (p.163, p.176, p.286).</li>
+<li><strong>Unique substitution with a short dictionary.</strong> The operation fails (p.176).</li>
+<li><strong>Short mask formats.</strong> Trailing characters stay unmasked (p.164).</li>
+<li><strong>Masking the primary key but not the foreign key.</strong> Use auto cascade, value cascade or the same seed (p.90 to 91, p.167).</li>
+<li><strong>Numbers over 28 digits.</strong> The Integration Service does not mask integers longer than 28 characters (p.145, p.152).</li>
+<li><strong>Shuffle on XSD or Spark, expression repeatable on Hadoop, flat-file dictionaries on Hadoop.</strong> Documented as unsupported (p.62, p.135, p.163, p.176).</li>
+<li><strong>Editing TDM-generated components in PowerCenter.</strong> The session may give unexpected results (p.150).</li>
+<li><strong>Expecting reversibility from the wrong technique.</strong> Only format preserving encryption is described as decryptable (p.161).</li>
+<li><strong>Leaving the real name in the email.</strong> Mask the email with the masked names, or it defeats the name mask.</li>
+<li><strong>Trusting examples as output.</strong> The guide's examples (and mine) show the kind of result, not exact values.</li>
+</ul></div>
+
+<h2 id="c14-recap">14.13 Recap</h2>
+<div class="callout recap"><strong class="ctitle">Key points</strong>
+<ul>
+<li>A rule is a technique plus parameters.
+Rules attach to columns directly or through data domains, which a policy groups for reuse.
+Always preview a standard rule in the Rule Simulator.</li>
+<li>Three rule kinds: standard (one input, one output), advanced (input, variable, output columns with expressions, conditions and dependent masking) and mapplet (imported PowerCenter logic made of passive transformations including Data Masking transformations).</li>
+<li>Repeatable output and a seed make masking deterministic: same input, same output across runs and tables.
+Substitution and expression masking also need a storage table; key masking is deterministic by seed.</li>
+<li>Substitution gives realistic values from a dictionary; shuffle moves real values between rows; key masking keeps character types and is deterministic; random masking uses ranges and blurring and is not repeatable; encryption can be reversible (format preserving); nullification empties the column; SSN, SIN, phone, credit card, email, IP and URL are built-in formats.</li>
+<li>Choose by what the application needs: realism, format validity, joinability across tables, reversibility, or nothing at all.</li>
+<li>The guide covers importing and assigning mapplet rules but does not teach building the mapplet in PowerCenter.</li>
+<li>Masking happens after subsetting when both are in one plan.</li>
+</ul></div>
+
+<section class="sources"><h2 id="c14-sources">Sources used in this chapter</h2>
+<ul>
+<li>Informatica Test Data Management 10.5.10 User Guide (PDF, February 2026, 455 pages), chapter 7 "Performing a Data Masking Operation", p.135 to 150, read in full.
+Used for rule kinds, Rule Simulator, rule creation and assignment steps, cascades in the assignment view, modifying rules, masking components, mapplet export and the masking task flow.
+Figures on p.136 and p.138 were rendered and read.</li>
+<li>Same guide, chapter 8 "Data Masking Techniques and Parameters", p.151 to 189, read in full.
+Used for every technique, parameter, example value and the name substitution and shuffle address examples.
+Figures on p.154 and p.174 were rendered and read.</li>
+<li>Same guide, chapter 4 "Policies" (p.71 to 85), chapter 5 value and auto cascades (p.90 to 91), chapter 3 Data Masking transformation session properties (p.52 to 53) and Blaze and Spark limits (p.62), chapter 13 (p.275, p.281, p.284, p.286 to 287, p.295, p.304, p.308 to 312).
+Used for data domains, policy packs, policies, mapplet plan settings, storage tables and running workflows.</li>
+<li>Syllabus mapping from the course curriculum (Day 44, Day 54, Day 55, Day 56, TDM_Handson2).
+ShopSphere data, before and after values, the design table and labs are the author's illustrations.
+Technique names and behaviour are from the guide; example masked values are invented.</li>
+<li>Related video, title only, transcript not available and not used as a source: "How to create mapplet in informatica", LearningMart (linked in 14.9).</li>
+</ul></section>

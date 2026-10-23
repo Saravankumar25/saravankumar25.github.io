@@ -1,0 +1,122 @@
+<p>The <a href="17-genrocket-overview.html">GenRocket overview chapter</a> gave you the five building blocks and the map of the product. This chapter works on the first three: <strong>domains</strong> (the tables), <strong>attributes</strong> (the columns) and <strong>generators</strong> (the recipes that decide each value). Together they are the Model and part of the Design phase. By the end you will be able to describe the ShopSphere CUSTOMERS, ORDERS and ORDER_ITEMS tables to GenRocket, link them so every foreign key is valid, and choose a generator for every column.</p>
+<p>The output side, receivers and scenarios, is in <a href="19-genrocket-receivers-and-scenarios.html">the receivers and scenarios chapter</a>. The patterns you can build with generators (boundary, sequential, random, edge cases, null) get their own treatment in <a href="20-genrocket-data-patterns.html">the data patterns chapter</a>.</p>
+<div class="callout recap"><strong class="ctitle">What you will learn</strong>
+<ul>
+<li>What a domain is, the dashboard where you work on it, and four ways to create one (new, scratch pad, DDL import, database schema extract).</li>
+<li>The three default domain variables (<code>id</code>, <code>loopCount</code>, <code>seed</code>) and what they control.</li>
+<li>Parent, child and sibling relationships, why GenRocket allows one parent only, and how this gives valid foreign keys.</li>
+<li>How to add attributes, reorder them, reference one from another and copy them.</li>
+<li>How GenRocket picks a generator automatically, how to replace one, how to assign one to many attributes, and how generator tags override the default.</li>
+<li>The generator families the docs name: list, string, date, conditional (business logic), query, UUID, name and identification generators.</li>
+<li>ProxyReferenceGen versus ReferenceGen, Enforce Type/Limit, seeding, linked generators and starting a primary key after the current maximum.</li>
+<li>A complete generator-per-column design for the ShopSphere tables.</li>
+</ul></div>
+<div class="callout note"><strong class="ctitle">What this chapter is based on</strong>
+<p>Official GenRocket help-centre pages, read in full, with the vendor's screenshots embedded and each one viewed before I described it. The main pages:</p>
+<ul>
+<li>Domains: "<a href="https://genrocket.helpjuice.com/en_US/domains-overview/domains-overview" target="_blank" rel="noopener">Domains Overview</a>", "<a href="https://genrocket.helpjuice.com/en_US/domains-overview/domain-dashboard" target="_blank" rel="noopener">Domain Dashboard</a>", "<a href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-create-a-new-domain" target="_blank" rel="noopener">How do I create a New Domain?</a>", "<a href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-import-my-data-model-into-genrocket" target="_blank" rel="noopener">How do I import my data model into GenRocket?</a>", the single and multiple DDL pages, the XTS file and XTS Import Wizard pages, "<a href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-use-scratch-pad-to-quickly-create-a-domain" target="_blank" rel="noopener">Scratch Pad</a>", the relationship pages, the Domain Referencing Wizard, "<a href="https://genrocket.helpjuice.com/en_US/domains-overview/what-are-domain-variables" target="_blank" rel="noopener">What are Domain Variables?</a>", "<a href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-change-the-loopcount-for-a-domain" target="_blank" rel="noopener">How to update Domain loopCounts</a>" and "<a href="https://genrocket.helpjuice.com/en_US/domains-overview/how-do-i-create-a-domain-category" target="_blank" rel="noopener">How do I create a Domain Category?</a>".</li>
+<li>Attributes: the Attributes Overview, Attribute Dashboard, adding, referencing, hierarchy and copying pages, and the database-changes page.</li>
+<li>Generators: Generators Overview, How are Generators Assigned to Domain Attributes?, assign to one and many attributes, copy (simple), Generator Tags, What is Seeding?, ProxyReferenceGen versus ReferenceGen, Enforce Data Type and Size, Primary Keys after the Max Value, Linked Generators Overview, the list, string, conditional logic, query and UUID overview pages, and the individual pages for RangeGen, NameGen, FullNameGen, EmailGen, PhoneNumberGen, SSNGen, FlexibleDateRangeGen, ListGen, RandomGen, ReferenceGen and ProxyReferenceGen.</li>
+</ul>
+<p>The ShopSphere design at the end is my own illustration built from those documented generators. The generator parameters I name come from each generator's page; where I did not read a generator's own page, I say so.</p></div>
+
+<h2 id="c18-words">18.1 Words to know first</h2>
+<dl class="defs">
+<div><dt>Template domain</dt><dd>A domain as defined in a project version. Think of it as the master copy. When you build a scenario, GenRocket makes a copy of it called a <em>scenario domain</em>.</dd></div>
+<div><dt>Scenario domain</dt><dd>The per-scenario copy of a template domain. Changes to the template flow down to it unless it is locked.</dd></div>
+<div><dt>Domain variable</dt><dd>A named setting that belongs to a domain, written <code>global.DomainName.variableName</code>, which generator parameters can refer to. Every domain gets three: <code>id</code>, <code>loopCount</code> and <code>seed</code>.</dd></div>
+<div><dt>loopCount</dt><dd>How many rows (records) a domain generates.</dd></div>
+<div><dt>Seed</dt><dd>A starting number for random generators. The same seed gives the same "random" data on every run.</dd></div>
+<div><dt>Parent, child, sibling</dt><dd>GenRocket's way to express relationships between domains. A child has exactly one parent; "describing" tables are marked as siblings.</dd></div>
+<div><dt>Primary attribute</dt><dd>The attribute marked as the key (shown with a key icon). Children refer to it.</dd></div>
+<div><dt>Generator parameter</dt><dd>A setting on a generator, such as <code>startRange</code>. Required ones carry an asterisk in the web platform.</dd></div>
+<div><dt>Linked generators</dt><dd>Several generators placed in one attribute so that later ones can use the values of earlier ones.</dd></div>
+<div><dt>Preview</dt><dd>A sample of generated values shown in the web platform so you can check a configuration before downloading anything.</dd></div>
+<div><dt>DDL</dt><dd>Data Definition Language: the SQL text that creates tables (<code>CREATE TABLE ...</code>). See <a href="03-data-basics.html">the data basics chapter</a>.</dd></div>
+</dl>
+
+<h2 id="c18-domains">18.2 Domains: the tables of your design</h2>
+<h3 id="c18-domain-what">18.2.1 What a domain is</h3>
+<p><span class="badge doc">From docs</span> A domain "defines real-world objects", a noun such as a person, place or thing. When you model a database, a domain is a table and its attributes are the columns. The docs' own example has four tables, Company, Department, User and Address, each becoming a domain with its columns as attributes. At least one domain must exist in a project to generate any data.</p>
+<p>A domain inside a project version is a <em>template</em>: it holds the attributes, generators and relationships. When you create a scenario, GenRocket copies the template into a <em>scenario domain</em>. Changes you make to the template cascade down to every scenario unless the scenario (or the scenario domain) is locked. This is similar to a document template and the letters printed from it, with one difference: you can pin a printed letter so that later edits to the template leave it alone.</p>
+<p>The docs also state a rule that surprises beginners: a template domain works independently and cannot really reference another domain's attributes. Relationships at the domain level are "just probable". The real references are made at the scenario level, where related domains are put together. You will see this again with ProxyReferenceGen below.</p>
+<p>Each time a domain is created or imported, it gets three default variables, all initially 1 (details in 18.5): <code>id</code>, <code>loopCount</code> and <code>seed</code>.</p>
+<p>Names have a small rule. The "New Domain" page notes that a domain name should contain only letters and numbers (spaces are now also allowed), so for the ShopSphere table ORDER_ITEMS I would name the domain <code>OrderItems</code> and put the real table name <code>ORDER_ITEMS</code> in the <em>Table Name</em> field you can see on the dashboard. The page does not say what happens with an underscore, so I avoid it.</p>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776676772282/5PeAO68g2A-SaP41e2H95EtWLyNgR3_xvg.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776676772282/5PeAO68g2A-SaP41e2H95EtWLyNgR3_xvg.png" alt="The GenRocket Project Dashboard for DemoProject1 version 1.0 with the Domains pane listing Address, Department, Organization and User, plus Scenarios, Scenario Chains, Scenario Chain Sets and the Management pane" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> Where domains live: the Domains pane of the Project Dashboard lists the domains (here Address, Department, Organization and User) of the selected project version. Clicking a domain name opens its Domain Dashboard. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/domains-overview/domains-overview" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<h3 id="c18-domain-dash">18.2.2 The Domain Dashboard</h3>
+<p>Click a domain's name and the Domain Dashboard opens. It is the screen where you will work most. Study the screenshot first and then the table that explains the areas.</p>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776676994828/55pOWf-vsbEIzKTz-BT85vBfh81iOGtCyA%20(1).png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776676994828/55pOWf-vsbEIzKTz-BT85vBfh81iOGtCyA%20(1).png" alt="The Domain Dashboard for domain User in SimpleProject version 1.2 with buttons Variables, Global Editing, Domain Search, Scenario Search, Chain Search, Value Search, New Domain, Manage; fields Name, Table Name, Description, Definition and Enforce Type/Limit; buttons Save, Copy, Group Edit, Categorize, Delete, Global Seed; tabs Main, Relationship, Template; an attribute list on the left (id, firstName, middleInitial, lastName, ssn); Domain Variables (global.User.id 1, loopCount 1000, seed 1), Domain Receivers (DelimitedFileReceiver), Domain Scenarios (UserScenario, AddressScenario) and a Preview Data grid with sample rows" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The Domain Dashboard. Left: the attributes (a key icon marks the primary attribute). Centre: three panes for domain variables, receivers and scenarios. Bottom: a Preview Data grid that shows sample generated rows (the "15" box sets how many). <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/domains-overview/domain-dashboard" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<div class="tablewrap"><table>
+<thead><tr><th>Area</th><th>What you do there (docs)</th></tr></thead>
+<tbody>
+<tr><td>Top fields and buttons</td><td>Name, table name and description; <em>Save</em>, <em>Copy</em> the domain to another project version, <em>Group Edit</em> (change many attributes at once, or delete many), <em>Categorize</em>, <em>Delete</em>, and <em>Global Seed</em> (give all generators of the domain the seed value)</td></tr>
+<tr><td>Attributes pane (left)</td><td>New Attribute, Rearrange Attributes, a gear icon (Browse and Manage Attributes), per-attribute icons. A set selector appears when a domain has more than 15 attributes, which are shown in groups of 15</td></tr>
+<tr><td>Domain Variables</td><td>View, create and edit the variables (id, loopCount, seed and your own)</td></tr>
+<tr><td>Domain Receivers</td><td>Add a receiver, enable logging (useful above 10,000 records), reorder receivers. The order decides which output is produced first</td></tr>
+<tr><td>Domain Scenarios</td><td>Create a New or Quick scenario, download, lock and unlock, delete</td></tr>
+<tr><td>Relationship tab</td><td>Add or remove the referential parent and siblings, and see a diagram</td></tr>
+<tr><td>Template tab</td><td>XML template files for the domain (not covered here)</td></tr>
+</tbody></table></div>
+<h3 id="c18-domain-create">18.2.3 Four ways to create domains</h3>
+<p>The page "How do I import my data model into GenRocket?" counts <strong>seventeen primary methods</strong>: DDL (single or multiple), XTS, CSV, CSV for fixed file, JSON, GenRocket JSON schema, standard JSON schema, XSD, YAML, presets, Spark schema, Avro JSON schema, CopyBook, Salesforce, Scratch Pad, Quick Pattern and New Domain. (A related FAQ answer says sixteen; the count changes between pages, so do not memorise it.) All are reached from the green <em>New Domain</em> button in the Domains pane.</p>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776686612494/1Rb4vjjedD0gJbbE9SVdf-Egs6M7uj7OOQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776686612494/1Rb4vjjedD0gJbbE9SVdf-Egs6M7uj7OOQ.png" alt="The New Domain menu expanded showing buttons Scratch Pad, New Domain, Quick Pattern, Import From CSV, Import from DDL (marked with an arrow), Import from GenRocket JSON Schema, Import from JSON, Import from CopyBook, Import from Presets, Import from Salesforce, Import from Spark Schema, Import from XSD, Import from XTS, Import from YAML, Import from Avro JSON Schema and Import from CSV for Fixed File" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The New Domain menu: every way of creating domains in one list. The arrow in the vendor's picture points at Import from DDL, the method used below. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-create-multiple-domains-from-a-ddl" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>For ShopSphere, four of these matter most.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Method</th><th>You supply</th><th>You get</th><th>Best when</th></tr></thead>
+<tbody>
+<tr><td>New Domain</td><td>A name</td><td>One domain with only an <code>id</code> attribute</td><td>You are adding one small domain by hand</td></tr>
+<tr><td>Scratch Pad</td><td>A domain name and a list of attribute names (optionally with type and size)</td><td>A domain with attributes and automatically assigned generators</td><td>Fast prototyping, or adding new columns to an existing domain</td></tr>
+<tr><td>Import from DDL</td><td>The <code>CREATE TABLE</code> text of one table, or a DDL file of many</td><td>Domains and attributes, with type and size information</td><td>You have the SQL for the schema</td></tr>
+<tr><td>Import from XTS</td><td>An encrypted schema file extracted from a live database</td><td>Domains, attributes and generators for as many tables as you extracted</td><td>The schema is large, or you can connect to the database</td></tr>
+</tbody></table></div>
+<h3 id="c18-new-domain">18.2.4 Lab-style walk: a new domain by hand</h3>
+<ol class="steps">
+<li><strong>Select your project in the Projects pane.</strong>
+<p>The Domains pane only appears once a project is selected.</p></li>
+<li><strong>Click <em>New Domain</em>, then choose <em>New Domain</em>.</strong>
+<p>This is the single-domain method.</p></li>
+<li><strong>Type a name, for example <code>Customers</code>, and click <em>Save</em>.</strong>
+<p>Use letters and numbers.</p>
+<p class="expect">What you should see: the Domain Dashboard for the new domain, with just one attribute called <code>id</code> and three domain variables (<code>global.Customers.id</code>, <code>.loopCount</code> and <code>.seed</code>, each 1).</p></li>
+</ol>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776687465221/-YtdxHHrS4xdTY23_yrme7OtYID37nNZOQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776687465221/-YtdxHHrS4xdTY23_yrme7OtYID37nNZOQ.png" alt="The Domain Dashboard for a brand-new domain User in project DemoAH version 1.0 with only an id attribute in the attribute list, domain variables global.User.id, loopCount and seed each 1, empty Domain Receivers and Domain Scenarios, and a Preview Data grid showing id values 1 to 5" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> What a freshly created domain looks like: one <code>id</code> attribute, the three default variables set to 1, no receivers or scenarios yet, and a preview that simply counts 1, 2, 3. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-create-a-new-domain" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>You would then add attributes (18.6). That is fine for two or three columns; for a whole database use an import.</p>
+<h3 id="c18-ddl">18.2.5 Importing from DDL</h3>
+<p><span class="badge doc">From docs</span> You can paste one table's DDL, or upload a file with many. The vendor's sample single-table DDL creates a <code>user</code> table with an <code>id</code> primary key and columns such as <code>first_name varchar(25) not null</code>. Choosing the database vendor from a list tells GenRocket how to read the SQL dialect.</p>
+<p><strong>Multi-table import:</strong></p>
+<ol class="steps">
+<li><strong>Open <em>New Domain</em> and choose <em>Import from DDL</em>, then <em>Import Multiple Domains from DDL</em>.</strong>
+<p>The other choice in that first dialog is single-table import.</p></li>
+<li><strong>Pick the vendor (for example <code>mysql</code>) and choose the DDL file.</strong>
+<p>Optionally tick <em>Enforce Type/Limit</em>, which makes every assigned generator respect each column's declared type and size (see 18.9).</p></li>
+</ol>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776686641318/XYmPZXAYauXghFyj0bfd29GJXEH2Ie7yXA.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776686641318/XYmPZXAYauXghFyj0bfd29GJXEH2Ie7yXA.png" alt="The Create New Domain from DDL dialog with Vendor mysql, DDL File genrocket_tables.sql and an unchecked Enforce Type/Limit box, with Save and Cancel buttons" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The multi-table DDL dialog: choose the database vendor, choose the file, and decide whether to enforce type and size. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/importing-and-creating-domains/how-do-i-create-multiple-domains-from-a-ddl" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<ol class="steps" start="3">
+<li><strong>Click <em>Save</em> and wait.</strong>
+<p>The file goes into a queue (you can watch the Queue Status pane). The user who started the import gets an email when it starts and when it ends.</p>
+<p class="expect">What you should see: new domains with their attributes, a primary key marked, and generators assigned automatically.</p></li>
+<li><strong>Optionally open the DDL audit from the Project Versions pane.</strong>
+<p>The "GenRocket Table Schema (GTS) Audit Details" option shows what was imported and any errors.</p></li>
+</ol>
+<div class="callout warn"><strong class="ctitle">What the DDL import does not do</strong>
+<p>The page is explicit: relationships between domains are <em>not</em> created automatically, receivers are <em>not</em> assigned and scenarios are <em>not</em> created. You must do these yourself (relationships with the Domain Referencing Wizard, below). It also lists SQL keywords the importer does not support, such as <code>DEFAULT 'N'::bpchar</code>, <code>WITHOUT TIME ZONE</code> and <code>ON UPDATE CURRENT_TIMESTAMP(N)</code>. Remove them from the DDL before importing.</p></div>
+<h3 id="c18-xts">18.2.6 Importing a live database schema (XTS)</h3>
+<p><span class="badge doc">From docs</span> "XTS" stands for Extract Table Schema. This is the documented way to pull a database's structure straight from the database. Two steps:</p>
+<ol class="steps">
+<li><strong>Extract the schema with the runtime.</strong>
+<p>Run the runtime's <code>-xts</code> option with the path to a JDBC properties file and, optionally, the table names (<code>genrocket -xts /path/config.properties company,department,user</code>). With no names, every table is extracted. Options exist to exclude tables (<code>-xt</code>, <code>-xf</code>), and tables in a specific schema are written <code>schema1:tablename</code>. The properties file holds four required entries: <code>driver</code>, <code>user</code>, <code>password</code> and <code>url</code>.</p>
+<p class="expect">What you should see: an encrypted schema file, tied to your organisation. GenRocket reads only the structure, not the data.</p></li>
+<li><strong>Import the file with the XTS Import Wizard.</strong>
+<p>Open <em>Self Serve Options</em> then <em>XTS Wizard</em> (or choose <em>Import from XTS</em> in the New Domain menu), choose the file, optionally enable Enforce Type/Limit, click Save and wait. The project is frozen until the import finishes.</p>
+<p class="expect">What you should see: domains, attributes and generators created for every extracted table, and the wizard's step 1 ready to be marked completed.</p></li>
+</ol>
+<figure class="shot"><a href="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776590907658/IGDFfQ2E7lUhUJN2grDrUtQGZr9OxrAEYQ.png" target="_blank" rel="noopener"><img src="https://static.helpjuice.com/helpjuice_production/uploads/upload/image/32901/direct/1776590907658/IGDFfQ2E7lUhUJN2grDrUtQGZr9OxrAEYQ.png" alt="The XTS Management Wizards screen with six numbered step icons (XTS Import highlighted by a green box, Domain Referencing Wizard, Generator Tuning, Receiver Assignment Wizard, Scenario Assignment Wizard, Domain Family Wizard), four edit and delete wizard icons, and an XTS Step Completion Checklist on the right with a Mark Completed button for Step 1" loading="lazy"></a>
+<figcaption><strong>Official screenshot:</strong> The XTS wizard hub: six numbered steps (import, referencing, generator tuning, receiver assignment, scenario assignment, domain families) with a completion checklist, plus edit and delete wizards for later changes. <a class="badge-link" href="https://genrocket.helpjuice.com/en_US/xts-wizard/how-do-i-use-the-xts-import-wizard" target="_blank" rel="noopener">Source page ↗</a></figcaption></figure>
+<p>Why use a wizard hub? Because after importing hundreds of tables, the remaining setup is also repetitive. Each step has its own wizard that works on a filtered set of domains at once, and you tick each step as complete so that the next unlocks.</p>
+<div class="callout example"><strong class="ctitle">ShopSphere: which method?</strong>
+<p>ShopSphere has three tables to generate. If the team gives you <code>CREATE TABLE</code> scripts, a DDL import takes minutes and keeps the primary key and sizes. If the QA lead can reach a dev copy of the database with a read-only account, an XTS extract avoids typing anything. For this chapter's walk-through, either works. Importing never needs production rows, only the structure.</p></div>

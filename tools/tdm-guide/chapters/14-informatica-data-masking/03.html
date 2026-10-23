@@ -1,10 +1,17 @@
 <h2 id="c14-techniques">14.6 The masking techniques, one by one</h2>
-<p>The guide lists these techniques (User Guide 10.5.10, p.152 to 153): Advanced, Credit card, Email address, Encryption, Expression, IP address, Key, Mapplet, Nullification, Phone, Random, Shuffle, SIN, SSN, Substitution and URL. Advanced and Mapplet are about combining or importing logic and get their own section (14.8 and 14.9). The other fourteen follow here. For each I give: what it does, when to use it, parameters, a ShopSphere before and after, gotchas and repeatability.</p>
+<p>The guide lists these techniques (User Guide 10.5.10, p.152 to 153): Advanced, Credit card, Email address, Encryption, Expression, IP address, Key, Mapplet, Nullification, Phone, Random, Shuffle, SIN, SSN, Substitution and URL. Advanced and Mapplet are about combining or importing logic and get their own section (14.8 and 14.9).
+The other fourteen follow here.
+For each I give: what it does, when to use it, parameters, a ShopSphere before and after, gotchas and repeatability.</p>
 <div class="callout note"><strong class="ctitle">How to read the before and after tables</strong>
-<p>The "before" values are the fake ShopSphere sample data. The "after" values are <strong>illustrations I made up</strong> to show the kind of result; the tool generates its own values, and its output will differ on your machine. Where the guide gives its own example I use it and say so. Techniques that need a column ShopSphere does not have (credit card, IP address, URL) use the guide's example.</p></div>
+<p>The "before" values are the fake ShopSphere sample data.
+The "after" values are <strong>illustrations I made up</strong> to show the kind of result; the tool generates its own values, and its output will differ on your machine.
+Where the guide gives its own example I use it and say so.
+Techniques that need a column ShopSphere does not have (credit card, IP address, URL) use the guide's example.</p></div>
 
 <h3 id="c14-substitution">Substitution masking</h3>
-<p><strong>What it does.</strong> Replaces a value with a "similar but unrelated" value looked up in a <strong>dictionary</strong>, a flat file or database table of replacement values (User Guide 10.5.10, p.176 to 177) <span class="badge doc">From docs</span>. Works on date, numeric and string columns. The guide calls it an effective way to replace production data with realistic test data; its examples are a dictionary of addresses, or the <code>InvalidSSN</code> dictionary of Social Security numbers that are not valid.</p>
+<p><strong>What it does.</strong> Replaces a value with a "similar but unrelated" value looked up in a <strong>dictionary</strong>, a flat file or database table of replacement values (User Guide 10.5.10, p.176 to 177) <span class="badge doc">From docs</span>.
+Works on date, numeric and string columns.
+The guide calls it an effective way to replace production data with realistic test data; its examples are a dictionary of addresses, or the <code>InvalidSSN</code> dictionary of Social Security numbers that are not valid.</p>
 <p><strong>Use it for</strong> names, cities, product names, anything where realism matters: testers see "Divya Iyer", not "XQWZ KLPT". The Day 55 lab uses it.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Where</th><th>Parameter</th><th>Meaning</th></tr></thead>
@@ -28,15 +35,21 @@
 <tbody><tr><td>1001</td><td>Asha</td><td>Divya</td></tr><tr><td>1002</td><td>Ravi</td><td>Arjun</td></tr><tr><td>1003</td><td>Meera</td><td>Latha</td></tr></tbody></table></div>
 <p><strong>Gotchas.</strong></p>
 <ul>
-<li>Choose Unique Substitution Data only if the dictionary is bigger than the number of distinct values in the column. A dictionary of 4 names cannot uniquely replace 20 customers; the operation fails.</li>
-<li>Two customers with the same first name get the same replacement only if Repeatable Output is on (the storage table remembers pairs). Without repeatability, each row can get a different value.</li>
+<li>Choose Unique Substitution Data only if the dictionary is bigger than the number of distinct values in the column.
+A dictionary of 4 names cannot uniquely replace 20 customers; the operation fails.</li>
+<li>Two customers with the same first name get the same replacement only if Repeatable Output is on (the storage table remembers pairs).
+Without repeatability, each row can get a different value.</li>
 <li>You cannot use flat-file dictionaries and unique substitution to mask Hadoop data, and a Spark engine cannot do shuffle or substitution at all (p.176, p.62).</li>
 <li>Dictionaries are added in Administrator | Dictionaries, as relational (pick connection, datasource, table) or flat file (choose file, optionally overwrite an existing file in the <code>LkpFiles</code> directory, pick the encoding) (p.178).</li>
 </ul>
 <p><strong>Repeatability.</strong> Tick Repeatable Output and set a seed. Name the storage connection in the plan.</p>
 
 <h3 id="c14-shuffle">Shuffle masking</h3>
-<p><strong>What it does.</strong> Swaps values of one column between rows of the same table. The guide's example (p.173) uses four rows: Tom Bender, Sue Slade, Bob Bold, Eli Jones. After a shuffle of the first-name column they read Bob Bender, Eli Slade, Tom Bold, Sue Jones. You can restrict which values may be swapped by a lookup condition or a constraint. Works on date, numeric and string columns <span class="badge doc">From docs</span>.</p>
+<p><strong>What it does.</strong> Swaps values of one column between rows of the same table.
+The guide's example (p.173) uses four rows: Tom Bender, Sue Slade, Bob Bold, Eli Jones.
+After a shuffle of the first-name column they read Bob Bender, Eli Slade, Tom Bold, Sue Jones.
+You can restrict which values may be swapped by a lookup condition or a constraint.
+Works on date, numeric and string columns <span class="badge doc">From docs</span>.</p>
 <p><strong>Use it for</strong> columns where realistic, real-looking values are wanted <em>and</em> the connection between the value and its person is what you must break, for example last names, cities, salary amounts (the distribution stays the same).</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Parameter</th><th>Meaning (p.174)</th></tr></thead>
@@ -46,23 +59,31 @@
 <tr><td>Seed</td><td>1 to 999, default 1. Enabled only when Representative is selected.</td></tr>
 <tr><td>Constrained</td><td>Restrict shuffling to rows constrained by another column, such as shuffle employee names within gender, or addresses within the same city. You choose the constraint column when you assign the rule to columns.</td></tr>
 </tbody></table></div>
-<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.174, Figure (shuffle masking parameters). What I saw: a Properties section with the sentence "Shuffle technique switches the row values in a table column", radio buttons Random (selected) and Representative with a Seed spinner showing 1, and a Constrained checkbox.</div>
+<div class="visualref"><span class="vtitle">Visual reference</span>Informatica TDM 10.5.10 User Guide, p.174, Figure (shuffle masking parameters).
+What I saw: a Properties section with the sentence "Shuffle technique switches the row values in a table column", radio buttons Random (selected) and Representative with a Seed spinner showing 1, and a Constrained checkbox.</div>
 <div class="tablewrap"><table class="sample"><caption>Shuffle on last_name (illustrative output; the values come from the same column)</caption>
 <thead><tr><th>customer_id</th><th>first_name</th><th>last_name before</th><th>last_name after</th></tr></thead>
 <tbody><tr><td>1001</td><td>Asha</td><td>Menon</td><td>Nair</td></tr><tr><td>1002</td><td>Ravi</td><td>Kumar</td><td>Menon</td></tr><tr><td>1003</td><td>Meera</td><td>Nair</td><td>Kumar</td></tr></tbody></table></div>
 <p><strong>Gotchas.</strong></p>
 <ul>
-<li>Shuffle does not invent new values. Every masked value is a real value from production. For a column with mostly unique values (SSN, phone) that may not satisfy a privacy reviewer; for names it is usually acceptable. This is my judgement, <span class="badge concept">General concept</span>, not a statement from the guide.</li>
+<li>Shuffle does not invent new values.
+Every masked value is a real value from production.
+For a column with mostly unique values (SSN, phone) that may not satisfy a privacy reviewer; for names it is usually acceptable.
+This is my judgement, <span class="badge concept">General concept</span>, not a statement from the guide.</li>
 <li>It cannot be used for XSD sources, and not when both source and target are Hadoop HDFS connections (p.135, p.173). A Spark engine cannot do it (p.62).</li>
 <li>Empty strings: set Null and Empty Spaces to Treat as Value, or the empty columns are skipped (p.173).</li>
-<li>With JDBC connections the Content Management Service cannot create reference tables when a Varchar or Varchar2 column has precision above 2000, or a Char column above 1000. The workflow then resets precision to 2000 and 1000 and data can be truncated (p.174).</li>
-<li>Shuffling several related columns independently breaks their relationship, for example an address line moving away from its city. The guide's shuffle address example (14.8) uses an advanced rule so address lines move together and the ZIP code stays unmasked.</li>
+<li>With JDBC connections the Content Management Service cannot create reference tables when a Varchar or Varchar2 column has precision above 2000, or a Char column above 1000.
+The workflow then resets precision to 2000 and 1000 and data can be truncated (p.174).</li>
+<li>Shuffling several related columns independently breaks their relationship, for example an address line moving away from its city.
+The guide's shuffle address example (14.8) uses an advanced rule so address lines move together and the ZIP code stays unmasked.</li>
 </ul>
 <p><strong>Repeatability.</strong> Random shuffle can be random; Representative with a seed gives repeatable output; the guide says you can configure shuffle to be random or repeatable.</p>
 
 <h3 id="c14-key">Key masking</h3>
-<p><strong>What it does.</strong> Produces <strong>deterministic</strong> results: the same source value, rule and seed always give the same masked value. Works on date, numeric and string columns (User Guide 10.5.10, p.164 to 168) <span class="badge doc">From docs</span>.</p>
-<p><strong>Use it for</strong> identifiers: tax IDs, account numbers, primary and foreign keys, and for text where you want the shape kept (letters stay letters, digits stay digits) but the content changed. The Day 56 lab (alphanumeric text) uses this.</p>
+<p><strong>What it does.</strong> Produces <strong>deterministic</strong> results: the same source value, rule and seed always give the same masked value.
+Works on date, numeric and string columns (User Guide 10.5.10, p.164 to 168) <span class="badge doc">From docs</span>.</p>
+<p><strong>Use it for</strong> identifiers: tax IDs, account numbers, primary and foreign keys, and for text where you want the shape kept (letters stay letters, digits stay digits) but the content changed.
+The Day 56 lab (alphanumeric text) uses this.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Parameter</th><th>Meaning</th></tr></thead>
 <tbody>
@@ -85,22 +106,34 @@
 <tr><td>+</td><td>No masking at that position</td></tr>
 <tr><td>R</td><td>Remaining characters can be any type; must be the last character of the mask</td></tr>
 </tbody></table></div>
-<p>If no mask format is given, each source character is replaced with any character. A mask format longer than the input is truncated; <strong>shorter than the input means the characters at the end are not masked</strong>. Lowercase letters you type are converted to uppercase (p.164).</p>
+<p>If no mask format is given, each source character is replaced with any character.
+A mask format longer than the input is truncated; <strong>shorter than the input means the characters at the end are not masked</strong>.
+Lowercase letters you type are converted to uppercase (p.164).</p>
 <div class="tablewrap"><table class="sample"><caption>Key masking of an alphanumeric tax_id with mask format AAAAADDDDA (illustrative; tax_id is a ShopSphere column, the values are made up)</caption>
 <thead><tr><th>customer_id</th><th>tax_id before</th><th>tax_id after</th></tr></thead>
 <tbody><tr><td>1001</td><td>ABCPM1234K</td><td>QWZRT5820M</td></tr><tr><td>1002</td><td>ZZTPK9087L</td><td>HNBXC4413D</td></tr></tbody></table></div>
 <p><strong>Other forms the guide describes.</strong></p>
 <ul>
-<li><em>Result characters:</em> to limit output to uppercase A to F enter <code>ABCDEF</code>. With Use only A, B, c the word "horse" might become "BAcBA"; with Use all except the output never contains A, B or c (p.166). To avoid two inputs giving the same output, use a wide set of replacement characters or mask only a few characters (p.165).</li>
-<li><em>Delimited strings:</em> the guide's example masks "John Donne" consistently when it appears as the strings John and Donne in two columns and as "Donne, John" or "John Donne, General Manager" in two more. Assign delimited string masking with comma and space as delimiters to the last two (p.166 to 167).</li>
-<li><em>Dates:</em> output dates fall between 1753 and 2400 and are always valid. A leap year maps to a leap year; a 31-day month to a 31-day month; February stays February (p.167). Give the same seed as another column to get matching dates.</li>
-<li><em>Numbers:</em> to keep a primary-key to foreign-key relationship intact between two tables, give the key column in each table the <strong>same seed</strong>. Deterministic output means 1001 in <code>CUSTOMERS</code> and 1001 in <code>ORDERS</code> both become the same new number (p.167).</li>
+<li><em>Result characters:</em> to limit output to uppercase A to F enter <code>ABCDEF</code>.
+With Use only A, B, c the word "horse" might become "BAcBA"; with Use all except the output never contains A, B or c (p.166).
+To avoid two inputs giving the same output, use a wide set of replacement characters or mask only a few characters (p.165).</li>
+<li><em>Delimited strings:</em> the guide's example masks "John Donne" consistently when it appears as the strings John and Donne in two columns and as "Donne, John" or "John Donne, General Manager" in two more.
+Assign delimited string masking with comma and space as delimiters to the last two (p.166 to 167).</li>
+<li><em>Dates:</em> output dates fall between 1753 and 2400 and are always valid.
+A leap year maps to a leap year; a 31-day month to a 31-day month; February stays February (p.167).
+Give the same seed as another column to get matching dates.</li>
+<li><em>Numbers:</em> to keep a primary-key to foreign-key relationship intact between two tables, give the key column in each table the <strong>same seed</strong>.
+Deterministic output means 1001 in <code>CUSTOMERS</code> and 1001 in <code>ORDERS</code> both become the same new number (p.167).</li>
 </ul>
-<p><strong>Gotchas.</strong> Output uniqueness is not guaranteed when the set of source characters is smaller than the set of result characters (p.165). The Case Insensitive option is easy to misread: by default a masked character may differ from the original only in case ("x" becomes "X"), and with the option on, the rule treats both cases as the same character so it cannot do that. If the same name appears in different cases in different tables ("John Brown", "JOHN BROWN") and you want identical masked output, convert the source to one case first with a preprocessing expression (p.166).</p>
+<p><strong>Gotchas.</strong> Output uniqueness is not guaranteed when the set of source characters is smaller than the set of result characters (p.165).
+The Case Insensitive option is easy to misread: by default a masked character may differ from the original only in case ("x" becomes "X"), and with the option on, the rule treats both cases as the same character so it cannot do that.
+If the same name appears in different cases in different tables ("John Brown", "JOHN BROWN") and you want identical masked output, convert the source to one case first with a preprocessing expression (p.166).</p>
 <p><strong>Repeatability.</strong> This is the technique whose whole purpose is determinism. Same seed, same rule, same input gives the same output.</p>
 
 <h3 id="c14-random">Random masking</h3>
-<p><strong>What it does.</strong> Produces random, non-repeatable output: the same source value and rule can give a different result each run. No seed. Works on date, numeric and string columns (User Guide 10.5.10, p.169 to 173) <span class="badge doc">From docs</span>.</p>
+<p><strong>What it does.</strong> Produces random, non-repeatable output: the same source value and rule can give a different result each run.
+No seed.
+Works on date, numeric and string columns (User Guide 10.5.10, p.169 to 173) <span class="badge doc">From docs</span>.</p>
 <p><strong>Use it for</strong> columns where consistency across tables is not needed, or where you want a controlled range: dates of birth shifted a little, amounts that stay near the original, partial zip codes.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Option</th><th>For</th><th>Meaning</th></tr></thead>
@@ -122,7 +155,10 @@
 <tr><td>Percent</td><td>50</td><td>0</td><td>between 33 and 66</td></tr>
 <tr><td>Percent</td><td>50</td><td>50</td><td>between 33 and 99</td></tr>
 </tbody></table></div>
-<p>Low and high bounds must be zero or greater. <strong>Date blurring</strong>: choose a unit (year, month, day, hour; default year), a low and a high bound. The guide's example: unit year, bounds 2 and 2, source 02 February 2006, result any date from 02 February 2004 to 02 February 2008 (p.170). The parameters table on p.172 lists year, month, day, hour, minute and second as units, while the blurring text on p.170 stops at hour; check the drop-down in your version.</p>
+<p>Low and high bounds must be zero or greater.
+<strong>Date blurring</strong>: choose a unit (year, month, day, hour; default year), a low and a high bound.
+The guide's example: unit year, bounds 2 and 2, source 02 February 2006, result any date from 02 February 2004 to 02 February 2008 (p.170).
+The parameters table on p.172 lists year, month, day, hour, minute and second as units, while the blurring text on p.170 stops at hour; check the drop-down in your version.</p>
 <div class="tablewrap"><table class="sample"><caption>Random masking on ShopSphere columns (illustrative output)</caption>
 <thead><tr><th>Column</th><th>Setting</th><th>Before</th><th>After</th></tr></thead>
 <tbody>
@@ -130,5 +166,8 @@
 <tr><td>zip_code</td><td>Mask format <code>+++DDD</code></td><td>560001</td><td>560417 (first three digits kept)</td></tr>
 <tr><td>order total (if you chose to mask it)</td><td>Blurring, percent, low 10, high 10</td><td>1498.00</td><td>between 1348.20 and 1647.80</td></tr>
 </tbody></table></div>
-<p><strong>Gotchas.</strong> Because there is no seed, a rerun produces different values, and values for the same customer in two tables will not match. Numeric output depends on column precision (p.172). The mask format rule that a short format leaves trailing characters unmasked applies here too: a 6 digit zip with format <code>+++DD</code> would leave the last digit as it was.</p>
-<p><strong>Repeatability.</strong> None by design ("non-repeatable"). If you need repeatable output choose key masking, or substitution or expression masking with repeatable output.</p>
+<p><strong>Gotchas.</strong> Because there is no seed, a rerun produces different values, and values for the same customer in two tables will not match.
+Numeric output depends on column precision (p.172).
+The mask format rule that a short format leaves trailing characters unmasked applies here too: a 6 digit zip with format <code>+++DD</code> would leave the last digit as it was.</p>
+<p><strong>Repeatability.</strong> None by design ("non-repeatable").
+If you need repeatable output choose key masking, or substitution or expression masking with repeatable output.</p>

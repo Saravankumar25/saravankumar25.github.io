@@ -1,5 +1,6 @@
 <h3 id="c14-encryption">Encryption masking</h3>
-<p><strong>What it does.</strong> Applies an encryption algorithm to a string column (User Guide 10.5.10, p.161 to 162) <span class="badge doc">From docs</span>. Two families:</p>
+<p><strong>What it does.</strong> Applies an encryption algorithm to a string column (User Guide 10.5.10, p.161 to 162) <span class="badge doc">From docs</span>.
+Two families:</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Type</th><th>Options</th><th>Notes</th></tr></thead>
 <tbody>
@@ -8,9 +9,14 @@
 </tbody></table></div>
 <p>The three format preserving options in the guide's own words (p.161 to 162):</p>
 <ul>
-<li><strong>Preserve Format and Metadata:</strong> keeps format and length. Upper case becomes upper case, lower case lower case, digits digits, special characters special characters. Example: <code>Abc123@xyz.com</code> may become <code>Mpz849#dje!kuw</code>; with "@" and "." set as Do Not Encrypt Characters, <code>Mpz849@dje.kuw</code>.</li>
+<li><strong>Preserve Format and Metadata:</strong> keeps format and length.
+Upper case becomes upper case, lower case lower case, digits digits, special characters special characters.
+Example: <code>Abc123@xyz.com</code> may become <code>Mpz849#dje!kuw</code>; with "@" and "." set as Do Not Encrypt Characters, <code>Mpz849@dje.kuw</code>.</li>
 <li><strong>Preserve Metadata:</strong> keeps only length. <code>Alexender</code> may become <code>jl6#HB91v</code>.</li>
-<li><strong>Change Metadata:</strong> length and format change. <code>London</code> may become <code>Xuep@8f5</code> or <code>6ky#ke33h*we</code>. Before using it you must raise the column precision in the database (and in TDM) using: Required Precision = (1.33 x Original Precision) + 24, rounded up. After changing the database column, reimport metadata or edit the precision in Test Data Manager.</li>
+<li><strong>Change Metadata:</strong> length and format change.
+<code>London</code> may become <code>Xuep@8f5</code> or <code>6ky#ke33h*we</code>.
+Before using it you must raise the column precision in the database (and in TDM) using: Required Precision = (1.33 x Original Precision) + 24, rounded up.
+After changing the database column, reimport metadata or edit the precision in Test Data Manager.</li>
 </ul>
 <div class="tablewrap"><table>
 <thead><tr><th>Parameter</th><th>Meaning (p.162)</th></tr></thead>
@@ -24,11 +30,19 @@
 <div class="tablewrap"><table class="sample"><caption>Format preserving encryption on email, "@" and "." not encrypted (illustrative)</caption>
 <thead><tr><th>email before</th><th>email after</th></tr></thead>
 <tbody><tr><td>asha.menon@example.com</td><td>mpzq.dkhxt@wvcbnrq.fhu</td></tr></tbody></table></div>
-<p><strong>Use it when</strong> you must be able to get the original back (decryption is only described for format preserving encryption), or when the application validates the shape of a value. <strong>Gotchas.</strong> Reversibility is a feature and a risk: anyone with the key or pass phrase and the rule can recover production values, so a masked copy using decryptable encryption is not as safe as one using substitution (my note, <span class="badge concept">General concept</span>; the guide only states that decryption is possible). The guide does not say where the pass phrase is entered for format preserving encryption in the excerpt I had, so check your version. The guide calls MD5 a "one-way" hash; it describes decryption only for format preserving encryption. <strong>Repeatability.</strong> Encryption with the same key and configuration gives the same output for the same input; the guide stresses the same pass phrase and configuration to decrypt.</p>
+<p><strong>Use it when</strong> you must be able to get the original back (decryption is only described for format preserving encryption), or when the application validates the shape of a value.
+<strong>Gotchas.</strong> Reversibility is a feature and a risk: anyone with the key or pass phrase and the rule can recover production values, so a masked copy using decryptable encryption is not as safe as one using substitution (my note, <span class="badge concept">General concept</span>; the guide only states that decryption is possible).
+The guide does not say where the pass phrase is entered for format preserving encryption in the excerpt I had, so check your version.
+The guide calls MD5 a "one-way" hash; it describes decryption only for format preserving encryption.
+<strong>Repeatability.</strong> Encryption with the same key and configuration gives the same output for the same input; the guide stresses the same pass phrase and configuration to decrypt.</p>
 
 <h3 id="c14-expression">Expression masking</h3>
-<p><strong>What it does.</strong> Applies a PowerCenter-style expression to a column to create or change data. You build the expression in the Expression Builder by clicking columns, functions, variables and operators. Any datatype (User Guide 10.5.10, p.162 to 163) <span class="badge doc">From docs</span>.</p>
-<p>Guide example: to mask first names by joining them with the text ABC, select the FirstName column and enter <code>CONCAT(FirstName,'ABC')</code>. On ShopSphere that turns Asha into AshaABC. That is a poor mask on its own (the real name is still visible) but it shows how expressions work. Better uses: building a value from other pieces, for example <code>'CUST' || customer_id</code>.</p>
+<p><strong>What it does.</strong> Applies a PowerCenter-style expression to a column to create or change data.
+You build the expression in the Expression Builder by clicking columns, functions, variables and operators.
+Any datatype (User Guide 10.5.10, p.162 to 163) <span class="badge doc">From docs</span>.</p>
+<p>Guide example: to mask first names by joining them with the text ABC, select the FirstName column and enter <code>CONCAT(FirstName,'ABC')</code>.
+On ShopSphere that turns Asha into AshaABC. That is a poor mask on its own (the real name is still visible) but it shows how expressions work.
+Better uses: building a value from other pieces, for example <code>'CUST' || customer_id</code>.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Parameter</th><th>Meaning</th></tr></thead>
 <tbody>
@@ -36,35 +50,65 @@
 <tr><td>Alphanumeric Seed</td><td>Any text. Use the same seed in several rules that must return the same masked values</td></tr>
 <tr><td>Expression</td><td>A PowerCenter expression working on values in a single row</td></tr>
 </tbody></table></div>
-<p><strong>Gotchas</strong> (p.163): use expression masking for one column; for several columns use advanced masking. Make the expression return the column's datatype: the service returns zero for a numeric mismatch and NULL for a string mismatch. You cannot use one expression's output as another's input. With repeatable output you must name a storage table in the plan or the operation fails. No repeatable expression masking for Hadoop sources. Expression syntax is in the Informatica Transformation Language Reference, which the guide points to and I did not read.</p>
+<p><strong>Gotchas</strong> (p.163): use expression masking for one column; for several columns use advanced masking.
+Make the expression return the column's datatype: the service returns zero for a numeric mismatch and NULL for a string mismatch.
+You cannot use one expression's output as another's input.
+With repeatable output you must name a storage table in the plan or the operation fails.
+No repeatable expression masking for Hadoop sources.
+Expression syntax is in the Informatica Transformation Language Reference, which the guide points to and I did not read.</p>
 
 <h3 id="c14-nullification">Nullification masking</h3>
-<p><strong>What it does.</strong> Replaces the value with NULL. Works on binary, date, numeric and string data. No parameters (p.168) <span class="badge doc">From docs</span>.</p>
+<p><strong>What it does.</strong> Replaces the value with NULL. Works on binary, date, numeric and string data.
+No parameters (p.168) <span class="badge doc">From docs</span>.</p>
 <div class="tablewrap"><table class="sample"><caption>Nullification on ssn and tax_id (illustrative)</caption>
 <thead><tr><th>customer_id</th><th>ssn before</th><th>ssn after</th></tr></thead>
 <tbody><tr><td>1001</td><td>123-45-6789</td><td>NULL</td></tr><tr><td>1002</td><td>234-56-7890</td><td>NULL</td></tr></tbody></table></div>
-<p><strong>Use it</strong> for columns the test environment does not need at all: the strongest privacy result, since nothing is left. <strong>Gotchas.</strong> The target column must allow NULL, or the load fails. The application may validate that an SSN is present. Not repeatable in any meaningful way since every row gets the same NULL. A related plan setting, "Target Empty Value", exists in the New Project dialog for non-null columns (p.56), but that is a project setting, not part of this technique.</p>
+<p><strong>Use it</strong> for columns the test environment does not need at all: the strongest privacy result, since nothing is left.
+<strong>Gotchas.</strong> The target column must allow NULL, or the load fails.
+The application may validate that an SSN is present.
+Not repeatable in any meaningful way since every row gets the same NULL. A related plan setting, "Target Empty Value", exists in the New Project dialog for non-null columns (p.56), but that is a project setting, not part of this technique.</p>
 
 <h3 id="c14-ssn">SSN masking</h3>
-<p><strong>What it does.</strong> Applies a built-in mask for Social Security numbers on string columns (User Guide 10.5.10, p.175) <span class="badge doc">From docs</span>. It generates valid-looking numbers and tries to avoid numbers the US Social Security Administration has actually issued, using the High Group List. The service reads that file from the PowerCenter installation's <code>infa_shared/SrcFiles</code> directory; you can download the latest version from the Social Security Administration. Any nine-digit input is accepted, with any delimiters.</p>
-<p><strong>Parameters.</strong> Repeatable Output with a seed value; an SSN randomization option, based on the method the Social Security Administration developed to remove the geographic meaning of the first three digits. The excerpt does not give more parameter names.</p>
+<p><strong>What it does.</strong> Applies a built-in mask for Social Security numbers on string columns (User Guide 10.5.10, p.175) <span class="badge doc">From docs</span>.
+It generates valid-looking numbers and tries to avoid numbers the US Social Security Administration has actually issued, using the High Group List.
+The service reads that file from the PowerCenter installation's <code>infa_shared/SrcFiles</code> directory; you can download the latest version from the Social Security Administration.
+Any nine-digit input is accepted, with any delimiters.</p>
+<p><strong>Parameters.</strong> Repeatable Output with a seed value; an SSN randomization option, based on the method the Social Security Administration developed to remove the geographic meaning of the first three digits.
+The excerpt does not give more parameter names.</p>
 <div class="tablewrap"><table class="sample"><caption>SSN masking (illustrative output)</caption>
 <thead><tr><th>customer_id</th><th>ssn before</th><th>ssn after</th></tr></thead>
 <tbody><tr><td>1001</td><td>123-45-6789</td><td>612-73-4410</td></tr><tr><td>1002</td><td>234-56-7890</td><td>478-09-2231</td></tr><tr><td>1003</td><td>345-67-8901</td><td>559-21-7068</td></tr></tbody></table></div>
-<p><strong>Gotchas.</strong> With repeatable masking the output is deterministic, but TDM "cannot return all unique" SSNs, because it cannot return valid numbers that have already been issued: do not use SSN masking on a column that has a unique constraint without testing for duplicates. The ShopSphere source <code>ssn</code> is a string with hyphens, and the guide says any delimiter style is accepted, so check on a sample that the output style suits your application's validation. <strong>Repeatability.</strong> Select Repeatable Output, select Seed, enter a value.</p>
+<p><strong>Gotchas.</strong> With repeatable masking the output is deterministic, but TDM "cannot return all unique" SSNs, because it cannot return valid numbers that have already been issued: do not use SSN masking on a column that has a unique constraint without testing for duplicates.
+The ShopSphere source <code>ssn</code> is a string with hyphens, and the guide says any delimiter style is accepted, so check on a sample that the output style suits your application's validation.
+<strong>Repeatability.</strong> Select Repeatable Output, select Seed, enter a value.</p>
 
 <h3 id="c14-sin">SIN masking</h3>
-<p>SIN means Social Insurance Number, the Canadian equivalent of the SSN (general background, not from the guide). The technique handles a nine-digit SIN with any delimiters, on string columns (p.175) <span class="badge doc">From docs</span>. With no delimiters in the input the output has none; otherwise the output format is <code>xxx-xxx-xxx</code>. You can enable <strong>Start Digit</strong> and give a digit so all masked SINs start with it. Repeatable Output with a seed value is supported. ShopSphere does not hold SINs, so there is no table for it; use the same thinking as for SSN.</p>
+<p>SIN means Social Insurance Number, the Canadian equivalent of the SSN (general background, not from the guide).
+The technique handles a nine-digit SIN with any delimiters, on string columns (p.175) <span class="badge doc">From docs</span>.
+With no delimiters in the input the output has none; otherwise the output format is <code>xxx-xxx-xxx</code>.
+You can enable <strong>Start Digit</strong> and give a digit so all masked SINs start with it.
+Repeatable Output with a seed value is supported.
+ShopSphere does not hold SINs, so there is no table for it; use the same thinking as for SSN.</p>
 
 <h3 id="c14-phone">Phone masking</h3>
-<p><strong>What it does.</strong> Changes phone numbers while keeping the original format; string columns only (p.169) <span class="badge doc">From docs</span>. The guide's example: <code>(408)382 0658</code> becomes <code>(408)256 3106</code>. Input may contain digits, spaces, hyphens and parentheses; alphabetic and special characters are not masked. The excerpt lists no parameters, and does not say which digits are preserved; in the example the first three stayed, but I would not assume that rule holds for every format.</p>
+<p><strong>What it does.</strong> Changes phone numbers while keeping the original format; string columns only (p.169) <span class="badge doc">From docs</span>.
+The guide's example: <code>(408)382 0658</code> becomes <code>(408)256 3106</code>.
+Input may contain digits, spaces, hyphens and parentheses; alphabetic and special characters are not masked.
+The excerpt lists no parameters, and does not say which digits are preserved; in the example the first three stayed, but I would not assume that rule holds for every format.</p>
 <div class="tablewrap"><table class="sample"><caption>Phone masking (illustrative output, format unchanged)</caption>
 <thead><tr><th>customer_id</th><th>phone before</th><th>phone after</th></tr></thead>
 <tbody><tr><td>1001</td><td>9876543210</td><td>9876012345</td></tr><tr><td>1002</td><td>9123456780</td><td>9123870465</td></tr></tbody></table></div>
-<p><strong>Gotchas.</strong> If your phone column contains words like "ext 12", only digits are masked. Repeatability is not mentioned for phone in the excerpt. If you need the same phone masked the same way in two tables, use key masking with a numeric mask format and the same seed instead (a design alternative, <span class="badge concept">General concept</span>).</p>
+<p><strong>Gotchas.</strong> If your phone column contains words like "ext 12", only digits are masked.
+Repeatability is not mentioned for phone in the excerpt.
+If you need the same phone masked the same way in two tables, use key masking with a numeric mask format and the same seed instead (a design alternative, <span class="badge concept">General concept</span>).</p>
 
 <h3 id="c14-credit-card">Credit card masking</h3>
-<p><strong>What it does.</strong> Applies a built-in format to credit card numbers on string columns, producing a logically valid number with a valid checksum (User Guide 10.5.10, p.158 to 159) <span class="badge doc">From docs</span>. The source must be 13 to 19 digits with a valid checksum under card industry rules. It may contain numbers, spaces and hyphens. Invalid characters or length: the service logs an error in the session log and applies a default credit card mask. The six-digit Bank Identification Number (BIN) at the front is <strong>not</strong> masked. The guide's example: <code>4539 1596 8210 2773</code> may become <code>4539 1516 0556 7067</code>.</p>
+<p><strong>What it does.</strong> Applies a built-in format to credit card numbers on string columns, producing a logically valid number with a valid checksum (User Guide 10.5.10, p.158 to 159) <span class="badge doc">From docs</span>.
+The source must be 13 to 19 digits with a valid checksum under card industry rules.
+It may contain numbers, spaces and hyphens.
+Invalid characters or length: the service logs an error in the session log and applies a default credit card mask.
+The six-digit Bank Identification Number (BIN) at the front is <strong>not</strong> masked.
+The guide's example: <code>4539 1596 8210 2773</code> may become <code>4539 1516 0556 7067</code>.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Parameter</th><th>Meaning</th></tr></thead>
 <tbody>
@@ -73,10 +117,13 @@
 <tr><td>Keep card issuer</td><td>Output has the same card type (Visa in, Visa-format out)</td></tr>
 <tr><td>Replace card issuer</td><td>Output has a different type: choose AMEX, VISA, JCB, MASTERCARD or ANY (default ANY)</td></tr>
 </tbody></table></div>
-<p>ShopSphere has no card column, so the example above is the guide's. <strong>Gotcha:</strong> the BIN stays, so the issuing bank of the card is still visible; usually acceptable for test data, but be aware.</p>
+<p>ShopSphere has no card column, so the example above is the guide's.
+<strong>Gotcha:</strong> the BIN stays, so the issuing bank of the card is still visible; usually acceptable for test data, but be aware.</p>
 
 <h3 id="c14-email">Email masking</h3>
-<p><strong>What it does.</strong> Generates realistic email addresses on string columns. It can build the user name from the <em>masked</em> first and last names, and use a constant or a dictionary-chosen domain (p.159 to 161) <span class="badge doc">From docs</span>. Output is always ASCII. It can be repeatable between workflows or within one workflow.</p>
+<p><strong>What it does.</strong> Generates realistic email addresses on string columns.
+It can build the user name from the <em>masked</em> first and last names, and use a constant or a dictionary-chosen domain (p.159 to 161) <span class="badge doc">From docs</span>.
+Output is always ASCII. It can be repeatable between workflows or within one workflow.</p>
 <div class="tablewrap"><table>
 <thead><tr><th>Group</th><th>Parameter</th><th>Meaning</th></tr></thead>
 <tbody>
@@ -95,10 +142,20 @@
 <div class="tablewrap"><table class="sample"><caption>Advanced email masking, user name from masked names, delimiter period, constant domain (illustrative)</caption>
 <thead><tr><th>Masked first/last name</th><th>email before</th><th>email after</th></tr></thead>
 <tbody><tr><td>Divya Iyer</td><td>asha.menon@example.com</td><td>divya.iyer@example.com</td></tr><tr><td>Arjun Das</td><td>ravi.k@example.com</td><td>arjun.das@example.com</td></tr></tbody></table></div>
-<p><strong>Gotchas.</strong> For the From mapping option the masked name columns must be available to the rule, which usually means an advanced rule that masks the names and builds the email in one go (14.8), because a standard rule has one input and one output. The guide does not spell out the ordering between separate rules, so test that the email matches the masked name in your version. <strong>Why it matters:</strong> an email that still contains "asha.menon" defeats masking even if first and last name are masked.</p>
+<p><strong>Gotchas.</strong> For the From mapping option the masked name columns must be available to the rule, which usually means an advanced rule that masks the names and builds the email in one go (14.8), because a standard rule has one input and one output.
+The guide does not spell out the ordering between separate rules, so test that the email matches the masked name in your version.
+<strong>Why it matters:</strong> an email that still contains "asha.menon" defeats masking even if first and last name are masked.</p>
 
 <h3 id="c14-ip">IP address masking</h3>
-<p>Splits an IP address into four period-separated numbers and masks the network number within its network range; string columns only (p.164) <span class="badge doc">From docs</span>. It does not change the class or private network: a Class A address stays Class A and a <code>10.x.x.x</code> address stays <code>10.x.x.x</code>. Guide examples: <code>11.12.23.34</code> may become <code>75.32.42.52</code> and <code>10.23.24.32</code> may become <code>10.61.74.84</code>. The excerpt lists no parameters. ShopSphere has no IP column; an example would be a web log table with client IPs.</p>
+<p>Splits an IP address into four period-separated numbers and masks the network number within its network range; string columns only (p.164) <span class="badge doc">From docs</span>.
+It does not change the class or private network: a Class A address stays Class A and a <code>10.x.x.x</code> address stays <code>10.x.x.x</code>.
+Guide examples: <code>11.12.23.34</code> may become <code>75.32.42.52</code> and <code>10.23.24.32</code> may become <code>10.61.74.84</code>.
+The excerpt lists no parameters.
+ShopSphere has no IP column; an example would be a web log table with client IPs.</p>
 
 <h3 id="c14-url">URL masking</h3>
-<p>Masks URLs on string columns by finding <code>://</code> and masking what follows; the source must contain <code>://</code>; numbers and letters are allowed (p.177) <span class="badge doc">From docs</span>. The protocol is <strong>not</strong> masked. The guide's example: <code>http://www.yahoo.com</code> may return <code>http://MgL.aHjCa.VsD/</code>. Output is always ASCII and may be a URL that is not valid, so do not use it where the application opens the link. No parameters are listed in the excerpt.</p>
+<p>Masks URLs on string columns by finding <code>://</code> and masking what follows; the source must contain <code>://</code>; numbers and letters are allowed (p.177) <span class="badge doc">From docs</span>.
+The protocol is <strong>not</strong> masked.
+The guide's example: <code>http://www.yahoo.com</code> may return <code>http://MgL.aHjCa.VsD/</code>.
+Output is always ASCII and may be a URL that is not valid, so do not use it where the application opens the link.
+No parameters are listed in the excerpt.</p>

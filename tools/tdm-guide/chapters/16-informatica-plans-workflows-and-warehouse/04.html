@@ -28,13 +28,20 @@
 </g></svg>
 <figcaption>Original diagram, simplified from the guide's descriptions of services and databases (pp.26-28, 236). The exact wiring between services differs in a real installation; use it as a map of who holds what, not as a network drawing.</figcaption></figure>
 
+<div class="compare">
+<div><h4>A plain database backup</h4>
+<p>Restores a whole database, usually needs a DBA, and carries no test metadata. Hard for a tester to find "the data from the refund tests".</p></div>
+<div><h4>A warehouse data set (concept view)</h4>
+<p>Holds chosen tables, with application name, version and tags you can search. Testers with Execute permission can reset it, or pick it up from the portal. The analogy to a backup stops here: a data set can also be edited and sliced into related data sets.</p></div>
+</div>
+
 <h2 id="c16-datasets">16.16 Data sets, versions and tags</h2>
 <p>A <strong>data set</strong> is a collection of one or more tables from one or more data sources, and generally matches one or more test cases (User Guide 10.5.10, p.238). You create one when you subset production, make a masked copy, or generate data, by selecting the test data warehouse as the target when the plan runs. It stores source table metadata and plan metadata, and you can search by those properties.</p>
 <h3 id="c16-create-dataset">16.16.1 Creating a data set</h3>
 <ol class="steps">
 <li><strong>Check the tables first.</strong><p>You cannot create a data set from tables with user-defined data types; mark such columns Restricted under Discover &gt; Columns. Tables without primary keys need logical keys, or a reset might fail. Character columns with precision 4000 should be edited to 3,999 or less (p.239).</p></li>
 <li><strong>Build a plan (masking, subset or generation) and in the plan settings select Test Data Warehouse from the target connections.</strong><p>The Data Set Properties section appears.</p></li>
-<li><strong>Enter a data set name (default: the plan name), application name, application version and tags.</strong><p>A new name creates version 1. TDM fills in the version number (pp.240).</p></li>
+<li><strong>Enter a data set name (default: the plan name), application name, application version and tags.</strong><p>A new name creates version 1. TDM fills in the version number (p.240).</p></li>
 <li><strong>Finish the plan and click Actions &gt; Generate and Execute.</strong><p>Optionally publish to the self-service portal in the same step.</p><p class="expect">Monitor shows the job. On success the data set appears in the Data Sets view.</p></li>
 </ol>
 <p><em>Condensed from User Guide 10.5.10, pp.239-240.</em></p>
@@ -133,7 +140,7 @@
 <li><strong>Compare with production counts for the slice.</strong><p>Run counts again in the test database and compare with the Row Count report from Lab A.</p><p class="expect">Counts equal the version 1 data set.</p></li>
 </ol>
 <details class="sol"><summary>Show a worked answer</summary>
-<p>If step 4 failed with a key violation, the likely cause is classification: ORDERS rows still existed in the target pointing to a parent the insert wanted to change. Tick "Upsert in Transactional Tables", or truncate if the schema is private (p.244). If step 4 failed halfway, keep the prefix <code>BK</code> and use the restore plan in 16.17.4.</p></details></div>
+<p>If step 4 failed with a key violation, the likely cause is classification: ORDERS rows still existed in the target pointing to a parent the insert wanted to change. Tick "Upsert in Transactional Tables", or truncate if the schema is private (p.244). If step 4 failed halfway, keep the prefix <code>BK</code> and use the restore plan described under <a href="#c16-reset-gotchas">failure and special cases</a>.</p></details></div>
 
 <div class="exercise"><h4>Lab C: read a failed job</h4>
 <p>Goal: practise reading logs. The messages below are <strong>invented</strong>, written to look like the structure the guide describes (date, severity, description), not real TDM text.</p>

@@ -8,8 +8,9 @@ The reader is an **absolute beginner**: no knowledge of TDM, ETL, databases beyo
 - Write chapter **fragments** (no `<html>`, `<head>`, `<body>`): `tools/tdm-guide/chapters/<NN>-<slug>/`
   - `meta.json`: `{"num": 12, "slug": "informatica-discovery-and-profiling", "title": "...", "part": 2, "summary": "one sentence, plain English", "days": "Day 43"}`  (`days` optional)
   - `01.html`, `02.html`, `03.html` ...: parts, concatenated in name order. Keep each part about 150 to 260 lines so no single write is huge.
-- **Length target: 650 to 900 lines of HTML per chapter** (about 3,000 to 4,500 words, a 15 to 20 minute read). One paragraph / list item / table row per line is fine.
-  Every line must teach something. No filler, no repeating yourself, no padding to hit a number. If a topic is thin, write fewer lines and say so.
+- **Length budget (hard cap, overall guide about 20,000 lines):** per section: 1=380, 2=550, 3=550, 4=470, 5-7=650 each, 8-9=975 each, 10=450, 11-13=500 each, 14-16=650 each, 17-19=650 each, 20-21=975 each, 22-25=490 each, 26-28=650 each, 29-30=600 each, 32 (glossary)=600. Count with `cat chapters/<dir>/*.html | wc -l`.
+  Keep it tight: no repeated explanations, no second example where one is enough, no redundant tables, no tangents, no over-deep internals the learner does not need for the curriculum. Keep every curriculum topic, every official screenshot that illustrates a step, definitions, numbered steps with reasons and expected results, and labs.
+  One paragraph / list item / table row per line is fine, but every line must teach something.
 - Do **not** write `<h1>` (the page template adds it). Start with the chapter intro, then `<h2 id="...">` sections, `<h3 id="...">` subsections.
   **Every h2/h3 needs a unique kebab-case id prefixed with the chapter number**, e.g. `<h2 id="c12-what-is-profiling">12.1 What is profiling?</h2>`. Number headings "12.1", "12.2"...
 - Build and check: `node tools/tdm-guide/build.mjs --check` (from repo root). It must report no ERRORs for your chapters.
