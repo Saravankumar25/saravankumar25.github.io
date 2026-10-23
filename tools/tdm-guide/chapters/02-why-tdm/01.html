@@ -1,0 +1,127 @@
+<p>Every tool in this guide exists to solve one problem: software has to be tested, testing needs data, and the obvious source of data (the live system) is the one place you must not copy carelessly. This chapter builds that argument from zero. By the end you will understand why a whole discipline, Test Data Management, grew up around what looks like a small chore.</p>
+<p>It is the first chapter of the programme syllabus (Day 43: "Importance of test data in testing, COTS product overview, partnership, Cog IPs, TDM architecture"). The architecture of each tool comes later; here we deal with the importance of test data and the product landscape. Read <a href="01-start-here.html">Chapter 1</a> first if you have not yet met ShopSphere, the fictional company used throughout.</p>
+
+<div class="callout recap">
+<strong class="ctitle">What you will learn</strong>
+<ul>
+<li>What software testing is, and why it cannot happen without data.</li>
+<li>What dev, QA, UAT, staging and production environments are, in plain words.</li>
+<li>The "copy production" shortcut and the eight things that go wrong with it.</li>
+<li>What TDM is, its goals, and its six capabilities: discover, subset, mask, generate, provision, govern.</li>
+<li>Who does what in a TDM effort, and how it plays out in real ShopSphere scenarios.</li>
+<li>Benefits, trade-offs, and the usual stages of TDM maturity.</li>
+<li>What "COTS" means, and what the programme's three tools are.</li>
+</ul>
+</div>
+
+<div class="callout note">
+<strong class="ctitle">What this chapter is based on</strong>
+<p>The concept sections are general industry knowledge, marked <span class="badge concept">General concept</span>. Statements about what the tools do are grounded in three sources: the Informatica TDM 10.5.10 User Guide (PDF, February 2026), Chapter 1, pp.21-24, including the "Test Data Management Use Cases" section; the Delphix Continuous Compliance 2026.5 help pages <a href="https://help.delphix.com/cc/current/content/introduction_to_delphix_masking.htm" target="_blank" rel="noopener">Introduction to Delphix Masking</a> and <a href="https://help.delphix.com/cc/current/content/delphix_masking_terminology.htm" target="_blank" rel="noopener">Delphix masking terminology</a>; and the GenRocket "Welcome to GenRocket" help pages. Those are marked <span class="badge doc">From docs</span>.</p>
+</div>
+
+<h2 id="c2-words">2.1 Words to know first</h2>
+<dl class="defs">
+<div><dt>Software testing</dt><dd>Checking, before real users rely on it, that a program does what it should and does not break when something unexpected happens.</dd></div>
+<div><dt>Test case</dt><dd>One specific check: "do this, with this data, and expect that result". Example: place an order for a customer with no previous orders and expect a confirmation.</dd></div>
+<div><dt>Test data</dt><dd>The data a test case needs: the customers, products and orders that exist before the test starts, and the values typed in during it.</dd></div>
+<div><dt>Environment</dt><dd>A complete running copy of the application with its own servers and its own database. Different environments serve different purposes.</dd></div>
+<div><dt>Production (prod)</dt><dd>The live environment used by real customers. It holds real data.</dd></div>
+<div><dt>Non-production</dt><dd>Every environment that is not production: dev, QA, UAT, staging and so on.</dd></div>
+<div><dt>Sensitive data</dt><dd>Information that would harm a person or the company if leaked: names with ID numbers, health records, card numbers. Chapter 4 covers it fully.</dd></div>
+<div><dt>Refresh</dt><dd>Replacing the data in a test environment with a newer copy.</dd></div>
+<div><dt>Edge case</dt><dd>An unusual but possible input, such as an empty name, a very long address or a date on 29 February.</dd></div>
+<div><dt>COTS</dt><dd>Commercial off-the-shelf: software you buy ready-made from a vendor and configure, instead of building it yourself.</dd></div>
+<div><dt>TDM</dt><dd>Test Data Management, the subject of this guide.</dd></div>
+</dl>
+
+<h2 id="c2-testing-needs-data">2.2 What software testing is, and why it needs data</h2>
+<h3 id="c2-testing">Testing in one minute</h3>
+<p>Imagine ShopSphere's developers have just changed how discounts are calculated. Before the change reaches real shoppers, someone has to check it. They log into a copy of the app, place an order, and look at the total. If the discount is wrong, they report a bug. That checking is <dfn>software testing</dfn>.</p>
+<p>Testing is not a single activity. Teams run many kinds: a developer checks one function, a QA engineer clicks through a whole purchase, a performance tester sends thousands of orders at once, a business user confirms the app does what the business asked. They all share one need.</p>
+<h3 id="c2-data">An application without data does nothing</h3>
+<p>An online shop with an empty database has no customers to log in, no products to buy, no orders to total. A test that says "check the discount for a returning customer" needs a returning customer to exist. So before the test starts, the environment must already contain:</p>
+<ul>
+<li>customers with the right attributes (a returning customer, a new one, one with an expired card);</li>
+<li>products with prices;</li>
+<li>earlier orders for those customers, linked correctly to them.</li>
+</ul>
+<p>That pre-loaded information is test data. It is as essential to a test as the code under test.</p>
+<span class="badge concept">General concept</span>
+
+<div class="callout why">
+<strong class="ctitle">Why this matters</strong>
+<p>Bad test data produces two kinds of waste. Tests that should pass fail because the data is wrong (a false alarm that costs a developer an afternoon). Or tests pass when they should fail because the data never contained the tricky case (a bug reaches customers). Good data is not a luxury; it decides whether the test result can be trusted.</p>
+</div>
+
+<h3 id="c2-good-data">What makes test data "good"?</h3>
+<p>Testers usually want data that is:</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Quality</th><th>Meaning</th><th>ShopSphere example</th></tr></thead>
+<tbody>
+<tr><td>Realistic</td><td>Looks and behaves like real data, so the app reacts as it would in production.</td><td>Phone numbers have 10 digits; emails contain "@"; order totals match their line items.</td></tr>
+<tr><td>Consistent</td><td>Related records agree with each other.</td><td>Every order points to a customer that exists.</td></tr>
+<tr><td>Complete enough</td><td>Covers the cases the tests need, including odd ones.</td><td>A customer with zero orders; an order with 100 items; a customer born on 29 February.</td></tr>
+<tr><td>Right-sized</td><td>Big enough to be meaningful, small enough to load and refresh quickly.</td><td>Thousands of customers for functional tests, millions only for performance tests.</td></tr>
+<tr><td>Safe</td><td>Cannot hurt anyone if it leaks.</td><td>No real names with real ID numbers.</td></tr>
+<tr><td>Available</td><td>There when the tester needs it, not three weeks later.</td><td>A fresh dataset the morning a release starts testing.</td></tr>
+<tr><td>Repeatable</td><td>Can be put back to a known state so a test gives the same result twice.</td><td>Re-running yesterday's test on yesterday's data.</td></tr>
+</tbody>
+</table></div>
+<p>Notice that these seven qualities pull against each other. "Realistic" and "safe" fight: the most realistic data is real data, which is the least safe. "Complete" and "right-sized" fight too. TDM is the work of balancing them deliberately instead of by accident.</p>
+
+<h2 id="c2-environments">2.3 Test environments in plain words</h2>
+<p>An <dfn>environment</dfn> is a full copy of the application with its own servers and its own database. Teams run several, each with a job. Names vary between companies, but the pattern is common.</p>
+<div class="tablewrap"><table>
+<thead><tr><th>Environment</th><th>Who uses it</th><th>What it is for</th><th>Typical data</th></tr></thead>
+<tbody>
+<tr><td><strong>Dev</strong> (development)</td><td>Developers</td><td>Building and debugging new code. Breaks often, and that is fine.</td><td>Small, often hand-made; developers need to reset it freely.</td></tr>
+<tr><td><strong>QA / Test</strong></td><td>QA engineers, automation</td><td>Systematic testing of features and bugs.</td><td>Broad and varied; needs edge cases.</td></tr>
+<tr><td><strong>UAT</strong> (user acceptance testing)</td><td>Business users</td><td>The business confirms the app does what they asked.</td><td>Must look believable to business people.</td></tr>
+<tr><td><strong>Staging / pre-prod</strong></td><td>Release team, performance testers</td><td>A rehearsal as close to production as possible.</td><td>Large volumes; production-like shape.</td></tr>
+<tr><td><strong>Production</strong></td><td>Real customers</td><td>The live business.</td><td>Real, sensitive, valuable.</td></tr>
+</tbody>
+</table></div>
+<span class="badge concept">General concept</span>
+<figure class="diagram">
+<svg viewBox="0 0 800 210" role="img" aria-label="Environments from dev to production; every environment left of production needs test data, and production holds real data">
+<defs><marker id="c2a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="currentColor"/></marker></defs>
+<rect x="10" y="60" width="120" height="70" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="70" y="92" text-anchor="middle" fill="currentColor" font-size="15" font-weight="700">Dev</text>
+<text x="70" y="113" text-anchor="middle" fill="currentColor" font-size="12">build, debug</text>
+<line x1="130" y1="95" x2="160" y2="95" stroke="currentColor" stroke-width="2" marker-end="url(#c2a)"/>
+<rect x="162" y="60" width="120" height="70" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="222" y="92" text-anchor="middle" fill="currentColor" font-size="15" font-weight="700">QA</text>
+<text x="222" y="113" text-anchor="middle" fill="currentColor" font-size="12">test features</text>
+<line x1="282" y1="95" x2="312" y2="95" stroke="currentColor" stroke-width="2" marker-end="url(#c2a)"/>
+<rect x="314" y="60" width="120" height="70" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="374" y="92" text-anchor="middle" fill="currentColor" font-size="15" font-weight="700">UAT</text>
+<text x="374" y="113" text-anchor="middle" fill="currentColor" font-size="12">business signs off</text>
+<line x1="434" y1="95" x2="464" y2="95" stroke="currentColor" stroke-width="2" marker-end="url(#c2a)"/>
+<rect x="466" y="60" width="130" height="70" rx="10" fill="var(--surface)" stroke="currentColor"/>
+<text x="531" y="92" text-anchor="middle" fill="currentColor" font-size="15" font-weight="700">Staging</text>
+<text x="531" y="113" text-anchor="middle" fill="currentColor" font-size="12">final rehearsal</text>
+<line x1="596" y1="95" x2="636" y2="95" stroke="currentColor" stroke-width="2" marker-end="url(#c2a)"/>
+<rect x="638" y="60" width="150" height="70" rx="10" fill="var(--surface)" stroke="var(--accent)" stroke-width="2"/>
+<text x="713" y="92" text-anchor="middle" fill="var(--accent)" font-size="15" font-weight="700">Production</text>
+<text x="713" y="113" text-anchor="middle" fill="currentColor" font-size="12">real customers</text>
+<text x="286" y="40" text-anchor="middle" fill="currentColor" font-size="13">non-production: all of these need test data</text>
+<line x1="10" y1="50" x2="596" y2="50" stroke="currentColor" stroke-dasharray="4 4"/>
+<text x="400" y="175" text-anchor="middle" fill="currentColor" font-size="13">Code moves left to right. The question TDM answers: what data fills the boxes on the left?</text>
+</svg>
+<figcaption>Original diagram: a typical environment pipeline. Names and the number of stages differ between companies.</figcaption>
+</figure>
+<div class="callout note">
+<strong class="ctitle">Security is usually weaker outside production</strong>
+<p>The Informatica User Guide points out that organisations typically keep strict controls on production systems, while data security in non-production systems is often not as strong (User Guide 10.5.10, p.21). That gap is exactly where leaks happen, and why the rest of this chapter matters. <span class="badge doc">From docs</span></p>
+</div>
+
+<h3 id="c2-who-needs-data">Who needs data, and when?</h3>
+<p>In ShopSphere, a single sprint can ask for data in several ways at once:</p>
+<ul>
+<li>A developer fixing a rounding bug needs one customer with a specific order total.</li>
+<li>A QA engineer testing refunds needs hundreds of orders in different states (paid, shipped, returned).</li>
+<li>A performance tester needs millions of orders to see whether the site slows down.</li>
+<li>A business analyst in UAT needs data that "looks like our real customers" so they can judge whether a screen makes sense.</li>
+<li>An automation engineer needs the same data every night so the automated tests are repeatable.</li>
+</ul>
+<p>Five people, five different requirements. If nobody manages this, each one solves it alone, usually in the least safe way. That is the next section.</p>
