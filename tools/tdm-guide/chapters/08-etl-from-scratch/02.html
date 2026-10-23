@@ -10,8 +10,6 @@
 <tr><td>Flat files (CSV, fixed-width, delimited text)</td><td>Read line by line using a layout definition</td><td>Different date formats, stray quotes, missing columns, a file that is still being written</td></tr>
 <tr><td>Structured documents (XML, JSON)</td><td>Parse, then flatten nested parts into rows</td><td>Optional elements, repeating groups that become child tables</td></tr>
 <tr><td>Web services (APIs)</td><td>HTTP requests, often in pages</td><td>Rate limits, authentication, changing response shapes</td></tr>
-<tr><td>Message queues and event streams</td><td>Consume messages as they arrive</td><td>Duplicates, out-of-order arrival</td></tr>
-<tr><td>Application packages and mainframes</td><td>Vendor connectors or exported files</td><td>Unusual encodings and record layouts</td></tr>
 </tbody></table></div>
 <p>The Informatica guide shows the same range in test data work: it mentions relational sources, flat files and XSD (XML) sources as things that data subset, masking and generation plans can run on (User Guide 10.5.10, pp.274 to 277). <span class="badge doc">From docs</span> GenRocket's FAQ describes its targets in the same vein (databases, flat files, mainframe formats, NoSQL). <span class="badge doc">From docs</span> <a href="https://genrocket.helpjuice.com/en_US/frequently-asked-questions-faq/frequently-asked-questions-faq-general" target="_blank" rel="noopener">GenRocket General FAQ ↗</a></p>
 <h3 id="c8-full-vs-incremental">8.5.2 Full versus incremental extraction</h3>
@@ -70,10 +68,8 @@ WHERE  job_name = 'orders_daily';</code></pre>
 </tbody></table></div>
 <h3 id="c8-extract-rules">8.5.5 Good extraction habits</h3>
 <ol class="steps">
-<li><strong>Extract more than you think you need, but not everything.</strong><p>Pulling every column of a wide table wastes time; pulling too few forces another extract when requirements change. Agree the column list with the people who will use the data.</p></li>
 <li><strong>Record the run.</strong><p>Give every run a batch id and a timestamp, and write both next to the extracted rows. When something looks wrong later, you can say exactly which run brought it in.</p></li>
 <li><strong>Read a consistent snapshot.</strong><p>If you extract CUSTOMERS and then ORDERS five minutes later, new orders may point at customers you did not capture. Extract related tables in one transaction or point in time, or cut the orders to a time you know customers cover.</p><p class="expect">What you should see: every order in staging has its customer in staging, or the job knows why not.</p></li>
-<li><strong>Do not transform at the source.</strong><p>Keep the extract query simple. Heavy logic in the source query slows the source and hides your rules inside a query nobody reviews.</p></li>
 </ol>
 
 <h2 id="c8-staging">8.6 The staging area</h2>
@@ -82,7 +78,6 @@ WHERE  job_name = 'orders_daily';</code></pre>
 <p><strong>Why it matters.</strong> Staging gives you four things:</p>
 <ul>
 <li><strong>A frozen copy.</strong> You can transform, check and re-run without hitting the source again.</li>
-<li><strong>A place to inspect.</strong> If a result looks wrong you can compare it to the raw staged rows.</li>
 <li><strong>Separation of duties.</strong> Extraction only reads; transformation only reshapes; neither depends on the other being fast.</li>
 <li><strong>Safe restarts.</strong> A failure in the transform step does not need a new extract.</li>
 </ul>
@@ -101,14 +96,6 @@ WHERE  job_name = 'orders_daily';</code></pre>
   last_name   TEXT,
   email       TEXT,
   zip_code    TEXT
-);
-CREATE TABLE stg_orders (
-  batch_id     INTEGER,
-  order_id     TEXT,
-  customer_id  TEXT,
-  order_date   TEXT,       -- arrives as DD/MM/YYYY text
-  total_amount TEXT,       -- may contain junk such as 'abc'
-  status_code  TEXT
 );</code></pre>
 <div class="callout example"><strong class="ctitle">ShopSphere staging, run 1</strong>
 <p>The extract wrote these rows into <code>stg_customers</code>, and notice it kept the mess exactly as found: the leading space in " Asha ", the upper-case "MENON", the trailing space in the email, the duplicate row for 1002 and the missing email for 1003.</p></div>
@@ -121,14 +108,4 @@ CREATE TABLE stg_orders (
 <tr><td>1</td><td>1002</td><td>Ravi</td><td>Kumar</td><td>ravi.k@example.com</td><td>600017</td></tr>
 <tr><td>1</td><td>1003</td><td>Meera</td><td>Nair</td><td>NULL</td><td>682001</td></tr>
 </tbody></table></div>
-<div class="tablewrap"><table class="sample">
-<caption>stg_orders after extract (batch 1): all text, junk included</caption>
-<thead><tr><th>batch_id</th><th>order_id</th><th>customer_id</th><th>order_date</th><th>total_amount</th><th>status_code</th></tr></thead>
-<tbody>
-<tr><td>1</td><td>5001</td><td>1001</td><td>20/10/2026</td><td>1499.00</td><td>S</td></tr>
-<tr><td>1</td><td>5002</td><td>1002</td><td>20/10/2026</td><td>250.50</td><td>S</td></tr>
-<tr><td>1</td><td>5003</td><td>1001</td><td>21/10/2026</td><td>75.00</td><td>P</td></tr>
-<tr><td>1</td><td>5004</td><td>1003</td><td>21/10/2026</td><td>abc</td><td>S</td></tr>
-<tr><td>1</td><td>5005</td><td>9999</td><td>22/10/2026</td><td>303.00</td><td>S</td></tr>
-</tbody></table></div>
-<p>Two rows here are traps we will deal with later: order 5004 has a total of "abc", and order 5005 belongs to customer 9999, who does not exist. Both are realistic: feeds from other systems are never perfectly clean.</p>
+<p>The order feed is staged the same way. Two of its rows are traps handled later: order 5004 has a total of "abc", and order 5005 belongs to customer 9999, who does not exist.</p>

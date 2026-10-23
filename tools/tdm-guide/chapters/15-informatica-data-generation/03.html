@@ -21,17 +21,7 @@
 <h3 id="c15-t-sequence">15.9.1 Sequence</h3>
 <p><span class="badge doc">From docs</span> A global or ad hoc rule that makes numeric or date values in a sequence. You pick a beginning value and an increment (User Guide 10.5.10, p.230).</p>
 <p><strong>When:</strong> ids and anything that must be ascending: customer ids, ticket numbers, consecutive dates. The guide's example is a TICKET_NUMBER column with start 1000 and increment 1 (p.231).</p>
-<div class="tablewrap"><table>
-<caption>Sequence parameters (pp.231-232)</caption>
-<thead><tr><th>Parameter</th><th>Applies to</th><th>Meaning</th></tr></thead>
-<tbody>
-<tr><td>Start Value</td><td>Numeric</td><td>First number of the sequence</td></tr>
-<tr><td>Increment Value</td><td>Numeric</td><td>Amount added each step</td></tr>
-<tr><td>Start Sequence from Last Value</td><td>Numeric</td><td>On the next run of the plan, continue from the previous output value. On a string column the sequence restarts from the beginning.</td></tr>
-<tr><td>Start Date</td><td>Date</td><td>First date</td></tr>
-<tr><td>Increment by</td><td>Date</td><td>A number plus a unit: year, month, day, hour, minutes or seconds</td></tr>
-<tr><td>Null Values / Invalid Values</td><td>Both</td><td>Exception data. Invalid means below the start value for a positive increment, or above it for a negative one.</td></tr>
-</tbody></table></div>
+<p>Parameters (pp.231-232): numeric rules take Start Value, Increment Value and <strong>Start Sequence from Last Value</strong>, which makes the next run continue from the previous output (on a string column it restarts from the beginning). Date rules take Start Date and Increment by (a number plus year, month, day, hour, minutes or seconds). Null Values and Invalid Values apply, where invalid means below the start for a positive increment.</p>
 <p><strong>ShopSphere:</strong> <code>customer_id</code> with start 1001, increment 1 gives 1001, 1002, 1003 and so on. A date sequence for <code>order_date</code> with start 2026-01-01 and increment 1 day gives one order per consecutive day.</p>
 <p><strong>Limits:</strong> you cannot add a conditional constraint to a sequence column (p.201) or put conditions on a sequence rule (p.234).</p>
 
@@ -62,62 +52,19 @@
 
 <h3 id="c15-t-dict">15.9.4 Dictionary</h3>
 <p><span class="badge doc">From docs</span> Loads values from a <strong>dictionary</strong> (a flat file or relational table of values) into a column. Good for columns with realistic but finite values: names, states, countries. Before you create the rule, someone with permission must add the dictionary under <strong>Administrator | Dictionaries</strong>. Works for string, numeric, date and binary data; flat file or relational source; binary only from relational (p.215).</p>
-<div class="tablewrap"><table>
-<caption>Dictionary parameters (p.216)</caption>
-<thead><tr><th>Parameter</th><th>Meaning</th></tr></thead>
-<tbody>
-<tr><td>Dictionary Name</td><td>Which imported dictionary to use</td></tr>
-<tr><td>Dictionary Column</td><td>Which column of the dictionary supplies the value. Longer values are truncated to the target column's size.</td></tr>
-<tr><td>Dictionary Lookup Column</td><td>Optional. A dictionary column to match against a table column, set when you assign the rule.</td></tr>
-<tr><td>Table Column</td><td>Optional. The target-table column to match to the lookup column.</td></tr>
-<tr><td>Serial Number Columns</td><td>Relational dictionaries only; needed for binary data</td></tr>
-<tr><td>Generate Unique Values</td><td>Not for flat-file dictionaries or binary types</td></tr>
-<tr><td>Null Values, Invalid Values</td><td>Invalid means not in the dictionary; not available for binary</td></tr>
-</tbody></table></div>
+<p>Parameters (p.216): Dictionary Name; Dictionary Column (longer values are truncated to the target size); an optional Dictionary Lookup Column plus Table Column to match rows; Serial Number Columns (relational dictionaries, needed for binary); Generate Unique Values (not for flat-file dictionaries or binary); Null and Invalid Values (invalid means not in the dictionary).</p>
 <p>If both lookup and table columns are of double data type the process generates nulls (p.216). The guide's example makes two string rules from one names dictionary: one picks the first-name column, one the last-name column (p.215).</p>
 <p><strong>ShopSphere:</strong> <code>first_name</code> uses dictionary NAMES column FIRST, <code>last_name</code> uses column LAST. Sample output: Meera, Nair; Ravi, Kumar; Asha, Menon. The dictionary's name and column names here are placeholders I made up. Because the two rules pick independently, "Ravi Menon" is as likely as "Ravi Kumar", which is fine for testing and wrong for anything that needs a believable family name.</p>
 
 <h3 id="c15-t-card">15.9.5 Credit Card</h3>
 <p><span class="badge doc">From docs</span> Creates card numbers by issuing network. Output is a <strong>string</strong> (not numeric, date or binary), and numbers must pass verification using Luhn's algorithm, the check-digit formula real cards follow (pp.226-227). Formatted output looks like <code>XXXX-XXXX-XXXX-XXXX</code>.</p>
-<div class="tablewrap"><table>
-<caption>Credit card parameters and issuer identification numbers (pp.227-228)</caption>
-<thead><tr><th>Parameter</th><th>Meaning</th></tr></thead>
-<tbody>
-<tr><td>Issuing Network (required)</td><td>American Express, Discover, JCB, Mastercard or Visa</td></tr>
-<tr><td>Issuer Identification Number</td><td>Optional, up to six starting digits. If left blank TDM uses valid ones for the network. If invalid, the workflow fails.</td></tr>
-<tr><td>Distribution %</td><td>Share of rows for this network. Must total 100.</td></tr>
-<tr><td>Generate Formatted Values</td><td>Adds hyphens in groups of four, as on a card</td></tr>
-<tr><td>Generate Unique Values</td><td>No two rows alike</td></tr>
-<tr><td>Null Values, Invalid Values</td><td>Exception data</td></tr>
-</tbody></table></div>
-<div class="tablewrap"><table>
-<caption>Valid starting digits per network (p.228)</caption>
-<thead><tr><th>Network</th><th>Starting digits</th></tr></thead>
-<tbody>
-<tr><td>American Express</td><td>34 and 37</td></tr>
-<tr><td>Discover</td><td>6011, 622126 to 622925, 644 to 649, and 65</td></tr>
-<tr><td>JCB</td><td>3528 to 3589</td></tr>
-<tr><td>Mastercard</td><td>51 to 55</td></tr>
-<tr><td>Visa</td><td>4</td></tr>
-</tbody></table></div>
+<p>Parameters (pp.227-228): Issuing Network (required: American Express, Discover, JCB, Mastercard or Visa); an optional Issuer Identification Number of up to six starting digits (a value invalid for the network makes the workflow fail; blank lets TDM use valid ones); Distribution % (must total 100); Generate Formatted Values; Generate Unique Values; Null and Invalid Values. Valid starting digits include Visa 4, Mastercard 51 to 55 and American Express 34 and 37.</p>
+
 <p><strong>ShopSphere:</strong> the four tables hold no card numbers, so imagine a later <code>PAYMENTS.card_no</code> column. A rule with Visa at 60 percent and Mastercard at 40 percent, formatted, gives values shaped like <code>4666-1760-3137-2159</code> and <code>5122-3307-9244-0268</code>. I computed those two to pass the Luhn check, but TDM would produce its own digits.</p>
 
 <h3 id="c15-t-ref">15.9.6 Reference Lookup</h3>
 <p><span class="badge doc">From docs</span> An <strong>ad hoc</strong> rule that takes column values from an existing table, for string, numeric and date columns. You name the parent table and map parent columns to child columns. The same rule can fill several child columns from the same parent table (p.229). The guide's example: use the same customer ids that exist in another table.</p>
-<div class="tablewrap"><table>
-<caption>Reference lookup parameters (p.230)</caption>
-<thead><tr><th>Parameter</th><th>Meaning</th></tr></thead>
-<tbody>
-<tr><td>Minimum Value</td><td>Fewest child records per parent record. Default 1.</td></tr>
-<tr><td>Maximum Value</td><td>Most child records per parent record. Default 3.</td></tr>
-<tr><td>Data Source</td><td>Connection to the parent table</td></tr>
-<tr><td>Parent Table</td><td>Table to take values from</td></tr>
-<tr><td>Child Column / Parent Column</td><td>Pairs of columns; add rows for more pairs. The first child column cannot be removed.</td></tr>
-<tr><td>Parent Table Filter</td><td>A condition that the extracted parent rows must meet</td></tr>
-<tr><td>Parent records without children</td><td>Percent of parents that get no child</td></tr>
-<tr><td>Child records without a parent</td><td>Percent of children that get no parent. If 0, you must give a default value instead of null.</td></tr>
-<tr><td>Default Value</td><td>Value to write instead of null for orphan rows. Required when the orphan percent is 0.</td></tr>
-</tbody></table></div>
+<p>Parameters (p.230): Minimum (default 1) and Maximum (default 3) child records per parent; Data Source (connection to the parent table); Parent Table; pairs of Child Column and Parent Column; a Parent Table Filter; the percent of parent records without children and of child records without a parent (if that is 0 you must give a Default Value to write instead of nulls).</p>
 <p><strong>ShopSphere:</strong> <code>ORDERS.customer_id</code> reads <code>CUSTOMERS.customer_id</code> with minimum 1 and maximum 3, so each existing customer gets one to three orders. Set "Parent records without children" to 10 and about one customer in ten has no orders, a useful edge case. Remember the plan needs a <em>Reference Lookup Connection</em> (p.280), and see <a href="#c15-keys-ref">the note on reference lookup</a> about where the parent rows must already live.</p>
 <div class="callout warn"><strong class="ctitle">Reference lookup is not for XML targets</strong>
 <p>You cannot use reference lookup or effective dates rules for an XSD (XML) source (p.206).</p></div>
@@ -129,27 +76,14 @@
 
 <h3 id="c15-t-cond">15.9.8 Conditional</h3>
 <p><span class="badge doc">From docs</span> An <strong>ad hoc</strong> rule with one or more rows of "<em>if this condition, then use this generation rule</em>". Conditions are applied in the order listed (reorder with the up and down arrows). Works for string, numeric and date, but you cannot apply conditions to effective dates or sequence rules (p.234).</p>
-<div class="tablewrap"><table>
-<caption>Conditional parameters (p.235)</caption>
-<thead><tr><th>Parameter</th><th>Meaning</th></tr></thead>
-<tbody>
-<tr><td>Condition</td><td>An expression built in the Expression Builder. Add several for one column.</td></tr>
-<tr><td>Generation Rule</td><td>The rule to apply when the condition is true. Use an existing project rule, create one, or edit an ad hoc rule.</td></tr>
-</tbody></table></div>
+
 <p>The guide's example: DEPT_ID 11 gets a 5 percent hike, 22 gets 10, 33 gets 15. The column that the condition reads (DEPT_ID) must itself have a rule, and TDM generates it first, then the dependent column (p.234).</p>
 <p><strong>ShopSphere</strong> (hypothetical city column): if <code>zip_code = '560001'</code> then city is "Bengaluru", if <code>'600017'</code> then "Chennai", if <code>'682001'</code> then "Kochi". Each "then" is a one-value Set of Values rule. The guide does not describe a catch-all "else" row, so make sure every possible input value has a condition. <span class="badge unverified">Check how unmatched rows behave</span></p>
 
 <h3 id="c15-t-eff">15.9.9 Effective Dates</h3>
 <p><span class="badge doc">From docs</span> An <strong>ad hoc</strong> date rule that fills two related columns, an effective start date and an effective end date, so that periods follow one another without overlap. It makes a random start in a range, an end after it, and the next start right after that end. A <strong>grouping column</strong> decides how many dates are in each sequence: the number of rows sharing the same grouping value (pp.217-218).</p>
 <p>You create the rule on either the start or the end column and name the other. Parameters: Start Date/Time, End Date/Time, Exclude (up to two different weekdays), Effective Start Date column, Effective End Date column, Grouping Column, Invalid Values (percent of rows breaking the sequence; the rule is fixed to Default) (pp.218-219).</p>
-<div class="tablewrap"><table class="sample">
-<caption>The guide's own output for customers with three address rows each (p.218)</caption>
-<thead><tr><th>Customer ID</th><th>Address</th><th>Start Date</th><th>End Date</th></tr></thead>
-<tbody>
-<tr><td>1111</td><td>55 Crestwood Dr</td><td>11/20/2001</td><td>06/17/2003</td></tr>
-<tr><td>1111</td><td>200 Larkin St</td><td>06/18/2003</td><td>04/16/2004</td></tr>
-<tr><td>1111</td><td>1000 Cooke Ln</td><td>04/17/2004</td><td>08/16/2012</td></tr>
-</tbody></table></div>
+
 <p><strong>ShopSphere:</strong> a hypothetical <code>CUSTOMER_ADDRESS_HISTORY</code> table with grouping column <code>customer_id</code> gives each customer a chain of addresses with no gaps. Good for testing "address on the order date" logic.</p>
 
 <h3 id="c15-t-adv">15.9.10 Advanced</h3>

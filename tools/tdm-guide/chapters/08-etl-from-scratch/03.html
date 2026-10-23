@@ -20,7 +20,7 @@ FROM stg_customers;</code></pre>
 <tr><td>Before (1003)</td><td>Meera</td><td>Nair</td><td>NULL</td></tr>
 <tr><td>After (1003)</td><td>Meera</td><td>Nair</td><td>not provided</td></tr>
 </tbody></table></div>
-<p>Notes on dialects: <code>TRIM</code>, <code>UPPER</code>, <code>LOWER</code> and <code>COALESCE</code> exist in all the major databases. <code>SUBSTR</code> is <code>SUBSTRING</code> in SQL Server, and many databases have an <code>INITCAP</code> function that capitalises each word for you. Replacing a missing email with the text "not provided" is a business choice: some teams prefer to keep NULL. Decide once and write it down.</p>
+<p>Function names differ by database (for example <code>SUBSTR</code> is <code>SUBSTRING</code> in SQL Server). Replacing a missing email with "not provided" is a business choice; some teams keep NULL.</p>
 
 <h3 id="c8-t-conversion">8.7.2 Type conversion</h3>
 <p><strong>Idea.</strong> Staging holds everything as text. The target needs real dates and numbers so that sorting, comparing and adding work properly. As text, "9" sorts after "10", and "20/10/2026" sorts before "21/09/2026" only by accident.</p>
@@ -37,7 +37,7 @@ WHERE total_amount NOT GLOB '*[^0-9.]*';   -- only rows whose amount is numeric<
 <tr><td>Before (text)</td><td>"5002"</td><td>"20/10/2026"</td><td>"250.50"</td></tr>
 <tr><td>After (typed)</td><td>5002</td><td>2026-10-20 (date)</td><td>250.5 (number)</td></tr>
 </tbody></table></div>
-<p>In Oracle or PostgreSQL you would write <code>TO_DATE(order_date, 'DD/MM/YYYY')</code> instead of slicing the string. SQL Server uses <code>CONVERT</code> or <code>TRY_CONVERT</code>. I sliced the string because SQLite has no date-parsing function with a format string, and the approach also works anywhere. The <code>GLOB</code> pattern is SQLite's way of testing "contains a character that is not a digit or a dot"; other databases use <code>LIKE</code> tricks, <code>REGEXP</code> or <code>TRY_CAST</code>.</p>
+<p>Oracle and PostgreSQL would use <code>TO_DATE(order_date, 'DD/MM/YYYY')</code>; I sliced the string because SQLite has no date parser with a format string.</p>
 <div class="callout warn"><strong class="ctitle">Dates written day-first and month-first</strong>
 <p>"03/04/2026" is 3 April in India and Europe but 4 March in the USA. Always confirm the source's format with its owner, and then <em>reject</em> dates that do not parse instead of guessing. A job that silently swaps day and month corrupts every row it touches.</p></div>
 
@@ -77,8 +77,6 @@ WHERE rn = 1;</code></pre>
 <tr><td>Before</td><td>2</td><td>4</td></tr>
 <tr><td>After</td><td>1</td><td>3</td></tr>
 </tbody></table></div>
-<div class="callout note"><strong class="ctitle">Exact versus fuzzy duplicates</strong>
-<p>Matching on a key (the same <code>customer_id</code>) is easy. Matching "Asha Menon, 12 Park Road" with "A. Menon, 12 Park Rd" is <em>fuzzy matching</em>, and tools use scoring rules for it. Start with exact keys; add fuzzy matching only when a real business need appears.</p></div>
 
 <h3 id="c8-t-lookup">8.7.5 Lookups</h3>
 <p><strong>Idea.</strong> A <em>lookup</em> enriches a row by finding a related value in a reference table. Order items carry only <code>product_code</code>. A lookup in PRODUCTS adds the product name.</p>
@@ -118,28 +116,10 @@ WHERE  o.total_amount = '' OR o.total_amount GLOB '*[^0-9.]*'
 </tbody></table></div>
 <p>The valid orders carry on. This is the key design choice: <strong>one bad row must not stop the whole run, and must not vanish</strong>. It goes to a reject table with a batch id and a human-readable reason.</p>
 
-<h3 id="c8-t-join">8.7.7 Joining</h3>
-<p><strong>Idea.</strong> Combine rows from different inputs that describe the same thing. To build the sales fact table we join order items to their orders (to get date, customer and status). Each order item is a row; the order is its parent.</p>
-<pre><code>SELECT i.item_id, o.order_id, o.order_date, o.customer_id, i.product_code, i.quantity, i.unit_price
-FROM   stg_order_items i
-JOIN   stg_orders o ON o.order_id = i.order_id;</code></pre>
-<p>Here an <em>inner</em> join is right, because an item with no order is meaningless (and any such item should already have been caught by a check). The important skill is to ask of every join: "what should happen to a row with no match?" The inner join drops it, a left join keeps it with empty columns. The answer is a business decision, not a technical one.</p>
+<h3 id="c8-t-join">8.7.7 Joining and derived columns</h3>
+<p><strong>Joining</strong> combines rows from different inputs. To build the sales fact table we join order items to their orders for date, customer and status. Ask of every join: "what happens to a row with no match?" An inner join drops it; a left join keeps it with empty columns. That is a business decision, not a technical one. <strong>Derived columns</strong> calculate values that do not exist in the source, such as <code>line_amount</code> as quantity times unit price (item 2: 2 &times; 100.00 = 200.0).</p>
 
-<h3 id="c8-t-derived">8.7.8 Derived columns</h3>
-<p><strong>Idea.</strong> Calculate a value that does not exist in the source. The line amount of an order item is quantity times unit price.</p>
-<pre><code>SELECT item_id,
-       CAST(quantity AS INTEGER) * CAST(unit_price AS REAL) AS line_amount
-FROM   stg_order_items;</code></pre>
-<div class="tablewrap"><table class="sample">
-<caption>Derived line_amount</caption>
-<thead><tr><th>item_id</th><th>quantity</th><th>unit_price</th><th>line_amount (derived)</th></tr></thead>
-<tbody>
-<tr><td>2</td><td>2</td><td>100.00</td><td>200.0</td></tr>
-<tr><td>3</td><td>1</td><td>50.50</td><td>50.5</td></tr>
-</tbody></table></div>
-<p>Derived columns are also how you build keys for the warehouse, flags such as <code>is_weekend</code>, ages from dates of birth and full names from first and last names.</p>
-
-<h3 id="c8-t-aggregate">8.7.9 Aggregating</h3>
+<h3 id="c8-t-aggregate">8.7.8 Aggregating</h3>
 <p><strong>Idea.</strong> Summarise many rows into fewer, such as a daily sales table for dashboards.</p>
 <pre><code>SELECT order_date,
        COUNT(DISTINCT order_id) AS orders_count,
@@ -154,6 +134,6 @@ GROUP BY order_date;</code></pre>
 <tr><td>2026-10-20</td><td>2</td><td>4</td><td>1749.5</td></tr>
 <tr><td>2026-10-21</td><td>1</td><td>1</td><td>75.0</td></tr>
 </tbody></table></div>
-<p>Check the arithmetic: on 20 October, order 5001 has 1 unit at 1499.00 and order 5002 has 2 units at 100.00 plus 1 unit at 50.50, so units = 1 + 2 + 1 = 4 and revenue = 1499 + 200 + 50.5 = 1749.5. Always do this kind of hand check on a few rows of any new aggregate.</p>
+<p>Hand check: on 20 October, 1 + 2 + 1 = 4 units and 1499 + 200 + 50.5 = 1749.5 revenue.</p>
 <div class="callout tip"><strong class="ctitle">Order of transformations matters</strong>
 <p>Clean before you compare, convert before you calculate, deduplicate before you join, and filter early to cut work. For example, if you deduplicate <em>after</em> joining items to orders, one duplicated order doubles its items and doubles the revenue.</p></div>

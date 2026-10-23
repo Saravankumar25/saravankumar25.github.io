@@ -1,6 +1,6 @@
 <p>Every tool in this guide moves data. Informatica TDM copies a slice of a database, changes some values and writes it somewhere else. Delphix reads a source, masks it and delivers it to a target. GenRocket creates rows and writes them to a database or a file. Underneath, all three do the same three things: <strong>get data from somewhere, change it, put it somewhere else</strong>. The industry has had a name for that pattern for decades: <strong>ETL</strong>, which stands for Extract, Transform, Load.</p>
 <p>This chapter teaches ETL on its own, with no test data management in it, so that you can recognise the pattern wherever it appears. We will build a small but complete ETL job for ShopSphere using plain SQL, with real input and real output tables, then look at the machinery that real ETL tools wrap around those SQL steps: schedulers, logs, error handling and reusable components. The <a href="09-etl-and-tdm.html">next chapter on ETL and TDM</a> lays the TDM tools on top of what you learn here.</p>
-<p>You do not need any earlier ETL knowledge. You do need to know what a table, a primary key and a foreign key are; if not, read <a href="03-data-basics.html">the data basics chapter</a> first.</p>
+<p>You need to know what a table, a primary key and a foreign key are; if not, read <a href="03-data-basics.html">the data basics chapter</a> first.</p>
 <div class="callout recap"><strong class="ctitle">What you will learn</strong>
 <ul>
 <li>What ETL is, why companies do it, and how it differs from the operational database and the data warehouse.</li>
@@ -22,10 +22,6 @@
 <h2 id="c8-words">8.1 Words to know first</h2>
 <dl class="defs">
 <div><dt>ETL</dt><dd>Extract, Transform, Load: copy data out of one or more sources, reshape and clean it, and write it into a target.</dd></div>
-<div><dt>Source and target</dt><dd>Where the data comes from, and where it goes.</dd></div>
-<div><dt>Extract</dt><dd>The step that reads data from the source.</dd></div>
-<div><dt>Transform</dt><dd>The step that changes the data: cleaning, converting, combining, calculating.</dd></div>
-<div><dt>Load</dt><dd>The step that writes the result into the target.</dd></div>
 <div><dt>Staging area</dt><dd>A temporary landing zone, usually a set of tables or files, where extracted data sits unchanged before it is transformed.</dd></div>
 <div><dt>Operational database (OLTP)</dt><dd>The database an application uses to run the business: place an order, update an address. Built for many small, fast reads and writes.</dd></div>
 <div><dt>Data warehouse</dt><dd>A separate database built for reporting and analysis across lots of history. Built for a few big reads.</dd></div>
@@ -44,8 +40,8 @@
 
 <h2 id="c8-what-is-etl">8.2 What ETL is and why it exists</h2>
 <p><strong>Concept.</strong> ETL is a repeatable process that moves data from where it is created to where it is needed, fixing it on the way.</p>
-<p><strong>Simple explanation.</strong> Think of a school canteen that serves lunch to 1,000 students. Raw vegetables arrive from several farms in different crates, some muddy and some damaged (<em>extract</em> brings them to the back door). In the prep room, staff wash, peel, cut, discard the bad ones and combine them into recipes (<em>transform</em>). Finally trays go to the serving counter in a fixed layout (<em>load</em>). Nobody serves a muddy carrot straight from the farm crate, and nobody cooks in the dining hall. Each stage has its own place and its own rules.</p>
-<p>The analogy stops being accurate in one important way: a canteen runs once a day and food is eaten. An ETL job usually runs many times, and the same job must give the same kind of result each time, even if it is interrupted and restarted. Cooks can improvise; ETL jobs must not.</p>
+<p><strong>Simple explanation.</strong> Think of a school canteen. Vegetables arrive muddy from several farms (<em>extract</em> brings them to the back door), staff wash, cut and combine them in the prep room (<em>transform</em>), and trays go to the serving counter (<em>load</em>). Each stage has its own place and rules.</p>
+<p>The analogy stops being accurate here: an ETL job runs many times and must give the same kind of result each time, even if interrupted and restarted. Cooks can improvise; ETL jobs must not.</p>
 <div class="callout why"><strong class="ctitle">Why it matters</strong>
 <p>Data in real companies lives in many places and many shapes. ShopSphere's orders sit in one database, product prices in a spreadsheet maintained by buyers, and a partner sends a daily file where dates are written day first. A manager who asks "how much did we sell last week, per product?" needs one clean answer. Someone has to collect, clean and combine. ETL is the name for doing that on purpose, automatically, and with a record of what happened.</p></div>
 <p>ETL appears in data warehouses and reports (the classic case), system migrations, keeping two systems in step, feeding analytics, and test data provisioning, the topic of the <a href="09-etl-and-tdm.html">next chapter</a>.</p>
@@ -60,12 +56,8 @@
 <tr><td>Table shape</td><td>Many small tables, tightly normalised to avoid duplication (CUSTOMERS, ORDERS, ORDER_ITEMS)</td><td>Fewer, wider tables arranged around facts and dimensions</td></tr>
 <tr><td>History</td><td>Mostly current values; old values are overwritten</td><td>History kept, often with dated versions of each row</td></tr>
 <tr><td>Who writes</td><td>The application, all day</td><td>The ETL job, on a schedule</td></tr>
-<tr><td>Who reads</td><td>The application and its users</td><td>Analysts, report tools, dashboards</td></tr>
-<tr><td>Speed priority</td><td>Fast small reads and writes</td><td>Fast big scans and summaries</td></tr>
 </tbody></table></div>
 <p>A common warehouse shape is the <strong>star schema</strong>: a central <em>fact</em> table that records events or measurements (one row per order line, with quantity and amount), surrounded by <em>dimension</em> tables that describe the who, what and when (customer, product, date). A fact table is mostly numbers and keys; a dimension table is mostly descriptive text. We will build a tiny star for ShopSphere later in this chapter.</p>
-<div class="callout tip"><strong class="ctitle">Why not report straight from the operational database?</strong>
-<p>Big summary queries compete with customers placing orders and slow the shop down. The operational tables are also shaped for writing, so reporting queries need many joins. A separate warehouse removes both problems, at the price of building and running ETL.</p></div>
 
 <h2 id="c8-big-picture">8.4 The big picture</h2>
 <p>Here is the whole pattern on one page. Read it left to right, then read the three boxes under the main flow, which sit around the flow and keep it running.</p>
@@ -115,4 +107,3 @@
 <text x="670" y="330" text-anchor="middle" fill="currentColor" font-size="12">row counts, errors, alerts</text>
 <g stroke="currentColor" stroke-width="1" stroke-dasharray="3 3" fill="none"><path d="M275 280 L275 232"/><path d="M465 280 L465 232"/><path d="M670 280 L670 232"/></g>
 </svg><figcaption>Original diagram: the ETL data path (top) and the supporting parts that control and observe it (bottom, dashed).</figcaption></figure>
-<p>Keep this picture in mind. Every section from here on zooms into one box.</p>
