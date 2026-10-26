@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500" role="img"><rect width="900" height="500" fill="#111113"/><text x="34.0" y="44.0" text-anchor="start" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="22" font-weight="bold" fill="#f1f1f3" fill-opacity="1">FlashAttention: stop writing the N×N matrix to slow memory</text>
+<text x="34.0" y="70.0" text-anchor="start" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="14" font-weight="normal" fill="#a9a9b3" fill-opacity="1">the bottleneck is memory traffic between HBM and SRAM, not arithmetic</text>
+<rect x="30.0" y="90.0" width="380.0" height="370.0" rx="12" fill="#19191d" fill-opacity="1" stroke="#2c2c33" stroke-width="1"/>
+<text x="220.0" y="116.0" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="15" font-weight="bold" fill="#e08fa3" fill-opacity="1">Standard attention</text>
+<rect x="60.0" y="134.0" width="320.0" height="34.0" rx="8" fill="#202026" fill-opacity="1" stroke="#9a9aa5" stroke-width="1.5"/>
+<text x="220.0" y="155.1" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="12.5" font-weight="normal" fill="#f1f1f3" fill-opacity="1">load Q, K  (HBM → SRAM)</text>
+<rect x="60.0" y="179.0" width="320.0" height="34.0" rx="8" fill="#202026" fill-opacity="1" stroke="#84c3bb" stroke-width="1.5"/>
+<text x="220.0" y="200.1" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="12.5" font-weight="normal" fill="#f1f1f3" fill-opacity="1">S = QKᵀ/√d</text>
+<rect x="60.0" y="224.0" width="320.0" height="34.0" rx="8" fill="#202026" fill-opacity="1" stroke="#e08fa3" stroke-width="1.5"/>
+<text x="220.0" y="245.1" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="12.5" font-weight="normal" fill="#f1f1f3" fill-opacity="1">write S → HBM   (N×N!)</text>
+<rect x="60.0" y="269.0" width="320.0" height="34.0" rx="8" fill="#202026" fill-opacity="1" stroke="#e08fa3" stroke-width="1.5"/>
+<text x="220.0" y="290.1" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="12.5" font-weight="normal" fill="#f1f1f3" fill-opacity="1">read S ← HBM</text>
+<rect x="60.0" y="314.0" width="320.0" height="34.0" rx="8" fill="#202026" fill-opacity="1" stroke="#84c3bb" stroke-width="1.5"/>
+<text x="220.0" y="335.1" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="12.5" font-weight="normal" fill="#f1f1f3" fill-opacity="1">P = softmax(S)</text>
+<rect x="60.0" y="359.0" width="320.0" height="34.0" rx="8" fill="#202026" fill-opacity="1" stroke="#e08fa3" stroke-width="1.5"/>
+<text x="220.0" y="380.1" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="12.5" font-weight="normal" fill="#f1f1f3" fill-opacity="1">write P → HBM   (N×N!)</text>
+<rect x="60.0" y="404.0" width="320.0" height="34.0" rx="8" fill="#202026" fill-opacity="1" stroke="#e08fa3" stroke-width="1.5"/>
+<text x="220.0" y="425.1" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="12.5" font-weight="normal" fill="#f1f1f3" fill-opacity="1">read P, V ← HBM; O = PV</text>
+<rect x="450.0" y="90.0" width="420.0" height="370.0" rx="12" fill="#19191d" fill-opacity="1" stroke="#2c2c33" stroke-width="1"/>
+<text x="660.0" y="116.0" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="15" font-weight="bold" fill="#84c3bb" fill-opacity="1">FlashAttention (tiling)</text>
+<text x="470.0" y="150.0" text-anchor="start" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="12" font-weight="normal" fill="#a9a9b3" fill-opacity="1">Q row-tiles        K / V column-tiles</text>
+<rect x="480.0" y="160.0" width="70.0" height="28.0" rx="4" fill="#202026" fill-opacity="1" stroke="#8fb4f5" stroke-width="1.5"/>
+<text x="515.0" y="179.0" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="12" font-weight="normal" fill="#f1f1f3" fill-opacity="1">Q1</text>
+<rect x="480.0" y="194.0" width="70.0" height="28.0" rx="4" fill="#202026" fill-opacity="1" stroke="#8fb4f5" stroke-width="1.5"/>
+<text x="515.0" y="213.0" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="12" font-weight="normal" fill="#f1f1f3" fill-opacity="1">Q2</text>
+<rect x="480.0" y="228.0" width="70.0" height="28.0" rx="4" fill="#202026" fill-opacity="1" stroke="#8fb4f5" stroke-width="1.5"/>
+<text x="515.0" y="247.0" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="12" font-weight="normal" fill="#f1f1f3" fill-opacity="1">Q3</text>
+<rect x="620.0" y="160.0" width="62.0" height="28.0" rx="4" fill="#202026" fill-opacity="1" stroke="#e3b869" stroke-width="1.5"/>
+<text x="651.0" y="179.0" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="12" font-weight="normal" fill="#f1f1f3" fill-opacity="1">K1</text>
+<rect x="690.0" y="160.0" width="62.0" height="28.0" rx="4" fill="#202026" fill-opacity="1" stroke="#e3b869" stroke-width="1.5"/>
+<text x="721.0" y="179.0" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="12" font-weight="normal" fill="#f1f1f3" fill-opacity="1">K2</text>
+<rect x="760.0" y="160.0" width="62.0" height="28.0" rx="4" fill="#202026" fill-opacity="1" stroke="#e3b869" stroke-width="1.5"/>
+<text x="791.0" y="179.0" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="12" font-weight="normal" fill="#f1f1f3" fill-opacity="1">K3</text>
+<rect x="480.0" y="276.0" width="380.0" height="36.0" rx="8" fill="#202026" fill-opacity="1" stroke="#84c3bb" stroke-width="1.5"/>
+<text x="670.0" y="298.2" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="13" font-weight="normal" fill="#f1f1f3" fill-opacity="1">per tile pair, everything stays in SRAM</text>
+<rect x="480.0" y="322.0" width="380.0" height="36.0" rx="8" fill="#202026" fill-opacity="1" stroke="#84c3bb" stroke-width="1.5"/>
+<text x="670.0" y="344.2" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="13" font-weight="normal" fill="#f1f1f3" fill-opacity="1">online softmax accumulates the output O</text>
+<rect x="480.0" y="368.0" width="380.0" height="36.0" rx="8" fill="#202026" fill-opacity="1" stroke="#a3d68f" stroke-width="1.5"/>
+<text x="670.0" y="390.2" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="13" font-weight="normal" fill="#f1f1f3" fill-opacity="1">only the final O is written to HBM</text>
+<text x="660.0" y="436.0" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial,DejaVu Sans,sans-serif" font-size="12.5" font-weight="normal" fill="#f1f1f3" fill-opacity="1">exact result · 2–4× faster · memory O(N²) → O(N)</text></svg>

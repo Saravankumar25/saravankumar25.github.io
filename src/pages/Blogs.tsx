@@ -55,6 +55,13 @@ export default function Blogs() {
             <p>Test Data Management from zero: data, privacy, ETL, then hands-on Informatica TDM, GenRocket and Delphix.</p>
           </a>
         </li>
+        <li>
+          <a href="/blogs/from-nlp-to-large-language-models/">
+            <span className="mono">2026-10-26 · Illustrated learning blog</span>
+            <h3>From NLP to Large Language Models</h3>
+            <p>Ten chapters from tokens and word vectors through Transformers, LLMs, alignment, reasoning, agents and evaluation.</p>
+          </a>
+        </li>
         {posts.map((p) => (
           <li key={p.slug}>
             <Link to={`/blogs/${p.slug}`}>
