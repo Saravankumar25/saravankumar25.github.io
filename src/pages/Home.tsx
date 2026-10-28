@@ -1,4 +1,4 @@
-import { lazy, Suspense, type ReactNode } from "react";
+import { lazy, Suspense, useEffect, useState, type ReactNode } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { Link } from "react-router-dom";
 import Reveal from "../components/Reveal";
@@ -54,11 +54,13 @@ function FadeUp({ children, delay }: { children: ReactNode; delay: number }) {
 
 export default function Home() {
   useTitle();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   const posts = getPosts().slice(0, 3);
   return (
     <>
       <section className="hero">
-        <Suspense fallback={null}><HeroScene /></Suspense>
+        {mounted && <Suspense fallback={null}><HeroScene /></Suspense>}
         <div className="wrap">
           <div className="hero-copy">
             <SplitName text={config.name} />
@@ -71,7 +73,7 @@ export default function Home() {
             </FadeUp>
             <FadeUp delay={0.85}>
               <div className="actions">
-                <Link className="btn" to="/projects">View projects</Link>
+                <Link reloadDocument className="btn" to="/projects">View projects</Link>
                 <a className="btn ghost" href={config.github} target="_blank" rel="noopener noreferrer">GitHub</a>
                 <a className="btn ghost" href={config.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
               </div>
@@ -82,7 +84,7 @@ export default function Home() {
 
       <section className="wrap block">
         <Reveal>
-          <Link to="/projects/openframe" className="spotlight">
+          <Link reloadDocument to="/projects/openframe" className="spotlight">
             <span className="mono">Currently building</span>
             <strong>OpenFrame Studio</strong>
             <span>{plain.openframe}</span>
@@ -112,7 +114,7 @@ export default function Home() {
           {shown.map((p) => (
             <li key={p.slug}>
               <Reveal className="fill">
-                <Link to={`/projects/${p.slug}`} className="card link">
+                <Link reloadDocument to={`/projects/${p.slug}`} className="card link">
                   <span className="mono">{p.category}</span>
                   <h3>{p.name}</h3>
                   <p>{plain[p.slug]}</p>
@@ -122,13 +124,13 @@ export default function Home() {
             </li>
           ))}
         </ul>
-        <Link className="more" to="/projects">All projects →</Link>
+        <Link reloadDocument className="more" to="/projects">All projects →</Link>
       </section>
 
       <section className="wrap block">
         <h2 className="section">Research</h2>
         <p>{papers.length} papers accepted at IEEE conferences, on 5G network prediction and IoT systems.</p>
-        <Link className="more" to="/research">See the papers →</Link>
+        <Link reloadDocument className="more" to="/research">See the papers →</Link>
       </section>
 
       {posts.length > 0 && (
@@ -136,7 +138,7 @@ export default function Home() {
           <h2 className="section">Recent writing</h2>
           <ul className="posts">
             {posts.map((p) => (
-              <li key={p.slug}><Link to={`/blogs/${p.slug}`}><span className="mono">{p.date}</span><h3>{p.title}</h3><p>{p.summary}</p></Link></li>
+              <li key={p.slug}><Link reloadDocument to={`/blogs/${p.slug}`}><span className="mono">{p.date}</span><h3>{p.title}</h3><p>{p.summary}</p></Link></li>
             ))}
           </ul>
         </section>
@@ -144,7 +146,7 @@ export default function Home() {
 
       <section className="wrap block cta">
         <h2>Let's talk</h2>
-        <Link className="btn" to="/contact">Contact</Link>
+        <Link reloadDocument className="btn" to="/contact">Contact</Link>
       </section>
     </>
   );

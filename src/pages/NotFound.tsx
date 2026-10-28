@@ -8,7 +8,7 @@ export default function NotFound() {
       <p className="eyebrow">404</p>
       <h1>Page not found</h1>
       <p className="lead">That page does not exist.</p>
-      <Link className="btn" to="/">Back to home</Link>
+      <Link reloadDocument className="btn" to="/">Back to home</Link>
     </section>
   );
 }

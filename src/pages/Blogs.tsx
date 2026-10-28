@@ -1,5 +1,6 @@
 import { Link, useParams } from "react-router-dom";
 import { useTitle } from "../hooks";
+import series from "../content/series.json";
 import NotFound from "./NotFound";
 
 export interface Post { slug: string; title: string; date: string; summary: string; body: string }
@@ -34,37 +35,18 @@ export default function Blogs() {
       <h1>Blogs</h1>
       <p className="lead">Illustrated, first-principles guides to how computers and machine learning work.</p>
       <ul className="posts">
-        <li>
-          <a href="/blogs/how-computers-work/">
-            <span className="mono">2026-10-13 · Illustrated learning blog</span>
-            <h3>How Computers Work</h3>
-            <p>An interactive, first-principles journey from bits to a programmable CPU.</p>
-          </a>
-        </li>
-        <li>
-          <a href="/blogs/from-machine-learning-to-transformers/">
-            <span className="mono">2026-10-14 · Illustrated learning blog</span>
-            <h3>From Machine Learning to Transformers</h3>
-            <p>Ten chapters tracing machine learning from its foundations through neural networks, NLP, and modern Transformers.</p>
-          </a>
-        </li>
-        <li>
-          <a href="/blogs/tdm-guide/">
-            <span className="mono">2026-10-23 · Illustrated learning blog</span>
-            <h3>TDM Guide</h3>
-            <p>Test Data Management from zero: data, privacy, ETL, then hands-on Informatica TDM, GenRocket and Delphix.</p>
-          </a>
-        </li>
-        <li>
-          <a href="/blogs/from-nlp-to-large-language-models/">
-            <span className="mono">2026-10-26 · Illustrated learning blog</span>
-            <h3>From NLP to Large Language Models</h3>
-            <p>Ten chapters from tokens and word vectors through Transformers, LLMs, alignment, reasoning, agents and evaluation.</p>
-          </a>
-        </li>
+        {series.filter(blog => blog.status === "published").map(blog => (
+          <li key={blog.slug}>
+            <a href={`/blogs/${blog.slug}/`}>
+              <span className="mono">{blog.datePublished} · Illustrated learning blog</span>
+              <h3>{blog.title}</h3>
+              <p>{blog.description}</p>
+            </a>
+          </li>
+        ))}
         {posts.map((p) => (
           <li key={p.slug}>
-            <Link to={`/blogs/${p.slug}`}>
+            <Link reloadDocument to={`/blogs/${p.slug}`}>
               <span className="mono">{p.date}</span>
               <h3>{p.title}</h3>
               <p>{p.summary}</p>
@@ -105,7 +87,7 @@ export function BlogPost() {
 
   return (
     <article className="wrap page prose">
-      <Link className="back" to="/blogs">← Blogs</Link>
+      <Link reloadDocument className="back" to="/blogs">← Blogs</Link>
       <p className="mono">{post.date}</p>
       <h1>{post.title}</h1>
       {out}

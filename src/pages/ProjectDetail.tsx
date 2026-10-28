@@ -12,7 +12,7 @@ export default function ProjectDetail() {
 
   return (
     <article className="wrap page case">
-      <Link className="back" to="/projects">← Projects</Link>
+      <Link reloadDocument className="back" to="/projects">← Projects</Link>
       <p className="eyebrow">{p.category} · {p.status}</p>
       <h1>{p.name}</h1>
       <p className="lead">{p.tagline}</p>

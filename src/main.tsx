@@ -1,14 +1,21 @@
 import { StrictMode } from "react";
-import { createRoot } from "react-dom/client";
-import { HashRouter } from "react-router-dom";
+import { createRoot, hydrateRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
 import App from "./App";
 import "./styles.css";
 
-// HashRouter keeps deep links and refreshes working on GitHub Pages without a server rewrite.
-createRoot(document.getElementById("root")!).render(
+// Retain bookmarked fragment routes while publishing real static URLs for crawlers.
+if (location.hash.startsWith("#/")) {
+  const legacy = location.hash.slice(1).replace(/^\/journal(?=\/|$)/, "/blogs");
+  location.replace(legacy.split("#")[0].replace(/\/$/, "") + "/" + (legacy.includes("#") ? "#" + legacy.split("#")[1] : ""));
+}
+const application = (
   <StrictMode>
-    <HashRouter>
+    <BrowserRouter>
       <App />
-    </HashRouter>
-  </StrictMode>,
+    </BrowserRouter>
+  </StrictMode>
 );
+const root = document.getElementById("root")!;
+if (root.hasChildNodes()) hydrateRoot(root, application);
+else createRoot(root).render(application);

@@ -28,13 +28,14 @@ export default function Layout() {
       <a className="skip" href="#main">Skip to content</a>
       <header className="header">
         <div className="wrap bar">
-          <Link to="/" className="brand">SK</Link>
+          <Link reloadDocument to="/" className="brand">SK</Link>
+          <button type="button" data-theme-toggle aria-label="Dark theme" aria-pressed="false" suppressHydrationWarning>Theme</button>
           <button className="menu" aria-expanded={open} aria-controls="nav" onClick={() => setOpen(!open)}>
             {open ? "Close" : "Menu"}
           </button>
           <nav id="nav" className={open ? "open" : ""} aria-label="Primary">
             {nav.map(([to, label]) => (
-              <NavLink key={to} to={to}>{label}</NavLink>
+              <NavLink reloadDocument key={to} to={to}>{label}</NavLink>
             ))}
           </nav>
         </div>

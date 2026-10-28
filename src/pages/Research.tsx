@@ -17,7 +17,7 @@ export default function Research() {
             <span className="badge">Accepted · conference paper</span>
             <h3>{p.title}</h3>
             {p.note && <p>{p.note}</p>}
-            {p.slug && <Link className="more" to={`/projects/${p.slug}`}>Read the implementation notes →</Link>}
+            {p.slug && <Link reloadDocument className="more" to={`/projects/${p.slug}`}>Read the implementation notes →</Link>}
           </li>
         ))}
       </ol>

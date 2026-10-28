@@ -25,10 +25,10 @@ const icons: Record<string, { path: string; hex: string }> = {
 };
 const images: Record<string, string> = { AWS: awsUrl, Java: javaUrl, "OpenAI API": openaiUrl };
 
-// Brand colours that would vanish on the dark background fall back to off-white.
+// Near-black brand glyphs follow the foreground so both themes remain legible.
 const fillFor = (hex: string) => {
   const n = parseInt(hex, 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
-  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 70 ? "#e8e8ea" : `#${hex}`;
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 70 ? "var(--text)" : `#${hex}`;
 };
 
 export default function Skills() {
@@ -43,7 +43,7 @@ export default function Skills() {
                 {icons[name] ? (
                   <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false" style={{ fill: fillFor(icons[name].hex) }}><path d={icons[name].path} /></svg>
                 ) : images[name] ? (
-                  <img src={images[name]} alt="" width="16" height="16" className={name === "AWS" ? "wide" : undefined} />
+                  <img src={images[name]} alt="" width="16" height="16" className={name === "AWS" ? "wide" : name === "OpenAI API" ? "theme-monochrome" : undefined} />
                 ) : null}
                 {name}
               </li>

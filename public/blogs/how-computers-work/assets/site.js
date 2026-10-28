@@ -6,8 +6,6 @@ const recalled=(key,fallback)=>{try{return localStorage.getItem(key)??fallback}c
 const top=$('.top');
 const menu=$('#menu-toggle'),side=$('#sidebar');
 if(menu && side){menu.addEventListener('click',()=>{let open=side.classList.toggle('open');menu.setAttribute('aria-expanded',String(open))});side.addEventListener('click',e=>{if(e.target.closest('a'))side.classList.remove('open')})}
-const themeButton=$('#theme-toggle');const setTheme=v=>{document.documentElement.dataset.theme=v;remember('hcw-theme',v);if(themeButton)themeButton.textContent=v==='light'?'☾ Dark':'☼ Light'};
-setTheme(recalled('hcw-theme','dark'));themeButton?.addEventListener('click',()=>setTheme(document.documentElement.dataset.theme==='dark'?'light':'dark'));
 const progress=$('#progress-fill');if(progress){const update=()=>{const max=document.documentElement.scrollHeight-innerHeight;progress.style.width=(max>0?Math.round(100*scrollY/max):0)+'%'};addEventListener('scroll',update,{passive:true});update()}
 $$('[data-complete]').forEach(button=>{const id=button.dataset.complete;const render=()=>{const done=recalled('hcw-done-'+id,'0')==='1';button.textContent=done?'✓ Completed':'○ Mark as completed';button.setAttribute('aria-pressed',String(done))};button.addEventListener('click',()=>{remember('hcw-done-'+id,recalled('hcw-done-'+id,'0')==='1'?'0':'1');render()});render()});
 const cleanNumber=(input,min,max)=>{let v=Number.parseInt(String(input),10);return Number.isFinite(v)?Math.max(min,Math.min(max,v)):min};

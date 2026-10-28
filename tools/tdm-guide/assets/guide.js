@@ -1,9 +1,6 @@
 (function(){
 var d=document,root=d.documentElement;
 function safe(f){try{return f()}catch(e){}}
-// theme toggle
-var tt=d.getElementById('theme-toggle');
-if(tt)tt.addEventListener('click',function(){var cur=root.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');var n=cur==='light'?'dark':'light';root.setAttribute('data-theme',n);safe(function(){localStorage.setItem('tdm-theme',n)})});
 // reading progress
 var bar=d.getElementById('progress');
 function prog(){var h=d.documentElement.scrollHeight-innerHeight;if(bar)bar.style.width=(h>0?Math.min(100,scrollY/h*100):0)+'%'}

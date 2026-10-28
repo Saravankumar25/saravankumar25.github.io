@@ -22,7 +22,7 @@ export default function Projects() {
       <ul className="cards">
         {shown.map((p) => (
           <li key={p.slug}>
-            <Link to={`/projects/${p.slug}`} className="card link">
+            <Link reloadDocument to={`/projects/${p.slug}`} className="card link">
               <span className="mono">{p.category}</span>
               <h3>{p.name}</h3>
               <p>{p.tagline}</p>
